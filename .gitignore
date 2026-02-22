@@ -1,0 +1,27 @@
+# Deno
+.deno/
+deno.lock
+
+# Dependencies
+node_modules
+
+# Build
+dist/
+build/
+
+# dweb auto-generated (regenerated on each build/start)
+_client.dep.tsx
+
+# Docker cache (deno cache prefill dir)
+runtime/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.idea
+.cursor
+
+# System
+.DS_Store

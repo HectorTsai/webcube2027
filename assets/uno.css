@@ -1,0 +1,59 @@
+/**
+ * UnoCSS entry / custom styles
+ * Write classes in components; unocssPlugin scans and merges output.
+ */
+
+/* Base reset */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; min-height: 100%; }
+a { color: inherit; text-decoration: none; }
+
+/* daisyUI 主題變數使用 oklch 和其他參數 */
+:root {
+  /* Colors */
+  --p: 65% 0.2 240;
+  --pc: 98% 0.02 240;
+  --s: 65% 0.2 280;
+  --sc: 98% 0.02 280;
+  --t: 65% 0.2 200;
+  --tc: 98% 0.02 200;
+  --a: 75% 0.2 160;
+  --ac: 15% 0.02 160;
+  --n: 30% 0.02 240;
+  --nc: 90% 0.02 240;
+  --b1: 98% 0.02 240;
+  --b2: 95% 0.02 240;
+  --b3: 90% 0.02 240;
+  --bc: 15% 0.02 240;
+  --in: 70% 0.15 200;
+  --inc: 98% 0.02 200;
+  --su: 75% 0.15 140;
+  --suc: 15% 0.02 140;
+  --wa: 80% 0.15 70;
+  --wac: 15% 0.02 70;
+  --er: 70% 0.2 20;
+  --erc: 98% 0.02 20;
+
+  /* Border radius */
+  --rounded-box: 0.25rem;
+  --rounded-field: 0.375rem;
+  --rounded-selector: 0.125rem;
+
+  /* Animation */
+  --animation-btn: 0.25s;
+  --animation-input: 0.2s;
+
+  /* Button focus */
+  --btn-focus-scale: 0.95;
+  --border-btn: 1px;
+
+  /* Tab */
+  --tab-border: 1px;
+  --tab-radius: 0.5rem;
+
+  /* Focus ring */
+  --focus-ring: 2px;
+  --focus-ring-offset: 2px;
+}
+
+/* Optional: custom layer, e.g. :root { --color-primary: #333; } */

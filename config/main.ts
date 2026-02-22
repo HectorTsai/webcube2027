@@ -1,0 +1,149 @@
+/**
+ * App config
+ * Framework auto-loads this file
+ * Full config reference: docs/en-US/APP_CONFIG.md
+ */
+import type { AppConfig } from "@dreamer/dweb";
+
+const config: AppConfig = {
+  // ========== Basic ==========
+  name: "webcube2027",
+  version: "1.0.0",
+  /** Framework language (auto-detected from env, override to "en-US" if needed) (auto-detected at init; override to zh-CN / en-US if needed) */
+  language: "en-US",
+
+  // envPrefix: "APP_",
+  hotReload: true,
+
+  // ========== Plugin manager (optional) ==========
+  // pluginManagerOptions: {
+  //   autoActivate: false,
+  //   continueOnError: true,
+  //   enableHotReload: false,
+  //   hotReloadInterval: 1000,
+  // },
+
+  // ========== Server ==========
+  // host / port 在 main.dev.ts（127.0.0.1:3000）与 main.prod.ts（0.0.0.0:3000）中配置
+  server: {
+    dev: {
+      hmr: { enabled: true, path: "/__hmr" },
+      watch: {
+        paths: ["./"],
+        ignore: ["node_modules", ".git", "dist"],
+      },
+    },
+    // mode: "dev",
+    // onListen: ({ host, port }) => { console.log(`http://${host}:${port}`); },
+    // onError: (error) => { console.error(error); return new Response("Error", { status: 500 }); },
+    // debug: false,
+    // shutdownTimeout: 10000,
+  },
+
+  // ========== Router ==========
+  router: {
+    routesDir: "./routes",
+    // apiMode: "restful",
+    // redirects: [{ source: "/old", destination: "/new", permanent: true }],
+    // skipAppValidation: false,
+  },
+
+  // ========== Render ==========
+  // See docs/zh-CN/APP_CONFIG.md or docs/en-US/APP_CONFIG.md for full options (SSR/SSG hydration)
+  render: {
+    engine: "view",
+    mode: "ssr",
+    // debug: false,
+    // ssr: {
+    //   hydrate: true,
+    // },
+    // ssg: {
+    //   outputDir: "dist/static",
+    //   routes: ["/", "/about"],
+    //   /** Supports path segments (/user/[id]→/user/1) and query (/user?id=[id]→/user?id=1) */
+    //   dynamicRoutes: { "/user/[id]": ["1", "2", "3"] }, // or "/user?id=[id]": ["1", "2", "3"]
+    //   hydrate: true,
+    // },
+  },
+
+  // ========== Build ==========
+  build: {
+    server: {
+      useNativeCompile: false,
+      // entry: "src/main.ts",
+      // output: "dist",
+      // target: "deno",
+      // compile: { minify: true, sourcemap: true, platform: ["linux", "darwin", "windows"] },
+      // external: ["tailwindcss", "lightningcss"],
+      // externalNpm: true,
+      // excludePaths: ["node_modules", ".bun/install"],
+      // debug: false,
+    },
+    // client: { entry: "...", output: "dist/client", engine: "view", bundle: {}, html: {}, sourcemap: true, debug: false },
+    // assets: { css: { extract: true, minify: true, autoprefix: true }, images: {}, publicDir: "public", assetsDir: "assets" },
+    // build: { mode: "prod", clean: true, cache: true, incremental: true, silent: false, logLevel: "info" },
+  },
+
+  // ========== Logger ==========
+  logger: {
+    level: "info",
+    format: "text",
+    output: {
+      auto: true,
+      console: true,
+      file: {
+        path: "runtime/logs/app.log",
+        rotate: true,
+        strategy: "size",
+        maxSize: 10 * 1024 * 1024,
+        maxFiles: 5,
+      },
+    },
+    // color: true,
+    // showTime: true,
+    // showLevel: true,
+    // tags: ["app"],
+    // filter: { includeTags: ["app", "http"], excludeTags: ["debug"] },
+    // maxMessageLength: 32 * 1024,
+  },
+  // ========== Database (optional; uncomment and configure to use) ==========
+  // database: {
+  //   default: {
+  //     adapter: "sqlite",
+  //     connection: { filename: "./data/colors.db" },
+  //   },
+  //   // or postgresql: connection: { host, port, database, username, password }
+  //   // connections: { read: { ... }, mongodb: { ... } },
+  //   // managerOptions: {},
+  // },
+  // ========== Socket / WebSocket (optional) ==========
+  // socket: {
+  //   adapter: "socketio",
+  //   config: { path: "/socket.io/", allowCORS: true, pingTimeout: 20000, pingInterval: 25000, transports: ["websocket", "polling"], allowPolling: true, debug: false },
+  // },
+  // socket: { adapter: "websocket", config: { path: "/ws", pingTimeout: 60000, pingInterval: 30000, debug: false } },
+
+  // ========== Session (optional; @dreamer/session; requires store, e.g. createFileStore) ==========
+  // session: {
+  //   store: createFileStore(await getDreamerDwebCacheDir(), "sessions"),
+  //   name: "sid",
+  //   maxAge: 86400,
+  //   cookie: { path: "/", httpOnly: true, secure: false, sameSite: "lax" },
+  //   autoSave: true,
+  // },
+
+  // ========== Plugins (optional) ==========
+  // plugins: [
+  //   "./plugins/auth-plugin.ts",
+  //   { name: "custom-plugin", version: "1.0.0", dependencies: [], config: {}, async onInit(container) {}, async onRequest(ctx, container) {} },
+  // ],
+
+  // ========== Middlewares (optional) ==========
+  // middlewares: [
+  //   { middleware: async (_req, _res, next) => { await next(); }, name: "request-logger" },
+  //   "./middlewares/cors.ts",
+  //   { middleware: "./middlewares/auth.ts", condition: (req) => req.url.startsWith("/admin"), name: "admin-auth" },
+  // ],
+};
+
+export default config;
