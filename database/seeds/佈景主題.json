@@ -1,0 +1,35 @@
+[
+  {"_id":"佈景主題/標籤/經典風","名稱":{"en":"classic","zh-tw":"經典風","vi":"sự cổ điển"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id":"佈景主題/標籤/簡約風","名稱":{"en":"simplicity","zh-tw":"簡約風","vi":"sự tối giản"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id":"佈景主題/標籤/優雅風","名稱":{"en":"elegance","zh-tw":"優雅風","vi":"sự thanh lịch"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id":"佈景主題/標籤/時尚風","名稱":{"en":"fashion","zh-tw":"時尚風","vi":"thời trang"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id":"佈景主題/標籤/華麗風","名稱":{"en":"gorgeous","zh-tw":"華麗風","vi":"lộng lẫy"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id":"佈景主題/標籤/休閒風","名稱":{"en":"casual","zh-tw":"休閒風","vi":"casual"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id":"佈景主題/標籤/活力風","名稱":{"en":"vibrant","zh-tw":"活力風","vi":"năng động"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id":"佈景主題/標籤/復古風","名稱":{"en":"retro","zh-tw":"復古風","vi":"retro"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id":"佈景主題/標籤/和諧風","名稱":{"en":"harmonious","zh-tw":"和諧風","vi":"hoà hợp"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id":"佈景主題/標籤/神秘風","名稱":{"en":"mystery","zh-tw":"神秘風","vi":"huyền bí"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id":"佈景主題/標籤/可愛風","名稱":{"en":"cute","zh-tw":"可愛風","vi":"dễ thương"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id":"佈景主題/標籤/北歐風","名稱":{"en":"scandinavian","zh-tw":"北歐風","vi":"bắc Âu"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id":"佈景主題/標籤/波西米亞風","名稱":{"en":"bohemian","zh-tw":"波西米亞風","vi":"bohemian"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {
+    "_id": "佈景主題/佈景主題/經典藍",
+    "名稱": {"en":"classic blue","zh-tw":"經典藍","vi":"màu xanh cổ điển"},
+    "描述": {"en":"A blue tone, giving a feeling of calm, gentleness and comfort.","zh-tw":"一種藍色調，給人冷靜、柔和舒服的感覺","vi":"Một tông màu xanh, mang lại cảm giác bình tĩnh, nhẹ nhàng và thoải mái."},
+    "配色": "配色/配色/經典藍",
+    "骨架": "骨架/骨架/經典",
+    "裝飾": {},
+    "售價": 0,
+    "權限": {"讀": true,"寫": true,"刪除": false}
+  },
+  {
+    "_id": "佈景主題/佈景主題/經典綠",
+    "名稱": {"en":"classic green","zh-tw":"經典綠","vi":"xanh cổ điển"},
+    "描述": {"en":"A classic green tone that usually has a natural, stable feel. This color can convey a calm, harmonious atmosphere","zh-tw":"一種經典的綠色調，通常呈現自然、穩重的感覺。這種顏色可以傳遞出平靜、和諧的氛圍","vi":"Một tông màu xanh cổ điển, thường mang đến cảm giác tự nhiên và vững chãi. Màu sắc này có thể truyền tải một bầu không khí yên tĩnh và hài hòa."},
+    "配色": "配色/配色/經典綠",
+    "骨架": "骨架/骨架/經典",
+    "裝飾": {},
+    "售價": 0,
+    "權限": {"讀": true,"寫": true,"刪除": false}
+  }
+]

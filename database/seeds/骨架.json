@@ -1,0 +1,28 @@
+[
+  {"_id": "骨架/標籤/經典","名稱":{"en":"classic","zh-tw":"經典","vi":"sự cổ điển"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id": "骨架/標籤/簡約","名稱":{"en":"simplicity","zh-tw":"簡約風","vi":"sự tối giản"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {
+    "_id": "骨架/骨架/經典",
+    "名稱":{"en":"classic","zh-tw":"經典","vi":"cổ điển"},
+    "描述":{"en":"classic style's skeleton","zh-tw":"經典風格的骨架","vi":"Cấu trúc của phong cách cổ điển"},
+    "影像":"",
+    "布局":"經典",
+    "組件":"Classic",
+    "圖示":"外框",
+    "書本樣式": "Classic",
+    "開始動畫":{"type":"內建","name":"Buildings"},
+    "載入器":{"type":"系統","name":"spinner"},
+    "圓角":{"中":"0.5rem","大":"1rem","小":"1.9rem"},
+    "動畫":{
+      "下拉選單.開":"animate__fadeIn",
+      "下拉選單.關":"animate__fadeOut",
+      "抽屜.開":"animate__fadeIn",
+      "抽屜.關":"animate__fadeOut",
+      "視窗.開":"animate__fadeIn",
+      "視窗.關":"animate__fadeOut"
+    },
+    "標籤集":["骨架/標籤/經典"],
+    "售價":0,
+    "權限": {"讀": true,"寫": true,"刪除": false}
+  }
+]

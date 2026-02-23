@@ -1,0 +1,25 @@
+[
+    {
+        "_id": "系統資訊/系統資訊/預設",
+        "名稱": { "en": "webcube", "zh-tw": "網站方塊", "zh-cn": "网站方块", "vi": "webcube" },
+        "描述": {"zh-tw":{"格式":"MARKDOWN","內容":"file://docs/readme.md"}},
+        "商標": "圖示/圖示/web_cube",
+        "橫幅": "圖示/圖示/web_cube_banner",
+        "預設語言": "zh-tw",
+        "資料庫": {},
+        "版權資料": {
+            "公司": {
+                "en": "Dit Union co., Ltd.",
+                "zh-tw": "鼎越國際有限公司",
+                "zh-cn": "鼎越国际有限公司",
+                "vi": "Dit Union oc., Ltd."
+            },
+            "網址": "www.dui.com.tw",
+            "開始年份": 2000
+        },
+        "軟體服務條款":{"zh-tw":{"格式":"MARKDOWN","內容":"file://docs/軟體服務條款.md"}},
+        "使用者服務條款":{"zh-tw":{"格式":"MARKDOWN","內容":"file://docs/使用者服務條款.md"}},
+        "隱私權政策":{"zh-tw":{"格式":"MARKDOWN","內容":"file://docs/隱私權政策.md"}},
+        "權限": {"讀": true,"寫": true,"刪除": false}
+    }
+]

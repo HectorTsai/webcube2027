@@ -25,3 +25,6 @@ runtime/
 
 # System
 .DS_Store
+
+# Database
+data/

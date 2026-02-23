@@ -1,0 +1,150 @@
+[
+  {"_id": "圖示/標籤/商標","名稱":{"en":"logo","zh-tw":"商標","vi":"logo"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id": "圖示/標籤/旗幟","名稱":{"en":"flag","zh-tw":"旗幟","vi":"cờ"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id": "圖示/標籤/符號","名稱":{"en":"symbol","zh-tw":"符號","vi":"ký hiệu"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id": "圖示/標籤/箭頭","名稱":{"en":"arrow","zh-tw":"箭頭","vi":"mũi tên"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id": "圖示/標籤/天氣","名稱":{"en":"weather","zh-tw":"天氣","vi":"thời tiết"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id": "圖示/標籤/交通","名稱":{"en":"traffic","zh-tw":"交通","vi":"giao thông"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id": "圖示/標籤/建築","名稱":{"en":"building","zh-tw":"建築物","vi":"tòa nhà"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id": "圖示/標籤/動物","名稱":{"en":"animal","zh-tw":"動物","vi":"động vật"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id": "圖示/標籤/植物","名稱":{"en":"plant","zh-tw":"植物","vi":"thực vật"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id": "圖示/標籤/物件","名稱":{"en":"object","zh-tw":"物件","vi":"vật thể"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id": "圖示/標籤/頭像","名稱":{"en":"avatar","zh-tw":"頭像","vi":"ảnh đại diện"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id": "圖示/標籤/外框","名稱":{"en":"outline","zh-tw":"外框","vi":"viền"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id": "圖示/標籤/實體","名稱":{"en":"solid","zh-tw":"實心","vi":"đặc"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id": "圖示/標籤/男孩","名稱":{"en":"boy","zh-tw":"男生","vi":"con trai"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id": "圖示/標籤/女孩","名稱":{"en":"girl","zh-tw":"女生","vi":"con gái"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id": "圖示/標籤/載入","名稱":{"en":"loading","zh-tw":"載入動畫","vi":"đang tải"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  {"_id": "圖示/標籤/動畫","名稱":{"en":"animate","zh-tw":"動畫","vi":"hoạt hình"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+
+  {
+    "_id": "圖示/圖示/web_cube",
+    "名稱": {"en":"cube","zh-tw":"方塊","vi":"hình lập phương"},
+    "資料": {
+      "格式": "SVG",
+      "內容":"file://images/webcube.svg"
+    },
+    "標籤集": ["圖示/標籤/物件","圖示/標籤/外框"],
+    "權限": {"讀": true,"寫": true,"刪除": false}
+  },
+  {
+    "_id": "圖示/圖示/web_cube_banner",
+    "名稱": {"en":"cubes","zh-tw": "方塊","vi": "hình lập phương"},
+    "資料": {
+      "格式": "SVG",
+      "內容":"file://images/webcube_banner.svg"
+    },
+    "標籤集": ["圖示/標籤/物件","圖示/標籤/實體"],
+    "權限": {"讀": true,"寫": true,"刪除": false}
+  },
+  {
+    "_id": "圖示/圖示/user",
+    "名稱": {"en":"user","zh-tw": "使用者","vi": "người sử dụng"},
+    "資料": {
+      "格式": "SVG",
+      "內容":"file://images/user.svg"
+    },
+    "標籤集": ["圖示/標籤/頭像","圖示/標籤/外框"],
+    "權限": {"讀": true,"寫": true,"刪除": false}
+  },
+  {
+    "_id":"圖示/圖示/home",
+    "名稱":{"en":"home", "zh-tw":"首頁", "zh-cn":"首页", "vi":"trang chủ"},
+    "資料":{
+      "格式":"SVG",
+      "內容":"file://images/home.svg"
+    },
+    "標籤集":[],
+    "權限": {"讀": true,"寫": true,"刪除": false}
+  },
+  {
+    "_id":"圖示/圖示/info",
+    "名稱":{"en":"info", "zh-tw":"資訊", "zh-cn":"信息", "vi":"thông tin"},
+    "資料":{
+      "格式":"SVG",
+      "內容":"file://images/info.svg"
+    },
+    "標籤集":[],
+    "權限": {"讀": true,"寫": true,"刪除": false}
+  },
+  {
+    "_id":"圖示/圖示/phone",
+    "名稱":{"en":"phone", "zh-tw":"電話", "zh-cn":"电话", "vi":"điện thoại"},
+    "資料":{
+      "格式":"SVG",
+      "內容":"file://images/phone.svg"
+    },
+    "標籤集":[],
+    "權限": {"讀": true,"寫": true,"刪除": false}
+  },
+  {
+    "_id": "圖示/圖示/menu",
+    "名稱": {"en":"menu","zh-tw": "選單","vi": "thực đơn"},
+    "資料": {
+      "格式": "SVG",
+      "內容":"file://images/menu.svg"
+    },
+    "標籤集": ["圖示/標籤/符號","圖示/標籤/動畫"],
+    "權限": {"讀": true,"寫": true,"刪除": false}
+  },
+  {
+    "_id": "圖示/圖示/menu2",
+    "名稱": {"en":"menu 2","zh-tw": "選單2","vi": "thực đơn 2"},
+    "資料": {
+      "格式": "SVG",
+      "內容":"file://images/menu2.svg"
+    },
+    "標籤集": ["圖示/標籤/符號","圖示/標籤/動畫"],
+    "權限": {"讀": true,"寫": true,"刪除": false}
+  },
+  {
+    "_id": "圖示/圖示/menu3",
+    "名稱": {"en":"menu 3","zh-tw": "選單3","vi": "thực đơn 3"},
+    "資料": {
+      "格式": "SVG",
+      "內容":"file://images/menu3.svg"
+    },
+    "標籤集": ["圖示/標籤/符號","圖示/標籤/動畫"],
+    "權限": {"讀": true,"寫": true,"刪除": false}
+  },
+  {
+    "_id": "圖示/圖示/中華民國",
+    "名稱": {"en":"republic of china","zh-tw": "中華民國","vi": "Cộng hòa Trung Quốc"},
+    "資料": {
+      "格式": "SVG",
+      "內容": "https://flagicons.lipis.dev/flags/4x3/tw.svg"
+    },
+    "標籤集": ["圖示/標籤/旗幟"],
+    "權限": {"讀": true,"寫": true,"刪除": false}
+  },
+  {
+    "_id": "圖示/圖示/美國",
+    "名稱": {"en":"united states","zh-tw": "美國","vi": "Hoa Kỳ"},
+    "資料": {
+      "格式": "SVG",
+      "內容": "https://flagicons.lipis.dev/flags/4x3/us.svg"
+    },
+    "標籤集": ["圖示/標籤/旗幟"],
+    "權限": {"讀": true,"寫": true,"刪除": false}
+  },
+  {
+    "_id": "圖示/圖示/中國",
+    "名稱": {"en":"china","zh-tw": "中國","vi": "Trung Quốc"},
+    "資料": {
+      "格式": "SVG",
+      "內容": "https://flagicons.lipis.dev/flags/4x3/cn.svg"
+    },
+    "標籤集": ["圖示/標籤/旗幟"],
+    "權限": {"讀": true,"寫": true,"刪除": false}
+  },
+  {
+    "_id": "圖示/圖示/越南",
+    "名稱": {"en":"vietnam","zh-tw": "越南","vi": "Việt Nam"},
+    "資料": {
+      "格式": "SVG",
+      "內容": "https://flagicons.lipis.dev/flags/4x3/vn.svg"
+    },
+    "標籤集": ["圖示/標籤/旗幟"],
+    "權限": {"讀": true,"寫": true,"刪除": false}
+  }
+]

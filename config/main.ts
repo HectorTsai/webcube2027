@@ -107,15 +107,12 @@ const config: AppConfig = {
     // maxMessageLength: 32 * 1024,
   },
   // ========== Database (optional; uncomment and configure to use) ==========
-  // database: {
-  //   default: {
-  //     adapter: "sqlite",
-  //     connection: { filename: "./data/colors.db" },
-  //   },
-  //   // or postgresql: connection: { host, port, database, username, password }
-  //   // connections: { read: { ... }, mongodb: { ... } },
-  //   // managerOptions: {},
-  // },
+  database: {
+    default: {
+      adapter: "sqlite",
+      connection: { filename: "data/system.db" },
+    },
+  },
   // ========== Socket / WebSocket (optional) ==========
   // socket: {
   //   adapter: "socketio",

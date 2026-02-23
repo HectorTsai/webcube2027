@@ -6,12 +6,12 @@
     "start": "deno run -A dist/server.js"
   },
   "imports": {
+    "@dreamer/database": "jsr:@dreamer/database@^1.0.5",
     "@dreamer/dweb": "jsr:@dreamer/dweb@^3.0.88",
     "@dreamer/render": "jsr:@dreamer/render@^1.0.38",
     "@dreamer/router": "jsr:@dreamer/router@^1.0.15",
     "@dreamer/plugins": "jsr:@dreamer/plugins@^1.0.6",
     "@dreamer/view": "jsr:@dreamer/view@^1.0.30",
-
     "unocss": "npm:unocss@^66.6.0",
     "@unocss/core": "npm:@unocss/core@^66.6.0",
     "@unocss/preset-attributify": "npm:@unocss/preset-attributify@^66.6.0",
@@ -23,7 +23,8 @@
     "jsx": "react-jsx",
     "jsxImportSource": "@dreamer/view",
     "types": [
-      "jsx.d.ts"
+      "jsx.d.ts",
+      "types.d.ts"
     ]
   },
   "allowScripts": [

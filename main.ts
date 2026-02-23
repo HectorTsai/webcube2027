@@ -1,3 +1,17 @@
+import "./type.ts";
+
+import { getDatabase, initDatabase } from "@dreamer/database";
+
+await initDatabase("system", {
+  adapter: "sqlite",
+  connection: { filename: "data/system.db" },
+});
+const systemDb = getDatabase("system");
+
+import { 內建資料庫, 所有資料庫 } from "./database.ts";
+內建資料庫 = systemDb;
+所有資料庫["webcube"] = 內建資料庫;
+
 /**
  * Server entry
  * View + @dreamer/dweb
