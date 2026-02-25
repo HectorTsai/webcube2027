@@ -1,10 +1,10 @@
 import { SQLModel } from "@dreamer/database";
 import { 權限 } from "../../database.ts";
-import 多國語言字串 from "../../utils/多國語言字串.ts";
+import { MultilingualString } from "@dui/smartmultilingual";
 
 export default class 單字 extends SQLModel {
   public 權限: 權限;
-  public 資料: 多國語言字串;
+  public 資料: MultilingualString;
   public 最後讀取: Date;
 
   public constructor(
@@ -13,7 +13,7 @@ export default class 單字 extends SQLModel {
   ) {
     super();
     this.權限 = 權限設定;
-    this.資料 = new 多國語言字串(data?.資料 ?? {});
+    this.資料 = new MultilingualString(data?.資料 ?? {});
     this.最後讀取 = new Date(data?.最後讀取 ?? Date.now());
     if (data.id) this.id = data.id;
     if (data.created_at) this.created_at = new Date(data.created_at);

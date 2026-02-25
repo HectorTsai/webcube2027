@@ -12,6 +12,7 @@
     "@dreamer/router": "jsr:@dreamer/router@^1.0.15",
     "@dreamer/plugins": "jsr:@dreamer/plugins@^1.0.6",
     "@dreamer/view": "jsr:@dreamer/view@^1.0.30",
+    "@dui/smartmultilingual": "jsr:@dui/smartmultilingual@^0.1.0",
     "unocss": "npm:unocss@^66.6.0",
     "@unocss/core": "npm:@unocss/core@^66.6.0",
     "@unocss/preset-attributify": "npm:@unocss/preset-attributify@^66.6.0",

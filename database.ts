@@ -1,4 +1,4 @@
-import 多國語言字串 from "./utils/多國語言字串.ts";
+import { MultilingualString } from "@dui/smartmultilingual";
 
 export interface 權限 {
   讀?: boolean;
@@ -13,7 +13,7 @@ export interface 編號 {
 }
 
 export interface 版權資料 {
-  公司?: 多國語言字串;
+  公司?: MultilingualString;
   網址?: string;
   開始年份?: number;
 }

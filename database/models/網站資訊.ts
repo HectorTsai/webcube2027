@@ -1,12 +1,12 @@
 import { SQLModel } from "@dreamer/database";
 import { 權限, 版權資料 } from "../../database.ts";
-import 多國語言字串 from "../../utils/多國語言字串.ts";
+import { MultilingualString } from "@dui/smartmultilingual";
 
 export default class 網站資訊 extends SQLModel {
   public 權限: 權限;
   public 網址: string;
-  public 名稱: 多國語言字串;
-  public 描述: 多國語言字串;
+  public 名稱: MultilingualString;
+  public 描述: MultilingualString;
   public 商標: string;
   public 模式: Record<string, string>;
   public 佈景主題: string;
@@ -28,15 +28,15 @@ export default class 網站資訊 extends SQLModel {
     super();
     this.權限 = 權限設定;
     this.網址 = data?.網址 ?? "";
-    this.名稱 = new 多國語言字串(data?.名稱 ?? {});
-    this.描述 = new 多國語言字串(data?.描述 ?? {});
+    this.名稱 = new MultilingualString(data?.名稱 ?? {});
+    this.描述 = new MultilingualString(data?.描述 ?? {});
     this.商標 = data?.商標 ?? "";
     this.模式 = data?.模式 ?? "PUBLIC";
     this.設定 = data?.設定 ?? {};
     this.私密設定 = {}; // 簡化處理
     this.版權資料 = data?.版權資料 || {};
     if (this.版權資料?.公司) {
-      this.版權資料.公司 = new 多國語言字串(this.版權資料.公司);
+      this.版權資料.公司 = new MultilingualString(this.版權資料.公司);
     }
     this.語言 = data?.語言 || ["zh-tw", "en"];
     this.預設語言 = data?.預設語言 || "zh-tw";

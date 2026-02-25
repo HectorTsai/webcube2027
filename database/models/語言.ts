@@ -1,10 +1,10 @@
 import { SQLModel } from "@dreamer/database";
 import { 權限 } from "../../database.ts";
-import 多國語言字串 from "../../utils/多國語言字串.ts";
+import { MultilingualString } from "@dui/smartmultilingual";
 
 export default class 語言 extends SQLModel {
   public 權限: 權限;
-  public 名稱: 多國語言字串;
+  public 名稱: MultilingualString;
   public code: string;
   public 圖示: string;
 
@@ -14,7 +14,7 @@ export default class 語言 extends SQLModel {
   ) {
     super();
     this.權限 = 權限設定;
-    this.名稱 = new 多國語言字串(data?.名稱 ?? {});
+    this.名稱 = new MultilingualString(data?.名稱 ?? {});
     this.code = data?.code ?? "";
     this.圖示 = data?.圖示 ?? "/圖示/圖示/web_cube";
     if (data.id) this.id = data.id;

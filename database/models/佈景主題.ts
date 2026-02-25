@@ -1,6 +1,6 @@
 import { SQLModel } from "@dreamer/database";
 import { 權限 } from "../../database.ts";
-import 多國語言字串 from "../../utils/多國語言字串.ts";
+import { MultilingualString } from "@dui/smartmultilingual";
 
 const DEFAULTS = {
   名稱: { en: "classic blue", "zh-tw": "經典藍", vi: "màu xanh cổ điển" },
@@ -17,8 +17,8 @@ const DEFAULTS = {
 
 export default class 佈景主題 extends SQLModel {
   public 權限: 權限;
-  public 名稱: 多國語言字串;
-  public 描述: 多國語言字串;
+  public 名稱: MultilingualString;
+  public 描述: MultilingualString;
   public 配色: string;
   public 骨架: string;
   public 裝飾: Record<string, string>;
@@ -30,8 +30,8 @@ export default class 佈景主題 extends SQLModel {
   ) {
     super();
     this.權限 = 權限設定;
-    this.名稱 = new 多國語言字串(data?.名稱 ?? DEFAULTS.名稱);
-    this.描述 = new 多國語言字串(data?.描述 ?? DEFAULTS.描述);
+    this.名稱 = new MultilingualString(data?.名稱 ?? DEFAULTS.名稱);
+    this.描述 = new MultilingualString(data?.描述 ?? DEFAULTS.描述);
     this.配色 = data?.配色 ?? DEFAULTS.配色;
     this.骨架 = data?.骨架 ?? DEFAULTS.骨架;
     this.裝飾 = data?.裝飾 ?? DEFAULTS.裝飾;

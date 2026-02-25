@@ -1,15 +1,15 @@
 import { SQLModel } from "@dreamer/database";
 import { 權限 } from "../../database.ts";
-import 多國語言字串 from "../../utils/多國語言字串.ts";
+import { MultilingualString } from "@dui/smartmultilingual";
 
 export default class 標籤 extends SQLModel {
   public 權限: 權限;
-  public 名稱: 多國語言字串;
+  public 名稱: MultilingualString;
 
   public constructor(data: Record<string, any> = {},權限設定: 權限 = { 讀: true, 寫: true, 刪除: true },) {
     super();
     this.權限 = 權限設定;
-    this.名稱 = new 多國語言字串(data?.["名稱"] || {});
+    this.名稱 = new MultilingualString(data?.["名稱"] || {});
     if (data.id) this.id = data.id;
     if (data.created_at) this.created_at = new Date(data.created_at);
     if (data.updated_at) this.updated_at = new Date(data.updated_at);
