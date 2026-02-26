@@ -14,13 +14,17 @@ interface MiddlewareContext {
   state: Record<string, MiddlewareContext>;
 }
 
+// 型別提示：此檔在執行環境有 Deno，全域 Theme 用於佈景主題。
+declare const Deno: { readTextFile: (path: string) => Promise<string> };
+type Theme = Record<string, unknown>;
+
 export default async function middleware(req: MiddlewareContext) {
   // 載入主題
   const colors = JSON.parse(
-    await Deno.readTextFile("database/seeds/colors.json"),
+    await Deno.readTextFile("database/seeds/配色.json"),
   );
   const skeletons = JSON.parse(
-    await Deno.readTextFile("database/seeds/skeletons.json"),
+    await Deno.readTextFile("database/seeds/骨架.json"),
   );
   const colorScheme = colors[0];
   const skeleton = skeletons[0];

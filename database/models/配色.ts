@@ -1,6 +1,4 @@
-import { SQLModel } from "@dreamer/database";
-import { 權限 } from "../../database.ts";
-import { MultilingualString } from "@dui/smartmultilingual";
+import { 權限, 資料 } from "../../database/index.ts";
 
 const DEFAULT_STRINGS = {
   名稱: { en: "classic blue", "zh-tw": "經典藍", vi: "màu xanh cổ điển" },
@@ -27,10 +25,9 @@ const DEFAULT_COLORS = {
   錯誤色: "57.3% 0.234 28.28",
 };
 
-export default class 配色 extends SQLModel {
-  public 權限: 權限;
-  public 名稱: MultilingualString;
-  public 描述: MultilingualString;
+export default class 配色 extends 資料 {
+  public 名稱: Record<string, string>;
+  public 描述: Record<string, string>;
   public 主色: string;
   public 次色: string;
   public 強調色: string;
@@ -45,11 +42,13 @@ export default class 配色 extends SQLModel {
   public 錯誤色: string;
   public 售價: number;
 
-  public constructor(data: Record<string, any> = {},權限設定: 權限 = { 讀: true, 寫: true, 刪除: true },) {
-    super();
-    this.權限 = 權限設定;
-    this.名稱 = new MultilingualString(data?.名稱 ?? DEFAULT_STRINGS.名稱);
-    this.描述 = new MultilingualString(data?.描述 ?? DEFAULT_STRINGS.描述);
+  public constructor(
+    data: Record<string, unknown> = {},
+    權限設定: 權限 = { 讀: true, 寫: true, 刪除: true },
+  ) {
+    super({}, 權限設定);
+    this.名稱 = (data?.名稱 as Record<string, string>) ?? DEFAULT_STRINGS.名稱;
+    this.描述 = (data?.描述 as Record<string, string>) ?? DEFAULT_STRINGS.描述;
     this.主色 = (data?.主色 as string) ?? DEFAULT_COLORS.主色;
     this.次色 = (data?.次色 as string) ?? DEFAULT_COLORS.次色;
     this.強調色 = (data?.強調色 as string) ?? DEFAULT_COLORS.強調色;
@@ -63,12 +62,30 @@ export default class 配色 extends SQLModel {
     this.警告色 = (data?.警告色 as string) ?? DEFAULT_COLORS.警告色;
     this.錯誤色 = (data?.錯誤色 as string) ?? DEFAULT_COLORS.錯誤色;
     this.售價 = (data?.售價 as number) ?? 0;
-    if (data.id) this.id = data.id;
-    if (data.created_at) {
-      this.created_at = new Date(data.created_at as string | number | Date);
-    }
-    if (data.updated_at) {
-      this.updated_at = new Date(data.updated_at as string | number | Date);
-    }
+  }
+
+  public override toJSON(): Record<string, unknown> {
+    return {
+      ...super.toJSON(),
+      名稱: this.名稱,
+      描述: this.描述,
+      主色: this.主色,
+      次色: this.次色,
+      強調色: this.強調色,
+      中性色: this.中性色,
+      背景1: this.背景1,
+      背景2: this.背景2,
+      背景3: this.背景3,
+      背景內容: this.背景內容,
+      資訊色: this.資訊色,
+      成功色: this.成功色,
+      警告色: this.警告色,
+      錯誤色: this.錯誤色,
+      售價: this.售價,
+    };
+  }
+
+  public static fromJSON(data: Record<string, unknown>) {
+    return new 配色(data);
   }
 }

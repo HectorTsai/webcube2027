@@ -1,12 +1,11 @@
 {
   "version": "1.0.0",
   "tasks": {
-    "dev": "deno run -A main.ts",
-    "build": "deno run -A main.ts --build",
+    "dev": "deno run -A --unstable-kv main.ts",
+    "build": "deno run -A --unstable-kv main.ts --build",
     "start": "deno run -A dist/server.js"
   },
   "imports": {
-    "@dreamer/database": "jsr:@dreamer/database@^1.0.5",
     "@dreamer/dweb": "jsr:@dreamer/dweb@^3.0.88",
     "@dreamer/render": "jsr:@dreamer/render@^1.0.38",
     "@dreamer/router": "jsr:@dreamer/router@^1.0.15",
@@ -23,9 +22,12 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "jsxImportSource": "@dreamer/view",
+    "lib": ["deno.ns", "deno.unstable", "dom"],
     "types": [
       "jsx.d.ts",
-      "types.d.ts"
+      "types.d.ts",
+      "deno.ns",
+      "deno.unstable"
     ]
   },
   "allowScripts": [
