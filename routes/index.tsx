@@ -1,13 +1,9 @@
-/**
- * Home page
- * Route: /
- */
-
 import 按鈕 from "../components/實心/按鈕.tsx";
 
 import { createSignal } from "@dreamer/view";
 
 export default function Home() {
+  console.log("Home component rendered");
   const [count, setCount] = createSignal(0);
   return (
     <div className="p-5 bg-blue-500 text-white">

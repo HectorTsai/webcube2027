@@ -3,69 +3,78 @@ declare const Deno: any;
 import { 加密, 解密 } from "../services/密碼方法.ts";
 
 export default class SecretString {
-  private value: string = "";
-  private encryptedCache?: string;
   private static secretKey: string = "";
+  private plaintext?: string = "";
+  private ciphertext?: string = "";
+  private key?:string;
 
   static {
     SecretString.secretKey = Deno.env.get("SECRET_PASSWORD") ?? "Webcube@2027堃ưสิ자л";
   }
 
-  /** 手動覆寫密鑰（預期少用，提供維運彈性） */
-  public static setKey(key: string) {
-    SecretString.secretKey = key;
+  public constructor(options?: { plainText?: string, cipherText?: string, secretKey?: string }) {
+    if (options?.plainText) this.plaintext = options.plainText;
+    if (!options?.plainText && options?.cipherText) this.ciphertext = options.cipherText; // 避免誤用同時傳入 plainText 跟 cipherText
+    if (options?.secretKey) this.key = options.secretKey;
   }
 
-  public async setValue(value:string){
-    this.value = value;
-    this.encryptedCache = await this.toEncryptedString();
+  public async getPlainText() {
+    await this.process();
+    return this.plaintext ?? "";
+  }
+  public async setPlainText(text:string){
+    this.plaintext = text;
+    this.ciphertext = undefined;
+    await this.process();
   }
 
-  private constructor(data: string = "", cache?: string) {
-    this.value = data;
-    this.encryptedCache = cache;
+  public async getCipherText() {
+    await this.process();
+    return this.ciphertext ?? "";
+  }
+  public async setCipherText(text: string) {
+    this.ciphertext = text;
+    this.plaintext = undefined;
+    await this.process();
   }
 
-  public static async fromString(data: string) {
+  public async setKey(key:string){
+    // 如果沒有明文 需先解密，等設定密碼後再重新加密
+    if(!this.plaintext && this.ciphertext) {
+      await this.process();
+    }
+    this.key = key;
+    this.ciphertext = undefined;
+    await this.process();
+  }
+
+  public async process(){
     try {
-      const result = await 解密(data, this.secretKey);
-      return new SecretString(result, data);
-    } catch(e){
-      console.warn("[secretstring] decrypt failed, fallback to raw string", e);
-      try {
-        const cypherText = await 加密(data, this.secretKey);
-        return new SecretString(data,cypherText);
-      } catch (err) {
-        console.warn("[secretstring] fallback encrypt failed", err);
-        return new SecretString(data);
-      }
+      if (!this.ciphertext && this.plaintext) this.ciphertext = await 加密(this.plaintext, this.key ?? SecretString.secretKey);
+      if (!this.plaintext && this.ciphertext) this.plaintext = await 解密(this.ciphertext, this.key ?? SecretString.secretKey);
+    } catch (error) {
+      console.error("[secretstring process error]",error);
     }
   }
 
-  /** 加密後的字串（非同步） */
-  public async toEncryptedString() {
-    const cipher = await 加密(this.value, SecretString.secretKey);
-    this.encryptedCache = cipher;
-    return cipher;
-  }
+  public get PlainText(): string { return this.plaintext ?? ""; }
+  public set PlainText(text:string) { this.plaintext = text; this.ciphertext = undefined; }
 
-  // 兼容舊命名
-  public async toStringAsync() {
-    return await this.toEncryptedString();
-  }
+  public get CipherText(): string { return this.ciphertext ?? ""; }
+  public set CipherText(text:string) { this.ciphertext = text; this.plaintext = undefined; }
+
 
   /** 轉為明文字串 */
-  public toString(): string {
-    return this.value;
-  }
+  public toString(): string { return this.ciphertext ?? "[SecretString]"; }
 
   /** 提供同步 JSON 表示，避免洩漏明文。若未先加密，回傳占位字串。 */
-  public toJSON(): string {
-    return this.encryptedCache ?? "[SecretString]";
-  }
+  public toJSON(): string { return this.toString(); }
 
   /** 取得加密後的 JSON safe 字串（非同步） */
   public async toJSONAsync(): Promise<string> {
-    return await this.toEncryptedString();
+    if(!this.ciphertext && this.plaintext) {
+      await this.process();
+    }
+    return this.toJSON();
   }
 }

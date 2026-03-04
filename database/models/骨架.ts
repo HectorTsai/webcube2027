@@ -42,12 +42,12 @@ export default class 骨架 extends 資料 {
   public 售價: number;
 
   public constructor(
-    data: Record<string, any> = {},
+    data: Record<string, unknown> = {},
     權限設定: 權限 = { 讀: true, 寫: true, 刪除: true },
   ) {
     super({}, 權限設定);
-    this.名稱 = new MultilingualString(data?.名稱);
-    this.描述 = new MultilingualString(data?.描述);
+    this.名稱 = new MultilingualString(data?.名稱 as Record<string, string> | undefined);
+    this.描述 = new MultilingualString(data?.描述 as Record<string, string> | undefined);
     this.影像 = (data?.影像 as string) ?? DEFAULT_VALUES.影像;
     this.布局 = (data?.布局 as string) ?? DEFAULT_VALUES.布局;
     this.組件 = (data?.組件 as string) ?? DEFAULT_VALUES.組件;

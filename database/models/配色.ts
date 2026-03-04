@@ -1,7 +1,7 @@
 import { 權限, 資料 } from "@/database/index.ts";
 import { MultilingualString } from "@dui/smartmultilingual";
 
-const DEFAULT_STRINGS = {
+const _DEFAULT_STRINGS = {
   名稱: { en: "classic blue", "zh-tw": "經典藍", vi: "màu xanh cổ điển" },
   描述: {
     en: "A blue tone, giving a feeling of calm, gentleness and comfort.",
@@ -43,12 +43,12 @@ export default class 配色 extends 資料 {
   public 售價: number;
 
   public constructor(
-    data: Record<string, any> = {},
+    data: Record<string, unknown> = {},
     權限設定: 權限 = { 讀: true, 寫: true, 刪除: true },
   ) {
     super({}, 權限設定);
-    this.名稱 = new MultilingualString(data?.名稱);
-    this.描述 = new MultilingualString(data?.描述);
+    this.名稱 = new MultilingualString(data?.名稱 as Record<string, string> | undefined);
+    this.描述 = new MultilingualString(data?.描述 as Record<string, string> | undefined);
     this.主色 = (data?.主色 as string) ?? DEFAULT_COLORS.主色;
     this.次色 = (data?.次色 as string) ?? DEFAULT_COLORS.次色;
     this.強調色 = (data?.強調色 as string) ?? DEFAULT_COLORS.強調色;

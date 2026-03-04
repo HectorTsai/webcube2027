@@ -11,13 +11,13 @@ export default class 頁面 extends 資料 {
   public 順序: number;
 
   public constructor(
-    data: Record<string, any> = {},
+    data: Record<string, unknown> = {},
     權限設定: 權限 = { 讀: true, 寫: true, 刪除: true },
   ) {
     super(data, 權限設定);
     this.路徑 = (data?.路徑 as string) ?? "";
-    this.標題 = new MultilingualString(data?.標題);
-    this.描述 = new MultilingualString(data?.描述);
+    this.標題 = new MultilingualString(data?.標題 as Record<string, string> | undefined);
+    this.描述 = new MultilingualString(data?.描述 as Record<string, string> | undefined);
     this.內容 = (data?.內容 as string[]) ?? [];
     this.佈局 = (data?.佈局 as string) ?? "";
     this.狀態 = (data?.狀態 as string) ?? "DRAFT";

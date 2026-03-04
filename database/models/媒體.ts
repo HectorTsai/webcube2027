@@ -16,7 +16,7 @@ export default class 媒體 extends 資料 {
   public SHA256: string;
 
   public constructor(
-    data: Record<string, any> = {},
+    data: Record<string, unknown> = {},
     權限設定: 權限 = { 讀: true, 寫: true, 刪除: true },
   ) {
     super(data, 權限設定);
@@ -24,7 +24,7 @@ export default class 媒體 extends 資料 {
     this.原檔網址 = (data?.原檔網址 as string) ?? "";
     this.縮圖網址 = data?.縮圖網址 as string;
     this.檔案名稱 = (data?.檔案名稱 as string) ?? "";
-    this.描述 = new MultilingualString(data?.描述);
+    this.描述 = new MultilingualString(data?.描述 as Record<string, string> | undefined);
     this.大小 = (data?.大小 as number) ?? 0;
     this.寬度 = data?.寬度 as number;
     this.高度 = data?.高度 as number;

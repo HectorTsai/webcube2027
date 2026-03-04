@@ -12,11 +12,11 @@ export default class 圖示 extends 資料 {
   public 資料: 圖示資料;
 
   public constructor(
-    data: Record<string, any> = {},
+    data: Record<string, unknown> = {},
     權限設定: 權限 = { 讀: true, 寫: true, 刪除: true },
   ) {
     super({}, 權限設定);
-    this.名稱 = new MultilingualString(data?.名稱);
+    this.名稱 = new MultilingualString(data?.名稱 as Record<string, string> | undefined);
     const raw = data?.資料 as Partial<圖示資料> | undefined;
     this.資料 = {
       資料: raw?.資料 ?? "web_cube.svg",
