@@ -3,38 +3,6 @@
   "deno.enable": true,
   "deno.lint": true,
   // ==================== Format config ====================
-  "[typescript]": {
-    "editor.defaultFormatter": "denoland.vscode-deno",
-    "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-      "source.fixAll": "explicit",
-      "source.organizeImports": "explicit"
-    }
-  },
-  "[typescriptreact]": {
-    "editor.defaultFormatter": "denoland.vscode-deno",
-    "editor.formatOnSave": true,
-    "editor.codeActionsOnSave": {
-      "source.fixAll": "explicit",
-      "source.organizeImports": "explicit"
-    }
-  },
-  "[javascript]": {
-    "editor.defaultFormatter": "denoland.vscode-deno",
-    "editor.formatOnSave": true
-  },
-  "[javascriptreact]": {
-    "editor.defaultFormatter": "denoland.vscode-deno",
-    "editor.formatOnSave": true
-  },
-  "[json]": {
-    "editor.defaultFormatter": "vscode.json-language-features",
-    "editor.formatOnSave": true
-  },
-  "[jsonc]": {
-    "editor.defaultFormatter": "vscode.json-language-features",
-    "editor.formatOnSave": true
-  },
   // ==================== Editor base config ====================
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
@@ -43,7 +11,9 @@
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
-  "editor.rulers": [120],
+  "editor.rulers": [
+    120
+  ],
   "editor.wordWrap": "off",
   "editor.formatOnPaste": true,
   "editor.formatOnType": false,
@@ -74,17 +44,27 @@
     "**/runtime": true
   },
   // ==================== i18n-ally config ====================
-  "i18n-ally.localesPaths": ["locales"],
+  "i18n-ally.localesPaths": [
+    "locales"
+  ],
   "i18n-ally.pathMatcher": "{locale}.{ext}",
   "i18n-ally.keystyle": "nested",
   "i18n-ally.sortKeys": true,
   "i18n-ally.namespace": false,
-  "i18n-ally.enabledParsers": ["json"],
+  "i18n-ally.enabledParsers": [
+    "json"
+  ],
   "i18n-ally.sourceLanguage": "zh-CN",
   "i18n-ally.displayLanguage": "zh-CN",
-  "i18n-ally.translate.engines": ["deepl", "google"],
+  "i18n-ally.translate.engines": [
+    "deepl",
+    "google"
+  ],
   "i18n-ally.extract.keygenStyle": "PascalCase",
-  "i18n-ally.enabledFrameworks": ["react", "i18next"],
+  "i18n-ally.enabledFrameworks": [
+    "react",
+    "i18next"
+  ],
   "i18n-ally.regex.key": ".*?",
   "i18n-ally.extract.autoDetect": true
 }

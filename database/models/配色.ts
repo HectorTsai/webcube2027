@@ -1,12 +1,12 @@
-import { 權限, 資料 } from "../../database/index.ts";
+import { 權限, 資料 } from "@/database/index.ts";
+import { MultilingualString } from "@dui/smartmultilingual";
 
 const DEFAULT_STRINGS = {
   名稱: { en: "classic blue", "zh-tw": "經典藍", vi: "màu xanh cổ điển" },
   描述: {
     en: "A blue tone, giving a feeling of calm, gentleness and comfort.",
     "zh-tw": "一種藍色調，給人冷靜、柔和舒服的感覺",
-    vi:
-      "Một tông màu xanh, mang lại cảm giác bình tĩnh, nhẹ nhàng và thoải mái.",
+    vi: "Một tông màu xanh, mang lại cảm giác bình tĩnh, nhẹ nhàng và thoải mái.",
   },
 };
 
@@ -26,8 +26,8 @@ const DEFAULT_COLORS = {
 };
 
 export default class 配色 extends 資料 {
-  public 名稱: Record<string, string>;
-  public 描述: Record<string, string>;
+  public 名稱: MultilingualString;
+  public 描述: MultilingualString;
   public 主色: string;
   public 次色: string;
   public 強調色: string;
@@ -43,12 +43,12 @@ export default class 配色 extends 資料 {
   public 售價: number;
 
   public constructor(
-    data: Record<string, unknown> = {},
+    data: Record<string, any> = {},
     權限設定: 權限 = { 讀: true, 寫: true, 刪除: true },
   ) {
     super({}, 權限設定);
-    this.名稱 = (data?.名稱 as Record<string, string>) ?? DEFAULT_STRINGS.名稱;
-    this.描述 = (data?.描述 as Record<string, string>) ?? DEFAULT_STRINGS.描述;
+    this.名稱 = new MultilingualString(data?.名稱);
+    this.描述 = new MultilingualString(data?.描述);
     this.主色 = (data?.主色 as string) ?? DEFAULT_COLORS.主色;
     this.次色 = (data?.次色 as string) ?? DEFAULT_COLORS.次色;
     this.強調色 = (data?.強調色 as string) ?? DEFAULT_COLORS.強調色;
@@ -67,8 +67,8 @@ export default class 配色 extends 資料 {
   public override toJSON(): Record<string, unknown> {
     return {
       ...super.toJSON(),
-      名稱: this.名稱,
-      描述: this.描述,
+      名稱: this.名稱.toJSON(),
+      描述: this.描述.toJSON(),
       主色: this.主色,
       次色: this.次色,
       強調色: this.強調色,
@@ -83,9 +83,5 @@ export default class 配色 extends 資料 {
       錯誤色: this.錯誤色,
       售價: this.售價,
     };
-  }
-
-  public static fromJSON(data: Record<string, unknown>) {
-    return new 配色(data);
   }
 }
