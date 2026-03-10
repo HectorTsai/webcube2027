@@ -1,0 +1,18 @@
+{
+  "imports": {
+    "@dui/smartmultilingual": "jsr:@dui/smartmultilingual@^0.2.2",
+    "hono": "jsr:@hono/hono@^4.12.7",
+    "unocss": "npm:@unocss/cli@^0.61.9"
+  },
+  "tasks": {
+    "start": "deno run --allow-net --allow-read main.tsx",
+    "serve": "deno task start",
+    "uno": "deno run -A npm:@unocss/cli@0.61.9 -o public/uno.css src/**/*.tsx main.tsx",
+    "uno:watch": "deno run -A npm:@unocss/cli@0.61.9 --watch -o public/uno.css src/**/*.tsx main.tsx",
+    "dev": "deno task uno:watch & deno task start"
+  },
+  "compilerOptions": {
+    "jsx": "precompile",
+    "jsxImportSource": "hono/jsx"
+  }
+}

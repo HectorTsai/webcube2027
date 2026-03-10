@@ -1,0 +1,32 @@
+/* UnoCSS Generated Styles */
+.bg-slate-950{background-color:rgb(2 6 23)}
+.bg-slate-900\/50{background-color:rgb(15 23 42 / 0.5)}
+.text-slate-100{color:rgb(241 245 249)}
+.text-slate-300{color:rgb(203 213 225)}
+.text-slate-400{color:rgb(148 163 184)}
+.text-cyan-400{color:rgb(34 211 238)}
+.text-cyan-300{color:rgb(103 232 249)}
+.text-cyan-200{color:rgb(165 243 252)}
+.min-h-screen{min-height:100vh}
+.max-w-4xl{max-width:56rem}
+.mx-auto{margin-left:auto;margin-right:auto}
+.p-6{padding:1.5rem}
+.mt-4{margin-top:1rem}
+.mt-6{margin-top:1.5rem}
+.mb-6{margin-bottom:1.5rem}
+.space-y-2>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}
+.space-y-4>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}
+.text-3xl{font-size:1.875rem;line-height:2.25rem}
+.text-xl{font-size:1.25rem;line-height:1.75rem}
+.text-sm{font-size:0.875rem;line-height:1.25rem}
+.font-bold{font-weight:700}
+.font-semibold{font-weight:600}
+.font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+.rounded-lg{border-radius:0.5rem}
+.border{border-width:1px}
+.border-slate-800{--tw-border-opacity:1;border-color:rgb(30 41 59 / var(--tw-border-opacity))}
+.hover\:text-cyan-200:hover{color:rgb(165 243 252)}
+.hover\:text-cyan-300:hover{color:rgb(103 232 249)}
+.block{display:block}
+.list-disc{list-style-type:disc}
+.list-inside{list-style-position:inside}
