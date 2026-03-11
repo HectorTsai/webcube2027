@@ -234,6 +234,15 @@ class FileRouter {
       return result
     }
     
+    // 檢查是否為 Partial 請求
+    const isPartial = ctx.req.header('X-Partial') === 'true'
+    
+    if (isPartial) {
+      // Partial 請求只返回原始內容，不包裝特殊檔案
+      console.log(`[Router] Partial 請求: ${path}`)
+      return result
+    }
+    
     // 否則進行 Layout 和 App 包裝
     const chain = this.getSpecialFilesChain(path).reverse() // 從內到外包裝
 
