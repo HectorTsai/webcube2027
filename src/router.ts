@@ -24,6 +24,16 @@ interface RouterOptions {
   debug?: boolean
 }
 
+// Context 擴展
+declare module 'hono' {
+  interface Context {
+    /** 內部重導向（高效能，避免重新 request） */
+    internalRedirect(path: string): Promise<Response>
+    /** 重導向鏈追蹤（防止循環） */
+    _redirectChain?: string[]
+  }
+}
+
 // 檔案路由器類
 class FileRouter {
   private routes = new Map<string, RouteItem>()
@@ -216,10 +226,19 @@ class FileRouter {
 
   // 包裝頁面組件
   async wrapComponent(handler: Function, ctx: Context, path: string): Promise<unknown> {
+    // 先執行原始處理器
+    const result = await handler(ctx)
+    
+    // 如果結果是 Response，直接返回（可能是重導向）
+    if (result instanceof Response) {
+      return result
+    }
+    
+    // 否則進行 Layout 和 App 包裝
     const chain = this.getSpecialFilesChain(path).reverse() // 從內到外包裝
 
     // 基礎渲染器
-    let renderer = () => handler(ctx)
+    let renderer = () => result
 
     // 依序包裝 Layout 和 App
     for (const specialFiles of chain) {
@@ -294,6 +313,9 @@ export async function setupFileRouter(app: Hono, options: RouterOptions = {}): P
 
   // 註冊全域中間件處理所有請求
   app.use('*', async (ctx, next) => {
+    // 初始化重導向鏈
+    ctx._redirectChain = ctx._redirectChain || []
+    
     const path = ctx.req.path
 
     try {
@@ -303,16 +325,54 @@ export async function setupFileRouter(app: Hono, options: RouterOptions = {}): P
         return await next()
       }
 
+      // 設定內部重導向方法
+      ctx.internalRedirect = async (targetPath: string): Promise<Response> => {
+        // 檢查循環
+        if (ctx._redirectChain!.includes(targetPath)) {
+          console.warn(`[Router] 檢測到重導向循環: ${ctx._redirectChain!.join(' -> ')} -> ${targetPath}`)
+          // 降級為外部重導向
+          return ctx.redirect(targetPath)
+        }
+
+        // 添加到重導向鏈
+        ctx._redirectChain!.push(targetPath)
+
+        try {
+          // 查找目標路由
+          const targetRoute = router.findRoute(targetPath)
+          if (!targetRoute) {
+            return router.handle404(ctx, targetPath)
+          }
+
+          // 執行目標路由（不重新執行中間件）
+          const content = await router.wrapComponent(targetRoute.handler, ctx, targetPath)
+          
+          if (content instanceof Response) {
+            return content
+          }
+          
+          return ctx.html(String(content))
+        } finally {
+          // 清理重導向鏈
+          ctx._redirectChain!.pop()
+        }
+      }
+
       // 執行中間件鏈並渲染頁面
       const response = await router.executeMiddleware(ctx, path, async () => {
+        console.log(`[Router] 執行頁面組件: ${route.filePath}`)
         const content = await router.wrapComponent(route.handler, ctx, path)
+        console.log(`[Router] 頁面組件結果類型: ${typeof content}`)
+        console.log(`[Router] 是否為 Response: ${content instanceof Response}`)
         
         // 如果已經是 Response，直接返回
         if (content instanceof Response) {
+          console.log(`[Router] 直接返回 Response`)
           return content
         }
         
         // 否則轉換為 HTML 回應
+        console.log(`[Router] 轉換為 HTML`)
         return ctx.html(String(content))
       })
 

@@ -29,10 +29,28 @@ export default function 首頁() {
           <a href="/users/jason" className="block w-full rounded-lg border border-slate-700 bg-slate-800/50 p-4 text-cyan-300 hover:border-cyan-400 hover:bg-slate-800">
             → 使用者頁面（動態路由）
           </a>
+          <a href="/blog" className="block w-full rounded-lg border border-slate-700 bg-slate-800/50 p-4 text-cyan-300 hover:border-cyan-400 hover:bg-slate-800">
+            → Blog 首頁（巢狀路由）
+          </a>
           <a href="/_routes" className="block w-full rounded-lg border border-slate-700 bg-slate-800/50 p-4 text-cyan-300 hover:border-cyan-400 hover:bg-slate-800">
             → 查看所有路由（除錯）
           </a>
         </div>
+      </section>
+
+      <section className="grid gap-4 rounded-2xl border border-green-800 bg-green-900/20 p-6">
+        <h2 className="text-xl font-semibold text-green-300">🚀 內部重導向測試</h2>
+        <div className="grid gap-3">
+          <a href="/admin" className="block w-full rounded-lg border border-green-700 bg-green-800/50 p-4 text-green-300 hover:border-green-400 hover:bg-green-800">
+            → 管理面板（無權限 → 內部重導向到登入）
+          </a>
+          <a href="/admin/profile" className="block w-full rounded-lg border border-green-700 bg-green-800/50 p-4 text-green-300 hover:border-green-400 hover:bg-green-800">
+            → 個人資料（巢狀重導向測試）
+          </a>
+        </div>
+        <p className="text-green-200 text-sm mt-2">
+          💡 內部重導向不會重新發送 HTTP 請求，效能更高！
+        </p>
       </section>
     </div>
   )
