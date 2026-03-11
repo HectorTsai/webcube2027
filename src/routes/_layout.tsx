@@ -1,7 +1,7 @@
 import type { Context } from 'hono'
 
 /** Layout 包裝器：包裝頁面內容，提供統一佈局 */
-export default function Layout包裝器(Component: () => any, _ctx: Context) {
+export default function Layout(Component: () => unknown, _ctx: Context) {
   return (
     <div className="min-h-screen">
       {/* 導航列 */}
@@ -21,7 +21,7 @@ export default function Layout包裝器(Component: () => any, _ctx: Context) {
 
       {/* 主要內容 */}
       <main className="mx-auto max-w-4xl px-6 py-8">
-        <Component />
+        {Component()}
       </main>
 
       {/* 頁尾 */}

@@ -14,6 +14,9 @@ export default function 首頁() {
           <li>✅ <code className="rounded bg-slate-800 px-2 py-1 font-mono text-sm">_app.tsx</code> - 全域 App 包裝器</li>
           <li>✅ <code className="rounded bg-slate-800 px-2 py-1 font-mono text-sm">_layout.tsx</code> - 統一佈局</li>
           <li>✅ <code className="rounded bg-slate-800 px-2 py-1 font-mono text-sm">_middleware.tsx</code> - 全域中間件</li>
+          <li>✅ <code className="rounded bg-slate-800 px-2 py-1 font-mono text-sm">_404.tsx</code> - 404 錯誤頁面</li>
+          <li>✅ <code className="rounded bg-slate-800 px-2 py-1 font-mono text-sm">_error.tsx</code> - 錯誤處理器</li>
+          <li>✅ <code className="rounded bg-slate-800 px-2 py-1 font-mono text-sm">_500.tsx</code> - 500 錯誤頁面</li>
         </ul>
       </section>
 

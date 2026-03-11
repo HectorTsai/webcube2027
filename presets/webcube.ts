@@ -29,9 +29,9 @@ export function webcubePreset(): Preset {
         '錯誤色內容': 'var(--erc)'
       },
       borderRadius: {
-        選擇器: 'var(--radius-selector)',
-        欄位: 'var(--radius-field)',
-        盒子: 'var(--radius-box)'
+        '選擇器圓角': 'var(--radius-selector)',
+        '欄位圓角': 'var(--radius-field)',
+        '盒子圓角': 'var(--radius-box)'
       }
     },
     shortcuts: [

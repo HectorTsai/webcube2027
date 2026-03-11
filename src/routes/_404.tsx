@@ -1,10 +1,10 @@
 import type { Context } from 'hono'
 
 /** 404 錯誤頁面 */
-export default function 錯誤404(ctx: Context) {
+export default function NotFound404(ctx: Context): Response {
   const 請求路徑 = ctx.req.path
 
-  return (
+  const 頁面 = (
     <div className="flex min-h-screen items-center justify-center">
       <div className="text-center">
         <div className="mb-8">
@@ -21,10 +21,7 @@ export default function 錯誤404(ctx: Context) {
         </div>
 
         <div className="mt-8">
-          <a 
-            href="/" 
-            className="inline-flex items-center rounded-lg border border-cyan-400 bg-cyan-400/10 px-6 py-3 text-cyan-300 transition-colors hover:bg-cyan-400/20"
-          >
+          <a href="/" className="inline-flex items-center rounded-lg border border-cyan-400 bg-cyan-400/10 px-6 py-3 text-cyan-300 transition-colors hover:bg-cyan-400/20">
             ← 返回首頁
           </a>
         </div>
@@ -35,4 +32,6 @@ export default function 錯誤404(ctx: Context) {
       </div>
     </div>
   )
+
+  return ctx.html(String(頁面), 404)
 }

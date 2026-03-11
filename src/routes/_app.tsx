@@ -1,7 +1,7 @@
 import type { Context } from 'hono'
 
 /** App 包裝器：包裝所有頁面的最外層 */
-export default function App包裝器(Component: () => any, _ctx: Context) {
+export default function App(Component: () => unknown, _ctx: Context) {
   return (
     <html lang="zh-Hant">
       <head>
@@ -11,7 +11,7 @@ export default function App包裝器(Component: () => any, _ctx: Context) {
         <link rel="stylesheet" href="/uno.css" />
       </head>
       <body className="min-h-screen bg-slate-950 text-slate-100">
-        <Component />
+        {typeof Component === 'function' ? Component() : Component}
       </body>
     </html>
   )

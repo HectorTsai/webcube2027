@@ -11,6 +11,33 @@ export default function 關於() {
         </div>
       </section>
 
+      {/* WebCube 樣式測試 */}
+      <section className="space-y-4">
+        <h2 className="text-2xl font-semibold text-cyan-300">WebCube 樣式測試</h2>
+        
+        {/* 測試中文顏色類別 */}
+        <div className="背景-主色 p-4 rounded-lg">
+          <p className="文字-主色內容">背景-主色 + 文字-主色內容</p>
+        </div>
+        
+        <div className="背景-次色 p-4 rounded-lg">
+          <p className="文字-次色內容">背景-次色 + 文字-次色內容</p>
+        </div>
+        
+        <div className="背景-強調色 p-4 rounded-lg">
+          <p className="文字-強調色內容">背景-強調色 + 文字-強調色內容</p>
+        </div>
+        
+        {/* 測試 UnoCSS 基礎類別 */}
+        <div className="bg-blue-500 text-white p-4 rounded-lg">
+          <p>標準 UnoCSS: bg-blue-500 + text-white</p>
+        </div>
+        
+        <div className="bg-green-500 text-white p-4 rounded-lg">
+          <p>標準 UnoCSS: bg-green-500 + text-white</p>
+        </div>
+      </section>
+
       <section className="grid gap-4 rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
         <h2 className="text-xl font-semibold text-cyan-300">技術棧</h2>
         <ul className="mt-2 list-disc list-inside space-y-1 text-slate-200">
