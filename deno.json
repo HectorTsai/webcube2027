@@ -3,6 +3,7 @@
   "imports": {
     "@dui/smartmultilingual": "jsr:@dui/smartmultilingual@^0.2.2",
     "hono": "jsr:@hono/hono@^4.12.7",
+    "svgson": "npm:svgson@^5.3.1",
     "unocss": "npm:unocss@^66.6.6"
   },
   "tasks": {

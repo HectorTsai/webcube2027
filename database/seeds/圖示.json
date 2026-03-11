@@ -16,6 +16,28 @@
   {"id": "圖示:標籤:女孩","名稱":{"en":"girl","zh-tw":"女生","vi":"con gái"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
   {"id": "圖示:標籤:載入","名稱":{"en":"loading","zh-tw":"載入動畫","vi":"đang tải"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
   {"id": "圖示:標籤:動畫","名稱":{"en":"animate","zh-tw":"動畫","vi":"hoạt hình"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
+  
+  {
+    "id": "載入器:spinner",
+    "名稱": {"en":"Spinner Loading","zh-tw":"轉圈載入動畫","vi":"Đang tải xoay tròn"},
+    "資料": {
+      "格式": "SVG",
+      "內容": "<svg class=\"w-12 h-12 text-cyan-400 animate-spin\" viewBox=\"0 0 24 24\" fill=\"none\"><circle cx=\"12\" cy=\"12\" r=\"10\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-dasharray=\"31.416 31.416\" class=\"opacity-25\"/><path d=\"M12 2a10 10 0 0 1 0 20\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" class=\"opacity-75\"/></svg>"
+    },
+    "標籤集": ["圖示:標籤:載入","圖示:標籤:動畫"],
+    "權限": {"讀": true,"寫": true,"刪除": false}
+  },
+  
+  {
+    "id": "載入器:dots",
+    "名稱": {"en":"Dots Loading","zh-tw":"點點載入動畫","vi":"Đang tải chấm chấm"},
+    "資料": {
+      "格式": "SVG",
+      "內容": "<svg class=\"w-12 h-12 text-cyan-400\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><circle cx=\"6\" cy=\"12\" r=\"2\"><animate attributeName=\"cy\" values=\"12;8;12\" dur=\"1s\" repeatCount=\"indefinite\" begin=\"0s\"/></circle><circle cx=\"12\" cy=\"12\" r=\"2\"><animate attributeName=\"cy\" values=\"12;8;12\" dur=\"1s\" repeatCount=\"indefinite\" begin=\"0.15s\"/></circle><circle cx=\"18\" cy=\"12\" r=\"2\"><animate attributeName=\"cy\" values=\"12;8;12\" dur=\"1s\" repeatCount=\"indefinite\" begin=\"0.3s\"/></circle></svg>"
+    },
+    "標籤集": ["圖示:標籤:載入","圖示:標籤:動畫"],
+    "權限": {"讀": true,"寫": true,"刪除": false}
+  },
 
   {
     "id": "圖示:圖示:web_cube",
