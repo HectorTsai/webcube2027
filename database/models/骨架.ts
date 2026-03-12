@@ -32,7 +32,7 @@ export default class 骨架 extends 資料 {
   public 描述: MultilingualString;
   public 影像: string;
   public 佈局: string;
-  public 風格: string;
+  public 風格: string; // 風格id
   public 圖示: string;
   public 書本樣式: string;
   public 開始動畫: Record<string, string>;

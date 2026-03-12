@@ -170,20 +170,50 @@ class FileRouter {
 
   // 查找路由
   findRoute(path: string): RouteItem | null {
+    const normalizedPath = path === '/' ? '/' : path.replace(/\/$/, ''); // 移除結尾斜線
+    
     // 精確匹配
-    if (this.routes.has(path)) {
-      return this.routes.get(path)!
+    if (this.routes.has(normalizedPath)) {
+      return this.routes.get(normalizedPath)!
     }
 
     // 動態路由匹配
     for (const [pattern, route] of this.routes) {
-      const regex = new RegExp('^' + pattern.replace(/:[^\/]+/g, '([^/]+)') + '$')
-      if (regex.test(path)) {
+      // 加上 ^ 與 $ 確保完全匹配，並處理斜線
+      const regex = new RegExp('^' + pattern.replace(/:[^\/]+/g, '([^/]+)') + '/?$')
+      if (regex.test(normalizedPath)) {
         return route
       }
     }
 
     return null
+  }
+
+  // 提取路由參數
+  extractRouteParams(path: string, pattern: string): Record<string, string> {
+    const params: Record<string, string> = {}
+    
+    // 轉換模式為正則表達式
+    const regexPattern = pattern.replace(/:[^\/]+/g, '([^/]+)')
+    const regex = new RegExp('^' + regexPattern + '$')
+    
+    // 提取參數名稱
+    const paramNames: string[] = []
+    const nameMatches = pattern.matchAll(/:([^\/]+)/g)
+    for (const [, name] of nameMatches) {
+      paramNames.push(name)
+    }
+    
+    // 執行匹配
+    const match = path.match(regex)
+    if (match) {
+      // 跳過第一個完整匹配，後續是參數值
+      for (let i = 0; i < paramNames.length && i + 1 < match.length; i++) {
+        params[paramNames[i]] = match[i + 1]
+      }
+    }
+    
+    return params
   }
 
   // 取得特殊檔案集合（從根到目標路徑）
@@ -235,7 +265,25 @@ class FileRouter {
 
   // 包裝頁面組件
   async wrapComponent(handler: Function, ctx: Context, path: string): Promise<unknown> {
-    // 1. 取得頁面基礎內容
+    // 查找路由並提取參數
+    const route = this.findRoute(path)
+    
+    if (route) {
+      const params = this.extractRouteParams(path, route.path)
+      
+      // 將參數存入 ctx 狀態機，組件內可用 ctx.get('params')
+      ctx.set('params', params);
+      
+      // 覆蓋 ctx.req.param 方法
+      ctx.req.param = (name?: string) => {
+        if (name) {
+          return params[name] || undefined
+        }
+        return params as any
+      };
+    }
+
+    // 取得頁面基礎內容
     let element = typeof handler === 'function' ? await handler(ctx) : handler;
 
     // 如果結果是 Response，直接返回（可能是重導向）
@@ -334,14 +382,14 @@ export async function setupFileRouter(app: Hono, options: RouterOptions = {}): P
     ctx._redirectChain = ctx._redirectChain || []
     
     const path = ctx.req.path
+    const route = router.findRoute(path)
+    
+    // 如果找不到路由，才交給下一個處理器
+    if (!route) {
+      return await next()
+    }
 
     try {
-      const route = router.findRoute(path)
-      
-      if (!route) {
-        return await next()
-      }
-
       // 設定內部重導向方法
       ctx.internalRedirect = async (targetPath: string): Promise<Response> => {
         // 檢查循環
