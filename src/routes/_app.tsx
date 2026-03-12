@@ -1,7 +1,10 @@
 import type { Context } from 'hono'
 
 /** App 包裝器：包裝所有頁面的最外層 */
-export default function App(Component: () => unknown, _ctx: Context) {
+export default async function App(Component: () => Promise<unknown>, _ctx: Context) {
+  // 等待 Component 執行完成
+  const componentResult = await Component()
+
   return (
     <html lang="zh-Hant">
       <head>
@@ -206,7 +209,7 @@ export default function App(Component: () => unknown, _ctx: Context) {
         }} />
       </head>
       <body className="min-h-screen bg-slate-950 text-slate-100">
-        {typeof Component === 'function' ? Component() : Component}
+        {componentResult}
       </body>
     </html>
   )

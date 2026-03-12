@@ -1,4 +1,20 @@
-import { Hono, Context } from 'hono'
+import { Hono } from 'hono'
+import type { Context } from 'hono'
+
+// 類型定義
+interface RouteHandler {
+  default: (ctx: Context) => unknown
+}
+
+// 特殊檔案集合
+interface SpecialFiles {
+  app?: (Component: () => Promise<unknown>, ctx: Context) => Promise<unknown>
+  layout?: (Component: () => Promise<unknown>, ctx: Context) => Promise<unknown>
+  middleware?: ((ctx: Context, next: () => Promise<void>) => Promise<void>)[]
+  notFound?: (ctx: Context) => Response
+  error?: (error: Error, ctx: Context) => Response
+  serverError?: (ctx: Context, error?: Error) => Response
+}
 
 // 路由項目介面
 interface RouteItem {
@@ -6,16 +22,6 @@ interface RouteItem {
   filePath: string      // 檔案路徑
   handler: Function     // 處理函式
   params?: string[]     // 參數名稱
-}
-
-// 特殊檔案集合
-interface SpecialFiles {
-  layout?: (Component: () => unknown, ctx: Context) => unknown
-  middleware?: ((ctx: Context, next: () => Promise<void>) => Promise<void>)[]
-  app?: (Component: () => unknown, ctx: Context) => unknown
-  notFound?: (ctx: Context) => Response
-  error?: (error: Error, ctx: Context) => Response
-  serverError?: (ctx: Context, error?: Error) => Response
 }
 
 // 路由器選項
@@ -183,7 +189,10 @@ class FileRouter {
   // 取得特殊檔案集合（從根到目標路徑）
   getSpecialFilesChain(path: string): SpecialFiles[] {
     const chain: SpecialFiles[] = []
-    const parts = path.split('/').filter(Boolean)
+    
+    // 路徑正規化：統一移除結尾斜線
+    const normalizedPath = path === '/' ? '/' : path.replace(/\/$/, '');
+    const parts = normalizedPath.split('/').filter(Boolean)
     
     // 從根開始收集
     chain.push(this.specialFiles.get('/') || {})
@@ -226,12 +235,12 @@ class FileRouter {
 
   // 包裝頁面組件
   async wrapComponent(handler: Function, ctx: Context, path: string): Promise<unknown> {
-    // 先執行原始處理器
-    const result = await handler(ctx)
-    
+    // 1. 取得頁面基礎內容
+    let element = typeof handler === 'function' ? await handler(ctx) : handler;
+
     // 如果結果是 Response，直接返回（可能是重導向）
-    if (result instanceof Response) {
-      return result
+    if (element instanceof Response) {
+      return element
     }
     
     // 檢查是否為 Partial 請求
@@ -239,31 +248,30 @@ class FileRouter {
     
     if (isPartial) {
       // Partial 請求只返回原始內容，不包裝特殊檔案
-      console.log(`[Router] Partial 請求: ${path}`)
-      return result
+      return element
     }
     
-    // 否則進行 Layout 和 App 包裝
-    const chain = this.getSpecialFilesChain(path).reverse() // 從內到外包裝
+    // 2. 取得特殊檔案鏈（由內而外）
+    const chain = this.getSpecialFilesChain(path).reverse();
 
-    // 基礎渲染器
-    let renderer = () => result
-
-    // 依序包裝 Layout 和 App
+    // 3. 處理 Layout 和 App（建立穩定的內容快照）
     for (const specialFiles of chain) {
       if (specialFiles.layout) {
-        const Layout = specialFiles.layout
-        const prev = renderer
-        renderer = () => Layout(prev, ctx)
+        const Layout = specialFiles.layout;
+        // 建立一個穩定的內容快照，防止重複執行頁面邏輯
+        const content = element;
+        element = await Layout(() => content, ctx);
       }
+      
       if (specialFiles.app) {
-        const App = specialFiles.app
-        const prev = renderer
-        renderer = () => App(prev, ctx)
+        const App = specialFiles.app;
+        // 建立一個穩定的內容快照，防止重複執行頁面邏輯
+        const content = element;
+        element = await App(() => content, ctx);
       }
     }
 
-    return await renderer()
+    return element;
   }
 
   // 處理錯誤
@@ -343,6 +351,12 @@ export async function setupFileRouter(app: Hono, options: RouterOptions = {}): P
           return ctx.redirect(targetPath)
         }
 
+        // 檢查重導向鏈長度，防止 Stack Overflow
+        if (ctx._redirectChain!.length >= 5) {
+          console.warn(`[Router] 重導向鏈過長: ${ctx._redirectChain!.length} 次，降級為外部重導向`)
+          return ctx.redirect(targetPath)
+        }
+
         // 添加到重導向鏈
         ctx._redirectChain!.push(targetPath)
 
@@ -356,11 +370,11 @@ export async function setupFileRouter(app: Hono, options: RouterOptions = {}): P
           // 執行目標路由（不重新執行中間件）
           const content = await router.wrapComponent(targetRoute.handler, ctx, targetPath)
           
-          if (content instanceof Response) {
-            return content
-          }
+          // 如果 content 本身就是 Response (例如 handler 內部 return ctx.json)
+          if (content instanceof Response) return content;
           
-          return ctx.html(String(content))
+          // 直接將 JSX 物件交給 ctx.render，Hono 會自動處理
+          return ctx.render(content);
         } finally {
           // 清理重導向鏈
           ctx._redirectChain!.pop()
@@ -369,20 +383,15 @@ export async function setupFileRouter(app: Hono, options: RouterOptions = {}): P
 
       // 執行中間件鏈並渲染頁面
       const response = await router.executeMiddleware(ctx, path, async () => {
-        console.log(`[Router] 執行頁面組件: ${route.filePath}`)
         const content = await router.wrapComponent(route.handler, ctx, path)
-        console.log(`[Router] 頁面組件結果類型: ${typeof content}`)
-        console.log(`[Router] 是否為 Response: ${content instanceof Response}`)
         
         // 如果已經是 Response，直接返回
         if (content instanceof Response) {
-          console.log(`[Router] 直接返回 Response`)
           return content
         }
         
         // 否則轉換為 HTML 回應
-        console.log(`[Router] 轉換為 HTML`)
-        return ctx.html(String(content))
+        return ctx.render(content)
       })
 
       return response

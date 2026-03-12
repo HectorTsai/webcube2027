@@ -1,10 +1,14 @@
 import { Hono } from 'hono'
+import { jsxRenderer } from 'hono/jsx-renderer'
 import { setupFileRouter } from './src/router.ts'
 
 const app = new Hono()
 
+// 設定 JSX 渲染中間件
+app.use('*', jsxRenderer())
+
 // 靜態檔案服務
-app.get('/uno.css', async (c) => {
+app.get('/uno.css', async (_c) => {
   const css = await Deno.readTextFile('./public/uno.css')
   return new Response(css, {
     headers: { 'Content-Type': 'text/css' }

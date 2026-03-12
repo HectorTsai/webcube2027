@@ -1,8 +1,19 @@
+import 頁尾 from '../頁尾.tsx'
+
 interface 經典佈局Props {
   children: unknown
+  風格: string
+  baseURL: string
 }
 
-export default function 經典佈局({ children }: 經典佈局Props) {
+export default async function 經典佈局({ children, 風格, baseURL }: 經典佈局Props) {
+  // 預載入頁尾元件
+  const 頁尾元件 = await 頁尾({ 風格, 版權: "© 2026 WebCube2027. 版權所有.", 連結: [
+    { 標籤: '首頁', 連結: '/' },
+    { 標籤: '關於', 連結: '/about' },
+    { 標籤: '文件', 連結: '/docs' }
+  ], 顏色: "主要" })
+
   return (
     <div className="layout-container bg-背景1 text-背景內容">
       <header className="webcube-標頭 flex-shrink-0">
@@ -25,13 +36,7 @@ export default function 經典佈局({ children }: 經典佈局Props) {
           </div>
         </div>
       </main>
-      <footer className="webcube-頁尾 flex-shrink-0">
-        <div className="webcube-容器">
-          <p className="webcube-描述 text-center">
-            Powered by Deno + Hono + UnoCSS + 檔案路由器
-          </p>
-        </div>
-      </footer>
+      {頁尾元件}
     </div>
   )
 }
