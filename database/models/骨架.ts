@@ -10,11 +10,11 @@ const DEFAULT_VALUES = {
   },
   影像: "",
   佈局: "經典",
-  風格: "Classic",
-  書本樣式: "Classic",
+  風格: "實心",
+  書本樣式: "經典",
   圖示: "外框",
-  開始動畫: { type: "內建", name: "Buildings" },
-  載入器: { type: "預設", name: "spinner" },
+  開始動畫:"Buildings",
+  載入器: "loading-dot",
   圓角: { "中": "0.5rem", "大": "1rem", "小": "1.9rem" },
   動畫: {
     "下拉選單.開": "animate__fadeIn",
@@ -35,8 +35,8 @@ export default class 骨架 extends 資料 {
   public 風格: string; // 風格id
   public 圖示: string;
   public 書本樣式: string;
-  public 開始動畫: Record<string, string>;
-  public 載入器: Record<string, string>;
+  public 開始動畫: string;
+  public 載入器: string;
   public 圓角: Record<string, string>;
   public 動畫: Record<string, Record<string, string>>;
   public 售價: number;
@@ -53,10 +53,8 @@ export default class 骨架 extends 資料 {
     this.風格 = (data?.風格 as string) ?? DEFAULT_VALUES.風格;
     this.圖示 = (data?.圖示 as string) ?? DEFAULT_VALUES.圖示;
     this.書本樣式 = (data?.書本樣式 as string) ?? DEFAULT_VALUES.書本樣式;
-    this.開始動畫 = (data?.開始動畫 as Record<string, string>) ??
-      DEFAULT_VALUES.開始動畫;
-    this.載入器 = (data?.載入器 as Record<string, string>) ??
-      DEFAULT_VALUES.載入器;
+    this.開始動畫 = (data?.開始動畫 as string) ?? DEFAULT_VALUES.開始動畫;
+    this.載入器 = (data?.載入器 as string) ?? DEFAULT_VALUES.載入器;
     this.圓角 = (data?.圓角 as Record<string, string>) ?? DEFAULT_VALUES.圓角;
     this.動畫 = (data?.動畫 as Record<string, Record<string, string>>) ??
       DEFAULT_VALUES.動畫;

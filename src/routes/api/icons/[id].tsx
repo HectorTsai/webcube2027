@@ -1,6 +1,6 @@
 import { Context } from "hono";
-import { Surreal資料庫 } from "../../../../database/surrealdb.ts";
-import 圖示 from "../../../../database/models/圖示.ts";
+import { Surreal資料庫 } from "@/database/surrealdb.ts";
+import 圖示 from "@/database/models/圖示.ts";
 
 export default async function IconAPI(ctx: Context) {
   // 手動提取 URL 參數，因為這個路由器沒有自動設定 ctx.param
@@ -46,35 +46,28 @@ export default async function IconAPI(ctx: Context) {
     }
   }
   
-  // 3. 如果兩個資料庫都沒有，使用預設圖示
-  const staticIcons = {
-    '圖示:圖示:spinner': {
-      內容: '<svg viewBox="0 0 40 40" class="animate-spin"><circle cx="20" cy="20" r="16" fill="none" stroke="#e5e7eb" stroke-width="3" stroke-linecap="round" stroke-dasharray="80 100" opacity="0.3"/><circle cx="20" cy="20" r="16" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" stroke-dasharray="20 100"/></svg>',
-      格式: 'SVG',
-      名稱: {
-        'zh-tw': '轉圈載入動畫',
-        'en': 'Spinner Loading',
-        'vi': 'Đang tải xoay tròn'
-      }
-    },
-    'webcube:logo': {
-      內容: '<svg viewBox="0 0 48 48" fill="none"><rect x="4" y="4" width="40" height="40" rx="8" fill="currentColor"/><text x="24" y="32" text-anchor="middle" fill="white" font-size="20" font-weight="bold">W</text></svg>',
-      格式: 'SVG',
-      名稱: {
-        'zh-tw': 'WebCube 標誌',
-        'en': 'WebCube Logo',
-        'vi': 'Logo WebCube'
-      }
+  // 3. 如果兩個資料庫都沒有，從檔案系統讀取靜態圖示
+  try {
+    // API ID 到檔名的映射
+    const idToFileMap: Record<string, string> = {
+      '圖示:圖示:spinner': 'spinner',
+      '圖示:圖示:cube': 'cube',
+      '圖示:圖示:home': 'home',
+      '圖示:圖示:user': 'user',
+      '圖示:圖示:settings': 'settings'
     }
-  }
-  
-  const staticIcon = staticIcons[id as keyof typeof staticIcons]
-  if (staticIcon) {
+    
+    const 檔名 = idToFileMap[id] || id // 如果沒有映射，直接使用 ID
+    const 圖示檔案路徑 = `${Deno.cwd()}/images/${檔名}.svg`
+    const 內容 = await Deno.readTextFile(圖示檔案路徑)
+    
     return ctx.json({
-      內容: staticIcon.內容,
-      格式: staticIcon.格式,
-      名稱: (staticIcon.名稱 as Record<string, string>)[userLang] || (staticIcon.名稱 as Record<string, string>)['zh-tw'] || (staticIcon.名稱 as Record<string, string>)['en']
+      內容: 內容,
+      格式: 'SVG',
+      名稱: 檔名 // 使用檔名作為名稱
     })
+  } catch (error) {
+    console.log(`[API] 圖示 ${id} 從檔案系統讀取失敗:`, error)
   }
   
   // 4. 最終後備 - 基本的載入動畫
