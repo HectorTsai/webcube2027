@@ -80,8 +80,16 @@ export default function App(Component: () => unknown, _ctx: Context) {
                 
                 const html = await response.text()
                 
-                // 更新內容
-                document.body.innerHTML = html
+                // 找到主要內容區域並更新
+                const mainContent = document.querySelector('main .webcube-卡片')
+                if (mainContent) {
+                  mainContent.innerHTML = html
+                } else {
+                  // 如果找不到目標容器，回退到完整頁面載入
+                  console.warn('[Partial] 找不到主要內容容器，回退到完整頁面')
+                  window.location.href = url
+                  return
+                }
                 
                 // 更新 URL
                 history.pushState({}, '', url)
@@ -102,17 +110,34 @@ export default function App(Component: () => unknown, _ctx: Context) {
             // 顯示載入動畫
             function showLoading() {
               if (loadingElement) {
-                loadingElement.innerHTML = \`
-                  <div class="flex items-center justify-center min-h-screen">
-                    <div class="flex flex-col items-center space-y-4">
-                      <div class="relative">
-                        <div class="w-12 h-12 border-4 border-slate-700 rounded-full"></div>
-                        <div class="absolute top-0 left-0 w-12 h-12 border-4 border-cyan-400 rounded-full border-t-transparent animate-spin"></div>
+                // 找到主要內容區域
+                const mainContent = document.querySelector('main .webcube-卡片')
+                if (mainContent) {
+                  mainContent.innerHTML = \`
+                    <div class="flex items-center justify-center min-h-[60vh]">
+                      <div class="flex flex-col items-center space-y-4">
+                        <div class="relative">
+                          <div class="w-12 h-12 border-4 border-背景3 rounded-full"></div>
+                          <div class="absolute top-0 left-0 w-12 h-12 border-4 border-主色 rounded-full border-t-transparent animate-spin"></div>
+                        </div>
+                        <p class="webcube-文字 animate-pulse">載入中...</p>
                       </div>
-                      <p class="text-slate-400 text-sm animate-pulse">載入中...</p>
                     </div>
-                  </div>
-                \`
+                  \`
+                } else {
+                  // 如果找不到目標容器，使用 body 作為備選
+                  loadingElement.innerHTML = \`
+                    <div class="flex items-center justify-center min-h-screen">
+                      <div class="flex flex-col items-center space-y-4">
+                        <div class="relative">
+                          <div class="w-12 h-12 border-4 border-slate-700 rounded-full"></div>
+                          <div class="absolute top-0 left-0 w-12 h-12 border-4 border-cyan-400 rounded-full border-t-transparent animate-spin"></div>
+                        </div>
+                        <p class="text-slate-400 text-sm animate-pulse">載入中...</p>
+                      </div>
+                    </div>
+                  \`
+                }
               }
             }
             
