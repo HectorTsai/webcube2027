@@ -1,4 +1,4 @@
-import { 權限, 資料 } from "@/database/index.ts";
+import { 權限, 資料 } from "../index.ts";
 import { MultilingualString } from "@dui/smartmultilingual";
 
 export default class 單字 extends 資料 {

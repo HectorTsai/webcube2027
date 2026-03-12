@@ -1,5 +1,5 @@
 import { MultilingualString } from "@dui/smartmultilingual";
-import { 權限, 資料 } from "@/database/index.ts";
+import { 權限, 資料 } from "../index.ts";
 
 export type 內容類型 = "文字" | "圖片" | "影片" | "音訊" | "連結" | "區塊";
 

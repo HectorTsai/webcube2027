@@ -1,10 +1,10 @@
 import type { Context, Next } from 'hono'
-import { KV資料庫 } from '../database/kv.ts'
-import { Surreal資料庫 } from '../database/surrealdb.ts'
-import 系統資訊 from '../database/models/系統資訊.ts'
-import 網站資訊 from '../database/models/網站資訊.ts'
-import 骨架 from '../database/models/骨架.ts'
-import 配色 from '../database/models/配色.ts'
+import { KV資料庫 } from '../../database/kv.ts'
+import { Surreal資料庫 } from '../../database/surrealdb.ts'
+import 系統資訊 from '../../database/models/系統資訊.ts'
+import 網站資訊 from '../../database/models/網站資訊.ts'
+import 骨架 from '../../database/models/骨架.ts'
+import 配色 from '../../database/models/配色.ts'
 import { SupportedLanguage, SUPPORTED_LANGUAGES } from '@dui/smartmultilingual'
 
 // 全域變數宣告
@@ -147,7 +147,7 @@ export default async function middleware(ctx: Context, next: Next) {
     let siteDb: Surreal資料庫 | null = globalThis.siteDbs?.[host] || null
     if (!globalThis.siteDbs?.[host] && siteInfo && siteInfo.資料庫) {
       try {
-        const dbText = siteInfo.資料庫.getPlainText()
+        const dbText = await siteInfo.資料庫.getPlainText()
         if (dbText) {
           const settings = JSON.parse(dbText)
           siteDb = new Surreal資料庫(settings)
@@ -199,20 +199,20 @@ export default async function middleware(ctx: Context, next: Next) {
       // 有網站資訊時，按照優先順序載入資料
       try {
         // 優先載入單獨設定的骨架和配色
-        if (siteInfo.骨架ID) {
-          const 骨架Query = await globalThis.sysDb?.查詢(`SELECT * FROM 骨架 WHERE id = ${siteInfo.骨架ID}`)
+        if (siteInfo.骨架) {
+          const 骨架Query = await globalThis.sysDb?.查詢(`SELECT * FROM 骨架 WHERE id = ${siteInfo.骨架}`)
           骨架資料 = 骨架Query && 骨架Query.length > 0 ? new 骨架(骨架Query[0] as Record<string, unknown>) : null
         }
         
-        if (siteInfo.配色ID) {
-          const 配色Query = await globalThis.sysDb?.查詢(`SELECT * FROM 配色 WHERE id = ${siteInfo.配色ID}`)
+        if (siteInfo.配色) {
+          const 配色Query = await globalThis.sysDb?.查詢(`SELECT * FROM 配色 WHERE id = ${siteInfo.配色}`)
           配色資料 = 配色Query && 配色Query.length > 0 ? new 配色(配色Query[0] as Record<string, unknown>) : null
         }
         
         // 如果骨架或配色還沒有值，才從佈景主題載入
         if (!骨架資料 || !配色資料) {
-          if (siteInfo.佈景主題ID) {
-            const 佈景主題Query = await globalThis.sysDb?.查詢(`SELECT * FROM 佈景主題 WHERE id = ${siteInfo.佈景主題ID}`)
+          if (siteInfo.佈景主題) {
+            const 佈景主題Query = await globalThis.sysDb?.查詢(`SELECT * FROM 佈景主題 WHERE id = ${siteInfo.佈景主題}`)
             佈景主題資料 = 佈景主題Query && 佈景主題Query.length > 0 ? 佈景主題Query[0] as Record<string, unknown> : null
             
             // 從佈景主題補載缺少的資料
@@ -235,6 +235,7 @@ export default async function middleware(ctx: Context, next: Next) {
     }
 
     // 9. 設定 Context 狀態
+    ctx.set('uri', uri)
     ctx.set('host', host)
     ctx.set('pathname', pathname)
     ctx.set('語言', lang)

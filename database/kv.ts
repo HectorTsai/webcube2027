@@ -15,13 +15,24 @@ async function loadModel(type: string): Promise<unknown> {
 }
 
 export class KV資料庫 {
-  private kv!: Deno.Kv;
+  private kv: Deno.Kv | null = null;
 
   async 開啟(): Promise<void> {
-    this.kv = await Deno.openKv("data/kv.sqlite3");
+    try {
+      this.kv = await Deno.openKv("data/kv.sqlite3");
+      console.log('[KV] 資料庫開啟成功');
+    } catch (error) {
+      console.error('[KV] 資料庫開啟失敗:', error);
+      this.kv = null;
+    }
   }
 
   async 取得資料<T extends 資料>(id: string): Promise<T | unknown | null> {
+    if (!this.kv) {
+      console.error('[KV] 資料庫未初始化');
+      return null;
+    }
+    
     const res = await this.kv.get([id]);
     if (!res.value) return null;
 
@@ -39,10 +50,19 @@ export class KV資料庫 {
   }
 
   async 寫入資料(model: 資料): Promise<void> {
+    if (!this.kv) {
+      console.error('[KV] 資料庫未初始化');
+      return;
+    }
     await this.kv.set([model.id], model.toJSON());
   }
 
   async 個數(model: string): Promise<number> {
+    if (!this.kv) {
+      console.error('[KV] 資料庫未初始化');
+      return 0;
+    }
+    
     const keys = this.kv.list({ prefix: [] });
     let count = 0;
     for await (const entry of keys) {
@@ -55,12 +75,22 @@ export class KV資料庫 {
   }
 
   async 初始化(model: string): Promise<void> {
+    if (!this.kv) {
+      console.error('[KV] 資料庫未初始化，無法初始化模型');
+      return;
+    }
+    
     const count = await this.個數(model);
     if (count === 0) {
-      const seedPath = new URL(`./seeds/${model}.json`, import.meta.url);
-      const seedData = JSON.parse(await Deno.readTextFile(seedPath));
-      for (const item of seedData) {
-        await this.kv.set([item.id], item);
+      try {
+        const seedPath = new URL(`./seeds/${model}.json`, import.meta.url);
+        const seedData = JSON.parse(await Deno.readTextFile(seedPath));
+        for (const item of seedData) {
+          await this.kv.set([item.id], item);
+        }
+        console.log(`[KV] 模型 ${model} 初始化成功`);
+      } catch (error) {
+        console.error(`[KV] 模型 ${model} 初始化失敗:`, error);
       }
     }
   }

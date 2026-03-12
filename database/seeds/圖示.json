@@ -18,7 +18,7 @@
   {"id": "圖示:標籤:動畫","名稱":{"en":"animate","zh-tw":"動畫","vi":"hoạt hình"},"標籤集":[],"權限": {"讀": true,"寫": true,"刪除": false}},
   
   {
-    "id": "載入器:spinner",
+    "id": "圖示:圖示:spinner",
     "名稱": {"en":"Spinner Loading","zh-tw":"轉圈載入動畫","vi":"Đang tải xoay tròn"},
     "資料": {
       "格式": "SVG",
@@ -29,7 +29,7 @@
   },
   
   {
-    "id": "載入器:dots",
+    "id": "圖示:圖示:dots",
     "名稱": {"en":"Dots Loading","zh-tw":"點點載入動畫","vi":"Đang tải chấm chấm"},
     "資料": {
       "格式": "SVG",
@@ -44,7 +44,7 @@
     "名稱": {"en":"cube","zh-tw":"方塊","vi":"hình lập phương"},
     "資料": {
       "格式": "SVG",
-      "內容":"file:::images:webcube.svg"
+      "內容":"file://images/webcube.svg"
     },
     "標籤集": ["圖示:標籤:物件","圖示:標籤:外框"],
     "權限": {"讀": true,"寫": true,"刪除": false}
@@ -54,7 +54,7 @@
     "名稱": {"en":"cubes","zh-tw": "方塊","vi": "hình lập phương"},
     "資料": {
       "格式": "SVG",
-      "內容":"file:::images:webcube_banner.svg"
+      "內容":"file://images/webcube_banner.svg"
     },
     "標籤集": ["圖示:標籤:物件","圖示:標籤:實體"],
     "權限": {"讀": true,"寫": true,"刪除": false}
@@ -64,7 +64,7 @@
     "名稱": {"en":"user","zh-tw": "使用者","vi": "người sử dụng"},
     "資料": {
       "格式": "SVG",
-      "內容":"file:::images:user.svg"
+      "內容":"file://images:user.svg"
     },
     "標籤集": ["圖示:標籤:頭像","圖示:標籤:外框"],
     "權限": {"讀": true,"寫": true,"刪除": false}
@@ -74,7 +74,7 @@
     "名稱":{"en":"home", "zh-tw":"首頁", "zh-cn":"首页", "vi":"trang chủ"},
     "資料":{
       "格式":"SVG",
-      "內容":"file:::images:home.svg"
+      "內容":"file://images/home.svg"
     },
     "標籤集":[],
     "權限": {"讀": true,"寫": true,"刪除": false}
@@ -84,7 +84,7 @@
     "名稱":{"en":"info", "zh-tw":"資訊", "zh-cn":"信息", "vi":"thông tin"},
     "資料":{
       "格式":"SVG",
-      "內容":"file:::images:info.svg"
+      "內容":"file://images/info.svg"
     },
     "標籤集":[],
     "權限": {"讀": true,"寫": true,"刪除": false}
@@ -94,7 +94,7 @@
     "名稱":{"en":"phone", "zh-tw":"電話", "zh-cn":"电话", "vi":"điện thoại"},
     "資料":{
       "格式":"SVG",
-      "內容":"file:::images:phone.svg"
+      "內容":"file://images/phone.svg"
     },
     "標籤集":[],
     "權限": {"讀": true,"寫": true,"刪除": false}
@@ -104,7 +104,7 @@
     "名稱": {"en":"menu","zh-tw": "選單","vi": "thực đơn"},
     "資料": {
       "格式": "SVG",
-      "內容":"file:::images:menu.svg"
+      "內容":"file://images/menu.svg"
     },
     "標籤集": ["圖示:標籤:符號","圖示:標籤:動畫"],
     "權限": {"讀": true,"寫": true,"刪除": false}
@@ -114,7 +114,7 @@
     "名稱": {"en":"menu 2","zh-tw": "選單2","vi": "thực đơn 2"},
     "資料": {
       "格式": "SVG",
-      "內容":"file:::images:menu2.svg"
+      "內容":"file://images/menu2.svg"
     },
     "標籤集": ["圖示:標籤:符號","圖示:標籤:動畫"],
     "權限": {"讀": true,"寫": true,"刪除": false}
@@ -124,7 +124,7 @@
     "名稱": {"en":"menu 3","zh-tw": "選單3","vi": "thực đơn 3"},
     "資料": {
       "格式": "SVG",
-      "內容":"file:::images:menu3.svg"
+      "內容":"file://images/menu3.svg"
     },
     "標籤集": ["圖示:標籤:符號","圖示:標籤:動畫"],
     "權限": {"讀": true,"寫": true,"刪除": false}
@@ -134,7 +134,7 @@
     "名稱": {"en":"republic of china","zh-tw": "中華民國","vi": "Cộng hòa Trung Quốc"},
     "資料": {
       "格式": "SVG",
-      "內容": "https:::flagicons.lipis.dev:flags:4x3:tw.svg"
+      "內容": "https://flagicons.lipis.dev/flags/4x3/tw.svg"
     },
     "標籤集": ["圖示:標籤:旗幟"],
     "權限": {"讀": true,"寫": true,"刪除": false}
@@ -144,7 +144,7 @@
     "名稱": {"en":"united states","zh-tw": "美國","vi": "Hoa Kỳ"},
     "資料": {
       "格式": "SVG",
-      "內容": "https:::flagicons.lipis.dev:flags:4x3:us.svg"
+      "內容": "https://flagicons.lipis.dev/flags/4x3/us.svg"
     },
     "標籤集": ["圖示:標籤:旗幟"],
     "權限": {"讀": true,"寫": true,"刪除": false}
@@ -154,7 +154,7 @@
     "名稱": {"en":"china","zh-tw": "中國","vi": "Trung Quốc"},
     "資料": {
       "格式": "SVG",
-      "內容": "https:::flagicons.lipis.dev:flags:4x3:cn.svg"
+      "內容": "https://flagicons.lipis.dev/flags/4x3/cn.svg"
     },
     "標籤集": ["圖示:標籤:旗幟"],
     "權限": {"讀": true,"寫": true,"刪除": false}
@@ -164,7 +164,7 @@
     "名稱": {"en":"vietnam","zh-tw": "越南","vi": "Việt Nam"},
     "資料": {
       "格式": "SVG",
-      "內容": "https:::flagicons.lipis.dev:flags:4x3:vn.svg"
+      "內容": "https://flagicons.lipis.dev/flags/4x3/vn.svg"
     },
     "標籤集": ["圖示:標籤:旗幟"],
     "權限": {"讀": true,"寫": true,"刪除": false}

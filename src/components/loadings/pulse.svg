@@ -1,5 +1,0 @@
-<svg class="w-12 h-12 text-cyan-400 animate-pulse" viewBox="0 0 24 24" fill="currentColor">
-  <circle cx="12" cy="12" r="8" opacity="0.3"/>
-  <circle cx="12" cy="12" r="8" opacity="0.6"/>
-  <circle cx="12" cy="12" r="8"/>
-</svg>

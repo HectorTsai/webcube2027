@@ -1,4 +1,4 @@
-import { 權限, 資料 } from "@/database/index.ts";
+import { 權限, 資料 } from "../index.ts";
 
 export default class 元件 extends 資料 {
   public 名稱: string;

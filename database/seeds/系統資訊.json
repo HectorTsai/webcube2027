@@ -17,9 +17,9 @@
             "網址": "www.dui.com.tw",
             "開始年份": 2000
         },
-        "軟體服務條款":{"zh-tw":{"格式":"MARKDOWN","內容":"file:::docs:軟體服務條款.md"}},
-        "使用者服務條款":{"zh-tw":{"格式":"MARKDOWN","內容":"file:::docs:使用者服務條款.md"}},
-        "隱私權政策":{"zh-tw":{"格式":"MARKDOWN","內容":"file:::docs:隱私權政策.md"}},
+        "軟體服務條款":{"zh-tw":{"格式":"MARKDOWN","內容":"file://docs:軟體服務條款.md"}},
+        "使用者服務條款":{"zh-tw":{"格式":"MARKDOWN","內容":"file://docs:使用者服務條款.md"}},
+        "隱私權政策":{"zh-tw":{"格式":"MARKDOWN","內容":"file://docs:隱私權政策.md"}},
         "權限": {"讀": true,"寫": true,"刪除": false}
     }
 ]

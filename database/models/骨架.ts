@@ -9,7 +9,7 @@ const DEFAULT_VALUES = {
     vi: "Cấu trúc của phong cách cổ điển", // TODO: 翻譯
   },
   影像: "",
-  布局: "Classic",
+  佈局: "經典",
   風格: "Classic",
   書本樣式: "Classic",
   圖示: "外框",
@@ -31,7 +31,7 @@ export default class 骨架 extends 資料 {
   public 名稱: MultilingualString;
   public 描述: MultilingualString;
   public 影像: string;
-  public 布局: string;
+  public 佈局: string;
   public 風格: string;
   public 圖示: string;
   public 書本樣式: string;
@@ -49,7 +49,7 @@ export default class 骨架 extends 資料 {
     this.名稱 = new MultilingualString(data?.名稱 as Record<string, string> | undefined);
     this.描述 = new MultilingualString(data?.描述 as Record<string, string> | undefined);
     this.影像 = (data?.影像 as string) ?? DEFAULT_VALUES.影像;
-    this.布局 = (data?.布局 as string) ?? DEFAULT_VALUES.布局;
+    this.佈局 = (data?.佈局 as string) ?? DEFAULT_VALUES.佈局;
     this.風格 = (data?.風格 as string) ?? DEFAULT_VALUES.風格;
     this.圖示 = (data?.圖示 as string) ?? DEFAULT_VALUES.圖示;
     this.書本樣式 = (data?.書本樣式 as string) ?? DEFAULT_VALUES.書本樣式;
@@ -69,7 +69,7 @@ export default class 骨架 extends 資料 {
       描述: this.描述.toJSON(),
       售價: this.售價,
       影像: this.影像,
-      布局: this.布局,
+      佈局: this.佈局,
       風格: this.風格,
       圖示: this.圖示,
       書本樣式: this.書本樣式,

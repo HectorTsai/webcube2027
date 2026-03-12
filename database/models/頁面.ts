@@ -1,5 +1,5 @@
 import { MultilingualString } from "@dui/smartmultilingual";
-import { 權限, 資料 } from "@/database/index.ts";
+import { 權限, 資料 } from "../index.ts";
 
 export default class 頁面 extends 資料 {
   public 路徑: string;
