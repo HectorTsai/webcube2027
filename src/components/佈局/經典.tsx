@@ -15,7 +15,7 @@ export default async function 經典佈局({ children, 風格, baseURL }: 經典
   ], 顏色: "主要" })
 
   return (
-    <div className="layout-container bg-背景1 text-背景內容">
+    <div className="webcube-容器 relative z-10 文字-背景內容" style="background-color: var(--p);">
       <header className="webcube-標頭 flex-shrink-0">
         <nav className="webcube-容器">
           <div className="webcube-兩端對齊">

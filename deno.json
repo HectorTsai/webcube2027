@@ -14,7 +14,12 @@
     "serve": "deno task start",
     "uno": "deno run -A npm:@unocss/cli@0.61.9 src/**/*.tsx main.tsx -o public/uno.css",
     "uno:watch": "deno run -A npm:@unocss/cli@0.61.9 src/**/*.tsx main.tsx -o public/uno.css --watch",
-    "dev": "deno task uno:watch & deno task start"
+    "dev": "deno task uno:watch & deno task start",
+    "dev:hot": "deno run --allow-net --allow-read --allow-env --allow-write --unstable-kv --watch main.tsx",
+    "dev:full": "deno run --allow-net --allow-read --allow-env --allow-write --unstable-kv dev.tsx",
+    "dev:hmr": "deno task uno:watch & deno task dev:full",
+    "dev:simple": "deno run --allow-net --allow-read --allow-env --allow-write --unstable-kv dev-simple.tsx",
+    "dev:watch": "deno task uno:watch & deno task dev:simple"
   },
   "compilerOptions": {
     "jsx": "react-jsx",

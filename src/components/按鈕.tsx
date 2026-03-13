@@ -1,4 +1,4 @@
-import 實心按鈕 from './實心/Button.tsx'
+import 實心按鈕 from './實心/按鈕.tsx'
 
 interface ButtonProps {
   children: string
@@ -14,7 +14,7 @@ interface ButtonProps {
 export default async function Button({ 風格, ...props }: ButtonProps) {
   try {
     // 1. 先嘗試從檔案系統載入
-    const Button = (await import(`./${風格}/Button.tsx`)).default
+    const Button = (await import(`./${風格}/按鈕.tsx`)).default
     return <Button {...props} />
   } catch (_e) {
     // 2. 檔案載入失敗，使用預設實心按鈕

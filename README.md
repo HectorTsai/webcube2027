@@ -4,9 +4,44 @@
 
 ## 🚀 快速開始
 
+### 安裝與啟動
 ```bash
-deno task start
+# 克隆專案
+git clone https://github.com/HectorTsai/webcube2027
+cd webcube2027
+
+# 啟動開發環境（推薦）
+deno task dev:hot
+
+# 或者完整熱加載環境
+deno task dev:watch
 ```
+
+### 🔥 熱加載開發
+
+WebCube2027 配備了完整的熱加載系統：
+
+#### 🏆 推薦模式：`deno task dev:hot`
+```bash
+deno task dev:hot
+```
+- ✅ **零配置** - Deno 原生監控
+- ✅ **自動重啟** - 檔案變更立即生效
+- ✅ **100% 可靠** - 無模組快取問題
+
+#### 🔧 完整模式：`deno task dev:watch`
+```bash
+deno task dev:watch
+```
+- 🔥 **檔案監控** - 詳細變更日誌
+- 🌈 **UnoCSS 監控** - 自動樣式更新
+- 💡 **系統通知** - 桌面通知支援
+
+### 開發體驗
+- **修改佈局** → 1-2秒後自動重啟 → 重新整理看到效果
+- **新增元件** → 即時預覽
+- **API 開發** → 立即測試
+- **路由調整** → 馬上生效
 
 ## 🔥 核心特色
 

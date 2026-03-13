@@ -38,6 +38,10 @@ export default async function App(Component: () => Promise<unknown>, ctx: Contex
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>WebCube2027</title>
         <link rel="stylesheet" href="/uno.css" />
+        {/* 開發模式下注入熱加載腳本 */}
+        {ctx.get('uri')?.origin?.includes('localhost') && (
+          <script src="/hot-reload.js"></script>
+        )}
         <script dangerouslySetInnerHTML={{
           __html: `
             // 注入載入器圖示內容到前端
@@ -224,7 +228,7 @@ export default async function App(Component: () => Promise<unknown>, ctx: Contex
           `
         }} />
       </head>
-      <body className="min-h-screen bg-slate-950 text-slate-100">
+      <body className="min-h-screen bg-transparent text-slate-100">
         {componentResult}
       </body>
     </html>
