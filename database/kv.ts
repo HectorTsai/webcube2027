@@ -94,4 +94,37 @@ export class KV資料庫 {
       }
     }
   }
+
+  // 設定資料 (別名方法)
+  async 設定資料(id: string, data: any): Promise<void> {
+    if (!this.kv) {
+      console.error('[KV] 資料庫未初始化');
+      return;
+    }
+    await this.kv.set([id], data);
+  }
+
+  // 列出所有鍵值
+  async 列出鍵值(prefix: string = ""): Promise<string[]> {
+    if (!this.kv) {
+      console.error('[KV] 資料庫未初始化');
+      return [];
+    }
+    
+    const keys: string[] = [];
+    const list = this.kv.list({ prefix: prefix ? [prefix] : [] });
+    for await (const entry of list) {
+      keys.push(entry.key[0] as string);
+    }
+    return keys;
+  }
+
+  // 刪除資料
+  async 刪除資料(id: string): Promise<void> {
+    if (!this.kv) {
+      console.error('[KV] 資料庫未初始化');
+      return;
+    }
+    await this.kv.delete([id]);
+  }
 }

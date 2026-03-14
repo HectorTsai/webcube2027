@@ -9,7 +9,7 @@ const DEFAULT_VALUES = {
     vi: "Cấu trúc của phong cách cổ điển", // TODO: 翻譯
   },
   影像: "",
-  佈局: "經典",
+  佈局: "方塊:方塊:cube-網站-經典",
   風格: "實心",
   書本樣式: "經典",
   圖示: "外框",

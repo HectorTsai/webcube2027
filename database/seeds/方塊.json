@@ -1,0 +1,627 @@
+[
+  {
+    "id": "方塊:方塊:cube-flex-列",
+    "名稱": {
+      "en": "Flex Row Cube",
+      "zh-tw": "Flex 列方塊",
+      "vi": "Khối Flex Row"
+    },
+    "分類": "佈局",
+    "描述": {
+      "en": "Flex row layout cube for horizontal element arrangement",
+      "zh-tw": "Flex 列佈局方塊，用於水平排列元素",
+      "vi": "Khối bố cục flex row dùng để sắp xếp các yếu tố theo chiều ngang"
+    },
+    "版本": "1.0.0",
+    "程式碼": "export function Flex列方塊({ 對齊 = 'start', 垂直對齊 = 'stretch', 間距 = 'md', 內距 = 'md', 換行 = false, 子元件, className = '', style = {} }) { const 樣式 = css`display: flex; flex-direction: row; flex-wrap: ${換行 ? 'wrap' : 'nowrap'}; justify-content: ${對齊}; align-items: ${垂直對齊}; gap: var(--spacing-${間距}); padding: var(--spacing-${內距}); width: 100%; background-color: var(--b1); color: var(--bc);`; return (<div css={樣式} className={`flex-列方塊 ${className}`} style={style}>{子元件}</div>); }",
+    "屬性定義": {
+      "對齊": {
+        "類型": "enum",
+        "選項": ["start", "center", "end", "between", "around", "evenly"],
+        "預設值": "start",
+        "描述": "水平對齊方式"
+      },
+      "垂直對齊": {
+        "類型": "enum",
+        "選項": ["start", "center", "end", "stretch", "baseline"],
+        "預設值": "stretch",
+        "描述": "垂直對齊方式"
+      },
+      "間距": {
+        "類型": "enum",
+        "選項": ["sm", "md", "lg", "xl"],
+        "預設值": "md",
+        "描述": "元素間距"
+      },
+      "內距": {
+        "類型": "enum",
+        "選項": ["sm", "md", "lg", "xl"],
+        "預設值": "md",
+        "描述": "內部間距"
+      },
+      "換行": {
+        "類型": "boolean",
+        "預設值": false,
+        "描述": "是否允許換行"
+      }
+    },
+    "可用樣式": ["layout", "spacing"],
+    "使用次數": 0,
+    "狀態": "啟用",
+    "標籤集": [],
+    "權限": {
+      "讀": true,
+      "寫": false,
+      "刪除": false
+    }
+  },
+  {
+    "id": "方塊:方塊:cube-flex-欄",
+    "名稱": {
+      "en": "Flex Column Cube",
+      "zh-tw": "Flex 欄方塊",
+      "vi": "Khối Flex Column"
+    },
+    "分類": "佈局",
+    "描述": {
+      "en": "Flex column layout cube for vertical element arrangement",
+      "zh-tw": "Flex 欄佈局方塊，用於垂直排列元素",
+      "vi": "Khối bố cục flex column dùng để sắp xếp các yếu tố theo chiều dọc"
+    },
+    "版本": "1.0.0",
+    "程式碼": "export function Flex欄方塊({ 對齊 = 'stretch', 水平對齊 = 'start', 間距 = 'md', 內距 = 'md', 最小高度 = 'auto', 子元件, className = '', style = {} }) { const 樣式 = css`display: flex; flex-direction: column; justify-content: ${對齊}; align-items: ${水平對齊}; gap: var(--spacing-${間距}); padding: var(--spacing-${內距}); min-height: ${最小高度 === 'screen' ? '100vh' : 最小高度 === '100vh' ? '100vh' : 'auto'}; width: 100%; background-color: var(--b1); color: var(--bc);`; return (<div css={樣式} className={`flex-欄方塊 ${className}`} style={style}>{子元件}</div>); }",
+    "屬性定義": {
+      "對齊": {
+        "類型": "enum",
+        "選項": ["start", "center", "end", "between", "around", "stretch"],
+        "預設值": "stretch",
+        "描述": "垂直對齊方式"
+      },
+      "水平對齊": {
+        "類型": "enum",
+        "選項": ["start", "center", "end", "stretch"],
+        "預設值": "start",
+        "描述": "水平對齊方式"
+      },
+      "間距": {
+        "類型": "enum",
+        "選項": ["sm", "md", "lg", "xl"],
+        "預設值": "md",
+        "描述": "元素間距"
+      },
+      "內距": {
+        "類型": "enum",
+        "選項": ["sm", "md", "lg", "xl"],
+        "預設值": "md",
+        "描述": "內部間距"
+      },
+      "最小高度": {
+        "類型": "enum",
+        "選項": ["auto", "screen", "100vh"],
+        "預設值": "auto",
+        "描述": "最小高度"
+      }
+    },
+    "可用樣式": ["layout", "spacing"],
+    "使用次數": 0,
+    "狀態": "啟用",
+    "標籤集": [],
+    "權限": {
+      "讀": true,
+      "寫": false,
+      "刪除": false
+    }
+  },
+  {
+    "id": "方塊:方塊:cube-container-置中",
+    "名稱": {
+      "en": "Center Container Cube",
+      "zh-tw": "置中容器方塊",
+      "vi": "Khối Container Center"
+    },
+    "分類": "佈局",
+    "描述": {
+      "en": "Centered container cube with max-width and horizontal centering",
+      "zh-tw": "置中容器方塊，提供最大寬度和水平置中功能",
+      "vi": "Khối container centered cung cấp max-width và centering theo chiều ngang"
+    },
+    "版本": "1.0.0",
+    "程式碼": "export function Container置中方塊({ 最大寬度 = '4xl', 內距 = 'lg', 子元件, className = '', style = {} }) { const 樣式 = css`width: 100%; max-width: var(--container-${最大寬度}); margin: 0 auto; padding: var(--spacing-${內距});`; return (<div css={樣式} className={`container-置中方塊 ${className}`} style={style}>{子元件}</div>); }",
+    "屬性定義": {
+      "最大寬度": {
+        "類型": "enum",
+        "選項": ["sm", "md", "lg", "xl", "2xl", "4xl", "6xl", "full"],
+        "預設值": "4xl",
+        "描述": "最大寬度"
+      },
+      "內距": {
+        "類型": "enum",
+        "選項": ["sm", "md", "lg", "xl"],
+        "預設值": "lg",
+        "描述": "內部間距"
+      }
+    },
+    "可用樣式": ["sizing", "spacing"],
+    "使用次數": 0,
+    "狀態": "啟用",
+    "標籤集": [],
+    "權限": {
+      "讀": true,
+      "寫": false,
+      "刪除": false
+    }
+  },
+  {
+    "id": "方塊:方塊:cube-container-全寬",
+    "名稱": {
+      "en": "Full Width Container Cube",
+      "zh-tw": "全寬容器方塊",
+      "vi": "Khối Container Full Width"
+    },
+    "分類": "佈局",
+    "描述": {
+      "en": "Full width container cube with optional padding",
+      "zh-tw": "全寬容器方塊，可選內部間距",
+      "vi": "Khối container full width với padding tùy chọn"
+    },
+    "版本": "1.0.0",
+    "程式碼": "export function Container全寬方塊({ 內距 = 'lg', 子元件, className = '', style = {} }) { const 樣式 = css`width: 100%; padding: var(--spacing-${內距});`; return (<div css={樣式} className={`container-全寬方塊 ${className}`} style={style}>{子元件}</div>); }",
+    "屬性定義": {
+      "內距": {
+        "類型": "enum",
+        "選項": ["sm", "md", "lg", "xl"],
+        "預設值": "lg",
+        "描述": "內部間距"
+      }
+    },
+    "可用樣式": ["sizing", "spacing"],
+    "使用次數": 0,
+    "狀態": "啟用",
+    "標籤集": [],
+    "權限": {
+      "讀": true,
+      "寫": false,
+      "刪除": false
+    }
+  },
+  {
+    "id": "方塊:方塊:cube-stack-垂直",
+    "名稱": {
+      "en": "Vertical Stack Cube",
+      "zh-tw": "垂直堆疊方塊",
+      "vi": "Khối Stack Dọc"
+    },
+    "分類": "佈局",
+    "描述": {
+      "en": "Vertical stack layout cube for stacking elements vertically",
+      "zh-tw": "垂直堆疊佈局方塊，用於垂直堆疊元素",
+      "vi": "Khối bố cục stack dọc dùng để xếp các yếu tố theo chiều dọc"
+    },
+    "版本": "1.0.0",
+    "程式碼": "export function Stack垂直方塊({ 間距 = 'md', 對齊 = 'stretch', 內距 = 'md', 子元件, className = '', style = {} }) { const 樣式 = css`display: flex; flex-direction: column; align-items: ${對齊}; gap: var(--spacing-${間距}); padding: var(--spacing-${內距}); width: 100%; background-color: var(--b1); color: var(--bc);`; return (<div css={樣式} className={`stack-垂直方塊 ${className}`} style={style}>{子元件}</div>); }",
+    "屬性定義": {
+      "間距": {
+        "類型": "enum",
+        "選項": ["sm", "md", "lg", "xl"],
+        "預設值": "md",
+        "描述": "元素間距"
+      },
+      "對齊": {
+        "類型": "enum",
+        "選項": ["start", "center", "end", "stretch"],
+        "預設值": "stretch",
+        "描述": "水平對齊方式"
+      },
+      "內距": {
+        "類型": "enum",
+        "選項": ["sm", "md", "lg", "xl"],
+        "預設值": "md",
+        "描述": "內部間距"
+      }
+    },
+    "可用樣式": ["layout", "spacing"],
+    "使用次數": 0,
+    "狀態": "啟用",
+    "標籤集": [],
+    "權限": {
+      "讀": true,
+      "寫": false,
+      "刪除": false
+    }
+  },
+  {
+    "id": "方塊:方塊:cube-grid-均等",
+    "名稱": {
+      "en": "Equal Grid Cube",
+      "zh-tw": "等分網格方塊",
+      "vi": "Khối Grid Đều"
+    },
+    "分類": "佈局",
+    "描述": {
+      "en": "Equal grid layout cube for evenly distributed elements",
+      "zh-tw": "等分網格佈局方塊，用於均勻分佈元素",
+      "vi": "Khối bố cục grid đều dùng để phân bổ đều các yếu tố"
+    },
+    "版本": "1.0.0",
+    "程式碼": "export function Grid均等方塊({ 欄數 = 2, 間距 = 'md', 內距 = 'md', 子元件, className = '', style = {} }) { const 樣式 = css`display: grid; grid-template-columns: repeat(${欄數}, 1fr); gap: var(--spacing-${間距}); padding: var(--spacing-${內距}); width: 100%; background-color: var(--b1); color: var(--bc);`; return (<div css={樣式} className={`grid-均等方塊 ${className}`} style={style}>{子元件}</div>); }",
+    "屬性定義": {
+      "欄數": {
+        "類型": "enum",
+        "選項": [1, 2, 3, 4, 5, 6, 12],
+        "預設值": 2,
+        "描述": "網格欄數"
+      },
+      "間距": {
+        "類型": "enum",
+        "選項": ["sm", "md", "lg", "xl"],
+        "預設值": "md",
+        "描述": "網格間距"
+      },
+      "內距": {
+        "類型": "enum",
+        "選項": ["sm", "md", "lg", "xl"],
+        "預設值": "md",
+        "描述": "內部間距"
+      }
+    },
+    "可用樣式": ["layout", "sizing", "spacing"],
+    "使用次數": 0,
+    "狀態": "啟用",
+    "標籤集": [],
+    "權限": {
+      "讀": true,
+      "寫": false,
+      "刪除": false
+    }
+  },
+  {
+    "id": "方塊:方塊:cube-grid-自定義",
+    "名稱": {
+      "en": "Custom Grid Cube",
+      "zh-tw": "自定義網格方塊",
+      "vi": "Khối Grid Tùy Chỉnh"
+    },
+    "分類": "佈局",
+    "描述": {
+      "en": "Custom grid layout cube with flexible column and row definitions",
+      "zh-tw": "自定義網格佈局方塊，支援靈活的欄列定義",
+      "vi": "Khối bố cục grid tùy chỉnh với định nghĩa cột và hàng linh hoạt"
+    },
+    "版本": "1.0.0",
+    "程式碼": "export function Grid自定義方塊({ 欄位 = '1fr', 列位 = 'auto', 間距 = 'md', 內距 = 'md', 子元件, className = '', style = {} }) { const 樣式 = css`display: grid; grid-template-columns: ${欄位}; grid-template-rows: ${列位}; gap: var(--spacing-${間距}); padding: var(--spacing-${內距}); width: 100%; background-color: var(--b1); color: var(--bc);`; return (<div css={樣式} className={`grid-自定義方塊 ${className}`} style={style}>{子元件}</div>); }",
+    "屬性定義": {
+      "欄位": {
+        "類型": "string",
+        "預設值": "1fr",
+        "描述": "網格欄位定義 (例如: '1fr 2fr 1fr', '200px 1fr')"
+      },
+      "列位": {
+        "類型": "string",
+        "預設值": "auto",
+        "描述": "網格列位定義 (例如: 'auto 1fr auto', '100px')"
+      },
+      "間距": {
+        "類型": "enum",
+        "選項": ["sm", "md", "lg", "xl"],
+        "預設值": "md",
+        "描述": "網格間距"
+      },
+      "內距": {
+        "類型": "enum",
+        "選項": ["sm", "md", "lg", "xl"],
+        "預設值": "md",
+        "描述": "內部間距"
+      }
+    },
+    "可用樣式": ["layout", "sizing", "spacing"],
+    "使用次數": 0,
+    "狀態": "啟用",
+    "標籤集": [],
+    "權限": {
+      "讀": true,
+      "寫": false,
+      "刪除": false
+    }
+  },
+  {
+    "id": "方塊:方塊:cube-卡片",
+    "名稱": {
+      "en": "Card Cube",
+      "zh-tw": "卡片方塊",
+      "vi": "Khối Card"
+    },
+    "分類": "內容",
+    "描述": {
+      "en": "Card cube providing content container functionality",
+      "zh-tw": "卡片方塊，提供內容容器功能",
+      "vi": "Khối card cung cấp chức năng container nội dung"
+    },
+    "版本": "1.0.0",
+    "程式碼": "export function 卡片方塊({ 變體 = 'default', 內距 = 'lg', 背景 = 'surface', 圓角 = 'md', 陰影 = 'md', 子元件, className = '', style = {} }) { const 樣式 = css`background-color: var(--${背景 === 'surface' ? 'b1' : 背景}); ${變體 === 'elevated' && css`box-shadow: var(--shadow-${陰影}); border-radius: var(--radius-${圓角});`} ${變體 === 'outlined' && css`border: 1px solid var(--b3); border-radius: var(--radius-${圓角});`} ${變體 === 'filled' && css`border-radius: var(--radius-${圓角});`} padding: var(--spacing-${內距}); transition: all 0.2s ease; &:hover { ${變體 === 'elevated' && css`box-shadow: var(--shadow-lg);`} ${變體 === 'outlined' && css`border-color: var(--p);`} transform: translateY(-2px); }`; return (<div css={樣式} className={`卡片方塊 卡片-${變體} ${className}`} style={style}>{子元件}</div>); }",
+    "屬性定義": {
+      "變體": {
+        "類型": "enum",
+        "選項": ["default", "elevated", "outlined", "filled"],
+        "預設值": "default",
+        "描述": "卡片變體"
+      },
+      "內距": {
+        "類型": "enum",
+        "選項": ["sm", "md", "lg", "xl"],
+        "預設值": "lg",
+        "描述": "內部間距"
+      },
+      "背景": {
+        "類型": "enum",
+        "選項": ["surface", "primary", "secondary", "accent"],
+        "預設值": "surface",
+        "描述": "背景顏色"
+      },
+      "圓角": {
+        "類型": "enum",
+        "選項": ["sm", "md", "lg", "xl"],
+        "預設值": "md",
+        "描述": "圓角大小"
+      },
+      "陰影": {
+        "類型": "enum",
+        "選項": ["none", "sm", "md", "lg", "xl"],
+        "預設值": "md",
+        "描述": "陰影大小"
+      }
+    },
+    "可用樣式": ["visual", "spacing"],
+    "使用次數": 0,
+    "狀態": "啟用",
+    "標籤集": [],
+    "權限": {
+      "讀": true,
+      "寫": false,
+      "刪除": false
+    }
+  },
+  {
+    "id": "方塊:方塊:cube-文字",
+    "名稱": {
+      "en": "Text Cube",
+      "zh-tw": "文字方塊",
+      "vi": "Khối Text"
+    },
+    "分類": "內容",
+    "描述": {
+      "en": "Text cube providing text content display",
+      "zh-tw": "文字方塊，提供文字內容顯示",
+      "vi": "Khối text cung cấp chức năng hiển thị nội dung text"
+    },
+    "版本": "1.0.0",
+    "程式碼": "export function 文字方塊({ 內容, 尺寸 = 'base', 粗細 = 'normal', 顏色 = 'surface', 對齊 = 'left', className = '', style = {} }) { const 樣式 = css`font-size: var(--text-${尺寸}); font-weight: ${粗細 === 'normal' ? '400' : 粗細 === 'medium' ? '500' : 粗細 === 'semibold' ? '600' : '700'}; color: var(--${顏色 === 'surface' ? 'bc' : 顏色 === 'muted' ? 'bc-muted' : 顏色 + 'c'}); text-align: ${對齊}; line-height: 1.6;`; return (<span css={樣式} className={`文字方塊 ${className}`} style={style}>{內容}</span>); }",
+    "屬性定義": {
+      "內容": {
+        "類型": "string",
+        "必要": true,
+        "描述": "文字內容"
+      },
+      "尺寸": {
+        "類型": "enum",
+        "選項": ["xs", "sm", "base", "lg", "xl", "2xl", "3xl"],
+        "預設值": "base",
+        "描述": "文字尺寸"
+      },
+      "粗細": {
+        "類型": "enum",
+        "選項": ["normal", "medium", "semibold", "bold"],
+        "預設值": "normal",
+        "描述": "文字粗細"
+      },
+      "顏色": {
+        "類型": "enum",
+        "選項": ["primary", "secondary", "accent", "surface", "muted"],
+        "預設值": "surface",
+        "描述": "文字顏色"
+      },
+      "對齊": {
+        "類型": "enum",
+        "選項": ["left", "center", "right", "justify"],
+        "預設值": "left",
+        "描述": "文字對齊"
+      }
+    },
+    "可用樣式": ["typography", "visual"],
+    "使用次數": 0,
+    "狀態": "啟用",
+    "標籤集": [],
+    "權限": {
+      "讀": true,
+      "寫": false,
+      "刪除": false
+    }
+  },
+  {
+    "id": "方塊:方塊:cube-導航",
+    "名稱": {
+      "en": "Navigation Cube",
+      "zh-tw": "導航方塊",
+      "vi": "Khối Navigation"
+    },
+    "分類": "導航",
+    "描述": {
+      "en": "Navigation cube providing website navigation functionality",
+      "zh-tw": "導航方塊，提供網站導航功能",
+      "vi": "Khối navigation cung cấp chức năng navigation website"
+    },
+    "版本": "1.0.0",
+    "程式碼": "export function 導航方塊({ 項目 = [], 變體 = 'horizontal', 間距 = 'md', 顏色 = 'primary', className = '', style = {} }) { const 樣式 = css`display: flex; ${變體 === 'horizontal' && css`flex-direction: row; align-items: center;`} ${變體 === 'vertical' && css`flex-direction: column; align-items: flex-start;`} gap: var(--spacing-${間距}); list-style: none; padding: 0; margin: 0;`; const 連結樣式 = css`color: var(--${顏色}c); text-decoration: none; padding: var(--spacing-sm) var(--spacing-md); border-radius: var(--radius-field); transition: all 0.2s ease; &:hover { background-color: var(--${顏色}); color: var(--${顏色}c); }`; return (<nav css={樣式} className={`導航方塊 導航-${變體} ${className}`} style={style}>{項目.map((項目, 索引) => (<a key={索引} href={項目.連結} css={連結樣式}>{項目.標籤}</a>))}</nav>); }",
+    "屬性定義": {
+      "項目": {
+        "類型": "array",
+        "必要": true,
+        "項目類型": "object",
+        "描述": "導航項目陣列"
+      },
+      "變體": {
+        "類型": "enum",
+        "選項": ["horizontal", "vertical", "dropdown"],
+        "預設值": "horizontal",
+        "描述": "導航變體"
+      },
+      "間距": {
+        "類型": "enum",
+        "選項": ["sm", "md", "lg", "xl"],
+        "預設值": "md",
+        "描述": "項目間距"
+      },
+      "顏色": {
+        "類型": "enum",
+        "選項": ["primary", "secondary", "accent"],
+        "預設值": "primary",
+        "描述": "主題顏色"
+      }
+    },
+    "可用樣式": ["layout", "spacing", "visual"],
+    "使用次數": 0,
+    "狀態": "啟用",
+    "標籤集": [],
+    "權限": {
+      "讀": true,
+      "寫": false,
+      "刪除": false
+    }
+  },
+  {
+    "id": "方塊:方塊:cube-按鈕",
+    "名稱": {
+      "en": "Button Cube",
+      "zh-tw": "按鈕方塊",
+      "vi": "Khối Button"
+    },
+    "分類": "互動",
+    "描述": {
+      "en": "Button cube providing interactive button functionality",
+      "zh-tw": "按鈕方塊，提供互動按鈕功能",
+      "vi": "Khối button cung cấp chức năng button tương tác"
+    },
+    "版本": "1.0.0",
+    "程式碼": "export function 按鈕方塊({ 變體 = 'primary', 尺寸 = 'md', 間距 = 'md', 顏色 = 'primary', 子元件, 點擊處理, className = '', style = {} }) { const 樣式 = css`background-color: var(--${顏色}); color: var(--${顏色}c); padding: var(--spacing-${間距}); border: none; border-radius: var(--radius-field); font-size: var(--text-${尺寸 === 'sm' ? 'sm' : 尺寸 === 'lg' ? 'lg' : 'base'}); font-weight: 500; cursor: pointer; transition: all 0.2s ease; ${變體 === 'outline' && css`background-color: transparent; border: 2px solid var(--${顏色}); color: var(--${顏色});`} ${變體 === 'ghost' && css`background-color: transparent; color: var(--${顏色});`} &:hover { ${變體 === 'primary' && css`background-color: var(--${顏色}-hover);`} ${變體 === 'outline' && css`background-color: var(--${顏色}); color: var(--${顏色}c);`} ${變體 === 'ghost' && css`background-color: var(--${顏色}); color: var(--${顏色}c);`} transform: translateY(-1px); } &:active { transform: translateY(0); }`; return (<button css={樣式} className={`按鈕方塊 按鈕-${變體} ${className}`} style={style} onClick={點擊處理}>{子元件}</button>); }",
+    "屬性定義": {
+      "變體": {
+        "類型": "enum",
+        "選項": ["primary", "outline", "ghost"],
+        "預設值": "primary",
+        "描述": "按鈕變體"
+      },
+      "尺寸": {
+        "類型": "enum",
+        "選項": ["sm", "md", "lg"],
+        "預設值": "md",
+        "描述": "按鈕尺寸"
+      },
+      "間距": {
+        "類型": "enum",
+        "選項": ["sm", "md", "lg"],
+        "預設值": "md",
+        "描述": "內部間距"
+      },
+      "顏色": {
+        "類型": "enum",
+        "選項": ["primary", "secondary", "accent"],
+        "預設值": "primary",
+        "描述": "主題顏色"
+      },
+      "點擊處理": {
+        "類型": "function",
+        "描述": "點擊事件處理"
+      }
+    },
+    "可用樣式": ["visual", "spacing", "typography"],
+    "使用次數": 0,
+    "狀態": "啟用",
+    "標籤集": [],
+    "權限": {
+      "讀": true,
+      "寫": false,
+      "刪除": false
+    }
+  },
+  {
+    "id": "方塊:方塊:cube-網站-經典",
+    "名稱": {
+      "en": "Classic Website Layout",
+      "zh-tw": "經典網站佈局",
+      "vi": "Bố cục Website Cổ điển"
+    },
+    "分類": "佈局",
+    "描述": {
+      "en": "Traditional website layout with header, main content, sidebar and footer",
+      "zh-tw": "傳統網站佈局，包含標頭、主內容、側邊欄和頁尾",
+      "vi": "Bố cục website truyền thống với header, nội dung chính, sidebar và footer"
+    },
+    "版本": "1.0.0",
+    "程式碼": "export function 網站經典佈局({ headerContent, mainContent, sidebarContent, footerContent, className = '', style = {} }) { return (<cube-stack-垂直 className={`網站經典佈局 ${className}`} style={style}><cube-container-全寬 內距=\"sm\">{headerContent}</cube-container-全寬><cube-container-置中 最大寬度=\"4xl\"><cube-grid-自定義 欄位=\"1fr 300px\" 間距=\"lg\"><cube-stack-垂直 間距=\"md\">{mainContent}</cube-stack-垂直><cube-stack-垂直 間距=\"md\">{sidebarContent}</cube-stack-垂直></cube-grid-自定義></cube-container-置中><cube-container-全寬 內距=\"sm\">{footerContent}</cube-container-全寬></cube-stack-垂直>); }",
+    "屬性定義": {
+      "headerContent": {
+        "類型": "jsx",
+        "描述": "標頭內容"
+      },
+      "mainContent": {
+        "類型": "jsx",
+        "描述": "主內容"
+      },
+      "sidebarContent": {
+        "類型": "jsx",
+        "描述": "側邊欄內容"
+      },
+      "footerContent": {
+        "類型": "jsx",
+        "描述": "頁尾內容"
+      }
+    },
+    "可用樣式": ["layout", "sizing", "spacing"],
+    "使用次數": 0,
+    "狀態": "啟用",
+    "標籤集": [],
+    "權限": {
+      "讀": true,
+      "寫": false,
+      "刪除": false
+    }
+  },
+  {
+    "id": "方塊:方塊:cube-網站-現代",
+    "名稱": {
+      "en": "Modern Website Layout",
+      "zh-tw": "現代網站佈局",
+      "vi": "Bố cục Website Hiện đại"
+    },
+    "分類": "佈局",
+    "描述": {
+      "en": "Modern minimalist layout with hero section and feature cards",
+      "zh-tw": "現代簡約佈局，包含英雄區域和特色卡片",
+      "vi": "Bố cục tối giản hiện đại với hero section và feature cards"
+    },
+    "版本": "1.0.0",
+    "程式碼": "export function 網站現代佈局({ heroContent, featuresContent, footerContent, className = '', style = {} }) { return (<cube-stack-垂直 className={`網站現代佈局 ${className}`} style={style}><cube-container-全寬 內距=\"0\" style={{minHeight: '60vh', background: 'linear-gradient(135deg, var(--p) 0%, var(--s) 100%)'}}>{heroContent}</cube-container-全寬><cube-container-置中 最大寬度=\"6xl\" 內距=\"xl\"><cube-grid-均等 欄數={3} 間距=\"xl\">{featuresContent}</cube-grid-均等></cube-container-置中><cube-container-全寬 內距=\"lg\" style={{backgroundColor: 'var(--b2)'}}>{footerContent}</cube-container-全寬></cube-stack-垂直>); }",
+    "屬性定義": {
+      "heroContent": {
+        "類型": "jsx",
+        "描述": "英雄區域內容"
+      },
+      "featuresContent": {
+        "類型": "jsx",
+        "描述": "特色區域內容"
+      },
+      "footerContent": {
+        "類型": "jsx",
+        "描述": "頁尾內容"
+      }
+    },
+    "可用樣式": ["layout", "sizing", "spacing", "visual"],
+    "使用次數": 0,
+    "狀態": "啟用",
+    "標籤集": [],
+    "權限": {
+      "讀": true,
+      "寫": false,
+      "刪除": false
+    }
+  }
+]

@@ -87,6 +87,7 @@ export default async function middleware(ctx: Context, next: Next) {
         globalThis.kv = new KV資料庫()
         await globalThis.kv.開啟()
         await globalThis.kv.初始化('系統資訊')
+        await globalThis.kv.初始化('方塊')
         console.log('[middleware] KV 資料庫初始化成功')
       } catch (error) {
         console.error('[middleware] KV 資料庫初始化失敗:', error)
@@ -185,67 +186,14 @@ export default async function middleware(ctx: Context, next: Next) {
     // 設定語言到 Cookie
     ctx.header('Set-Cookie', `webcube-lang=${lang}; Path=/; HttpOnly; SameSite=Lax; Max-Age=31536000`)
 
-    // 8. 載入網站資料（骨架、配色、佈景主題）
-    let 骨架資料: 骨架 | null = null
-    let 配色資料: 配色 | null = null
-    let 佈景主題資料: Record<string, unknown> | null = null
+    // 8. 網站資訊已在前面獲取
 
-    if (!siteInfo) {
-      // 使用預設資料 - 給系統管理者第一次看
-      骨架資料 = new 骨架()
-      配色資料 = new 配色()
-      console.log('[middleware] 使用預設資料')
-    } else {
-      // 有網站資訊時，按照優先順序載入資料
-      try {
-        // 優先載入單獨設定的骨架和配色
-        if (siteInfo.骨架) {
-          const 骨架Query = await globalThis.sysDb?.查詢(`SELECT * FROM 骨架 WHERE id = ${siteInfo.骨架}`)
-          骨架資料 = 骨架Query && 骨架Query.length > 0 ? new 骨架(骨架Query[0] as Record<string, unknown>) : null
-        }
-        
-        if (siteInfo.配色) {
-          const 配色Query = await globalThis.sysDb?.查詢(`SELECT * FROM 配色 WHERE id = ${siteInfo.配色}`)
-          配色資料 = 配色Query && 配色Query.length > 0 ? new 配色(配色Query[0] as Record<string, unknown>) : null
-        }
-        
-        // 如果骨架或配色還沒有值，才從佈景主題載入
-        if (!骨架資料 || !配色資料) {
-          if (siteInfo.佈景主題) {
-            const 佈景主題Query = await globalThis.sysDb?.查詢(`SELECT * FROM 佈景主題 WHERE id = ${siteInfo.佈景主題}`)
-            佈景主題資料 = 佈景主題Query && 佈景主題Query.length > 0 ? 佈景主題Query[0] as Record<string, unknown> : null
-            
-            // 從佈景主題補載缺少的資料
-            if (佈景主題資料) {
-              if (!骨架資料 && 佈景主題資料.骨架ID) {
-                const 骨架Query = await globalThis.sysDb?.查詢(`SELECT * FROM 骨架 WHERE id = ${佈景主題資料.骨架ID}`)
-                骨架資料 = 骨架Query && 骨架Query.length > 0 ? new 骨架(骨架Query[0] as Record<string, unknown>) : null
-              }
-              
-              if (!配色資料 && 佈景主題資料.配色ID) {
-                const 配色Query = await globalThis.sysDb?.查詢(`SELECT * FROM 配色 WHERE id = ${佈景主題資料.配色ID}`)
-                配色資料 = 配色Query && 配色Query.length > 0 ? new 配色(配色Query[0] as Record<string, unknown>) : null
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.error('[middleware] 載入網站資料失敗:', error)
-      }
-    }
+    // 9. 網站資料庫已在前面初始化
 
-    // 9. 設定 Context 狀態
-    ctx.set('uri', uri)
-    ctx.set('host', host)
-    ctx.set('pathname', pathname)
-    ctx.set('語言', lang)
-    ctx.set('系統資料庫', globalThis.sysDb)
-    ctx.set('網站資料庫', siteDb)
-    ctx.set('網站資訊', siteInfo)
-    ctx.set('系統資訊', sysInfo)
-    ctx.set('骨架資料', 骨架資料)
-    ctx.set('配色資料', 配色資料)
-    ctx.set('佈景主題資料', 佈景主題資料)
+    // 10. 設定 Context 狀態 - 只保留真正必要的
+    ctx.set('語言', lang)            // 語言設定影響所有回應
+    ctx.set('系統資料庫', globalThis.sysDb)  // 資料庫連線快取
+    ctx.set('網站資料庫', siteDb)           // 資料庫連線快取
 
     console.log(`[middleware] 狀態設定完成 - 語言: ${lang}, 網站: ${siteInfo?.名稱 || '預設'}`)
 

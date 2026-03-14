@@ -228,7 +228,7 @@ export default async function App(Component: () => Promise<unknown>, ctx: Contex
           `
         }} />
       </head>
-      <body className="min-h-screen bg-transparent text-slate-100">
+      <body className="min-h-screen bg-slate-950 text-slate-100">
         {componentResult}
       </body>
     </html>
