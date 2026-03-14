@@ -1,15 +1,16 @@
-# AI 元件架構規劃書
+# AI 元件架構規劃書 v2.0
 
 ## 📋 專案概述
 
-本文檔描述 WebCube2027 從傳統靜態元件系統遷移到 **AI 驅動的動態元件系統** 的完整技術架構規劃。
+本文檔描述 WebCube2027 從傳統靜態元件系統遷移到 **Cube 元件系統 + AI 驅動的動態元件系統** 的完整技術架構規劃。
 
 ## 🎯 核心目標
 
 ### 主要目標
-- 🤖 **AI 元件生成** - 支援 AI 動態生成 UI 元件
+- � **Cube 元件系統** - 建立統一的基礎元件庫
+- 🤖 **AI 組合生成** - AI 使用基礎 Cube 組合複雜佈局
 - 🛡️ **系統穩定性** - 確保 AI 錯誤不會導致系統崩潰
-- 🌈 **主題一致性** - 所有元件（包括錯誤）都符合設計系統
+- 🌈 **主題一致性** - 所有元件符合設計系統
 - ⚡ **開發效率** - 提供流暢的開發和除錯體驗
 
 ### 技術挑戰
@@ -18,285 +19,495 @@
 - ❌ **主題系統** - 動態元件需要支援主題切換
 - ❌ **除錯困難** - AI 生成錯誤難以定位
 
-## 🏗️ 技術架構
+## 🏗️ 新技術架構
 
-### 新技術棧
+### 技術棧
 ```
-🌈 CSS Variables     → 主題系統 + 安全限制
-🏗️ RadiX UI         → 無樣式元件庫（結構安全網）
-🎨 Emotion           → CSS-in-JS（動態樣式）
-🛡️ Safe Render      → 錯誤邊界處理
-🤖 AI Generator     → 元件生成器
+🧊 Cube 元件系統    → 基礎元件庫 (Layout, Container, Card, Navigation)
+🌈 CSS Variables     → 主題系統 + AI 調值機制
+🎨 Emotion           → CSS-in-JS（動態樣式 + 動畫）
+🤖 AI 組合器         → 基礎 Cube 智能組合
+� KV 資料庫         → 基礎 Cube 儲存
+🗄️ 網站資料庫       → AI 生成的佈局儲存
+🚀 API + 快取        → JSON 佈局回傳
+🔄 SSR/Client        → JSON → Radix UI + Emotion 渲染
 ```
 
-### 架構層次
+### 架構流程
+```mermaid
+graph TD
+    A[基礎 Cube] --> B[KV 資料庫]
+    B --> C[AI 組合器]
+    C --> D[網站資料庫]
+    D --> E[API + 快取]
+    E --> F[JSON 配置]
+    F --> G[SSR/Client 渲染]
+    G --> H[Radix UI + Emotion]
+    H --> I[最終 JSX]
+```
+
+## 🧊 Cube 元件系統設計
+
+### 基礎 Cube 分類
 ```typescript
-// 1. 主題層 - CSS Variables
-:root {
-  --p: oklch(59.67% 0.221 258.03);  /* 主色 */
-  --s: oklch(39.24% 0.128 255);     /* 次色 */
-  --b1: oklch(100% 0 0);            /* 背景色 */
-  --bc: oklch(0% 0 0);              /* 文字色 */
-  --radius-box: 0.5rem;             /* 圓角 */
+// 佈局類 Cube
+const LayoutCubes = {
+  LayoutCube: '基礎佈局方塊',
+  ContainerCube: '容器方塊', 
+  GridCube: '網格佈局方塊'
 }
 
-// 2. 結構層 - RadiX UI
-<Card>
-  <Card.Content>
-    {/* 內容區域 */}
-  </Card.Content>
-</Card>
+// 內容類 Cube
+const ContentCubes = {
+  CardCube: '卡片方塊',
+  TextCube: '文字方塊',
+  ImageCube: '圖片方塊'
+}
 
-// 3. 樣式層 - Emotion
-const styledComponent = css`
-  background-color: var(--p);
-  color: var(--pc);
-  border-radius: var(--radius-box);
-`
+// 導航類 Cube
+const NavigationCubes = {
+  NavigationCube: '導航方塊',
+  BreadcrumbCube: '麵包屑方塊'
+}
 
-// 4. 安全層 - Safe Render
-<ErrorBoundary fallback={ErrorComponent}>
-  <AIComponent />
-</ErrorBoundary>
+// 互動類 Cube
+const InteractiveCubes = {
+  ButtonCube: '按鈕方塊',
+  InputCube: '輸入框方塊',
+  SelectCube: '選擇方塊'
+}
 ```
 
-## 🔄 遷移策略
-
-### 階段 1：基礎設施建立
-- [ ] 安裝 RadiX UI 套件
-- [ ] 安裝 Emotion 套件
-- [ ] 建立 CSS Variables 主題系統
-- [ ] 建立基礎元件庫
-
-### 階段 2：現有元件遷移
-- [ ] 遷移 `webcube-卡片` → RadiX UI Card
-- [ ] 遷移 `webcube-按鈕` → RadiX UI Button
-- [ ] 遷移 `webcube-輸入框` → RadiX UI Input
-- [ ] 測試相容性
-
-### 階段 3：安全渲染系統
-- [ ] 實作 Safe Render 機制
-- [ ] 建立錯誤邊界元件
-- [ ] 整合到路由器系統
-- [ ] 測試錯誤處理
-
-### 階段 4：AI 元件整合
-- [ ] 建立 AI 元件生成器
-- [ ] 實作元件沙盒環境
-- [ ] 建立元件驗證機制
-- [ ] 測試 AI 元件渲染
-
-## 🛡️ 安全機制設計
-
-### 錯誤處理流程
+### Cube 統一介面
 ```typescript
-// 多層錯誤處理
-export class RobustAISystem {
-  async renderAIComponent(prompt: string, context: any) {
+interface CubeProps {
+  variant?: string        // 變體
+  size?: string          // 尺寸
+  color?: string         // 顏色主題
+  spacing?: string       // 間距
+  children?: ReactNode
+  className?: string
+  style?: CSSProperties
+}
+
+// 所有 Cube 都遵循相同的使用模式
+<Cube variant="elevated" size="lg" color="primary">
+  {children}
+</Cube>
+```
+
+## 🌈 CSS Variables + Emotion 系統
+
+### 設計系統結構
+```typescript
+// 完整的設計系統變數
+export const DesignSystem = {
+  // 顏色系統 (AI 可調值)
+  colors: {
+    primary: ['#3b82f6', '#2563eb', '#1d4ed8', '#1e40af'],
+    secondary: ['#6b7280', '#4b5563', '#374151', '#1f2937'],
+    accent: ['#10b981', '#059669', '#047857', '#065f46'],
+    semantic: ['#ef4444', '#f59e0b', '#3b82f6', '#10b981']
+  },
+  
+  // 間距系統 (AI 可調值)
+  spacing: {
+    xs: '0.25rem', sm: '0.5rem', md: '1rem', lg: '1.5rem', 
+    xl: '2rem', '2xl': '3rem', '3xl': '4rem'
+  },
+  
+  // 動畫系統 (AI 可調值)
+  animations: {
+    duration: ['0.15s', '0.3s', '0.5s', '0.8s'],
+    easing: ['ease', 'ease-in', 'ease-out', 'ease-in-out'],
+    keyframes: ['fadeIn', 'slideUp', 'scaleIn', 'bounce']
+  }
+}
+```
+
+### Emotion 整合
+```typescript
+// Cube 元件中的 Emotion 使用
+export function CardCube({ variant = 'default', children }) {
+  const cardStyles = css`
+    background-color: var(--b1);
+    border: 1px solid var(--b3);
+    border-radius: var(--radius-box);
+    padding: var(--spacing-lg);
+    
+    /* 使用 CSS Variables 控制動畫 */
+    animation: var(--animation-fade-in);
+    
+    /* 條件性樣式 */
+    ${variant === 'elevated' && css`
+      box-shadow: var(--shadow-md);
+    `}
+    
+    /* 懸停效果 */
+    &:hover {
+      animation: var(--animation-bounce);
+      transform: translateY(-2px);
+    }
+  `
+  
+  return <div css={cardStyles}>{children}</div>
+}
+```
+
+## 🤖 AI 組合系統
+
+### AI 工作流程
+```typescript
+// AI 組合流程
+export class AICubeComposer {
+  static async composeLayout(request: LayoutRequest): Promise<LayoutConfig> {
     try {
-      // 1. AI 生成代碼
-      const aiCode = await this.generateCode(prompt)
+      // 1. 取得可用 Cube
+      const availableCubes = await this.getAvailableCubes()
       
-      // 2. 語法檢查
-      this.validateSyntax(aiCode)
+      // 2. AI 分析需求
+      const analysis = await this.analyzeRequest(request, availableCubes)
       
-      // 3. 安全轉換
-      const jsxElement = this.safeStringToJSX(aiCode)
+      // 3. AI 組合 Cube
+      const composition = await this.composeCubes(analysis)
       
-      // 4. 沙盒測試
-      this.testInSandbox(jsxElement)
+      // 4. 驗證組合
+      const validation = await this.validateComposition(composition)
       
-      // 5. 包裝在 RadiX UI 中
-      return (
-        <Card>
-          <Card.Content>
-            {jsxElement}
-          </Card.Content>
-        </Card>
-      )
+      // 5. 儲存到網站資料庫
+      await this.saveToWebsiteDB(composition)
+      
+      return composition
     } catch (error) {
-      return this.createFallbackComponent(error)
+      throw new Error(`AI 組合失敗: ${error.message}`)
     }
   }
 }
 ```
 
-### 樣式安全限制
+### AI 可用資源
 ```typescript
-// AI 只能使用安全的 CSS Variables
-const safeStyleProperties = {
-  colors: [
-    'var(--p)', 'var(--s)', 'var(--a)', 'var(--n)',
-    'var(--b1)', 'var(--b2)', 'var(--b3)',
-    'var(--pc)', 'var(--sc)', 'var(--ac)', 'var(--nc)'
-  ],
-  spacing: [
-    'var(--spacing-xs)', 'var(--spacing-sm)', 
-    'var(--spacing-md)', 'var(--spacing-lg)'
-  ],
-  borderRadius: [
-    'var(--radius-selector)', 
-    'var(--radius-field)', 
-    'var(--radius-box)'
-  ]
-}
-```
-
-## 🎨 錯誤元件設計
-
-### 錯誤顯示規範
-```typescript
-const ErrorComponent = ({ error, componentId }) => (
-  <div css={css`
-    background-color: var(--b1);
-    border: 2px dashed var(--wa);
-    border-radius: var(--radius-box);
-    padding: var(--spacing-lg);
-    margin: var(--spacing-md) 0;
-    text-align: center;
-  `}>
-    <div css={css`
-      color: var(--wa);
-      font-size: 2rem;
-      margin-bottom: var(--spacing-sm);
-    `}>
-      ⚠️
-    </div>
-    <h3 css={css`
-      color: var(--wa);
-      font-weight: 600;
-      margin-bottom: var(--spacing-sm);
-    `}>
-      AI 元件暫時無法顯示
-    </h3>
-    <p css={css`
-      color: var(--bc);
-      font-size: 0.875rem;
-      margin-bottom: var(--spacing-sm);
-    `}>
-      {error.message}
-    </p>
-    <p css={css`
-      color: var(--bc);
-      opacity: 0.6;
-      font-size: 0.75rem;
-    `}>
-      元件 ID: {componentId}
-    </p>
-  </div>
-)
-```
-
-## 📦 套件依賴
-
-### 新增套件
-```json
-{
-  "dependencies": {
-    "@radix-ui/react-card": "^1.0.0",
-    "@radix-ui/react-button": "^1.0.0",
-    "@radix-ui/react-dialog": "^1.0.0",
-    "@radix-ui/react-tabs": "^1.0.0",
-    "@radix-ui/react-dropdown-menu": "^1.0.0",
-    "@emotion/react": "^11.11.0",
-    "@emotion/styled": "^11.11.0"
+// AI 可用的基礎資源
+const AvailableAIResources = {
+  cubes: {
+    layout: ['LayoutCube', 'ContainerCube', 'GridCube'],
+    content: ['CardCube', 'TextCube', 'ImageCube'],
+    navigation: ['NavigationCube', 'BreadcrumbCube'],
+    interactive: ['ButtonCube', 'InputCube', 'SelectCube']
+  },
+  
+  css_variables: {
+    colors: ['--p', '--s', '--a', '--b1', '--b2', '--b3'],
+    spacing: ['--spacing-xs', '--spacing-sm', '--spacing-md', '--spacing-lg'],
+    typography: ['--text-sm', '--text-base', '--text-lg', '--text-xl'],
+    animations: ['--animation-fast', '--animation-normal', '--animation-slow']
+  },
+  
+  emotion_patterns: {
+    layout: ['display: flex', 'justify-content: center', 'align-items: center'],
+    visual: ['background-color: var(--color)', 'border-radius: var(--radius)'],
+    spacing: ['padding: var(--spacing)', 'margin: var(--spacing)', 'gap: var(--spacing)']
   }
 }
 ```
 
-### 移除套件
-```json
-{
-  "devDependencies": {
-    // UnoCSS 相關套件可能需要移除
-    "@unocss/cli": "^0.61.9",
-    "@unocss/preset-icons": "^0.61.9",
-    "@unocss/preset-typography": "^0.61.9",
-    "@unocss/preset-wind4": "^0.61.9"
+## 📊 資料庫架構
+
+### KV 資料庫 (基礎 Cube)
+```typescript
+// KV 資料庫結構
+interface KVCubeDatabase {
+  'cubes:basic': {
+    [cubeId: string]: CubeTemplate
+  },
+  'cubes:index': {
+    by_category: Record<string, string[]>
+  },
+  'styles:available': {
+    css_variables: CSSVariables,
+    emotion_patterns: EmotionPatterns
+  },
+  'cubes:stats': {
+    total_cubes: number,
+    categories: string[],
+    last_updated: string
   }
 }
 ```
 
-## 🚀 實作計劃
+### 網站資料庫 (AI 生成)
+```typescript
+// 網站資料庫結構
+interface WebsiteDatabase {
+  'ai_layouts': {
+    [layoutId: string]: {
+      id: string
+      name: string
+      description: string
+      config: LayoutConfig
+      created_at: Date
+      updated_at: Date
+      usage_count: number
+    }
+  },
+  'ai_compositions': {
+    [compositionId: string]: {
+      cube_combination: CubeCombination
+      css_adjustments: CSSAdjustments
+      performance_metrics: PerformanceMetrics
+    }
+  }
+}
+```
 
-### 第一週：基礎設施
-- [ ] 研究和選擇具體的 RadiX UI 元件
-- [ ] 建立 CSS Variables 主題系統
-- [ ] 設定 Emotion 配置
-- [ ] 建立開發環境
+## 🚀 API 設計
 
-### 第二週：元件遷移
-- [ ] 遷移現有元件到新架構
-- [ ] 測試相容性
-- [ ] 建立元件庫文件
-- [ ] 效能測試
+### 佈局 API 端點
+```typescript
+// API 端點設計
+export default async function layoutAPI(ctx: Context) {
+  try {
+    const { layoutId, version = 'latest' } = ctx.req.query()
+    
+    // 1. 檢查快取
+    const cacheKey = `layout:${layoutId}:${version}`
+    const cached = await cache.get(cacheKey)
+    if (cached) {
+      return ctx.json(cached)
+    }
+    
+    // 2. 從網站資料庫讀取
+    const layout = await websiteDB.get('ai_layouts', layoutId)
+    if (!layout) {
+      return ctx.json({ error: '佈局不存在' }, 404)
+    }
+    
+    // 3. 年齡快取機制
+    await cache.set(cacheKey, layout.config, { ttl: 3600 })
+    
+    return ctx.json({
+      success: true,
+      layout: layout.config,
+      metadata: {
+        id: layout.id,
+        name: layout.name,
+        version: layout.updated_at
+      }
+    })
+  } catch (error) {
+    return ctx.json({ error: error.message }, 500)
+  }
+}
+```
 
-### 第三週：安全機制
-- [ ] 實作 Safe Render 系統
-- [ ] 建立錯誤邊界
-- [ ] 整合到路由器
-- [ ] 測試錯誤處理
+### 快取機制
+```typescript
+// 年齡快取實作
+export class AgeCache {
+  private cache = new Map()
+  private maxSize = 100
+  
+  set(key: string, value: any, options: CacheOptions = {}) {
+    // 如果快取滿了，移除最老的項目
+    if (this.cache.size >= this.maxSize) {
+      const oldestKey = this.cache.keys().next().value
+      this.cache.delete(oldestKey)
+    }
+    
+    this.cache.set(key, {
+      value,
+      createdAt: Date.now(),
+      ttl: options.ttl || 3600
+    })
+  }
+  
+  get(key: string): any {
+    const item = this.cache.get(key)
+    if (!item) return null
+    
+    // 檢查是否過期
+    if (Date.now() - item.createdAt > item.ttl * 1000) {
+      this.cache.delete(key)
+      return null
+    }
+    
+    return item.value
+  }
+}
+```
 
-### 第四週：AI 整合
-- [ ] 建立 AI 元件生成器
-- [ ] 實作沙盒環境
-- [ ] 測試完整流程
-- [ ] 優化效能
+## � 渲染系統
+
+### SSR/Client 渲染
+```typescript
+// 統一的渲染系統
+export class LayoutRenderer {
+  static async render(layoutId: string, slots: Record<string, any>): Promise<JSX.Element> {
+    try {
+      // 1. 從 API 取得佈局配置
+      const response = await fetch(`/api/layout?id=${layoutId}`)
+      const result = await response.json()
+      
+      if (!result.success) {
+        throw new Error(result.error)
+      }
+      
+      // 2. 驗證配置
+      const validation = await this.validateLayoutConfig(result.layout)
+      if (!validation.valid) {
+        throw new Error(`佈局配置無效: ${validation.errors.join(', ')}`)
+      }
+      
+      // 3. 轉換為 Radix UI + Emotion
+      const renderedLayout = this.convertToReact(result.layout)
+      
+      // 4. 提供插槽內容
+      return (
+        <SlotProvider slots={slots}>
+          {renderedLayout}
+        </SlotProvider>
+      )
+    } catch (error) {
+      console.error('佈局渲染失敗:', error)
+      return <ErrorLayout error={error} />
+    }
+  }
+  
+  static convertToReact(config: LayoutConfig): JSX.Element {
+    const { component, props, children } = config
+    
+    switch (component) {
+      case 'LayoutCube':
+        return <LayoutCube {...props}>{children?.map(this.convertToReact)}</LayoutCube>
+      case 'ContainerCube':
+        return <ContainerCube {...props}>{children?.map(this.convertToReact)}</ContainerCube>
+      case 'CardCube':
+        return <CardCube {...props}>{children?.map(this.convertToReact)}</CardCube>
+      // ... 其他 Cube 元件
+      default:
+        return <div>未知元件: {component}</div>
+    }
+  }
+}
+```
+
+## 🛡️ 安全機制
+
+### 多層驗證
+```typescript
+// 安全驗證系統
+export class SecurityValidator {
+  static validateLayoutConfig(config: any): ValidationResult {
+    const errors = []
+    
+    // 1. 結構驗證
+    if (!config.component || !this.isAllowedComponent(config.component)) {
+      errors.push(`不允許的元件: ${config.component}`)
+    }
+    
+    // 2. Props 驗證
+    if (config.props) {
+      this.validateProps(config.props, errors)
+    }
+    
+    // 3. 遞歸驗證子元件
+    if (config.children) {
+      config.children.forEach((child: any) => {
+        const childValidation = this.validateLayoutConfig(child)
+        errors.push(...childValidation.errors)
+      })
+    }
+    
+    return {
+      valid: errors.length === 0,
+      errors
+    }
+  }
+  
+  static validateProps(props: any, errors: string[]): void {
+    Object.entries(props).forEach(([key, value]) => {
+      // 檢查危險的屬性
+      if (this.isDangerousProperty(key, value)) {
+        errors.push(`危險的屬性: ${key} = ${value}`)
+      }
+      
+      // 檢查 CSS 屬性
+      if (key.startsWith('style') || key === 'css') {
+        this.validateCSS(value, errors)
+      }
+    })
+  }
+}
+```
+
+## � 實作計劃
+
+### Phase 1: 基礎設施 (第1-2週)
+- [ ] 建立基礎 Cube 元件系統
+- [ ] 實作 CSS Variables + Emotion 整合
+- [ ] 建立 KV 資料庫 Seeds
+- [ ] 設計 AI 可用資源 API
+
+### Phase 2: AI 整合 (第3-4週)
+- [ ] 實作 AI 組合器
+- [ ] 建立網站資料庫結構
+- [ ] 實作 API + 快取機制
+- [ ] 開發 JSON → React 渲染器
+
+### Phase 3: 測試驗證 (第5-6週)
+- [ ] 建立完整測試套件
+- [ ] 實作安全驗證機制
+- [ ] 效能優化
+- [ ] 錯誤處理完善
+
+### Phase 4: 擴展功能 (未來規劃)
+- [ ] Cube 市場系統 (待辦事項)
+- [ ] AI Cube 開發工作室 (待辦事項)
+- [ ] 動畫擴展系統 (待辦事項)
+- [ ] 主題擴展機制 (待辦事項)
 
 ## 📊 成功指標
 
 ### 技術指標
 - ✅ **零 500 錯誤** - AI 錯誤不會導致系統崩潰
-- ✅ < 100ms **渲染時間** - 元件渲染效能
+- ✅ < 100ms **渲染時間** - 佈局渲染效能
 - ✅ 100% **主題一致性** - 所有元件符合設計系統
-- ✅ < 50ms **錯誤恢復時間** - 快速錯誤處理
+- ✅ < 50ms **API 回應時間** - 快取機制效果
 
-### 開發體驗指標
-- ✅ **簡單的 API** - AI 元件生成介面
-- ✅ **清晰的錯誤訊息** - 便於除錯
-- ✅ **完整的文件** - 開發者指南
-- ✅ **流暢的熱加載** - 開發體驗
+### AI 能力指標
+- ✅ **99% 組合成功率** - AI 能成功組合絕大多數需求
+- ✅ **100+ 種組合變化** - 基礎 Cube 的組合能力
+- ✅ **< 5s 生成時間** - AI 組合佈局的效率
+- ✅ **90% 滿意度** - 生成結果的品質評分
 
-## 🔄 風險評估
+## 🎯 待辦事項 (未來規劃)
 
-### 高風險
-- **學習曲線** - 團隊需要學習新技術棧
-- **相容性問題** - 現有程式碼遷移風險
-- **效能影響** - CSS-in-JS 效能考量
+### 高優先級
+- [ ] **Cube 市場系統** - 開發者生態系統
+- [ ] **AI Cube 開發工作室** - 自然語言開發介面
+- [ ] **動畫擴展系統** - 豐富的動畫效果
 
-### 緩解策略
-- **漸進式遷移** - 分階段實施
-- **完整測試** - 自動化測試覆蓋
-- **效能監控** - 持續效能優化
-- **文件完善** - 詳細的遷移指南
+### 中優先級
+- [ ] **主題擴展機制** - AI 調整主題參數
+- [ ] **效能監控** - AI 生成效能追蹤
+- [ ] **A/B 測試** - 生成結果優化
 
-## 🎯 長期願景
-
-### 近期目標（3個月）
-- 完成技術架構遷移
-- 建立 AI 元件系統
-- 達到生產環境穩定性
-
-### 中期目標（6個月）
-- 擴展 AI 元件類型
-- 優化生成演算法
-- 建立元件市場
-
-### 長期目標（1年）
-- 完全 AI 驅動的 UI 系統
-- 自動化設計系統
-- 智能化使用者體驗
+### 低優先級
+- [ ] **視覺化編輯器** - 拖拽式佈局編輯
+- [ ] **版本控制** - 佈局版本管理
+- [ ] **多語言支援** - 國際化支援
 
 ## 📝 結論
 
-這個架構規劃提供了：
+這個 Cube 元件系統架構提供了：
 
-1. **🛡️ 穩定性** - 多層錯誤處理機制
-2. **🌈 一致性** - 統一的設計系統
-3. **🤖 可擴展性** - 為 AI 元件做好準備
-4. **⚡ 高效能** - 優化的渲染系統
+1. **🧊 統一性** - 所有元件都遵循相同的 Cube 模式
+2. **🤖 智能性** - AI 可以智能組合基礎 Cube
+3. **🌈 靈活性** - CSS Variables + Emotion 提供豐富變化
+4. **🛡️ 安全性** - 多層驗證確保系統穩定
+5. **🚀 高效能** - 快取機制和優化渲染
 
-**這是一個前瞻性的技術決策，將為 WebCube2027 的未來發展奠定堅實基礎。**
+**這是一個革命性的設計，將為 WebCube2027 帶來無限的創造可能！**
 
 ---
 
