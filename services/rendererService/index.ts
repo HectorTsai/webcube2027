@@ -1,7 +1,6 @@
 // Renderer Service 主要入口點
 import { Context } from 'hono';
 import { 產生樣式 } from '../../core/unocss.ts';
-import { 三層查詢管理器 } from '../../core/three-tier-query.ts';
 import { info, error } from '../../utils/logger.ts';
 
 // Renderer Service 處理器
@@ -50,10 +49,22 @@ export async function 處理Renderer請求(c: Context): Promise<Response> {
 // 渲染首頁
 async function 渲染首頁(c: Context): Promise<Response> {
   try {
-    // 從三層查詢取得系統資訊
-    const 系統資訊 = await 三層查詢管理器.取得預設值(c, '系統資訊');
-    const 預設配色 = await 三層查詢管理器.取得預設值(c, '配色');
-    const 預設骨架 = await 三層查詢管理器.取得預設值(c, '骨架');
+    // 透過 API 取得預設值
+    const [系統資訊回應, 預設配色回應, 預設骨架回應] = await Promise.all([
+      fetch(`http://localhost:8000/api/v1/system/info`, {
+        headers: { 'host': c.req.header('host') || 'localhost:8000' }
+      }),
+      fetch(`http://localhost:8000/api/v1/defaults/color`, {
+        headers: { 'host': c.req.header('host') || 'localhost:8000' }
+      }),
+      fetch(`http://localhost:8000/api/v1/defaults/skeleton`, {
+        headers: { 'host': c.req.header('host') || 'localhost:8000' }
+      })
+    ]);
+    
+    const 系統資訊 = await 系統資訊回應.json();
+    const 預設配色 = await 預設配色回應.json();
+    const 預設骨架 = await 預設骨架回應.json();
     
     // 建構 HTML 內容
     const htmlContent = `
@@ -134,9 +145,15 @@ async function 渲染主題預覽(c: Context, themeId: string): Promise<Response
     // 取得指定主題或預設主題
     let 主題配色;
     if (themeId && themeId !== 'preview') {
-      主題配色 = await 三層查詢管理器.查詢單一(c, '配色', themeId);
+      const 回應 = await fetch(`http://localhost:8000/api/v1/colors/${themeId}`, {
+        headers: { 'host': c.req.header('host') || 'localhost:8000' }
+      });
+      主題配色 = await 回應.json();
     } else {
-      主題配色 = await 三層查詢管理器.取得預設值(c, '配色');
+      const 回應 = await fetch(`http://localhost:8000/api/v1/defaults/color`, {
+        headers: { 'host': c.req.header('host') || 'localhost:8000' }
+      });
+      主題配色 = await 回應.json();
     }
     
     // 建構主題預覽 HTML

@@ -1,6 +1,21 @@
 // API Service 主要入口點
 import { Context } from 'hono';
 import { 處理取得系統資訊, 處理更新系統資訊, 處理取得所有系統設定 } from './system.ts';
+import { 
+  處理取得所有佈景主題, 處理取得單一佈景主題, 處理創建佈景主題, 
+  處理更新佈景主題, 處理刪除佈景主題, 處理取得當前主題 
+} from './themes.ts';
+import { 
+  處理取得所有配色, 處理取得單一配色, 處理創建配色, 
+  處理更新配色, 處理刪除配色 
+} from './colors.ts';
+import { 
+  處理取得所有骨架, 處理取得單一骨架, 處理創建骨架, 
+  處理更新骨架, 處理刪除骨架 
+} from './skeletons.ts';
+import { 
+  處理取得預設佈景主題, 處理取得預設配色, 處理取得預設骨架, 處理取得所有預設值 
+} from './defaults.ts';
 import { info, error } from '../../utils/logger.ts';
 
 // API 路由處理器
@@ -23,6 +38,56 @@ export async function 處理API請求(c: Context): Promise<Response> {
     // 系統設定 API
     if (path === '/api/v1/system/settings' && method === 'GET') {
       return await 處理取得所有系統設定(c);
+    }
+    
+    // 佈景主題 API
+    if (path === '/api/v1/themes') {
+      if (method === 'GET') return await 處理取得所有佈景主題(c);
+      if (method === 'POST') return await 處理創建佈景主題(c);
+    }
+    if (path.startsWith('/api/v1/themes/')) {
+      if (method === 'GET') return await 處理取得單一佈景主題(c);
+      if (method === 'PUT') return await 處理更新佈景主題(c);
+      if (method === 'DELETE') return await 處理刪除佈景主題(c);
+    }
+    if (path === '/api/v1/theme' && method === 'GET') {
+      return await 處理取得當前主題(c);
+    }
+    
+    // 配色 API
+    if (path === '/api/v1/colors') {
+      if (method === 'GET') return await 處理取得所有配色(c);
+      if (method === 'POST') return await 處理創建配色(c);
+    }
+    if (path.startsWith('/api/v1/colors/')) {
+      if (method === 'GET') return await 處理取得單一配色(c);
+      if (method === 'PUT') return await 處理更新配色(c);
+      if (method === 'DELETE') return await 處理刪除配色(c);
+    }
+    
+    // 骨架 API
+    if (path === '/api/v1/skeletons') {
+      if (method === 'GET') return await 處理取得所有骨架(c);
+      if (method === 'POST') return await 處理創建骨架(c);
+    }
+    if (path.startsWith('/api/v1/skeletons/')) {
+      if (method === 'GET') return await 處理取得單一骨架(c);
+      if (method === 'PUT') return await 處理更新骨架(c);
+      if (method === 'DELETE') return await 處理刪除骨架(c);
+    }
+    
+    // 預設值 API - 利用 KV seeds 提供預設值
+    if (path === '/api/v1/defaults' && method === 'GET') {
+      return await 處理取得所有預設值(c);
+    }
+    if (path === '/api/v1/defaults/theme' && method === 'GET') {
+      return await 處理取得預設佈景主題(c);
+    }
+    if (path === '/api/v1/defaults/color' && method === 'GET') {
+      return await 處理取得預設配色(c);
+    }
+    if (path === '/api/v1/defaults/skeleton' && method === 'GET') {
+      return await 處理取得預設骨架(c);
     }
     
     // 三層查詢測試 API (從 main.ts 移過來)
