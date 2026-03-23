@@ -1,0 +1,145 @@
+[
+  {"id":"佈景主題:標籤:經典風","名稱":{"en":"classic","zh-tw":"經典風","vi":"sự cổ điển"},"標籤集":[],"可刪除": false},
+  {"id":"佈景主題:標籤:簡約風","名稱":{"en":"simplicity","zh-tw":"簡約風","vi":"sự tối giản"},"標籤集":[],"可刪除": false},
+  {"id":"佈景主題:標籤:優雅風","名稱":{"en":"elegance","zh-tw":"優雅風","vi":"sự thanh lịch"},"標籤集":[],"可刪除": false},
+  {"id":"佈景主題:標籤:時尚風","名稱":{"en":"fashion","zh-tw":"時尚風","vi":"thời trang"},"標籤集":[],"可刪除": false},
+  {"id":"佈景主題:標籤:華麗風","名稱":{"en":"gorgeous","zh-tw":"華麗風","vi":"lộng lẫy"},"標籤集":[],"可刪除": false},
+  {"id":"佈景主題:標籤:休閒風","名稱":{"en":"casual","zh-tw":"休閒風","vi":"casual"},"標籤集":[],"可刪除": false},
+  {"id":"佈景主題:標籤:活力風","名稱":{"en":"vibrant","zh-tw":"活力風","vi":"năng động"},"標籤集":[],"可刪除": false},
+  {"id":"佈景主題:標籤:復古風","名稱":{"en":"retro","zh-tw":"復古風","vi":"retro"},"標籤集":[],"可刪除": false},
+  {"id":"佈景主題:標籤:和諧風","名稱":{"en":"harmonious","zh-tw":"和諧風","vi":"hoà hợp"},"標籤集":[],"可刪除": false},
+  {"id":"佈景主題:標籤:神秘風","名稱":{"en":"mystery","zh-tw":"神秘風","vi":"huyền bí"},"標籤集":[],"可刪除": false},
+  {"id":"佈景主題:標籤:可愛風","名稱":{"en":"cute","zh-tw":"可愛風","vi":"dễ thương"},"標籤集":[],"可刪除": false},
+  {"id":"佈景主題:標籤:北歐風","名稱":{"en":"scandinavian","zh-tw":"北歐風","vi":"bắc Âu"},"標籤集":[],"可刪除": false},
+  {"id":"佈景主題:標籤:波西米亞風","名稱":{"en":"bohemian","zh-tw":"波西米亞風","vi":"bohemian"},"標籤集":[],"可刪除": false},
+  {
+    "id": "佈景主題:佈景主題:經典藍",
+    "名稱": {"en":"classic blue","zh-tw":"經典藍","vi":"màu xanh cổ điển"},
+    "描述": {"en":"A blue tone, giving a feeling of calm, gentleness and comfort.","zh-tw":"一種藍色調，給人冷靜、柔和舒服的感覺","vi":"Một tông màu xanh, mang lại cảm giác bình tĩnh, nhẹ nhàng và thoải mái."},
+    "配色": "配色:配色:經典藍",
+    "骨架": "骨架:骨架:經典",
+    "裝飾": {},
+    "售價": 0,
+    "可刪除": false
+  },
+  {
+    "id": "佈景主題:佈景主題:經典綠",
+    "名稱": {"en":"classic green","zh-tw":"經典綠","vi":"xanh cổ điển"},
+    "描述": {"en":"A classic green tone that usually has a natural, stable feel. This color can convey a calm, harmonious atmosphere","zh-tw":"一種經典的綠色調，通常呈現自然、穩重的感覺。這種顏色可以傳遞出平靜、和諧的氛圍","vi":"Một tông màu xanh cổ điển, thường mang đến cảm giác tự nhiên và vững chãi. Màu sắc này có thể truyền tải một bầu không khí yên tĩnh và hài hòa."},
+    "配色": "配色:配色:經典綠",
+    "骨架": "骨架:骨架:經典",
+    "裝飾": {},
+    "售價": 0,
+    "可刪除": false
+  },
+  {
+    "id": "佈景主題:佈景主題:經典紅",
+    "名稱": {"en":"classic red","zh-tw":"經典紅","vi":"đỏ cổ điển"},
+    "描述": {"en":"A classic red tone that usually conveys enthusiasm, vitality and a sense of importance. This color can attract attention and convey a sense of urgency","zh-tw":"一種經典的紅色調，通常傳達熱情、活力和重要性。這種顏色可以吸引注意力並傳達緊迫感","vi":"Một tông màu đỏ cổ điển, thường truyền tải sự nhiệt tình, sức sống và cảm giác quan trọng. Màu sắc này có thể thu hút sự chú ý và truyền tải cảm giác cấp bách."},
+    "配色": "配色:配色:經典紅",
+    "骨架": "骨架:骨架:經典",
+    "裝飾": {},
+    "售價": 0,
+    "可刪除": false
+  },
+  {
+    "id": "佈景主題:佈景主題:優雅紫",
+    "名稱": {"en":"elegant purple","zh-tw":"優雅紫","vi":"tím thanh lịch"},
+    "描述": {"en":"A purple tone that gives a feeling of elegance, mystery and luxury. This color can convey a sense of high quality and uniqueness","zh-tw":"一種紫色調，給人優雅、神秘和奢華的感覺。這種顏色可以傳達高品質和獨特性的感覺","vi":"Một tông màu tím, mang lại cảm giác thanh lịch, bí ẩn và sang trọng. Màu sắc này có thể truyền tải cảm giác chất lượng cao và độc đáo."},
+    "配色": "配色:配色:優雅紫",
+    "骨架": "骨架:骨架:經典",
+    "裝飾": {},
+    "售價": 0,
+    "可刪除": false
+  },
+  {
+    "id": "佈景主題:佈景主題:簡約白",
+    "名稱": {"en":"simplicity white","zh-tw":"簡約白","vi":"trắng tối giản"},
+    "描述": {"en":"A white tone that gives a clean, simple and fresh feeling. This color can convey a sense of clarity and modernity","zh-tw":"一種白色調，給人乾淨、簡單和清新的感覺。這種顏色可以傳達清晰和現代感的感覺","vi":"Một tông màu trắng, mang lại cảm giác sạch sẽ, đơn giản và tươi mới. Màu sắc này có thể truyền tải cảm giác rõ ràng và hiện đại."},
+    "配色": "配色:配色:簡約白",
+    "骨架": "骨架:骨架:經典",
+    "裝飾": {},
+    "售價": 0,
+    "可刪除": false
+  },
+  {
+    "id": "佈景主題:佈景主題:時尚黑",
+    "名稱": {"en":"fashion black","zh-tw":"時尚黑","vi":"đen thời trang"},
+    "描述": {"en":"A black tone that gives a feeling of fashion, mystery and professionalism. This color can convey a sense of authority and sophistication","zh-tw":"一種黑色調，給人時尚、神秘和專業的感覺。這種顏色可以傳達權威性和精緻感的感覺","vi":"Một tông màu đen, mang lại cảm giác thời trang, bí ẩn và chuyên nghiệp. Màu sắc này có thể truyền tải cảm giác quyền uy và tinh tế."},
+    "配色": "配色:配色:時尚黑",
+    "骨架": "骨架:骨架:經典",
+    "裝飾": {},
+    "售價": 0,
+    "可刪除": false
+  },
+  {
+    "id": "佈景主題:佈景主題:活力橙",
+    "名稱": {"en":"vibrant orange","zh-tw":"活力橙","vi":"cam năng động"},
+    "描述": {"en":"An orange tone that gives a feeling of energy, warmth and creativity. This color can convey a sense of enthusiasm and innovation","zh-tw":"一種橙色調，給人活力、溫暖和創造力的感覺。這種顏色可以傳達熱情和創新感的感覺","vi":"Một tông màu cam, mang lại cảm giác năng lượng, ấm áp và sáng tạo. Màu sắc này có thể truyền tải cảm giác nhiệt tình và đổi mới."},
+    "配色": "配色:配色:活力橙",
+    "骨架": "骨架:骨架:經典",
+    "裝飾": {},
+    "售價": 0,
+    "可刪除": false
+  },
+  {
+    "id": "佈景主題:佈景主題:復古棕",
+    "名稱": {"en":"retro brown","zh-tw":"復古棕","vi":"nâu retro"},
+    "描述": {"en":"A brown tone that gives a feeling of retro, stability and warmth. This color can convey a sense of tradition and reliability","zh-tw":"一種棕色調，給人復古、穩定和溫暖的感覺。這種顏色可以傳達傳統和可靠性的感覺","vi":"Một tông màu nâu, mang lại cảm giác retro, ổn định và ấm áp. Màu sắc này có thể truyền tải cảm giác truyền thống và độ tin cậy."},
+    "配色": "配色:配色:復古棕",
+    "骨架": "骨架:骨架:經典",
+    "裝飾": {},
+    "售價": 0,
+    "可刪除": false
+  },
+  {
+    "id": "佈景主題:佈景主題:和諧灰",
+    "名稱": {"en":"harmonious gray","zh-tw":"和諧灰","vi":"xám hài hòa"},
+    "描述": {"en":"A gray tone that gives a feeling of balance, neutrality and calmness. This color can convey a sense of stability and professionalism","zh-tw":"一種灰色調，給人平衡、中立和冷靜的感覺。這種顏色可以傳達穩定性和專業性的感覺","vi":"Một tông màu xám, mang lại cảm giác cân bằng, trung lập và bình tĩnh. Màu sắc này có thể truyền tải cảm giác ổn định và chuyên nghiệp."},
+    "配色": "配色:配色:和諧灰",
+    "骨架": "骨架:骨架:經典",
+    "裝飾": {},
+    "售價": 0,
+    "可刪除": false
+  },
+  {
+    "id": "佈景主題:佈景主題:神秘藍",
+    "名稱": {"en":"mystery blue","zh-tw":"神秘藍","vi":"xanh bí ẩn"},
+    "描述": {"en":"A deep blue tone that gives a feeling of mystery, depth and intelligence. This color can convey a sense of trust and wisdom","zh-tw":"一種深藍色調，給人神秘、深度和智慧的感覺。這種顏色可以傳達信任和智慧的感覺","vi":"Một tông màu xanh đậm, mang lại cảm giác bí ẩn, chiều sâu và trí tuệ. Màu sắc này có thể truyền tải cảm giác tin tưởng và trí tuệ."},
+    "配色": "配色:配色:神秘藍",
+    "骨架": "骨架:骨架:經典",
+    "裝飾": {},
+    "售價": 0,
+    "可刪除": false
+  },
+  {
+    "id": "佈景主題:佈景主題:可愛粉",
+    "名稱": {"en":"cute pink","zh-tw":"可愛粉","vi":"hồng dễ thương"},
+    "描述": {"en":"A pink tone that gives a feeling of cuteness, warmth and gentleness. This color can convey a sense of friendliness and approachability","zh-tw":"一種粉紅色調，給人可愛、溫暖和溫柔的感覺。這種顏色可以傳達友善和親近感的感覺","vi":"Một tông màu hồng, mang lại cảm giác dễ thương, ấm áp và nhẹ nhàng. Màu sắc này có thể truyền tải cảm giác thân thiện và dễ gần."},
+    "配色": "配色:配色:可愛粉",
+    "骨架": "骨架:骨架:經典",
+    "裝飾": {},
+    "售價": 0,
+    "可刪除": false
+  },
+  {
+    "id": "佈景主題:佈景主題:北歐綠",
+    "名稱": {"en":"scandinavian green","zh-tw":"北歐綠","vi":"xanh bắc Âu"},
+    "描述": {"en":"A Scandinavian-inspired green tone that gives a feeling of nature, freshness and simplicity. This color can convey a sense of environmental friendliness and health","zh-tw":"一種北歐風格的綠色調，給人自然、清新和簡單的感覺。這種顏色可以傳達環保和健康的感覺","vi":"Một tông màu xanh phong cách Bắc Âu, mang lại cảm giác tự nhiên, tươi mới và đơn giản. Màu sắc này có thể truyền tải cảm giác thân thiện với môi trường và sức khỏe."},
+    "配色": "配色:配色:北歐綠",
+    "骨架": "骨架:骨架:北歐",
+    "裝飾": {},
+    "售價": 0,
+    "可刪除": false
+  },
+  {
+    "id": "佈景主題:佈景主題:波西米亞橙",
+    "名稱": {"en":"bohemian orange","zh-tw":"波西米亞橙","vi":"cam bohemian"},
+    "描述": {"en":"A bohemian-inspired orange tone that gives a feeling of freedom, creativity and warmth. This color can convey a sense of adventure and individuality","zh-tw":"一種波西米亞風格的橙色調，給人自由、創造力和溫暖的感覺。這種顏色可以傳達冒險和個性的感覺","vi":"Một tông màu cam phong cách bohemian, mang lại cảm giác tự do, sáng tạo và ấm áp. Màu sắc này có thể truyền tải cảm giác phiêu lưu và cá tính."},
+    "配色": "配色:配色:波西米亞橙",
+    "骨架": "骨架:骨架:波西米亞",
+    "裝飾": {},
+    "售價": 0,
+    "可刪除": false
+  }
+]

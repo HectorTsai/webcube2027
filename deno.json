@@ -1,0 +1,21 @@
+{
+  "tasks": {
+    "dev": "deno run --allow-all --unstable-kv --watch main.ts",
+    "start": "deno run --allow-all --unstable-kv main.ts"
+  },
+  "imports": {
+    "hono": "jsr:@hono/hono@^4.6.3",
+    "hono/jsx": "jsr:@hono/hono@^4.6.3/jsx",
+    "hono/jsx/dom": "jsr:@hono/hono@^4.6.3/jsx/dom",
+    "@unocss/core": "npm:@unocss/core@^0.58.0",
+    "@unocss/preset-wind": "npm:@unocss/preset-wind@^0.58.0",
+    "nanoid": "npm:nanoid@^5.1.7",
+    "@dui/smartmultilingual": "jsr:@dui/smartmultilingual@0.2.2",
+    "deno-dom": "jsr:@b-fuze/deno-dom@^0.1.47",
+    "surrealdb": "npm:surrealdb@^2.0.3"
+  },
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx"
+  }
+}
