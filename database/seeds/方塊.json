@@ -1,0 +1,655 @@
+[
+  {
+    "id": "方塊:方塊:按鈕",
+    "名稱": {
+      "en": "Button",
+      "zh-tw": "按鈕",
+      "vi": "Nút bấm"
+    },
+    "描述": {
+      "en": "A clickable button component that triggers actions when clicked. Supports different styles, sizes, and states.",
+      "zh-tw": "可點擊的按鈕元件，點擊時觸發動作。支援不同樣式、大小和狀態。",
+      "vi": "Một thành phần nút có thể nhấp được kích hoạt hành động khi được nhấp. Hỗ trợ các kiểu, kích thước và trạng thái khác nhau."
+    },
+    "售價": 0,
+    "標籤集": ["ui", "button", "interactive"],
+    "模式": "內建",
+    "元件路徑": "ui/Button",
+    "屬性定義": {
+      "title": {
+        "type": "string",
+        "description": "Text displayed on the button",
+        "required": true,
+        "default": "Click me",
+        "example": "Submit"
+      },
+      "variant": {
+        "type": "string",
+        "description": "Button style variant - controls the visual appearance",
+        "required": false,
+        "default": "primary",
+        "options": ["primary", "secondary", "outline", "ghost"],
+        "example": "primary"
+      },
+      "size": {
+        "type": "string",
+        "description": "Button size - controls the padding and font size",
+        "required": false,
+        "default": "md",
+        "options": ["sm", "md", "lg"],
+        "example": "md"
+      },
+      "disabled": {
+        "type": "boolean",
+        "description": "Whether the button is disabled and cannot be clicked",
+        "required": false,
+        "default": false,
+        "example": false
+      },
+      "onClick": {
+        "type": "function",
+        "description": "Function called when button is clicked - for event handling",
+        "required": false,
+        "example": "() => console.log('Button clicked')"
+      }
+    },
+    "子方塊": [],
+    "對外參數": {},
+    "程式碼": "",
+    "審核狀態": "approved",
+    "上架狀態": true,
+    "可刪除": false
+  },
+  {
+    "id": "方塊:方塊:輸入框",
+    "名稱": {
+      "en": "Input Field",
+      "zh-tw": "輸入框",
+      "vi": "Trường nhập liệu"
+    },
+    "描述": {
+      "en": "A text input field for user input. Supports various input types, validation, and styling options.",
+      "zh-tw": "供使用者輸入的文字輸入框。支援各種輸入類型、驗證和樣式選項。",
+      "vi": "Một trường nhập văn bản để nhập liệu của người dùng. Hỗ trợ các loại nhập liệu khác nhau, xác thực và tùy chọn kiểu dáng."
+    },
+    "售價": 0,
+    "標籤集": ["ui", "input", "form"],
+    "模式": "內建",
+    "元件路徑": "ui/Input",
+    "屬性定義": {
+      "placeholder": {
+        "type": "string",
+        "description": "Placeholder text displayed when input is empty",
+        "required": false,
+        "default": "Enter text...",
+        "example": "Enter your name"
+      },
+      "type": {
+        "type": "string",
+        "description": "Input type - controls browser validation and keyboard type",
+        "required": false,
+        "default": "text",
+        "options": ["text", "email", "password", "number", "tel"],
+        "example": "text"
+      },
+      "value": {
+        "type": "string",
+        "description": "Current value of the input field",
+        "required": false,
+        "default": "",
+        "example": "John Doe"
+      },
+      "required": {
+        "type": "boolean",
+        "description": "Whether the input is required for form validation",
+        "required": false,
+        "default": false,
+        "example": true
+      },
+      "disabled": {
+        "type": "boolean",
+        "description": "Whether the input is disabled and cannot be edited",
+        "required": false,
+        "default": false,
+        "example": false
+      },
+      "onChange": {
+        "type": "function",
+        "description": "Function called when input value changes - for event handling",
+        "required": false,
+        "example": "(value) => console.log('Input changed:', value)"
+      }
+    },
+    "子方塊": [],
+    "對外參數": {},
+    "程式碼": "",
+    "審核狀態": "approved",
+    "上架狀態": true,
+    "可刪除": false
+  },
+  {
+    "id": "方塊:方塊:卡片",
+    "名稱": {
+      "en": "Card",
+      "zh-tw": "卡片",
+      "vi": "Thẻ"
+    },
+    "描述": {
+      "en": "A flexible container component for displaying content in a structured layout. Can contain text, images, and other components.",
+      "zh-tw": "靈活的容器元件，用於在結構化佈局中顯示內容。可以包含文字、圖片和其他元件。",
+      "vi": "Một thành phần container linh hoạt để hiển thị nội dung trong bố cục có cấu trúc. Có thể chứa văn bản, hình ảnh và các thành phần khác."
+    },
+    "售價": 0,
+    "標籤集": ["ui", "card", "container", "layout"],
+    "模式": "內建",
+    "元件路徑": "ui/Card",
+    "屬性定義": {
+      "title": {
+        "type": "string",
+        "description": "Card title displayed at the top",
+        "required": false,
+        "default": "",
+        "example": "Product Card"
+      },
+      "content": {
+        "type": "string",
+        "description": "Main content of the card - can be text or HTML",
+        "required": false,
+        "default": "",
+        "example": "This is a beautiful product card with description."
+      },
+      "image": {
+        "type": "string",
+        "description": "URL or path to card image - supports web URLs and relative paths",
+        "required": false,
+        "default": "",
+        "example": "/images/product.jpg"
+      },
+      "variant": {
+        "type": "string",
+        "description": "Card style variant - controls border and background",
+        "required": false,
+        "default": "default",
+        "options": ["default", "outlined", "elevated"],
+        "example": "default"
+      },
+      "padding": {
+        "type": "string",
+        "description": "Card padding size - controls internal spacing",
+        "required": false,
+        "default": "md",
+        "options": ["none", "sm", "md", "lg"],
+        "example": "md"
+      },
+      "shadow": {
+        "type": "boolean",
+        "description": "Whether to show card shadow for depth effect",
+        "required": false,
+        "default": true,
+        "example": true
+      }
+    },
+    "子方塊": [],
+    "對外參數": {},
+    "程式碼": "",
+    "審核狀態": "approved",
+    "上架狀態": true,
+    "可刪除": false
+  },
+  {
+    "id": "方塊:方塊:標題",
+    "名稱": {
+      "en": "Heading",
+      "zh-tw": "標題",
+      "vi": "Tiêu đề"
+    },
+    "描述": {
+      "en": "A heading component for displaying titles and headings. Supports different levels (h1-h6) and styling options.",
+      "zh-tw": "用於顯示標題的標題元件。支援不同層級（h1-h6）和樣式選項。",
+      "vi": "Một thành phần tiêu đề để hiển thị các tiêu đề. Hỗ trợ các cấp độ khác nhau (h1-h6) và tùy chọn kiểu dáng."
+    },
+    "售價": 0,
+    "標籤集": ["ui", "heading", "text", "typography"],
+    "模式": "內建",
+    "元件路徑": "ui/Heading",
+    "屬性定義": {
+      "text": {
+        "type": "string",
+        "description": "Heading text content - the main text to display",
+        "required": true,
+        "default": "Heading",
+        "example": "Welcome to Our Site"
+      },
+      "level": {
+        "type": "number",
+        "description": "Heading level - controls semantic HTML tag (h1-h6)",
+        "required": false,
+        "default": 2,
+        "min": 1,
+        "max": 6,
+        "example": 2
+      },
+      "size": {
+        "type": "string",
+        "description": "Text size override - controls font size regardless of level",
+        "required": false,
+        "default": "",
+        "options": ["xs", "sm", "md", "lg", "xl", "2xl", "3xl", "4xl", "5xl", "6xl"],
+        "example": "2xl"
+      },
+      "weight": {
+        "type": "string",
+        "description": "Font weight - controls text thickness",
+        "required": false,
+        "default": "semibold",
+        "options": ["light", "normal", "medium", "semibold", "bold", "extrabold"],
+        "example": "semibold"
+      },
+      "align": {
+        "type": "string",
+        "description": "Text alignment - controls horizontal positioning",
+        "required": false,
+        "default": "left",
+        "options": ["left", "center", "right", "justify"],
+        "example": "center"
+      }
+    },
+    "子方塊": [],
+    "對外參數": {},
+    "程式碼": "",
+    "審核狀態": "approved",
+    "上架狀態": true,
+    "可刪除": false
+  },
+  {
+    "id": "方塊:方塊:表單",
+    "名稱": {
+      "en": "Form",
+      "zh-tw": "表單",
+      "vi": "Biểu mẫu"
+    },
+    "描述": {
+      "en": "A form container that combines multiple input components. Provides validation, submission handling, and form state management.",
+      "zh-tw": "結合多個輸入元件的表單容器。提供驗證、提交處理和表單狀態管理。",
+      "vi": "Một container biểu mẫu kết hợp nhiều thành phần nhập liệu. Cung cấp xác thực, xử lý gửi và quản lý trạng thái biểu mẫu."
+    },
+    "售價": 0,
+    "標籤集": ["ui", "form", "container", "composition"],
+    "模式": "組合",
+    "元件路徑": "",
+    "屬性定義": {},
+    "子方塊": [
+      {
+        "方塊ID": "方塊:方塊:標題",
+        "參數": {
+          "text": "Contact Form",
+          "level": 2,
+          "align": "center"
+        }
+      },
+      {
+        "方塊ID": "方塊:方塊:輸入框",
+        "參數": {
+          "placeholder": "Your Name",
+          "type": "text",
+          "required": true
+        }
+      },
+      {
+        "方塊ID": "方塊:方塊:輸入框",
+        "參數": {
+          "placeholder": "Your Email",
+          "type": "email",
+          "required": true
+        }
+      },
+      {
+        "方塊ID": "方塊:方塊:按鈕",
+        "參數": {
+          "title": "Submit",
+          "variant": "primary"
+        }
+      }
+    ],
+    "對外參數": {
+      "formTitle": {
+        "映射到": "子方塊[0].參數.text"
+      },
+      "namePlaceholder": {
+        "映射到": "子方塊[1].參數.placeholder"
+      },
+      "emailPlaceholder": {
+        "映射到": "子方塊[2].參數.placeholder"
+      },
+      "submitText": {
+        "映射到": "子方塊[3].參數.title"
+      }
+    },
+    "程式碼": "",
+    "審核狀態": "approved",
+    "上架狀態": true,
+    "可刪除": false
+  },
+  {
+    "id": "方塊:方塊:容器",
+    "名稱": {
+      "en": "Container",
+      "zh-tw": "容器",
+      "vi": "Container"
+    },
+    "描述": {
+      "en": "A flexible container component for layout and grouping. Provides spacing, alignment, and responsive design capabilities.",
+      "zh-tw": "靈活的容器元件，用於佈局和分組。提供間距、對齊和響應式設計功能。",
+      "vi": "Một thành phần container linh hoạt cho bố cục và nhóm. Cung cấp khoảng cách, căn chỉnh và khả năng thiết kế phản ứng."
+    },
+    "售價": 0,
+    "標籤集": ["ui", "container", "layout", "flexbox"],
+    "模式": "內建",
+    "元件路徑": "ui/Container",
+    "屬性定義": {
+      "children": {
+        "type": "object",
+        "description": "Child elements to render inside the container",
+        "required": true,
+        "example": "<div>Content here</div>"
+      },
+      "direction": {
+        "type": "string",
+        "description": "Flex direction - controls layout orientation",
+        "required": false,
+        "default": "column",
+        "options": ["row", "column", "row-reverse", "column-reverse"],
+        "example": "column"
+      },
+      "align": {
+        "type": "string",
+        "description": "Cross-axis alignment - controls vertical positioning",
+        "required": false,
+        "default": "stretch",
+        "options": ["start", "center", "end", "stretch"],
+        "example": "center"
+      },
+      "justify": {
+        "type": "string",
+        "description": "Main-axis alignment - controls horizontal positioning",
+        "required": false,
+        "default": "start",
+        "options": ["start", "center", "end", "between", "around", "evenly"],
+        "example": "start"
+      },
+      "gap": {
+        "type": "string",
+        "description": "Spacing between child elements",
+        "required": false,
+        "default": "md",
+        "options": ["none", "xs", "sm", "md", "lg", "xl"],
+        "example": "md"
+      },
+      "padding": {
+        "type": "string",
+        "description": "Internal spacing of the container",
+        "required": false,
+        "default": "md",
+        "options": ["none", "xs", "sm", "md", "lg", "xl"],
+        "example": "md"
+      },
+      "width": {
+        "type": "string",
+        "description": "Container width - controls responsive behavior",
+        "required": false,
+        "default": "full",
+        "options": ["auto", "full", "fit", "screen"],
+        "example": "full"
+      }
+    },
+    "子方塊": [],
+    "對外參數": {},
+    "程式碼": "",
+    "審核狀態": "approved",
+    "上架狀態": true,
+    "可刪除": false
+  },
+  {
+    "id": "方塊:方塊:網格",
+    "名稱": {
+      "en": "Grid",
+      "zh-tw": "網格",
+      "vi": "Grid"
+    },
+    "描述": {
+      "en": "A grid layout container for creating responsive grid layouts. Supports column configuration and responsive breakpoints.",
+      "zh-tw": "網格佈局容器，用於創建響應式網格佈局。支援欄位配置和響應式斷點。",
+      "vi": "Một container bố cục lưới để tạo bố cục lưới phản ứng. Hỗ trợ cấu hình cột và các điểm ngắt phản ứng."
+    },
+    "售價": 0,
+    "標籤集": ["ui", "grid", "layout", "responsive"],
+    "模式": "內建",
+    "元件路徑": "ui/Grid",
+    "屬性定義": {
+      "children": {
+        "type": "object",
+        "description": "Child elements to arrange in grid layout",
+        "required": true,
+        "example": "<div>Grid item 1</div><div>Grid item 2</div>"
+      },
+      "columns": {
+        "type": "number",
+        "description": "Number of columns in the grid",
+        "required": false,
+        "default": 2,
+        "min": 1,
+        "max": 12,
+        "example": 3
+      },
+      "gap": {
+        "type": "string",
+        "description": "Spacing between grid items",
+        "required": false,
+        "default": "md",
+        "options": ["none", "xs", "sm", "md", "lg", "xl"],
+        "example": "md"
+      },
+      "padding": {
+        "type": "string",
+        "description": "Internal spacing of the grid container",
+        "required": false,
+        "default": "md",
+        "options": ["none", "xs", "sm", "md", "lg", "xl"],
+        "example": "md"
+      }
+    },
+    "子方塊": [],
+    "對外參數": {},
+    "程式碼": "",
+    "審核狀態": "approved",
+    "上架狀態": true,
+    "可刪除": false
+  },
+  {
+    "id": "方塊:方塊:區塊",
+    "名稱": {
+      "en": "Section",
+      "zh-tw": "區塊",
+      "vi": "Section"
+    },
+    "描述": {
+      "en": "A section container for grouping related content. Typically used for page sections with background and spacing.",
+      "zh-tw": "區塊容器，用於組合相關內容。通常用於頁面區塊，包含背景和間距。",
+      "vi": "Một container section để nhóm nội dung liên quan. Thường được sử dụng cho các section trang với nền và khoảng cách."
+    },
+    "售價": 0,
+    "標籤集": ["ui", "section", "container", "layout"],
+    "模式": "內建",
+    "元件路徑": "ui/Section",
+    "屬性定義": {
+      "children": {
+        "type": "object",
+        "description": "Child elements to render in the section",
+        "required": true,
+        "example": "<h1>Section Title</h1><p>Section content</p>"
+      },
+      "background": {
+        "type": "string",
+        "description": "Background color or style",
+        "required": false,
+        "default": "white",
+        "options": ["white", "gray", "primary", "secondary", "gradient"],
+        "example": "white"
+      },
+      "padding": {
+        "type": "string",
+        "description": "Internal spacing of the section",
+        "required": false,
+        "default": "lg",
+        "options": ["none", "xs", "sm", "md", "lg", "xl", "2xl"],
+        "example": "lg"
+      },
+      "maxWidth": {
+        "type": "string",
+        "description": "Maximum width of the section content",
+        "required": false,
+        "default": "full",
+        "options": ["sm", "md", "lg", "xl", "full", "screen"],
+        "example": "lg"
+      }
+    },
+    "子方塊": [],
+    "對外參數": {},
+    "程式碼": "",
+    "審核狀態": "approved",
+    "上架狀態": true,
+    "可刪除": false
+  },
+  {
+    "id": "方塊:方塊:主選單",
+    "名稱": {
+      "en": "Main Menu",
+      "zh-tw": "主選單",
+      "vi": "Menu Chính"
+    },
+    "描述": {
+      "en": "A main navigation menu component for website header navigation. Supports logo, menu items, and call-to-action buttons.",
+      "zh-tw": "網站標頭導航的主選單元件。支援商標、選單項目和行動按鈕。",
+      "vi": "Một thành phần menu điều hướng chính cho tiêu đề trang web. Hỗ trợ logo, mục menu và nút kêu gọi hành động."
+    },
+    "售價": 0,
+    "標籤集": ["ui", "navigation", "menu", "header"],
+    "模式": "內建",
+    "元件路徑": "ui/MainMenu",
+    "屬性定義": {
+      "logo": {
+        "type": "string",
+        "description": "Logo image URL or text",
+        "required": false,
+        "default": "",
+        "example": "/images/logo.png"
+      },
+      "logoText": {
+        "type": "string",
+        "description": "Logo text alternative to image",
+        "required": false,
+        "default": "Brand",
+        "example": "MyBrand"
+      },
+      "menuItems": {
+        "type": "array",
+        "description": "Array of menu items with label and href",
+        "required": true,
+        "example": "[{\"label\": \"Home\", \"href\": \"/\"}, {\"label\": \"About\", \"href\": \"/about\"}]"
+      },
+      "ctaButton": {
+        "type": "object",
+        "description": "Call-to-action button configuration",
+        "required": false,
+        "example": "{\"text\": \"Get Started\", \"href\": \"/signup\", \"variant\": \"primary\"}"
+      },
+      "variant": {
+        "type": "string",
+        "description": "Menu style variant",
+        "required": false,
+        "default": "default",
+        "options": ["default", "minimal", "centered", "split"],
+        "example": "default"
+      },
+      "sticky": {
+        "type": "boolean",
+        "description": "Whether menu should stick to top when scrolling",
+        "required": false,
+        "default": false,
+        "example": true
+      }
+    },
+    "子方塊": [],
+    "對外參數": {},
+    "程式碼": "",
+    "審核狀態": "approved",
+    "上架狀態": true,
+    "可刪除": false
+  },
+  {
+    "id": "方塊:方塊:頁腳",
+    "名稱": {
+      "en": "Footer",
+      "zh-tw": "頁腳",
+      "vi": "Chân trang"
+    },
+    "描述": {
+      "en": "A footer component with multiple sections for links, social media, and copyright information. Responsive and customizable.",
+      "zh-tw": "包含連結、社群媒體和版權資訊的多區段頁腳元件。響應式且可自訂。",
+      "vi": "Một thành phần footer với nhiều phần cho liên kết, mạng xã hội và thông tin bản quyền. Phản ứng và có thể tùy chỉnh."
+    },
+    "售價": 0,
+    "標籤集": ["ui", "footer", "navigation", "layout"],
+    "模式": "內建",
+    "元件路徑": "ui/Footer",
+    "屬性定義": {
+      "logo": {
+        "type": "string",
+        "description": "Company logo URL or text",
+        "required": false,
+        "default": "",
+        "example": "/images/logo.png"
+      },
+      "companyName": {
+        "type": "string",
+        "description": "Company name for copyright",
+        "required": false,
+        "default": "",
+        "example": "My Company"
+      },
+      "sections": {
+        "type": "array",
+        "description": "Footer sections with title and links",
+        "required": true,
+        "example": "[{\"title\": \"Products\", \"links\": [{\"text\": \"Features\", \"href\": \"/features\"}]}]"
+      },
+      "socialLinks": {
+        "type": "array",
+        "description": "Social media links",
+        "required": false,
+        "example": "[{\"platform\": \"twitter\", \"href\": \"https://twitter.com/company\"}]"
+      },
+      "copyrightText": {
+        "type": "string",
+        "description": "Copyright text",
+        "required": false,
+        "default": "© 2024 Company. All rights reserved.",
+        "example": "© 2024 My Company. All rights reserved."
+      },
+      "variant": {
+        "type": "string",
+        "description": "Footer style variant",
+        "required": false,
+        "default": "default",
+        "options": ["default", "minimal", "dark", "centered"],
+        "example": "default"
+      }
+    },
+    "子方塊": [],
+    "對外參數": {},
+    "程式碼": "",
+    "審核狀態": "approved",
+    "上架狀態": true,
+    "可刪除": false
+  }
+]

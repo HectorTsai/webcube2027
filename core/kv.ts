@@ -384,7 +384,27 @@ export class KV資料庫 {
 // 全域 KV 實例 (單例模式)
 let kvDatabase: KV資料庫 | null = null;
 
-// 取得全域 KV 資料庫實例
+/**
+ * 取得全域 KV 資料庫實例
+ * 
+ * ⚠️ 警告：不應直接使用此函數！
+ * 
+ * 正確的資料訪問方式：
+ * 1. 在 API/Service 中：從 context 取得預先載入的資料
+ *    - c.get('系統資訊')
+ *    - c.get('網站資訊')
+ * 
+ * 2. 需要查詢其他資料時：使用三層查詢管理器
+ *    - 三層查詢管理器.查詢單一<T>(c, model, id)
+ *    - 三層查詢管理器.查詢列表<T>(c, model, limit, offset)
+ * 
+ * 3. 需要寫入資料時：從 context 取得 kvDB
+ *    - const kvDB = c.get('kvDB')
+ * 
+ * 僅在以下情況可直接使用：
+ * - main.ts 初始化時
+ * - middleware/db-resolver.ts 設定 context 時
+ */
 export function 取得KV資料庫(): KV資料庫 {
   if (!kvDatabase) {
     kvDatabase = new KV資料庫();

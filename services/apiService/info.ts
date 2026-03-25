@@ -1,54 +1,44 @@
-// 統一資訊 API
+// 統一資訊 API 模組 - 處理 /api/v1/info 路由
 import { Context } from 'hono';
+import { RouteParams } from './index.ts';
 import { info, error } from '../../utils/logger.ts';
-import { APIModule, RouteParams } from './index.ts';
-
-// 內部 API 調用輔助函數
-async function InnerAPI(c: Context, path: string): Promise<Response> {
-  const app = c.get('app');
-  return await app.request(path);
-}
+import { 資料過濾器 } from '../../utils/資料過濾器.ts';
 
 // 處理取得統一資訊
 async function 處理取得統一資訊(c: Context, _params: RouteParams): Promise<Response> {
   try {
     await info('統一資訊 API', '處理取得統一資訊請求');
     
-    // 先嘗試取得網站資訊
-    try {
-      const 網站資訊回應 = await InnerAPI(c, '/api/v1/websites/info');
-      const 網站資訊 = await 網站資訊回應.json();
-      
-      if (網站資訊.success && 網站資訊.data) {
-        await info('統一資訊 API', '成功取得網站資訊');
-        return c.json({
-          success: true,
-          data: 網站資訊.data,
-          source: 'website'
-        });
-      }
-    } catch (錯誤) {
-      await info('統一資訊 API', `取得網站資訊失敗，回退到系統資訊: ${錯誤}`);
+    const language = c.get('語言') || 'zh-tw';
+    
+    // 1. 先嘗試從 context 取得網站資訊
+    const 網站資訊 = c.get('網站資訊');
+    if (網站資訊) {
+      await info('統一資訊 API', '從 context 取得網站資訊');
+      // 使用資料過濾器處理多國語言字串
+      const 過濾後資料 = await 資料過濾器.一般過濾(網站資訊, language);
+      return c.json({
+        success: true,
+        data: 過濾後資料,
+        source: 'website'
+      });
     }
     
-    // 如果網站資訊不存在，回退到系統資訊
-    try {
-      const 系統資訊回應 = await InnerAPI(c, '/api/v1/system/info');
-      const 系統資訊 = await 系統資訊回應.json();
-      
-      if (系統資訊.success && 系統資訊.data) {
-        await info('統一資訊 API', '成功取得系統資訊');
-        return c.json({
-          success: true,
-          data: 系統資訊.data,
-          source: 'system'
-        });
-      }
-    } catch (錯誤) {
-      await error('統一資訊 API', `取得系統資訊失敗: ${錯誤}`);
+    // 2. 如果網站資訊不存在，從 context 取得系統資訊
+    const 系統資訊 = c.get('系統資訊');
+    if (系統資訊) {
+      await info('統一資訊 API', '從 context 取得系統資訊');
+      // 使用資料過濾器處理多國語言字串
+      const 過濾後資料 = await 資料過濾器.一般過濾(系統資訊, language);
+      return c.json({
+        success: true,
+        data: 過濾後資料,
+        source: 'system'
+      });
     }
     
-    // 都沒有的話返回錯誤
+    // 3. 都沒有的話返回錯誤
+    await error('統一資訊 API', 'context 中沒有任何資訊');
     return c.json({
       success: false,
       error: { code: 'NOT_FOUND', message: '無法取得任何資訊' }
@@ -63,10 +53,12 @@ async function 處理取得統一資訊(c: Context, _params: RouteParams): Promi
   }
 }
 
-// API 模組匯出
-const API: APIModule = {
-  GET: 處理取得統一資訊,
-  ONE: 處理取得統一資訊
-};
+// GET - 取得統一資訊
+export async function GET(c: Context, params: RouteParams): Promise<Response> {
+  return await 處理取得統一資訊(c, params);
+}
 
-export default API;
+// ONE - 取得統一資訊（與 GET 相同）
+export async function ONE(c: Context, params: RouteParams): Promise<Response> {
+  return await 處理取得統一資訊(c, params);
+}

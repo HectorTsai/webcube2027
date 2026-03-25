@@ -2,6 +2,7 @@
 import { Context } from 'hono';
 import { info, error } from '../../../utils/logger.ts';
 import { 三層查詢管理器 } from '../../../core/three-tier-query.ts';
+import { 資料過濾器 } from '../../../utils/資料過濾器.ts';
 import 網站資訊 from '../../../database/models/網站資訊.ts';
 import { APIModule, RouteParams } from '../index.ts';
 
@@ -19,27 +20,9 @@ async function 處理取得網站資訊(c: Context, _params: RouteParams): Promi
       }, 404);
     }
     
-    // 過濾回應資料，排除加密字串
+    // 使用資料過濾器處理多國語言和安全欄位
     const language = c.get('語言') || 'zh-tw';
-    const 回應資料 = {
-      id: 結果.data.id,
-      網址: 結果.data.網址,
-      名稱: 結果.data.名稱 ? await 結果.data.名稱.toStringAsync(language) : null,
-      描述: 結果.data.描述 ? await 結果.data.描述.toStringAsync(language) : null,
-      商標: 結果.data.商標,
-      模式: 結果.data.模式,
-      佈景主題: 結果.data.佈景主題,
-      配色: 結果.data.配色,
-      骨架: 結果.data.骨架,
-      設定: 結果.data.設定,
-      版權資料: 結果.data.版權資料,
-      語言: 結果.data.語言,
-      預設語言: 結果.data.預設語言,
-      開始日期: 結果.data.開始日期,
-      結束日期: 結果.data.結束日期,
-      最後修改: 結果.data.最後修改,
-      可刪除: 結果.data.可刪除
-    };
+    const 回應資料 = await 資料過濾器.一般過濾(結果.data, language);
 
     return c.json({
       success: true,

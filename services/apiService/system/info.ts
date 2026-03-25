@@ -2,15 +2,15 @@
 import { Context } from 'hono';
 import { RouteParams } from '../index.ts';
 import { info, error } from '../../../utils/logger.ts';
-import { 取得KV資料庫 } from '../../../core/kv.ts';
+import { 資料過濾器 } from '../../../utils/資料過濾器.ts';
 
 // GET - 取得系統資訊
 export async function GET(c: Context, _params: RouteParams): Promise<Response> {
   try {
     await info('系統資訊 API', '處理取得系統資訊請求');
     
-    const kvDB = 取得KV資料庫();
-    const 系統資訊 = await kvDB.取得系統資訊();
+    // 從 context 取得預先載入的系統資訊
+    const 系統資訊 = c.get('系統資訊');
     
     if (!系統資訊) {
       return c.json({
@@ -19,9 +19,13 @@ export async function GET(c: Context, _params: RouteParams): Promise<Response> {
       }, 404);
     }
     
+    // 使用資料過濾器處理多國語言字串
+    const language = c.get('語言') || 'zh-tw';
+    const 過濾後資料 = await 資料過濾器.一般過濾(系統資訊, language);
+    
     return c.json({
       success: true,
-      data: 系統資訊,
+      data: 過濾後資料,
       source: 'L1'
     });
     
@@ -40,10 +44,10 @@ export async function POST(c: Context, _params: RouteParams): Promise<Response> 
     await info('系統資訊 API', '處理創建系統資訊請求');
     
     const body = await c.req.json();
-    const kvDB = 取得KV資料庫();
+    const kvDB = c.get('kvDB');
     
-    // 檢查是否已存在系統資訊
-    const 現有系統資訊 = await kvDB.取得系統資訊();
+    // 檢查是否已存在系統資訊（從 context）
+    const 現有系統資訊 = c.get('系統資訊');
     if (現有系統資訊) {
       return c.json({
         success: false,
@@ -84,10 +88,10 @@ export async function PUT(c: Context, _params: RouteParams): Promise<Response> {
     await info('系統資訊 API', '處理更新系統資訊請求');
     
     const body = await c.req.json();
-    const kvDB = 取得KV資料庫();
+    const kvDB = c.get('kvDB');
     
-    // 檢查系統資訊是否存在
-    const 現有系統資訊 = await kvDB.取得系統資訊();
+    // 檢查系統資訊是否存在（從 context）
+    const 現有系統資訊 = c.get('系統資訊');
     if (!現有系統資訊) {
       return c.json({
         success: false,
@@ -130,10 +134,10 @@ export async function DELETE(c: Context, _params: RouteParams): Promise<Response
   try {
     await info('系統資訊 API', '處理刪除系統資訊請求');
     
-    const kvDB = 取得KV資料庫();
+    const kvDB = c.get('kvDB');
     
-    // 檢查系統資訊是否存在
-    const 現有系統資訊 = await kvDB.取得系統資訊();
+    // 檢查系統資訊是否存在（從 context）
+    const 現有系統資訊 = c.get('系統資訊');
     if (!現有系統資訊) {
       return c.json({
         success: false,

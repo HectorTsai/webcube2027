@@ -464,3 +464,265 @@ Listening on http://0.0.0.0:8000/ (http://localhost:8000/)
 [2026-03-25 08:25:03] [INFO] [骨架 API] 取得骨架: 骨架:骨架:經典
 [2026-03-25 08:25:03] [INFO] [三層查詢] L1 查詢成功: 骨架:骨架:骨架:經典
 [2026-03-25 08:25:03] [INFO] [骨架 API] 取得骨架: 骨架:骨架:經典 (來源: L1)
+[2026-03-25 14:28:44] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:28:44] [INFO] [DB-Resolver] 處理請求: host=localhost:8000, tenant=default
+[2026-03-25 14:28:44] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:28:44] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:28:44] [INFO] [API Service] 處理 GET /api/v1/info
+[2026-03-25 14:28:44] [INFO] [API Service] 路由解析結果: filePath=./info.ts, module=info, action=, id=
+[2026-03-25 14:28:44] [INFO] [統一資訊 API] 處理取得統一資訊請求
+[2026-03-25 14:28:44] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:28:44] [INFO] [DB-Resolver] 處理請求: host=localhost, tenant=default
+[2026-03-25 14:28:44] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:28:44] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:28:44] [INFO] [API Service] 處理 GET /api/v1/websites/info
+[2026-03-25 14:28:44] [INFO] [API Service] 路由解析結果: filePath=./websites/info.ts, module=websites, action=info, id=
+[2026-03-25 14:28:44] [INFO] [網站資訊 API] 處理取得網站資訊請求
+[2026-03-25 14:28:44] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:28:44] [INFO] [DB-Resolver] 處理請求: host=localhost, tenant=default
+[2026-03-25 14:28:44] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:28:44] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:28:44] [INFO] [API Service] 處理 GET /api/v1/system/info
+[2026-03-25 14:28:44] [INFO] [API Service] 路由解析結果: filePath=./system/info.ts, module=system, action=info, id=
+[2026-03-25 14:28:44] [INFO] [系統資訊 API] 處理取得系統資訊請求
+[2026-03-25 14:28:44] [INFO] [統一資訊 API] 成功取得系統資訊
+[2026-03-25 14:29:17] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:29:17] [INFO] [DB-Resolver] 處理請求: host=localhost:8000, tenant=default
+[2026-03-25 14:29:17] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:29:17] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:29:17] [INFO] [API Service] 處理 GET /api/v1/info
+[2026-03-25 14:29:17] [INFO] [API Service] 路由解析結果: filePath=./info.ts, module=info, action=, id=
+[2026-03-25 14:29:17] [INFO] [統一資訊 API] 處理取得統一資訊請求
+[2026-03-25 14:29:17] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:29:17] [INFO] [DB-Resolver] 處理請求: host=localhost, tenant=default
+[2026-03-25 14:29:17] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:29:17] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:29:17] [INFO] [API Service] 處理 GET /api/v1/websites/info
+[2026-03-25 14:29:17] [INFO] [API Service] 路由解析結果: filePath=./websites/info.ts, module=websites, action=info, id=
+[2026-03-25 14:29:17] [INFO] [網站資訊 API] 處理取得網站資訊請求
+[2026-03-25 14:29:17] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:29:17] [INFO] [DB-Resolver] 處理請求: host=localhost, tenant=default
+[2026-03-25 14:29:17] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:29:17] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:29:17] [INFO] [API Service] 處理 GET /api/v1/system/info
+[2026-03-25 14:29:17] [INFO] [API Service] 路由解析結果: filePath=./system/info.ts, module=system, action=info, id=
+[2026-03-25 14:29:17] [INFO] [系統資訊 API] 處理取得系統資訊請求
+[2026-03-25 14:29:17] [INFO] [統一資訊 API] 成功取得系統資訊
+[2026-03-25 14:30:27] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:30:27] [INFO] [DB-Resolver] 處理請求: host=localhost:8000, tenant=default
+[2026-03-25 14:30:27] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:30:27] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:30:27] [INFO] [API Service] 處理 GET /api/v1/info
+[2026-03-25 14:30:27] [INFO] [API Service] 路由解析結果: filePath=./info.ts, module=info, action=, id=
+[2026-03-25 14:30:27] [INFO] [統一資訊 API] 處理取得統一資訊請求
+[2026-03-25 14:30:27] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:30:27] [INFO] [DB-Resolver] 處理請求: host=localhost, tenant=default
+[2026-03-25 14:30:27] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:30:27] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:30:27] [INFO] [API Service] 處理 GET /api/v1/websites/info
+[2026-03-25 14:30:27] [INFO] [API Service] 路由解析結果: filePath=./websites/info.ts, module=websites, action=info, id=
+[2026-03-25 14:30:27] [INFO] [網站資訊 API] 處理取得網站資訊請求
+[2026-03-25 14:30:27] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:30:27] [INFO] [DB-Resolver] 處理請求: host=localhost, tenant=default
+[2026-03-25 14:30:27] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:30:27] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:30:27] [INFO] [API Service] 處理 GET /api/v1/system/info
+[2026-03-25 14:30:27] [INFO] [API Service] 路由解析結果: filePath=./system/info.ts, module=system, action=info, id=
+[2026-03-25 14:30:27] [INFO] [系統資訊 API] 處理取得系統資訊請求
+[2026-03-25 14:30:27] [INFO] [統一資訊 API] 成功取得系統資訊
+[2026-03-25 14:30:37] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:30:37] [INFO] [DB-Resolver] 處理請求: host=localhost:8000, tenant=default
+[2026-03-25 14:30:37] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:30:37] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:30:37] [INFO] [API Service] 處理 GET /api/v1/info
+[2026-03-25 14:30:37] [INFO] [API Service] 路由解析結果: filePath=./info.ts, module=info, action=, id=
+[2026-03-25 14:30:37] [INFO] [統一資訊 API] 處理取得統一資訊請求
+[2026-03-25 14:30:37] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:30:37] [INFO] [DB-Resolver] 處理請求: host=localhost, tenant=default
+[2026-03-25 14:30:37] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:30:37] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:30:37] [INFO] [API Service] 處理 GET /api/v1/websites/info
+[2026-03-25 14:30:37] [INFO] [API Service] 路由解析結果: filePath=./websites/info.ts, module=websites, action=info, id=
+[2026-03-25 14:30:37] [INFO] [網站資訊 API] 處理取得網站資訊請求
+[2026-03-25 14:30:37] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:30:37] [INFO] [DB-Resolver] 處理請求: host=localhost, tenant=default
+[2026-03-25 14:30:37] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:30:37] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:30:37] [INFO] [API Service] 處理 GET /api/v1/system/info
+[2026-03-25 14:30:37] [INFO] [API Service] 路由解析結果: filePath=./system/info.ts, module=system, action=info, id=
+[2026-03-25 14:30:37] [INFO] [系統資訊 API] 處理取得系統資訊請求
+[2026-03-25 14:30:37] [INFO] [統一資訊 API] 成功取得系統資訊
+[2026-03-25 14:30:44] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:30:44] [INFO] [DB-Resolver] 處理請求: host=localhost:8000, tenant=default
+[2026-03-25 14:30:44] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:30:44] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:30:44] [INFO] [API Service] 處理 GET /api/v1/info
+[2026-03-25 14:30:44] [INFO] [API Service] 路由解析結果: filePath=./info.ts, module=info, action=, id=
+[2026-03-25 14:30:44] [INFO] [統一資訊 API] 處理取得統一資訊請求
+[2026-03-25 14:30:44] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:30:44] [INFO] [DB-Resolver] 處理請求: host=localhost, tenant=default
+[2026-03-25 14:30:44] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:30:44] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:30:44] [INFO] [API Service] 處理 GET /api/v1/websites/info
+[2026-03-25 14:30:44] [INFO] [API Service] 路由解析結果: filePath=./websites/info.ts, module=websites, action=info, id=
+[2026-03-25 14:30:44] [INFO] [網站資訊 API] 處理取得網站資訊請求
+[2026-03-25 14:30:44] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:30:44] [INFO] [DB-Resolver] 處理請求: host=localhost, tenant=default
+[2026-03-25 14:30:44] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:30:44] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:30:44] [INFO] [API Service] 處理 GET /api/v1/system/info
+[2026-03-25 14:30:44] [INFO] [API Service] 路由解析結果: filePath=./system/info.ts, module=system, action=info, id=
+[2026-03-25 14:30:44] [INFO] [系統資訊 API] 處理取得系統資訊請求
+[2026-03-25 14:30:44] [INFO] [統一資訊 API] 成功取得系統資訊
+[2026-03-25 14:30:49] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:30:49] [INFO] [DB-Resolver] 處理請求: host=localhost:8000, tenant=default
+[2026-03-25 14:30:49] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:30:49] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:30:49] [INFO] [API Service] 處理 GET /api/v1/info
+[2026-03-25 14:30:49] [INFO] [API Service] 路由解析結果: filePath=./info.ts, module=info, action=, id=
+[2026-03-25 14:30:49] [INFO] [統一資訊 API] 處理取得統一資訊請求
+[2026-03-25 14:30:49] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:30:49] [INFO] [DB-Resolver] 處理請求: host=localhost, tenant=default
+[2026-03-25 14:30:49] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:30:49] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:30:49] [INFO] [API Service] 處理 GET /api/v1/websites/info
+[2026-03-25 14:30:49] [INFO] [API Service] 路由解析結果: filePath=./websites/info.ts, module=websites, action=info, id=
+[2026-03-25 14:30:49] [INFO] [網站資訊 API] 處理取得網站資訊請求
+[2026-03-25 14:30:49] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:30:49] [INFO] [DB-Resolver] 處理請求: host=localhost, tenant=default
+[2026-03-25 14:30:49] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:30:49] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:30:49] [INFO] [API Service] 處理 GET /api/v1/system/info
+[2026-03-25 14:30:49] [INFO] [API Service] 路由解析結果: filePath=./system/info.ts, module=system, action=info, id=
+[2026-03-25 14:30:49] [INFO] [系統資訊 API] 處理取得系統資訊請求
+[2026-03-25 14:30:49] [INFO] [統一資訊 API] 成功取得系統資訊
+[2026-03-25 14:32:02] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:32:02] [INFO] [DB-Resolver] 處理請求: host=localhost:8000, tenant=default
+[2026-03-25 14:32:02] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:32:02] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:32:02] [INFO] [API Service] 處理 GET /api/v1/info
+[2026-03-25 14:32:02] [INFO] [API Service] 路由解析結果: filePath=./info.ts, module=info, action=, id=
+[2026-03-25 14:32:02] [INFO] [統一資訊 API] 處理取得統一資訊請求
+[2026-03-25 14:32:02] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:32:02] [INFO] [DB-Resolver] 處理請求: host=localhost, tenant=default
+[2026-03-25 14:32:02] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:32:02] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:32:02] [INFO] [API Service] 處理 GET /api/v1/websites/info
+[2026-03-25 14:32:02] [INFO] [API Service] 路由解析結果: filePath=./websites/info.ts, module=websites, action=info, id=
+[2026-03-25 14:32:02] [INFO] [網站資訊 API] 處理取得網站資訊請求
+[2026-03-25 14:32:02] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:32:02] [INFO] [DB-Resolver] 處理請求: host=localhost, tenant=default
+[2026-03-25 14:32:02] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:32:02] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:32:02] [INFO] [API Service] 處理 GET /api/v1/system/info
+[2026-03-25 14:32:02] [INFO] [API Service] 路由解析結果: filePath=./system/info.ts, module=system, action=info, id=
+[2026-03-25 14:32:02] [INFO] [系統資訊 API] 處理取得系統資訊請求
+[2026-03-25 14:32:02] [INFO] [統一資訊 API] 成功取得系統資訊
+[2026-03-25 14:32:10] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:32:10] [INFO] [DB-Resolver] 處理請求: host=localhost:8000, tenant=default
+[2026-03-25 14:32:10] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:32:10] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:32:10] [INFO] [API Service] 處理 GET /api/v1/info
+[2026-03-25 14:32:10] [INFO] [API Service] 路由解析結果: filePath=./info.ts, module=info, action=, id=
+[2026-03-25 14:32:10] [INFO] [統一資訊 API] 處理取得統一資訊請求
+[2026-03-25 14:32:10] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:32:10] [INFO] [DB-Resolver] 處理請求: host=localhost, tenant=default
+[2026-03-25 14:32:10] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:32:10] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:32:10] [INFO] [API Service] 處理 GET /api/v1/websites/info
+[2026-03-25 14:32:10] [INFO] [API Service] 路由解析結果: filePath=./websites/info.ts, module=websites, action=info, id=
+[2026-03-25 14:32:10] [INFO] [網站資訊 API] 處理取得網站資訊請求
+[2026-03-25 14:32:10] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:32:10] [INFO] [DB-Resolver] 處理請求: host=localhost, tenant=default
+[2026-03-25 14:32:10] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:32:10] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:32:10] [INFO] [API Service] 處理 GET /api/v1/system/info
+[2026-03-25 14:32:10] [INFO] [API Service] 路由解析結果: filePath=./system/info.ts, module=system, action=info, id=
+[2026-03-25 14:32:10] [INFO] [系統資訊 API] 處理取得系統資訊請求
+[2026-03-25 14:32:10] [INFO] [統一資訊 API] 成功取得系統資訊
+[2026-03-25 14:34:56] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:34:56] [INFO] [DB-Resolver] 處理請求: host=localhost:8000, tenant=default
+[2026-03-25 14:34:56] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:34:56] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:34:56] [INFO] [API Service] 處理 GET /api/v1/info
+[2026-03-25 14:34:56] [INFO] [API Service] 路由解析結果: filePath=./info.ts, module=info, action=, id=
+[2026-03-25 14:34:56] [INFO] [統一資訊 API] 處理取得統一資訊請求
+[2026-03-25 14:34:56] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:34:56] [INFO] [DB-Resolver] 處理請求: host=localhost, tenant=default
+[2026-03-25 14:34:56] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:34:56] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:34:56] [INFO] [API Service] 處理 GET /api/v1/websites/info
+[2026-03-25 14:34:56] [INFO] [API Service] 路由解析結果: filePath=./websites/info.ts, module=websites, action=info, id=
+[2026-03-25 14:34:56] [INFO] [網站資訊 API] 處理取得網站資訊請求
+[2026-03-25 14:34:56] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:34:56] [INFO] [DB-Resolver] 處理請求: host=localhost, tenant=default
+[2026-03-25 14:34:56] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:34:56] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:34:56] [INFO] [API Service] 處理 GET /api/v1/system/info
+[2026-03-25 14:34:56] [INFO] [API Service] 路由解析結果: filePath=./system/info.ts, module=system, action=info, id=
+[2026-03-25 14:34:56] [INFO] [系統資訊 API] 處理取得系統資訊請求
+[2026-03-25 14:34:56] [INFO] [統一資訊 API] 成功取得系統資訊
+[2026-03-25 14:35:02] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:35:02] [INFO] [DB-Resolver] 處理請求: host=localhost:8000, tenant=default
+[2026-03-25 14:35:02] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:35:02] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:35:02] [INFO] [API Service] 處理 GET /api/v1/info
+[2026-03-25 14:35:02] [INFO] [API Service] 路由解析結果: filePath=./info.ts, module=info, action=, id=
+[2026-03-25 14:35:02] [INFO] [統一資訊 API] 處理取得統一資訊請求
+[2026-03-25 14:35:02] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:35:02] [INFO] [DB-Resolver] 處理請求: host=localhost, tenant=default
+[2026-03-25 14:35:02] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:35:02] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:35:02] [INFO] [API Service] 處理 GET /api/v1/websites/info
+[2026-03-25 14:35:02] [INFO] [API Service] 路由解析結果: filePath=./websites/info.ts, module=websites, action=info, id=
+[2026-03-25 14:35:02] [INFO] [網站資訊 API] 處理取得網站資訊請求
+[2026-03-25 14:35:02] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:35:02] [INFO] [DB-Resolver] 處理請求: host=localhost, tenant=default
+[2026-03-25 14:35:02] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:35:02] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:35:02] [INFO] [API Service] 處理 GET /api/v1/system/info
+[2026-03-25 14:35:02] [INFO] [API Service] 路由解析結果: filePath=./system/info.ts, module=system, action=info, id=
+[2026-03-25 14:35:02] [INFO] [系統資訊 API] 處理取得系統資訊請求
+[2026-03-25 14:35:02] [INFO] [統一資訊 API] 成功取得系統資訊
+[2026-03-25 14:36:34] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:36:34] [INFO] [DB-Resolver] 處理請求: host=localhost:8000, tenant=default
+[2026-03-25 14:36:34] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:36:34] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:36:34] [INFO] [API Service] 處理 GET /api/v1/system/info
+[2026-03-25 14:36:34] [INFO] [API Service] 路由解析結果: filePath=./system/info.ts, module=system, action=info, id=
+[2026-03-25 14:36:34] [INFO] [系統資訊 API] 處理取得系統資訊請求
+[2026-03-25 14:36:43] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:36:43] [INFO] [DB-Resolver] 處理請求: host=localhost:8000, tenant=default
+[2026-03-25 14:36:43] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:36:43] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:36:43] [INFO] [API Service] 處理 GET /api/v1/system/info
+[2026-03-25 14:36:43] [INFO] [API Service] 路由解析結果: filePath=./system/info.ts, module=system, action=info, id=
+[2026-03-25 14:36:43] [INFO] [系統資訊 API] 處理取得系統資訊請求
+[2026-03-25 14:37:10] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:37:10] [INFO] [DB-Resolver] 處理請求: host=localhost:8000, tenant=default
+[2026-03-25 14:37:10] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:37:10] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:37:10] [INFO] [API Service] 處理 GET /api/v1/system/info
+[2026-03-25 14:37:10] [INFO] [API Service] 路由解析結果: filePath=./system/info.ts, module=system, action=info, id=
+[2026-03-25 14:37:10] [INFO] [系統資訊 API] 處理取得系統資訊請求
+[2026-03-25 14:37:53] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:37:53] [INFO] [DB-Resolver] 處理請求: host=localhost:8000, tenant=default
+[2026-03-25 14:37:53] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:37:53] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:37:53] [INFO] [API Service] 處理 GET /api/v1/system/info
+[2026-03-25 14:37:53] [INFO] [API Service] 路由解析結果: filePath=./system/info.ts, module=system, action=info, id=
+[2026-03-25 14:37:53] [INFO] [系統資訊 API] 處理取得系統資訊請求
+[2026-03-25 14:38:08] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:38:08] [INFO] [DB-Resolver] 處理請求: host=localhost:8000, tenant=default
+[2026-03-25 14:38:08] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:38:08] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:38:08] [INFO] [API Service] 處理 GET /api/v1/system/info
+[2026-03-25 14:38:08] [INFO] [API Service] 路由解析結果: filePath=./system/info.ts, module=system, action=info, id=
+[2026-03-25 14:38:08] [INFO] [系統資訊 API] 處理取得系統資訊請求
+[2026-03-25 14:39:09] [INFO] [語言解析器] 設定語言: zh-tw
+[2026-03-25 14:39:09] [INFO] [DB-Resolver] 處理請求: host=localhost:8000, tenant=default
+[2026-03-25 14:39:09] [INFO] [DB-Resolver] L2 連線資訊不存在，跳過 L2 初始化
+[2026-03-25 14:39:09] [INFO] [DB-Resolver] 可用資料庫層級: L1(KV)
+[2026-03-25 14:39:09] [INFO] [API Service] 處理 GET /api/v1/system/info
+[2026-03-25 14:39:09] [INFO] [API Service] 路由解析結果: filePath=./system/info.ts, module=system, action=info, id=
+[2026-03-25 14:39:09] [INFO] [系統資訊 API] 處理取得系統資訊請求

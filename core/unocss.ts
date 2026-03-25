@@ -43,8 +43,8 @@ const 自訂Preset = {
     }
   },
   rules: [
-    // 自動計算文字顏色 (40%亮度以上用黑色，以下用白色)
-    [/^text-auto-(.+)$/, ([, color]: [string, string]) => {
+    // DaisyUI 風格的文字顏色 (40%亮度以上用黑色，以下用白色)
+    [/^text-(.+)-content$/, ([, color]: [string, string]) => {
       return {
         color: `oklch(from var(--${color}) calc(l > 0.4 ? 0.2 : 0.95) c h)`
       };
@@ -59,9 +59,10 @@ const 自訂Preset = {
   shortcuts: {
     // 常用組合樣式
     'btn': 'px-4 py-2 rounded-lg font-medium transition-colors duration-200',
-    'btn-primary': 'btn bg-primary text-auto-primary hover:opacity-90',
-    'btn-secondary': 'btn bg-secondary text-auto-secondary hover:opacity-90',
-    'card': 'bg-base-100 rounded-lg shadow-md p-6',
+    'btn-primary': 'btn bg-primary text-primary-content hover:opacity-90',
+    'btn-secondary': 'btn bg-secondary text-secondary-content hover:opacity-90',
+    'btn-accent': 'btn bg-accent text-accent-content hover:opacity-90',
+    'card': 'bg-base-100 text-base-content rounded-lg shadow-md p-6',
     'input': 'px-3 py-2 border border-base-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary',
     'container': 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'
   }
@@ -248,7 +249,7 @@ export function 取得可用Classes(): string[] {
     'p-4', 'px-4', 'py-2', 'm-4', 'mx-auto', 'my-4',
     // 顏色 (使用自訂顏色系統)
     'bg-primary', 'bg-secondary', 'bg-accent', 'bg-base-100',
-    'text-primary', 'text-secondary', 'text-base-content',
+    'text-primary-content', 'text-secondary-content', 'text-accent-content', 'text-base-content',
     // 文字
     'text-sm', 'text-base', 'text-lg', 'text-xl', 'font-bold', 'font-medium',
     // 邊框與圓角
@@ -261,13 +262,13 @@ export function 取得可用Classes(): string[] {
 
   const 自訂Classes = [
     // 按鈕
-    'btn', 'btn-primary', 'btn-secondary',
+    'btn', 'btn-primary', 'btn-secondary', 'btn-accent',
     // 卡片
     'card',
     // 輸入框
     'input',
-    // 自動文字顏色
-    'text-auto-primary', 'text-auto-secondary'
+    // DaisyUI 風格的文字顏色
+    'text-primary-content', 'text-secondary-content', 'text-accent-content'
   ];
 
   return [...tailwindClasses, ...自訂Classes];

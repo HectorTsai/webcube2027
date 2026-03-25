@@ -3,6 +3,7 @@ import { Context } from 'hono';
 import { APIModule, RouteParams } from './index.ts';
 import { info, error } from '../../utils/logger.ts';
 import { 三層查詢管理器 } from '../../core/three-tier-query.ts';
+import { 資料過濾器 } from '../../utils/資料過濾器.ts';
 import 佈景主題 from '../../database/models/佈景主題.ts';
 
 // 內部 API 調用輔助函數
@@ -59,21 +60,9 @@ export async function POST(c: Context, _params: RouteParams): Promise<Response> 
     
     await info('佈景主題 API', `創建佈景主題成功: ${結果.data.id} (來源: ${結果.source})`);
     
-    // 過濾並格式化回應資料
+    // 使用資料過濾器處理多國語言和安全欄位
     const language = c.get('語言') || 'zh-tw';
-    const 回應資料 = {
-      id: 結果.data.id,
-      名稱: 結果.data.名稱 ? await 結果.data.名稱.toStringAsync(language) : null,
-      描述: 結果.data.描述 ? await 結果.data.描述.toStringAsync(language) : null,
-      佈景主題: 結果.data.佈景主題,
-      配色: 結果.data.配色,
-      骨架: 結果.data.骨架,
-      裝飾: 結果.data.裝飾,
-      售價: 結果.data.售價,
-      標籤集: 結果.data.標籤集,
-      最後修改: 結果.data.最後修改,
-      可刪除: 結果.data.可刪除
-    };
+    const 回應資料 = await 資料過濾器.一般過濾(結果.data, language);
 
     return c.json({
       success: true,
@@ -121,21 +110,9 @@ export async function PUT(c: Context, params: RouteParams): Promise<Response> {
     
     await info('佈景主題 API', `更新佈景主題成功: ${結果.data.id} (來源: ${結果.source})`);
     
-    // 過濾並格式化回應資料
+    // 使用資料過濾器處理多國語言和安全欄位
     const language = c.get('語言') || 'zh-tw';
-    const 回應資料 = {
-      id: 結果.data.id,
-      名稱: 結果.data.名稱 ? await 結果.data.名稱.toStringAsync(language) : null,
-      描述: 結果.data.描述 ? await 結果.data.描述.toStringAsync(language) : null,
-      佈景主題: 結果.data.佈景主題,
-      配色: 結果.data.配色,
-      骨架: 結果.data.骨架,
-      裝飾: 結果.data.裝飾,
-      售價: 結果.data.售價,
-      標籤集: 結果.data.標籤集,
-      最後修改: 結果.data.最後修改,
-      可刪除: 結果.data.可刪除
-    };
+    const 回應資料 = await 資料過濾器.一般過濾(結果.data, language);
 
     return c.json({
       success: true,
@@ -261,14 +238,8 @@ async function 處理取得所有佈景主題(c: Context): Promise<Response> {
     await info('佈景主題 API', `取得佈景主題列表: ${過濾資料.length} 筆 (來源: ${結果.source})`);
     
     // 複數 API (themes) 只回傳簡化資料：id, 名稱, 描述
-    const 簡化資料 = [];
-    for (const item of 過濾資料) {
-      簡化資料.push({
-        id: item.id,
-        名稱: item.名稱 ? await item.名稱.toStringAsync('zh-tw') : null,
-        描述: item.描述 ? await item.描述.toStringAsync('zh-tw') : null
-      });
-    }
+    const language = c.get('語言') || 'zh-tw';
+    const 簡化資料 = await 資料過濾器.列表過濾(過濾資料, language, 'simple');
 
     return c.json({
       success: 結果.success,
@@ -306,21 +277,9 @@ async function 處理取得單一佈景主題(c: Context, id: string): Promise<R
     
     await info('佈景主題 API', `取得佈景主題: ${id} (來源: ${結果.source})`);
     
-    // 過濾並格式化回應資料
+    // 使用資料過濾器處理多國語言和安全欄位
     const language = c.get('語言') || 'zh-tw';
-    const 回應資料 = {
-      id: 結果.data.id,
-      名稱: 結果.data.名稱 ? await 結果.data.名稱.toStringAsync(language) : null,
-      描述: 結果.data.描述 ? await 結果.data.描述.toStringAsync(language) : null,
-      佈景主題: 結果.data.佈景主題,
-      配色: 結果.data.配色,
-      骨架: 結果.data.骨架,
-      裝飾: 結果.data.裝飾,
-      售價: 結果.data.售價,
-      標籤集: 結果.data.標籤集,
-      最後修改: 結果.data.最後修改,
-      可刪除: 結果.data.可刪除
-    };
+    const 回應資料 = await 資料過濾器.一般過濾(結果.data, language);
 
     return c.json({
       success: true,
@@ -351,23 +310,13 @@ async function 處理取得預設佈景主題(c: Context): Promise<Response> {
     
     await info('預設值 API', `取得預設佈景主題: ${結果.data.id} (來源: ${結果.source})`);
     
-    // 過濾並格式化回應資料
+    // 使用資料過濾器處理多國語言和安全欄位
     const language = c.get('語言') || 'zh-tw';
-    const 回應資料 = {
-      id: 結果.data.id,
-      名稱: 結果.data.名稱 ? await 結果.data.名稱.toStringAsync(language) : null,
-      描述: 結果.data.描述 ? await 結果.data.描述.toStringAsync(language) : null,
-      佈景主題: 結果.data.佈景主題,
-      配色: 結果.data.配色,
-      骨架: 結果.data.骨架,
-      裝飾: 結果.data.裝飾,
-      售價: 結果.data.售價,
-      標籤集: 結果.data.標籤集,
-      最後修改: 結果.data.最後修改,
-      可刪除: 結果.data.可刪除,
-      isDefault: true,
-      isSystemSeed: 結果.source === 'L1'
-    };
+    const 回應資料 = await 資料過濾器.一般過濾(結果.data, language);
+    
+    // 添加預設值標記
+    (回應資料 as any).isDefault = true;
+    (回應資料 as any).isSystemSeed = 結果.source === 'L1';
 
     return c.json({
       success: true,

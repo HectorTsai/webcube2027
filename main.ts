@@ -6,6 +6,7 @@ import { info, error } from './utils/logger.ts';
 import { 加密, 解密 } from './utils/密碼方法.ts';
 // 移除已刪除的 system.ts 導入
 import { 資料庫解析器, 清理資料庫連線 } from './middleware/db-resolver.ts';
+import { 資訊載入器 } from './middleware/info-loader.ts';
 import { 語言解析器 } from './middleware/language-resolver.ts';
 import { 三層查詢管理器 } from './core/three-tier-query.ts';
 import 骨架 from './database/models/骨架.ts';
@@ -19,11 +20,14 @@ app.use('*', (c, next) => {
   return next();
 });
 
+// 全域中間件：資料庫解析器（必須在資訊載入器之前）
+app.use('*', 資料庫解析器);
+
+// 全域中間件：資訊載入器（預先載入系統資訊和網站資訊）
+app.use('*', 資訊載入器);
+
 // 全域中間件：語言解析器
 app.use('*', 語言解析器);
-
-// 全域中間件：資料庫解析器
-app.use('*', 資料庫解析器);
 
 // 測試頁面 - 驗證 UnoCSS 整合
 app.get('/test-unocss', async (c) => {

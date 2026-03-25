@@ -55,26 +55,29 @@ class LanguageServiceImpl implements ILanguageService {
     try {
       await info('語言服務', '取得支援語言列表');
       
-      // 1. 取得統一資訊
-      const app = c.get('app');
-      const 資訊回應 = await app.request('/api/v1/info');
-      const 資訊 = await 資訊回應.json();
-      
-      if (!資訊.success || !資訊.data) {
-        await error('語言服務', '無法取得資訊，回傳空語言列表');
-        return [];
+      // 1. 先嘗試從 context 取得網站資訊
+      const 網站資訊 = c.get('網站資訊');
+      if (網站資訊 && 網站資訊.語言 && Array.isArray(網站資訊.語言)) {
+        const 支援語言 = 網站資訊.語言;
+        await info('語言服務', `從網站資訊取得支援語言: ${支援語言.join(', ')}`);
+        return 支援語言;
       }
       
-      const 資訊資料 = 資訊.data;
-      
-      // 2. 檢查是否有語言陣列
-      if (!資訊資料.語言 || !Array.isArray(資訊資料.語言)) {
-        await info('語言服務', '資訊中沒有語言陣列，回傳預設語言');
-        return ['zh-tw']; // 預設語言
+      // 2. 如果網站資訊不存在，從 context 取得系統資訊
+      const 系統資訊 = c.get('系統資訊');
+      if (!系統資訊) {
+        await error('語言服務', '無法取得系統資訊，回傳預設語言');
+        return ['zh-tw'];
       }
       
-      const 支援語言 = 資訊資料.語言 as string[];
-      await info('語言服務', `取得支援語言: ${支援語言.join(', ')}`);
+      // 檢查是否有語言陣列
+      if (!系統資訊.語言 || !Array.isArray(系統資訊.語言)) {
+        await info('語言服務', '系統資訊中沒有語言陣列，回傳預設語言');
+        return ['zh-tw'];
+      }
+      
+      const 支援語言 = 系統資訊.語言;
+      await info('語言服務', `從系統資訊取得支援語言: ${支援語言.join(', ')}`);
       return 支援語言;
       
     } catch (err) {
