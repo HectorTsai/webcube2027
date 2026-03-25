@@ -1,200 +1,226 @@
-// API Service 主要入口點
+// API Service 主要入口點 - 動態路由架構
 import { Context } from 'hono';
-import { 處理取得系統資訊, 處理更新系統資訊, 處理取得所有系統設定 } from './system.ts';
-import { 
-  處理取得所有佈景主題, 處理取得單一佈景主題, 處理創建佈景主題, 
-  處理更新佈景主題, 處理刪除佈景主題, 處理取得當前主題 
-} from './themes.ts';
-import { 
-  處理取得所有配色, 處理取得單一配色, 處理創建配色, 
-  處理更新配色, 處理刪除配色 
-} from './colors.ts';
-import { 
-  處理取得所有骨架, 處理取得單一骨架, 處理創建骨架, 
-  處理更新骨架, 處理刪除骨架 
-} from './skeletons.ts';
-import { 
-  處理取得預設佈景主題, 處理取得預設配色, 處理取得預設骨架, 處理取得所有預設值 
-} from './defaults.ts';
 import { info, error } from '../../utils/logger.ts';
 
-// API 路由處理器
+// InnerAPI 函數用於內部 API 調用
+export async function InnerAPI(c: Context, apiPath: string): Promise<Response> {
+  const app = c.get('app');
+  if (app && typeof app.request === 'function') {
+    return await app.request(apiPath, {
+      headers: {
+        'host': c.req.header('host') || 'localhost:8000',
+        'origin': c.req.header('origin') || 'http://localhost:8000'
+      }
+    });
+  } else {
+    const baseUrl = `http://${c.req.header('host') || 'localhost:8000'}`;
+    return await fetch(`${baseUrl}${apiPath}`, {
+      headers: {
+        'host': c.req.header('host') || 'localhost:8000',
+        'origin': c.req.header('origin') || 'http://localhost:8000'
+      }
+    });
+  }
+}
+
+// API 模組介面定義
+export interface APIModule {
+  ONE?: (c: Context, params: RouteParams) => Promise<Response>;  // 取得當前/單一資源 (xxx)
+  GET?: (c: Context, params: RouteParams) => Promise<Response>;  // 取得所有資源或指定ID (xxxs, xxxs/:id)
+  POST?: (c: Context, params: RouteParams) => Promise<Response>; // 創建新資源 (xxxs)
+  PUT?: (c: Context, params: RouteParams) => Promise<Response>;  // 更新資源 (xxxs/:id)
+  DELETE?: (c: Context, params: RouteParams) => Promise<Response>; // 刪除資源 (xxxs/:id)
+}
+
+// 路由參數介面
+export interface RouteParams {
+  module: string;
+  action?: string;
+  id?: string;
+  [key: string]: string | undefined;
+}
+
+// File Router 概念：直接根據 URL 路徑映射到檔案路徑
+function parseAPIPath(path: string): { filePath: string; params: RouteParams } {
+  // 移除 /api/v1/ 前綴
+  const cleanPath = path.replace(/^\/api\/v1\//, '');
+  const segments = cleanPath.split('/').filter(Boolean);
+  
+  if (segments.length === 0) {
+    throw new Error('Invalid API path');
+  }
+  
+  // 直接將路徑轉換為檔案路徑
+  // 例如: system/info -> ./system/info.ts
+  // 例如: colors -> ./colors.ts
+  // 例如: themes/123 -> ./themes.ts (ID: 123)
+  
+  let filePath = '';
+  let module = '';
+  let action = '';
+  let id = '';
+  
+  if (segments.length === 1) {
+    // /api/v1/colors -> ./colors.ts
+    module = segments[0];
+    filePath = `./${segments[0]}.ts`;
+  } else if (segments.length === 2) {
+    // 檢查第二個段落是否為 ID (包含冒號) 或數字
+    const secondSegment = segments[1];
+    if (secondSegment.includes(':') || /^\d+$/.test(secondSegment)) {
+      // /api/v1/colors/123 -> ./colors.ts (ID: 123)
+      module = segments[0];
+      id = secondSegment;
+      filePath = `./${segments[0]}.ts`;
+    } else {
+      // /api/v1/system/info -> ./system/info.ts
+      module = segments[0];
+      action = segments[1];
+      filePath = `./${segments[0]}/${segments[1]}.ts`;
+    }
+  } else if (segments.length === 3) {
+    // /api/v1/system/info/123 -> ./system/info.ts (ID: 123)
+    module = segments[0];
+    action = segments[1];
+    id = segments[2];
+    filePath = `./${segments[0]}/${segments[1]}.ts`;
+  }
+  
+  return {
+    filePath,
+    params: { module, action, id }
+  };
+}
+
+// File Router: 直接根據檔案路徑載入模組
+async function loadAPIModuleByPath(filePath: string): Promise<APIModule | null> {
+  try {
+    const module = await import(filePath);
+    return module.default || module;
+  } catch (err) {
+    await error('API Service', `載入模組 ${filePath} 失敗: ${err}`);
+    return null;
+  }
+}
+
+// API 路由處理器 - File Router 概念
 export async function 處理API請求(c: Context): Promise<Response> {
   const path = c.req.path;
-  const method = c.req.method;
+  const method = c.req.method.toUpperCase();
   
   try {
     await info('API Service', `處理 ${method} ${path}`);
     
-    // 系統資訊 API
-    if (path === '/api/v1/system/info') {
-      if (method === 'GET') {
-        return await 處理取得系統資訊(c);
-      } else if (method === 'PUT') {
-        return await 處理更新系統資訊(c);
+    // 解析路徑
+    let { filePath, params } = parseAPIPath(path);
+    await info('API Service', `路由解析結果: filePath=${filePath}, module=${params.module}, action=${params.action}, id=${params.id}`);
+    
+    // 載入對應的 API 模組
+    let apiModule = await loadAPIModuleByPath(filePath);
+    let finalParams = params;
+    
+    // 如果檔案不存在，嘗試其他解析方式
+    if (!apiModule) {
+      // 1. 如果是單數形式且沒有 action，嘗試對應的複數檔案
+      if (!params.module.endsWith('s') && !params.action) {
+        const pluralFilePath = `./${params.module}s.ts`;
+        apiModule = await loadAPIModuleByPath(pluralFilePath);
+        if (apiModule) {
+          filePath = pluralFilePath;
+          await info('API Service', `單數轉複數: ${params.module} -> ${params.module}s`);
+        }
+      }
+      
+      // 2. 如果是複數形式且沒有 action，嘗試當作目錄處理
+      if (!apiModule && params.module.endsWith('s') && !params.action) {
+        const segments = path.replace(/^\/api\/v1\//, '').split('/').filter(Boolean);
+        if (segments.length >= 2) {
+          const newFilePath = `./${segments[0]}/${segments[1]}.ts`;
+          apiModule = await loadAPIModuleByPath(newFilePath);
+          if (apiModule) {
+            // 重新解析參數
+            finalParams = {
+              module: segments[0],
+              action: segments[1],
+              id: segments[2] || '',
+              ...Object.fromEntries(segments.slice(3).map((seg, i) => [`param${i}`, seg]))
+            };
+            filePath = newFilePath;
+            await info('API Service', `複數轉目錄: ${segments[0]} -> ${segments[0]}/${segments[1]}`);
+          }
+        }
       }
     }
     
-    // 系統設定 API
-    if (path === '/api/v1/system/settings' && method === 'GET') {
-      return await 處理取得所有系統設定(c);
-    }
-    
-    // 佈景主題 API
-    if (path === '/api/v1/themes') {
-      if (method === 'GET') return await 處理取得所有佈景主題(c);
-      if (method === 'POST') return await 處理創建佈景主題(c);
-    }
-    if (path.startsWith('/api/v1/themes/')) {
-      if (method === 'GET') return await 處理取得單一佈景主題(c);
-      if (method === 'PUT') return await 處理更新佈景主題(c);
-      if (method === 'DELETE') return await 處理刪除佈景主題(c);
-    }
-    if (path === '/api/v1/theme' && method === 'GET') {
-      return await 處理取得當前主題(c);
-    }
-    
-    // 配色 API
-    if (path === '/api/v1/colors') {
-      if (method === 'GET') return await 處理取得所有配色(c);
-      if (method === 'POST') return await 處理創建配色(c);
-    }
-    if (path.startsWith('/api/v1/colors/')) {
-      if (method === 'GET') return await 處理取得單一配色(c);
-      if (method === 'PUT') return await 處理更新配色(c);
-      if (method === 'DELETE') return await 處理刪除配色(c);
-    }
-    
-    // 骨架 API
-    if (path === '/api/v1/skeletons') {
-      if (method === 'GET') return await 處理取得所有骨架(c);
-      if (method === 'POST') return await 處理創建骨架(c);
-    }
-    if (path.startsWith('/api/v1/skeletons/')) {
-      if (method === 'GET') return await 處理取得單一骨架(c);
-      if (method === 'PUT') return await 處理更新骨架(c);
-      if (method === 'DELETE') return await 處理刪除骨架(c);
-    }
-    
-    // 預設值 API - 利用 KV seeds 提供預設值
-    if (path === '/api/v1/defaults' && method === 'GET') {
-      return await 處理取得所有預設值(c);
-    }
-    if (path === '/api/v1/defaults/theme' && method === 'GET') {
-      return await 處理取得預設佈景主題(c);
-    }
-    if (path === '/api/v1/defaults/color' && method === 'GET') {
-      return await 處理取得預設配色(c);
-    }
-    if (path === '/api/v1/defaults/skeleton' && method === 'GET') {
-      return await 處理取得預設骨架(c);
-    }
-    
-    // 三層查詢測試 API (從 main.ts 移過來)
-    if (path === '/api/v1/test/three-tier' && method === 'GET') {
-      return await 處理三層查詢測試(c);
-    }
-    
-    // 未找到的 API 路由
-    await error('API Service', `未找到 API 路由: ${method} ${path}`);
-    return c.json({
-      success: false,
-      message: 'API 路由不存在',
-      error: 'NOT_FOUND'
-    }, 404);
-    
-  } catch (錯誤) {
-    await error('API Service', `API 請求處理失敗: ${錯誤}`);
-    return c.json({
-      success: false,
-      message: 'API 請求處理失敗',
-      error: (錯誤 as Error).toString()
-    }, 500);
-  }
-}
-
-// 三層查詢測試處理器 (從 main.ts 移過來)
-async function 處理三層查詢測試(c: Context): Promise<Response> {
-  const { 三層查詢管理器 } = await import('../../core/three-tier-query.ts');
-  const 骨架 = (await import('../../database/models/骨架.ts')).default;
-  const 配色 = (await import('../../database/models/配色.ts')).default;
-  
-  try {
-    await info('三層查詢測試', '開始測試三層查詢功能');
-    
-    const host = c.get('host');
-    const tenant = c.get('tenant');
-    const l1DB = c.get('kvDB');
-    const l2DB = c.get('l2DB');
-    const l3DB = c.get('l3DB');
-    
-    // 測試結果
-    const 測試結果 = {
-      基本資訊: {
-        host,
-        tenant,
-        可用層級: {
-          L1_KV: !!l1DB,
-          L2_System: !!l2DB,
-          L3_Tenant: !!l3DB
+    if (!apiModule) {
+      return c.json({
+        success: false,
+        error: {
+          code: 'MODULE_NOT_FOUND',
+          message: `API 模組檔案 '${filePath}' 不存在`
         }
-      },
-      查詢測試: {} as Record<string, unknown>
-    };
+      }, 404);
+    }
     
-    // 測試 1: 取得骨架預設值
-    const 骨架結果 = await 三層查詢管理器.取得預設值<typeof 骨架.prototype>(c, '骨架');
-    測試結果.查詢測試.骨架預設值 = {
-      成功: 骨架結果.成功,
-      來源: 骨架結果.來源,
-      資料: 骨架結果.資料 ? {
-        id: 骨架結果.資料.id,
-        名稱: 骨架結果.資料.名稱,
-        風格: 骨架結果.資料.風格
-      } : null,
-      錯誤: 骨架結果.錯誤
-    };
+    // 根據路由模式決定調用哪個方法
+    let handler: ((c: Context, params: RouteParams) => Promise<Response>) | undefined;
     
-    // 測試 2: 取得配色預設值
-    const 配色結果 = await 三層查詢管理器.取得預設值<typeof 配色.prototype>(c, '配色');
-    測試結果.查詢測試.配色預設值 = {
-      成功: 配色結果.成功,
-      來源: 配色結果.來源,
-      資料: 配色結果.資料 ? {
-        id: 配色結果.資料.id,
-        名稱: 配色結果.資料.名稱,
-        主色: 配色結果.資料.主色
-      } : null,
-      錯誤: 配色結果.錯誤
-    };
+    // 判斷是否以 s 結尾（複數形式）
+    const isPlural = finalParams.module.endsWith('s');
     
-    // 測試 3: 查詢骨架列表
-    const 骨架列表 = await 三層查詢管理器.查詢列表<typeof 骨架.prototype>(c, '骨架', 5);
-    測試結果.查詢測試.骨架列表 = {
-      成功: 骨架列表.成功,
-      來源: 骨架列表.來源,
-      數量: 骨架列表.資料?.length || 0,
-      資料: 骨架列表.資料?.map(item => ({
-        id: item.id,
-        名稱: item.名稱,
-        風格: item.風格
-      })) || [],
-      錯誤: 骨架列表.錯誤
-    };
+    if (isPlural) {
+      // 複數形式 (colors, skeletons, themes) - 使用新的映射方式
+      if (method === 'GET') {
+        if (!finalParams.id) {
+          // /api/v1/colors -> GET (所有資源)
+          handler = apiModule.GET;
+        } else {
+          // /api/v1/colors/:id -> GET (指定資源)
+          handler = apiModule.GET;
+        }
+      } else {
+        // POST, PUT, DELETE 直接對應
+        handler = apiModule[method as keyof APIModule];
+      }
+    } else {
+      // 單數形式 (color, skeleton, theme, system/info) - 使用標準 HTTP 方法
+      if (method === 'GET' && !finalParams.action && !finalParams.id) {
+        // /api/v1/color -> ONE (當前資源)
+        handler = apiModule.ONE;
+      } else {
+        // /api/v1/system/info -> GET, POST, PUT, DELETE
+        handler = apiModule[method as keyof APIModule];
+      }
+    }
     
-    await info('三層查詢測試', '測試完成');
-    return c.json({
-      success: true,
-      message: '三層查詢測試完成',
-      data: 測試結果
-    });
+    if (!handler) {
+      const expectedMethod = (method === 'GET' && !isPlural && !finalParams.action && !finalParams.id) ? 'ONE' : method;
+      return c.json({
+        success: false,
+        error: {
+          code: 'METHOD_NOT_ALLOWED',
+          message: `模組 '${filePath}' 不支援 ${expectedMethod} 方法`
+        }
+      }, 405);
+    }
     
-  } catch (錯誤) {
-    await error('三層查詢測試', `測試失敗: ${錯誤}`);
+    // 設定路由參數到 context
+    c.set('apiModule', finalParams.module);
+    c.set('apiAction', finalParams.action);
+    c.set('apiId', finalParams.id);
+    c.set('apiParams', finalParams);
+    
+    // 調用處理函數
+    return await handler(c, finalParams);
+    
+  } catch (err) {
+    await error('API Service', `API 請求處理失敗: ${err}`);
     return c.json({
       success: false,
-      message: '三層查詢測試失敗',
-      error: (錯誤 as Error).toString()
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: '內部伺服器錯誤'
+      }
     }, 500);
   }
 }

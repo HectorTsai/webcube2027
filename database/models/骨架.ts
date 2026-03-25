@@ -45,7 +45,7 @@ export default class 骨架 extends 資料 {
     data: Record<string, unknown> = {},
     可刪除: boolean = true,
   ) {
-    super({}, 可刪除);
+    super(data, 可刪除);
     this.名稱 = new MultilingualString(data?.名稱 as Record<string, string> | undefined ?? DEFAULT_VALUES.名稱);
     this.描述 = new MultilingualString(data?.描述 as Record<string, string> | undefined ?? DEFAULT_VALUES.描述);
     this.影像 = (data?.影像 as string) ?? DEFAULT_VALUES.影像;

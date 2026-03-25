@@ -46,7 +46,7 @@ export default class 配色 extends 資料 {
     data: Record<string, unknown> = {},
     可刪除: boolean = true,
   ) {
-    super({}, 可刪除);
+    super(data, 可刪除);
     this.名稱 = new MultilingualString(data?.名稱 as Record<string, string> | undefined ?? _DEFAULT_STRINGS.名稱);
     this.描述 = new MultilingualString(data?.描述 as Record<string, string> | undefined ?? _DEFAULT_STRINGS.描述);
     this.主色 = (data?.主色 as string) ?? DEFAULT_COLORS.主色;

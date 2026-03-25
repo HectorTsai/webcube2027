@@ -4,9 +4,11 @@ export default class SecretString {
   private plaintext?: string = "";
   private ciphertext?: string = "";
 
-  public constructor(options?: { plainText?: string, cipherText?: string }) {
+  public constructor(options?: { plainText?: string, cipherText?: string | undefined | null }) {
     if (options?.plainText) this.plaintext = options.plainText;
-    if (!options?.plainText && options?.cipherText) this.ciphertext = options.cipherText; // 避免誤用同時傳入 plainText 跟 cipherText
+    if (!options?.plainText && options?.cipherText && typeof options.cipherText === 'string') {
+      this.ciphertext = options.cipherText; // 避免誤用同時傳入 plainText 跟 cipherText，並確保 cipherText 是字串
+    }
   }
 
   public async getPlainText() {

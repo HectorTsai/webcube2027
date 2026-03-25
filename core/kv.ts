@@ -247,6 +247,45 @@ export class KV資料庫 {
     return await this.更新<系統資訊>('系統資訊:系統資訊:預設', 資訊);
   }
 
+  // 設定系統資訊（創建或完全替換）
+  async 設定系統資訊(資訊: any): Promise<boolean> {
+    try {
+      const kv = await this.取得KV();
+      
+      // 動態導入系統資訊模型類別
+      const 模型模組 = await import('../database/models/系統資訊.ts');
+      const 系統資訊類別 = 模型模組.default;
+      
+      // 建立新的系統資訊實例
+      const 系統資訊實例 = new 系統資訊類別(資訊, false); // 系統資訊不可刪除
+      
+      // 存入 KV 資料庫
+      await kv.set(['系統資訊', '系統資訊:系統資訊:預設'], 系統資訊實例.toJSON());
+      await info('KV', '系統資訊設定成功');
+      return true;
+      
+    } catch (錯誤) {
+      await error('KV', `設定系統資訊失敗: ${錯誤}`);
+      return false;
+    }
+  }
+
+  // 刪除系統資訊
+  async 刪除系統資訊(): Promise<boolean> {
+    try {
+      const kv = await this.取得KV();
+      
+      // 刪除系統資訊
+      await kv.delete(['系統資訊', '系統資訊:系統資訊:預設']);
+      await info('KV', '系統資訊刪除成功');
+      return true;
+      
+    } catch (錯誤) {
+      await error('KV', `刪除系統資訊失敗: ${錯誤}`);
+      return false;
+    }
+  }
+
   // 取得 L2 連線資訊
   async 取得L2連線資訊(): Promise<L2連線資訊 | null> {
     try {

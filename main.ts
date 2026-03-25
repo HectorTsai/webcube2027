@@ -4,13 +4,23 @@ import { 初始化UnoCSS, 產生樣式 } from './core/unocss.ts';
 import { 取得KV資料庫 } from './core/kv.ts';
 import { info, error } from './utils/logger.ts';
 import { 加密, 解密 } from './utils/密碼方法.ts';
-import { 處理取得系統資訊, 處理更新系統資訊, 處理取得所有系統設定 } from './services/apiService/system.ts';
+// 移除已刪除的 system.ts 導入
 import { 資料庫解析器, 清理資料庫連線 } from './middleware/db-resolver.ts';
+import { 語言解析器 } from './middleware/language-resolver.ts';
 import { 三層查詢管理器 } from './core/three-tier-query.ts';
 import 骨架 from './database/models/骨架.ts';
 import 配色 from './database/models/配色.ts';
 
 const app = new Hono();
+
+// 全域中間件：設定 app 實例到 context
+app.use('*', (c, next) => {
+  (c as any).set('app', app);
+  return next();
+});
+
+// 全域中間件：語言解析器
+app.use('*', 語言解析器);
 
 // 全域中間件：資料庫解析器
 app.use('*', 資料庫解析器);
@@ -204,41 +214,40 @@ app.get('/api/v1/test/three-tier', async (c) => {
     // 測試 1: 取得骨架預設值
     const 骨架結果 = await 三層查詢管理器.取得預設值<骨架>(c, '骨架');
     測試結果.查詢測試.骨架預設值 = {
-      成功: 骨架結果.成功,
-      來源: 骨架結果.來源,
-      資料: 骨架結果.資料 ? {
-        id: 骨架結果.資料.id,
-        名稱: 骨架結果.資料.名稱,
-        風格: 骨架結果.資料.風格
+      success: 骨架結果.success,
+      source: 骨架結果.source,
+      data: 骨架結果.data ? {
+        id: 骨架結果.data.id,
+        名稱: 骨架結果.data.名稱,
+        風格: 骨架結果.data.風格
       } : null,
-      錯誤: 骨架結果.錯誤
+      error: 骨架結果.error
     };
     
     // 測試 2: 取得配色預設值
     const 配色結果 = await 三層查詢管理器.取得預設值<配色>(c, '配色');
     測試結果.查詢測試.配色預設值 = {
-      成功: 配色結果.成功,
-      來源: 配色結果.來源,
-      資料: 配色結果.資料 ? {
-        id: 配色結果.資料.id,
-        名稱: 配色結果.資料.名稱,
-        主色: 配色結果.資料.主色
+      success: 配色結果.success,
+      source: 配色結果.source,
+      data: 配色結果.data ? {
+        id: 配色結果.data.id,
+        名稱: 配色結果.data.名稱,
+        主色: 配色結果.data.主色
       } : null,
-      錯誤: 配色結果.錯誤
+      error: 配色結果.error
     };
     
     // 測試 3: 查詢骨架列表
     const 骨架列表 = await 三層查詢管理器.查詢列表<骨架>(c, '骨架', 5);
     測試結果.查詢測試.骨架列表 = {
-      成功: 骨架列表.成功,
-      來源: 骨架列表.來源,
-      數量: 骨架列表.資料?.length || 0,
-      資料: 骨架列表.資料?.map(item => ({
+      success: 骨架列表.success,
+      source: 骨架列表.source,
+      data: 骨架列表.data?.map(item => ({
         id: item.id,
         名稱: item.名稱,
         風格: item.風格
       })) || [],
-      錯誤: 骨架列表.錯誤
+      error: 骨架列表.error
     };
     
     await info('三層查詢測試', '測試完成');

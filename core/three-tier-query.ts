@@ -5,10 +5,10 @@ import { info, error } from '../utils/logger.ts';
 
 // 三層查詢結果類型
 export interface 查詢結果<T> {
-  資料: T | null;
-  來源: 'L1' | 'L2' | 'L3';
-  成功: boolean;
-  錯誤?: string;
+  data: T | null;
+  source: 'L1' | 'L2' | 'L3';
+  success: boolean;
+  error?: string;
 }
 
 // 三層查詢管理器
@@ -35,7 +35,7 @@ export class 三層查詢管理器 {
             const 資料 = await 三層查詢管理器.轉換為模型實例<T>(model, l3結果[0].result[0]);
             if (資料) {
               await info('三層查詢', `L3 查詢成功: ${model}:${id} (tenant: ${tenant})`);
-              return { 資料, 來源: 'L3', 成功: true };
+              return { data: 資料, source: 'L3', success: true };
             }
           }
         } catch (l3錯誤) {
@@ -52,7 +52,7 @@ export class 三層查詢管理器 {
             const 資料 = await 三層查詢管理器.轉換為模型實例<T>(model, l2結果[0].result[0]);
             if (資料) {
               await info('三層查詢', `L2 查詢成功: ${model}:${id}`);
-              return { 資料, 來源: 'L2', 成功: true };
+              return { data: 資料, source: 'L2', success: true };
             }
           }
         } catch (l2錯誤) {
@@ -62,21 +62,21 @@ export class 三層查詢管理器 {
       
       // L1: KV 資料庫查詢
       try {
-        const l1資料 = await kvDB.取得<T>(id);
+        const l1資料 = await kvDB.取得(id);
         if (l1資料) {
           await info('三層查詢', `L1 查詢成功: ${model}:${id}`);
-          return { 資料: l1資料, 來源: 'L1', 成功: true };
+          return { data: l1資料 as T, source: 'L1', success: true };
         }
       } catch (l1錯誤) {
         await error('三層查詢', `L1 查詢失敗: ${l1錯誤}`);
       }
       
       // 所有層級都失敗，返回空結果
-      return { 資料: null, 來源: 'L1', 成功: false, 錯誤: '所有資料庫層級都無此資料' };
+      return { data: null, source: 'L1', success: false, error: '所有資料庫層級都無此資料' };
       
     } catch (錯誤) {
       await error('三層查詢', `查詢過程發生錯誤: ${錯誤}`);
-      return { 資料: null, 來源: 'L1', 成功: false, 錯誤: (錯誤 as Error).toString() };
+      return { data: null, source: 'L1', success: false, error: (錯誤 as Error).toString() };
     }
   }
   
@@ -150,9 +150,9 @@ export class 三層查詢管理器 {
           for await (const entry of kv.list({ prefix: [model] })) {
             if (entry.value && entry.key.length >= 2) {
               const id = entry.key[1] as string;
-              const 實例 = await kvDB.取得<T>(id);
+              const 實例 = await kvDB.取得(id);
               if (實例) {
-                l1資料.push(實例);
+                l1資料.push(實例 as T);
               }
             }
           }
@@ -167,11 +167,11 @@ export class 三層查詢管理器 {
         }
       }
       
-      return { 資料: 合併結果, 來源: 主要來源, 成功: true };
+      return { data: 合併結果, source: 主要來源, success: true };
       
     } catch (錯誤) {
       await error('三層查詢', `列表查詢過程發生錯誤: ${錯誤}`);
-      return { 資料: [], 來源: 'L1', 成功: false, 錯誤: (錯誤 as Error).toString() };
+      return { data: [], source: 'L1', success: false, error: (錯誤 as Error).toString() };
     }
   }
   
@@ -183,17 +183,17 @@ export class 三層查詢管理器 {
     const kvDB = c.get('kvDB');
     
     try {
-      const 預設資料 = await kvDB.取得一個<T>(model);
+      const 預設資料 = await kvDB.取得一個(model);
       
       if (預設資料) {
         await info('三層查詢', `取得預設值成功: ${model}`);
-        return { 資料: 預設資料, 來源: 'L1', 成功: true };
+        return { data: 預設資料 as T, source: 'L1', success: true };
       } else {
-        return { 資料: null, 來源: 'L1', 成功: false, 錯誤: '無預設值可用' };
+        return { data: null, source: 'L1', success: false, error: '查詢過程發生錯誤' };
       }
     } catch (錯誤) {
       await error('三層查詢', `取得預設值失敗: ${錯誤}`);
-      return { 資料: null, 來源: 'L1', 成功: false, 錯誤: (錯誤 as Error).toString() };
+      return { data: null, source: 'L1', success: false, error: (錯誤 as Error).toString() };
     }
   }
   
@@ -249,7 +249,7 @@ export class 三層查詢管理器 {
             
             if (模型實例) {
               await info('三層查詢', `L3 ${id ? '更新' : '創建'}成功: ${model} (tenant: ${tenant})`);
-              return { 資料: 模型實例, 來源: 'L3', 成功: true };
+              return { data: 模型實例, source: 'L3', success: true };
             }
           }
         } catch (l3錯誤) {
@@ -272,7 +272,7 @@ export class 三層查詢管理器 {
             
             if (模型實例) {
               await info('三層查詢', `L2 ${id ? '更新' : '創建'}成功: ${model}`);
-              return { 資料: 模型實例, 來源: 'L2', 成功: true };
+              return { data: 模型實例, source: 'L2', success: true };
             }
           }
         } catch (l2錯誤) {
@@ -280,11 +280,11 @@ export class 三層查詢管理器 {
         }
       }
       
-      return { 資料: null, 來源: 'L1', 成功: false, 錯誤: '無可用的寫入資料庫' };
+      return { data: null, source: 'L1', success: false, error: '無可用的寫入資料庫' };
       
     } catch (錯誤) {
       await error('三層查詢', `${id ? '更新' : '創建'}過程發生錯誤: ${錯誤}`);
-      return { 資料: null, 來源: 'L1', 成功: false, 錯誤: (錯誤 as Error).toString() };
+      return { data: null, source: 'L1', success: false, error: (錯誤 as Error).toString() };
     }
   }
   
@@ -298,51 +298,51 @@ export class 三層查詢管理器 {
       // 先查詢資料是否存在且可刪除
       const 查詢結果 = await 三層查詢管理器.查詢單一(c, model, id);
       
-      if (!查詢結果.成功 || !查詢結果.資料) {
-        return { 資料: false, 來源: 'L1', 成功: false, 錯誤: '資料不存在' };
+      if (!查詢結果.success || !查詢結果.data) {
+        return { data: false, source: 'L1', success: false, error: '資料不存在' };
       }
       
-      if (!查詢結果.資料.可刪除) {
-        return { 資料: false, 來源: 'L1', 成功: false, 錯誤: 'DELETE_PROTECTED' };
+      if (!查詢結果.data.可刪除) {
+        return { data: false, source: 'L1', success: false, error: 'DELETE_PROTECTED' };
       }
       
       // 根據資料來源決定刪除位置
       const l3DB = c.get('l3DB');
       const l2DB = c.get('l2DB');
       
-      if (查詢結果.來源 === 'L3' && l3DB) {
+      if (查詢結果.source === 'L3' && l3DB) {
         try {
           await l3DB.查詢(`DELETE FROM ${model} WHERE id = '${id}';`);
           await info('三層查詢', `L3 刪除成功: ${model}:${id}`);
-          return { 資料: true, 來源: 'L3', 成功: true };
+          return { data: true, source: 'L3', success: true };
         } catch (錯誤) {
           await error('三層查詢', `L3 刪除失敗: ${錯誤}`);
         }
       }
       
-      if (查詢結果.來源 === 'L2' && l2DB) {
+      if (查詢結果.source === 'L2' && l2DB) {
         try {
           await l2DB.查詢(`DELETE FROM ${model} WHERE id = '${id}';`);
           await info('三層查詢', `L2 刪除成功: ${model}:${id}`);
-          return { 資料: true, 來源: 'L2', 成功: true };
+          return { data: true, source: 'L2', success: true };
         } catch (錯誤) {
           await error('三層查詢', `L2 刪除失敗: ${錯誤}`);
         }
       }
       
-      return { 資料: false, 來源: 'L1', 成功: false, 錯誤: 'L1 資料無法刪除' };
+      return { data: false, source: 'L1', success: false, error: 'L1 資料無法刪除' };
       
     } catch (錯誤) {
       await error('三層查詢', `刪除過程發生錯誤: ${錯誤}`);
-      return { 資料: false, 來源: 'L1', 成功: false, 錯誤: (錯誤 as Error).toString() };
+      return { data: false, source: 'L1', success: false, error: (錯誤 as Error).toString() };
     }
   }
   
   // 建構更新 SQL
   private static 建構更新SQL(資料: Record<string, unknown>): string {
     const 更新欄位 = Object.entries(資料)
-      .filter(([key, value]) => value !== undefined)
-      .map(([_key, value]) => `${_key} = ${JSON.stringify(value)}`)
+      .filter(([_key, value]) => value !== undefined)
+      .map(([key, value]) => `${key} = ${JSON.stringify(value)}`)
       .join(', ');
     
     return 更新欄位;

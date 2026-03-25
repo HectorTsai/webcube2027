@@ -207,7 +207,7 @@ export async function 資料庫解析器(c: Context, next: Next) {
     const tenant = 解析租戶名稱(host);
     
     await info('DB-Resolver', `處理請求: host=${host}, tenant=${tenant}`);
-    
+  
     // 設定基本資訊
     c.set('host', host);
     c.set('tenant', tenant);

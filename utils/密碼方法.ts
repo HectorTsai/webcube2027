@@ -83,7 +83,7 @@ export async function 加密(值: string): Promise<string> {
  * 自動從環境變數 SECRET_KEY 取得加密金鑰。
  */
 export async function 解密(值: string | undefined | null): Promise<string> {
-  if (!值) return "";
+  if (!值 || typeof 值 !== 'string') return "";
   if (!值.startsWith(`${PREFIX}|`)) return 值; // 視為明文
 
   const parts = 值.split("|");

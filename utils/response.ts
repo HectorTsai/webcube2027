@@ -18,18 +18,18 @@ export type 資料來源 = 'site' | 'system' | 'default';
 
 // 成功回應介面
 export interface 成功回應<T = any> {
-  成功: true;
-  資料: T;
-  來源: 資料來源;
+  success: true;
+  data: T;
+  source: 資料來源;
 }
 
 // 錯誤回應介面
 export interface 錯誤回應 {
-  成功: false;
-  錯誤: {
-    代碼: 錯誤代碼類型;
-    訊息: string;
-    狀態碼: number;
+  success: false;
+  error: {
+    code: 錯誤代碼類型;
+    message: string;
+    status: number;
   };
 }
 
@@ -42,9 +42,9 @@ export function 建立成功回應<T>(
   來源: 資料來源 = 'default'
 ): 成功回應<T> {
   return {
-    成功: true,
-    資料,
-    來源
+    success: true,
+    data: 資料,
+    source: 來源
   };
 }
 
@@ -55,11 +55,11 @@ export function 建立錯誤回應(
   狀態碼: number
 ): 錯誤回應 {
   return {
-    成功: false,
-    錯誤: {
-      代碼,
-      訊息,
-      狀態碼
+    success: false,
+    error: {
+      code: 代碼,
+      message: 訊息,
+      status: 狀態碼
     }
   };
 }
@@ -99,7 +99,7 @@ export function 回應錯誤(
   c: any,
   錯誤回應: 錯誤回應
 ) {
-  return c.json(錯誤回應, 錯誤回應.錯誤.狀態碼);
+  return c.json(錯誤回應, 錯誤回應.error.status);
 }
 
 // 分頁資料介面

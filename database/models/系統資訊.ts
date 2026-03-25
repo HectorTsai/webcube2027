@@ -20,8 +20,11 @@ export default class 系統資訊 extends 資料 {
   public 密碼密鑰: SecretString;
   public 使用者: string = "";
   public 密碼: SecretString;
-  public 命名空間: string = "webcube";
   public 資料庫名稱: string = "webcube";
+  public 語言: string[] = ["en", "zh-tw"];
+  public 配色: string = ""; // 當前配色 ID
+  public 佈景主題: string = ""; // 當前佈景主題 ID
+  public 骨架: string = ""; // 當前骨架 ID
   public 資料庫: SecretString;
   public 版權資料: 版權資料;
   public 軟體服務條款: MultilingualSmartContent;
@@ -43,11 +46,14 @@ export default class 系統資訊 extends 資料 {
     this.密碼密鑰 = new SecretString({ cipherText: data?.密碼密鑰 as string });
     this.使用者 = (data?.使用者 as string) ?? "";
     this.密碼 = new SecretString({ cipherText: data?.密碼 as string });
-    this.命名空間 = (data?.命名空間 as string) ?? "webcube";
+    this.語言 = (data?.語言 as string[]) ?? ["en","zh-tw"];
     this.資料庫名稱 = (data?.資料庫名稱 as string) ?? "webcube";
     this.軟體服務條款 = new MultilingualSmartContent(data?.軟體服務條款 as Record<string, SmartContent | { format: string; content: string | Uint8Array; }> | undefined);
     this.使用者服務條款 = new MultilingualSmartContent(data?.使用者服務條款 as Record<string, SmartContent | { format: string; content: string | Uint8Array; }> | undefined);
     this.隱私權政策 = new MultilingualSmartContent(data?.隱私權政策 as Record<string, SmartContent | { format: string; content: string | Uint8Array; }> | undefined);
+    this.配色 = (data?.配色 as string) ?? "";
+    this.佈景主題 = (data?.佈景主題 as string) ?? "";
+    this.骨架 = (data?.骨架 as string) ?? "";
   }
 
   public override toJSON(): Record<string, unknown> {
@@ -63,11 +69,14 @@ export default class 系統資訊 extends 資料 {
       密碼密鑰: this.密碼密鑰.toJSON(),
       使用者: this.使用者,
       密碼: this.密碼.toJSON(),
-      命名空間: this.命名空間,
+      語言: this.語言,
       資料庫名稱: this.資料庫名稱,
       軟體服務條款: this.軟體服務條款.toJSON(),
       使用者服務條款: this.使用者服務條款.toJSON(),
       隱私權政策: this.隱私權政策.toJSON(),
+      配色: this.配色,
+      佈景主題: this.佈景主題,
+      骨架: this.骨架,
     };
   }
 }
