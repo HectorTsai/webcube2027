@@ -52,16 +52,22 @@ export default class 內建方塊解析器 {
   /**
    * 將內容轉換為 HTML 顯示
    */
-  private static 渲染內容為HTML(內容: any): string {
+  private static 渲染內容為HTML(內容: any, 已訪問: WeakSet<object> = new WeakSet()): string {
     if (typeof 內容 === 'string') {
       return `<p class="text-content">${內容}</p>`;
     }
     
     if (Array.isArray(內容)) {
-      return 內容.map(item => this.渲染內容為HTML(item)).join('\n');
+      return 內容.map(item => this.渲染內容為HTML(item, 已訪問)).join('\n');
     }
     
     if (內容 && typeof 內容 === 'object') {
+      // 檢查循環引用
+      if (已訪問.has(內容)) {
+        return '<div class="circular-reference">[循環引用]</div>';
+      }
+      已訪問.add(內容);
+      
       // 檢查是否是 MultilingualString
       if (內容.en || 內容['zh-tw'] || 內容.vi) {
         return this.渲染MultilingualString(內容);
@@ -72,13 +78,17 @@ export default class 內建方塊解析器 {
         return this.渲染子方塊(內容);
       }
       
-      // 一般物件
+      // 一般物件 - 限制深度
       let html = '<div class="content-object">\n';
-      for (const [key, value] of Object.entries(內容)) {
+      const entries = Object.entries(內容).slice(0, 10); // 限制最多 10 個屬性
+      for (const [key, value] of entries) {
         html += `  <div class="content-item">\n`;
         html += `    <strong>${key}:</strong>\n`;
-        html += `    <div class="content-value">${this.渲染內容為HTML(value)}</div>\n`;
+        html += `    <div class="content-value">${this.渲染內容為HTML(value, 已訪問)}</div>\n`;
         html += `  </div>\n`;
+      }
+      if (Object.keys(內容).length > 10) {
+        html += `  <div class="content-item">... 還有 ${Object.keys(內容).length - 10} 個屬性</div>\n`;
       }
       html += '</div>';
       return html;

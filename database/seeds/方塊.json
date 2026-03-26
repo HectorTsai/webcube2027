@@ -352,7 +352,7 @@
     "售價": 0,
     "標籤集": ["ui", "container", "layout", "flexbox"],
     "模式": "內建",
-    "元件路徑": "ui/Container",
+    "元件路徑": "container/Container",
     "屬性定義": {
       "children": {
         "type": "object",
@@ -542,7 +542,7 @@
     "售價": 0,
     "標籤集": ["ui", "navigation", "menu", "header"],
     "模式": "內建",
-    "元件路徑": "ui/MainMenu",
+    "元件路徑": "navigation/MainMenu",
     "屬性定義": {
       "logo": {
         "type": "string",
@@ -608,7 +608,7 @@
     "售價": 0,
     "標籤集": ["ui", "footer", "navigation", "layout"],
     "模式": "內建",
-    "元件路徑": "ui/Footer",
+    "元件路徑": "navigation/Footer",
     "屬性定義": {
       "logo": {
         "type": "string",
