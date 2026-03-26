@@ -11,6 +11,8 @@ import { 語言解析器 } from './middleware/language-resolver.ts';
 import { 三層查詢管理器 } from './core/three-tier-query.ts';
 import 骨架 from './database/models/骨架.ts';
 import 配色 from './database/models/配色.ts';
+import 頁面API from './services/apiService/pages.ts';
+import 方塊API from './services/apiService/cubes.ts';
 
 const app = new Hono();
 
@@ -28,6 +30,10 @@ app.use('*', 資訊載入器);
 
 // 全域中間件：語言解析器
 app.use('*', 語言解析器);
+
+// API 路由
+app.route('/api/v1/pages', 頁面API);
+app.route('/api/v1/cubes', 方塊API);
 
 // 測試頁面 - 驗證 UnoCSS 整合
 app.get('/test-unocss', async (c) => {
@@ -326,11 +332,6 @@ app.get('/test-internal-call', async (c) => {
     await error('內部調用測試', `內部調用測試失敗: ${錯誤}`);
     return c.text(`內部調用測試失敗: ${錯誤}`, 500);
   }
-});
-
-// 基本路由
-app.get('/', (c) => {
-  return c.text('WebCube 2027 - AI Native Multi-tenant Website Generator');
 });
 
 // 健康檢查

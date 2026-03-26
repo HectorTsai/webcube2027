@@ -25,21 +25,27 @@ const 自訂Preset = {
       error: 'oklch(0.7 0.2 25)'
     },
     spacing: {
-      xs: '0.5rem',
-      sm: '0.75rem',
-      md: '1rem',
-      lg: '1.5rem',
-      xl: '2rem',
-      '2xl': '3rem'
+      xs: 'var(--spacing-xs)',
+      sm: 'var(--spacing-sm)',
+      md: 'var(--spacing-md)',
+      lg: 'var(--spacing-lg)',
+      xl: 'var(--spacing-xl)',
+      '2xl': 'var(--spacing-2xl)'
     },
     fontSize: {
-      xs: ['0.75rem', '1rem'],
-      sm: ['0.875rem', '1.25rem'],
-      base: ['1rem', '1.5rem'],
-      lg: ['1.125rem', '1.75rem'],
-      xl: ['1.25rem', '1.75rem'],
-      '2xl': ['1.5rem', '2rem'],
-      '3xl': ['1.875rem', '2.25rem']
+      xs: ['var(--font-size-xs)', 'var(--line-height-xs)'],
+      sm: ['var(--font-size-sm)', 'var(--line-height-sm)'],
+      base: ['var(--font-size-base)', 'var(--line-height-base)'],
+      lg: ['var(--font-size-lg)', 'var(--line-height-lg)'],
+      xl: ['var(--font-size-xl)', 'var(--line-height-xl)'],
+      '2xl': ['var(--font-size-2xl)', 'var(--line-height-2xl)'],
+      '3xl': ['var(--font-size-3xl)', 'var(--line-height-3xl)']
+    },
+    borderRadius: {
+      sm: 'var(--radius-sm)',
+      md: 'var(--radius-md)',
+      lg: 'var(--radius-lg)',
+      full: '9999px'
     }
   },
   rules: [
@@ -58,13 +64,18 @@ const 自訂Preset = {
   ],
   shortcuts: {
     // 常用組合樣式
-    'btn': 'px-4 py-2 rounded-lg font-medium transition-colors duration-200',
+    'btn': 'px-4 py-2 rounded-md font-medium transition-colors duration-200',
     'btn-primary': 'btn bg-primary text-primary-content hover:opacity-90',
     'btn-secondary': 'btn bg-secondary text-secondary-content hover:opacity-90',
     'btn-accent': 'btn bg-accent text-accent-content hover:opacity-90',
-    'card': 'bg-base-100 text-base-content rounded-lg shadow-md p-6',
+    'card': 'bg-base-100 text-base-content rounded-md p-md shadow-md',
     'input': 'px-3 py-2 border border-base-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary',
-    'container': 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'
+    'container': 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8',
+    // 陰影類別
+    'shadow-sm': 'shadow: var(--shadow-sm)',
+    'shadow-md': 'shadow: var(--shadow-md)',
+    'shadow-lg': 'shadow: var(--shadow-lg)',
+    'shadow-none': 'shadow: var(--shadow-none)'
   }
 };
 
@@ -331,7 +342,44 @@ export function 生成完整CSSVariables(主題名稱: string = 'light', 自訂�
     '  --text-muted: oklch(from var(--color-base-content) calc(l * 0.5) c h);',
     '  --border-color: var(--color-base-300);',
     '  --border-hover: var(--color-base-200);',
-    '  --shadow-color: oklch(from var(--color-base-content) l c h / 0.1);'
+    '  --shadow-color: oklch(from var(--color-base-content) l c h / 0.1);',
+    '',
+    '  /* Spacing Variables */',
+    '  --spacing-xs: 0.5rem;',
+    '  --spacing-sm: 0.75rem;',
+    '  --spacing-md: 1rem;',
+    '  --spacing-lg: 1.5rem;',
+    '  --spacing-xl: 2rem;',
+    '  --spacing-2xl: 3rem;',
+    '',
+    '  /* Font Size Variables */',
+    '  --font-size-xs: 0.75rem;',
+    '  --font-size-sm: 0.875rem;',
+    '  --font-size-base: 1rem;',
+    '  --font-size-lg: 1.125rem;',
+    '  --font-size-xl: 1.25rem;',
+    '  --font-size-2xl: 1.5rem;',
+    '  --font-size-3xl: 1.875rem;',
+    '',
+    '  /* Line Height Variables */',
+    '  --line-height-xs: 1rem;',
+    '  --line-height-sm: 1.25rem;',
+    '  --line-height-base: 1.5rem;',
+    '  --line-height-lg: 1.75rem;',
+    '  --line-height-xl: 1.75rem;',
+    '  --line-height-2xl: 2rem;',
+    '  --line-height-3xl: 2.25rem;',
+    '',
+    '  /* Border Radius Variables */',
+    '  --radius-sm: 0.25rem;',
+    '  --radius-md: 0.5rem;',
+    '  --radius-lg: 1rem;',
+    '',
+    '  /* Shadow Variables */',
+    '  --shadow-none: 0 0 0 0 rgba(0, 0, 0, 0);',
+    '  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);',
+    '  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);',
+    '  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);'
   );
   
   variables.push('}');

@@ -1,0 +1,140 @@
+[
+  {
+    "id": "頁面:頁面:home",
+    "路徑": "/",
+    "標題": {
+      "en": "Home",
+      "zh-tw": "首頁",
+      "vi": "Trang chủ"
+    },
+    "方塊": "方塊:方塊:容器",
+    "內容": {
+      "direction": "column",
+      "gap": "lg",
+      "children": [
+        {
+          "方塊": "方塊:方塊:卡片",
+          "內容": {
+            "title": {
+              "en": "Welcome to WebCube 2027",
+              "zh-tw": "歡迎來到 WebCube 2027",
+              "vi": "Chào mừng đến với WebCube 2027"
+            },
+            "content": {
+              "en": "A powerful, AI-driven website building platform",
+              "zh-tw": "一個強大、AI 驅動的網站建置平台",
+              "vi": "Một nền tảng xây dựng trang web mạnh mẽ, được điều khiển bởi AI"
+            },
+            "variant": "elevated",
+            "shadow": true
+          }
+        },
+        {
+          "方塊": "方塊:方塊:容器",
+          "內容": {
+            "direction": "row",
+            "gap": "md",
+            "children": {
+              "en": "Explore our features and start building amazing websites today!",
+              "zh-tw": "探索我們的功能，立即開始建立令人驚豔的網站！",
+              "vi": "Khám phá các tính năng của chúng tôi và bắt đầu xây dựng những trang web tuyệt vời ngay hôm nay!"
+            },
+            "padding": "md"
+          }
+        }
+      ]
+    },
+    "狀態": "PUBLISHED",
+    "可刪除": false
+  },
+  {
+    "id": "頁面:頁面:about",
+    "路徑": "/about",
+    "標題": {
+      "en": "About Us",
+      "zh-tw": "關於我們",
+      "vi": "Về chúng tôi"
+    },
+    "方塊": "方塊:方塊:容器",
+    "內容": {
+      "direction": "column",
+      "gap": "lg",
+      "padding": "lg",
+      "children": {
+        "en": "We are building the next generation of website creation tools, powered by AI and designed for everyone.",
+        "zh-tw": "我們正在建立下一代網站創建工具，由 AI 驅動，為每個人設計。",
+        "vi": "Chúng tôi đang xây dựng các công cụ tạo trang web thế hệ tiếp theo, được cung cấp bởi AI và được thiết kế cho tất cả mọi người."
+      }
+    },
+    "狀態": "PUBLISHED",
+    "可刪除": false
+  },
+  {
+    "id": "頁面:頁面:user-profile",
+    "路徑": "/users",
+    "路徑模式": "/users/{username}",
+    "標題": {
+      "en": "User Profile",
+      "zh-tw": "使用者資料",
+      "vi": "Hồ sơ người dùng"
+    },
+    "方塊": "方塊:方塊:容器",
+    "內容": {
+      "direction": "column",
+      "gap": "lg",
+      "children": [
+        {
+          "方塊": "方塊:方塊:卡片",
+          "內容": {
+            "title": {
+              "en": "User Information",
+              "zh-tw": "使用者資訊",
+              "vi": "Thông tin người dùng"
+            },
+            "content": {
+              "en": "Profile for user: {username}",
+              "zh-tw": "使用者 {username} 的資料",
+              "vi": "Hồ sơ cho người dùng: {username}"
+            },
+            "variant": "default",
+            "shadow": true
+          }
+        },
+        {
+          "方塊": "方塊:方塊:容器",
+          "內容": {
+            "children": {
+              "en": "Additional user content and features will be displayed here.",
+              "zh-tw": "額外的使用者內容和功能將在這裡顯示。",
+              "vi": "Nội dung và tính năng bổ sung của người dùng sẽ được hiển thị tại đây."
+            },
+            "padding": "md"
+          }
+        }
+      ]
+    },
+    "狀態": "PUBLISHED",
+    "可刪除": false
+  },
+  {
+    "id": "頁面:頁面:contact",
+    "路徑": "/contact",
+    "標題": {
+      "en": "Contact Us",
+      "zh-tw": "聯絡我們",
+      "vi": "Liên hệ chúng tôi"
+    },
+    "方塊": "方塊:方塊:容器",
+    "內容": {
+      "direction": "column",
+      "gap": "md",
+      "children": {
+        "en": "Get in touch with us for any questions or support.",
+        "zh-tw": "如有任何問題或需要支援，請與我們聯絡。",
+        "vi": "Liên hệ với chúng tôi cho bất kỳ câu hỏi hoặc hỗ trợ nào."
+      }
+    },
+    "狀態": "PUBLISHED",
+    "可刪除": false
+  }
+]

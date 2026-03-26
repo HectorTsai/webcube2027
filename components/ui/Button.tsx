@@ -1,7 +1,7 @@
 
 export interface ButtonProps {
-  /** Text displayed on the button */
-  title: string;
+  /** Content to display inside the button */
+  children: any;
   /** Button style variant */
   variant?: "primary" | "secondary" | "accent" | "outline" | "ghost";
   /** Button size */
@@ -10,14 +10,17 @@ export interface ButtonProps {
   disabled?: boolean;
   /** Function called when button is clicked */
   onClick?: () => void;
+  /** Button type for form submission */
+  type?: "button" | "submit" | "reset";
 }
 
 export default function Button({
-  title,
+  children,
   variant = "primary",
   size = "md",
   disabled = false,
   onClick,
+  type = "button",
 }: ButtonProps) {
   // 使用 UnoCSS 自訂 preset 的 classes
   const baseClasses = "btn";
@@ -32,7 +35,7 @@ export default function Button({
   
   const sizeClasses = {
     sm: "text-sm",
-    md: "text-base",
+    md: "text-md",
     lg: "text-lg",
   };
 
@@ -43,9 +46,9 @@ export default function Button({
       class={classes}
       disabled={disabled}
       onClick={onClick}
-      type="button"
+      type={type}
     >
-      {title}
+      {children}
     </button>
   );
 }

@@ -13,9 +13,41 @@ const DEFAULT_VALUES = {
   風格: "實心",
   書本樣式: "經典",
   圖示: "外框",
-  開始動畫:"Buildings",
+  開始動畫: "Buildings",
   載入器: "loading-dot",
-  圓角: { "中": "0.5rem", "大": "1rem", "小": "1.9rem" },
+  圓角: { "sm": "0.25rem", "md": "0.5rem", "lg": "1rem" },
+  空間: {
+    "xs": "0.5rem",
+    "sm": "0.75rem", 
+    "md": "1rem",
+    "lg": "1.5rem",
+    "xl": "2rem",
+    "2xl": "3rem"
+  },
+  字型: {
+    "xs": "0.75rem",
+    "sm": "0.875rem",
+    "base": "1rem",
+    "lg": "1.125rem",
+    "xl": "1.25rem",
+    "2xl": "1.5rem",
+    "3xl": "1.875rem"
+  },
+  行高: {
+    "xs": "1rem",
+    "sm": "1.25rem",
+    "base": "1.5rem",
+    "lg": "1.75rem",
+    "xl": "1.75rem",
+    "2xl": "2rem",
+    "3xl": "2.25rem"
+  },
+  陰影: {
+    "none": "0 0 0 0 rgba(0, 0, 0, 0)",
+    "sm": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+    "md": "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+    "lg": "0 10px 15px -3px rgba(0, 0, 0, 0.1)"
+  },
   動畫: {
     "下拉選單.開": "animate__fadeIn",
     "下拉選單.關": "animate__fadeOut",
@@ -38,6 +70,10 @@ export default class 骨架 extends 資料 {
   public 開始動畫: string;
   public 載入器: string;
   public 圓角: Record<string, string>;
+  public 空間: Record<string, string>;
+  public 字型: Record<string, string>;
+  public 行高: Record<string, string>;
+  public 陰影: Record<string, string>;
   public 動畫: Record<string, Record<string, string>>;
   public 售價: number;
 
@@ -56,6 +92,10 @@ export default class 骨架 extends 資料 {
     this.開始動畫 = (data?.開始動畫 as string) ?? DEFAULT_VALUES.開始動畫;
     this.載入器 = (data?.載入器 as string) ?? DEFAULT_VALUES.載入器;
     this.圓角 = (data?.圓角 as Record<string, string>) ?? DEFAULT_VALUES.圓角;
+    this.空間 = (data?.空間 as Record<string, string>) ?? DEFAULT_VALUES.空間;
+    this.字型 = (data?.字型 as Record<string, string>) ?? DEFAULT_VALUES.字型;
+    this.行高 = (data?.行高 as Record<string, string>) ?? DEFAULT_VALUES.行高;
+    this.陰影 = (data?.陰影 as Record<string, string>) ?? DEFAULT_VALUES.陰影;
     this.動畫 = (data?.動畫 as Record<string, Record<string, string>>) ??
       DEFAULT_VALUES.動畫;
     this.售價 = (data?.售價 as number) ?? DEFAULT_VALUES.售價;
@@ -74,6 +114,10 @@ export default class 骨架 extends 資料 {
       開始動畫: this.開始動畫,
       載入器: this.載入器,
       圓角: this.圓角,
+      空間: this.空間,
+      字型: this.字型,
+      行高: this.行高,
+      陰影: this.陰影,
       動畫: this.動畫,
     };
   }

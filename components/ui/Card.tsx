@@ -22,7 +22,7 @@ export default function Card({
   shadow = true,
 }: CardProps) {
   // 使用 UnoCSS 自訂 preset 的 classes
-  const baseClasses = "card rounded-lg overflow-hidden";
+  const baseClasses = "card rounded-md overflow-hidden";
   
   const variantClasses = {
     default: "border border-base-300",
@@ -32,17 +32,24 @@ export default function Card({
   
   const paddingClasses = {
     none: "",
-    sm: "p-4",
-    md: "p-6",
-    lg: "p-8",
+    sm: "p-sm",
+    md: "p-md",
+    lg: "p-lg",
   };
 
-  const shadowClasses = shadow && variant !== "elevated" ? "shadow-md" : "";
+  const shadowClasses = {
+    none: "shadow-none",
+    sm: "shadow-sm", 
+    md: "shadow-md",
+    lg: "shadow-lg"
+  };
+
+  const finalShadow = shadow ? shadowClasses[shadow as keyof typeof shadowClasses] || "shadow-md" : "shadow-md";
 
   return (
     <div class={`${baseClasses} ${variantClasses[variant]} ${paddingClasses[padding]} ${shadowClasses}`}>
       {image && (
-        <div class="w-full h-48 bg-gray-200 mb-4">
+        <div class="w-full h-48 bg-base-200 mb-md">
           <img 
             src={image} 
             alt={title || "Card image"} 
@@ -51,10 +58,10 @@ export default function Card({
         </div>
       )}
       {title && (
-        <h3 class="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+        <h3 class="text-lg font-semibold text-base-content mb-sm">{title}</h3>
       )}
       {content && (
-        <p class="text-gray-600 leading-relaxed">{content}</p>
+        <p class="text-base-content leading-relaxed">{content}</p>
       )}
     </div>
   );

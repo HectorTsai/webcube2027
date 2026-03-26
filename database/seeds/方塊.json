@@ -16,19 +16,18 @@
     "模式": "內建",
     "元件路徑": "ui/Button",
     "屬性定義": {
-      "title": {
-        "type": "string",
-        "description": "Text displayed on the button",
+      "children": {
+        "type": "object",
+        "description": "Content to display inside the button - can be text, icons, or complex JSX",
         "required": true,
-        "default": "Click me",
-        "example": "Submit"
+        "example": "<span>Click me</span> or <Icon name=\"save\" /><span>Save</span>"
       },
       "variant": {
         "type": "string",
         "description": "Button style variant - controls the visual appearance",
         "required": false,
         "default": "primary",
-        "options": ["primary", "secondary", "outline", "ghost"],
+        "options": ["primary", "secondary", "accent", "outline", "ghost"],
         "example": "primary"
       },
       "size": {
@@ -51,6 +50,14 @@
         "description": "Function called when button is clicked - for event handling",
         "required": false,
         "example": "() => console.log('Button clicked')"
+      },
+      "type": {
+        "type": "string",
+        "description": "Button type for form submission behavior",
+        "required": false,
+        "default": "button",
+        "options": ["button", "submit", "reset"],
+        "example": "button"
       }
     },
     "子方塊": [],
@@ -643,6 +650,205 @@
         "default": "default",
         "options": ["default", "minimal", "dark", "centered"],
         "example": "default"
+      }
+    },
+    "子方塊": [],
+    "對外參數": {},
+    "程式碼": "",
+    "審核狀態": "approved",
+    "上架狀態": true,
+    "可刪除": false
+  },
+  {
+    "id": "方塊:方塊:cube-網站-經典",
+    "名稱": {
+      "en": "Website Classic Layout",
+      "zh-tw": "網站經典佈局",
+      "vi": "Bố cục cổ điển trang web"
+    },
+    "描述": {
+      "en": "Classic website layout with header navigation, main content area, and footer. Perfect for business websites and blogs.",
+      "zh-tw": "經典網站佈局，包含標頭導航、主要內容區域和頁尾。適合商業網站和部落格。",
+      "vi": "Bố cục trang web cổ điển với điều hướng header, khu vực nội dung chính và footer. Hoàn hảo cho trang web kinh doanh và blog."
+    },
+    "售價": 0,
+    "標籤集": ["layout", "website", "classic", "navigation"],
+    "模式": "內建",
+    "元件路徑": "layouts/ClassicLayout",
+    "屬性定義": {
+      "children": {
+        "type": "object",
+        "description": "Page content to be rendered in the main area",
+        "required": true,
+        "example": "<div>Page content goes here</div>"
+      },
+      "menuItems": {
+        "type": "array",
+        "description": "Navigation menu items",
+        "required": false,
+        "default": [],
+        "example": "[{\"label\": \"Home\", \"href\": \"/\"}, {\"label\": \"About\", \"href\": \"/about\"}]"
+      },
+      "ctaButton": {
+        "type": "object",
+        "description": "Call-to-action button in header",
+        "required": false,
+        "default": null,
+        "example": "{\"text\": \"Get Started\", \"href\": \"/signup\"}"
+      },
+      "footerSections": {
+        "type": "array",
+        "description": "Footer sections with links",
+        "required": false,
+        "default": [],
+        "example": "[{\"title\": \"Products\", \"links\": [{\"text\": \"Features\", \"href\": \"/features\"}]}]"
+      },
+      "socialLinks": {
+        "type": "array",
+        "description": "Social media links",
+        "required": false,
+        "default": [],
+        "example": "[{\"platform\": \"twitter\", \"href\": \"https://twitter.com/company\"}]"
+      },
+      "companyName": {
+        "type": "string",
+        "description": "Company name for footer",
+        "required": false,
+        "default": "WebCube 2027",
+        "example": "My Company"
+      }
+    },
+    "子方塊": [],
+    "對外參數": {},
+    "程式碼": "",
+    "審核狀態": "approved",
+    "上架狀態": true,
+    "可刪除": false
+  },
+  {
+    "id": "方塊:方塊:圖示",
+    "名稱": {
+      "en": "Icon",
+      "zh-tw": "圖示",
+      "vi": "Biểu tượng"
+    },
+    "描述": {
+      "en": "A small icon component for displaying icons, symbols, and small graphics. Perfect for buttons, navigation, and UI indicators.",
+      "zh-tw": "小型圖示組件，用於顯示圖示、符號和小圖形。適合按鈕、導航和 UI 指示器。",
+      "vi": "Một thành phần biểu tượng nhỏ để hiển thị biểu tượng, ký hiệu và đồ họa nhỏ. Hoàn hảo cho các nút, điều hướng và chỉ báo UI."
+    },
+    "售價": 0,
+    "標籤集": ["ui", "icon", "graphic"],
+    "模式": "內建",
+    "元件路徑": "ui/Icon",
+    "屬性定義": {
+      "id": {
+        "type": "string",
+        "description": "Database icon ID for loading stored icons",
+        "required": false,
+        "example": "圖示:圖示:heart"
+      },
+      "src": {
+        "type": "string",
+        "description": "Direct icon file path or URL",
+        "required": false,
+        "example": "/icons/save.png"
+      },
+      "svg": {
+        "type": "string",
+        "description": "SVG string content for AI-generated icons",
+        "required": false,
+        "example": "<path d='M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z'/>"
+      },
+      "size": {
+        "type": "string",
+        "description": "Icon size in pixels",
+        "required": false,
+        "default": "md",
+        "options": ["xs", "sm", "md", "lg"],
+        "example": "md"
+      },
+      "color": {
+        "type": "string",
+        "description": "Icon color (SVG only)",
+        "required": false,
+        "default": "currentColor",
+        "example": "red"
+      },
+      "className": {
+        "type": "string",
+        "description": "Additional CSS classes",
+        "required": false,
+        "example": "custom-icon"
+      }
+    },
+    "子方塊": [],
+    "對外參數": {},
+    "程式碼": "",
+    "審核狀態": "approved",
+    "上架狀態": true,
+    "可刪除": false
+  },
+  {
+    "id": "方塊:方塊:圖片",
+    "名稱": {
+      "en": "Image",
+      "zh-tw": "圖片",
+      "vi": "Hình ảnh"
+    },
+    "描述": {
+      "en": "An image component for displaying photos, illustrations, banners, and other visual content. Supports various formats and responsive sizing.",
+      "zh-tw": "圖片組件，用於顯示照片、插畫、橫幅和其他視覺內容。支援多種格式和響應式尺寸。",
+      "vi": "Một thành phần hình ảnh để hiển thị ảnh, minh họa, biểu ngữ và nội dung hình ảnh khác. Hỗ trợ nhiều định dạng và kích thước phản ứng."
+    },
+    "售價": 0,
+    "標籤集": ["ui", "image", "media"],
+    "模式": "內建",
+    "元件路徑": "ui/Image",
+    "屬性定義": {
+      "src": {
+        "type": "string",
+        "description": "Image source URL or path",
+        "required": true,
+        "example": "/images/banner.jpg"
+      },
+      "alt": {
+        "type": "string",
+        "description": "Alt text for accessibility",
+        "required": true,
+        "example": "Company banner showing our products"
+      },
+      "width": {
+        "type": "string",
+        "description": "Image width in pixels or CSS units",
+        "required": false,
+        "example": "1200"
+      },
+      "height": {
+        "type": "string",
+        "description": "Image height in pixels or CSS units",
+        "required": false,
+        "example": "400"
+      },
+      "className": {
+        "type": "string",
+        "description": "Additional CSS classes",
+        "required": false,
+        "example": "rounded-lg shadow-md"
+      },
+      "loading": {
+        "type": "string",
+        "description": "Loading behavior for performance",
+        "required": false,
+        "default": "lazy",
+        "options": ["lazy", "eager"],
+        "example": "lazy"
+      },
+      "fallback": {
+        "type": "string",
+        "description": "Fallback image source if loading fails",
+        "required": false,
+        "example": "/images/placeholder.jpg"
       }
     },
     "子方塊": [],
