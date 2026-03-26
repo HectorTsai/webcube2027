@@ -1,6 +1,10 @@
 import 頁面 from "../../database/models/頁面.ts";
 import 方塊 from "../../database/models/方塊.ts";
 import { info, error } from "../../utils/logger.ts";
+import 動態方塊解析器 from "./動態方塊解析器.ts";
+import { InnerAPI } from "../index.ts";
+import { Context } from "hono";
+import languageService from "../languageService/index.ts";
 
 /**
  * 頁面渲染服務
@@ -8,9 +12,47 @@ import { info, error } from "../../utils/logger.ts";
  */
 export default class PageService {
   /**
+   * 解析 URL 路徑，提取語言和頁面路徑
+   */
+  static async 解析URL路徑(path: string, c: Context): Promise<{ 語言: string; 頁面路徑: string } | null> {
+    try {
+      await info('PageService', `解析URL路徑: ${path}`);
+      
+      // 1. 取得支援的語言列表
+      const 支援語言 = await languageService.取得支援語言(c);
+      
+      // 2. 檢查是否是語言前綴格式
+      const match = path.match(/^\/([a-z]{2}(?:-[a-z]{2})?)(\/.*)?$/);
+      if (match) {
+        const [, 語言前綴, 頁面路徑部分] = match;
+        const 頁面路徑 = 頁面路徑部分 || '/'; // /en → /
+        
+        // 3. 驗證語言是否支援
+        const isSupported = await languageService.檢查語言支援(c, 語言前綴);
+        if (isSupported) {
+          await info('PageService', `語言前綴解析成功: ${語言前綴} → ${頁面路徑}`);
+          return { 語言: 語言前綴, 頁面路徑 };
+        } else {
+          await info('PageService', `語言不支援: ${語言前綴}`);
+          return null; // 404 - 語言不支援
+        }
+      }
+      
+      // 4. 沒有語言前綴，使用預設語言
+      const 預設語言 = 支援語言.length > 0 ? 支援語言[0] : 'zh-tw';
+      await info('PageService', `使用預設語言: ${預設語言} → ${path}`);
+      return { 語言: 預設語言, 頁面路徑: path };
+      
+    } catch (err) {
+      await error('PageService', `URL路徑解析失敗: ${err.message}`);
+      return null;
+    }
+  }
+
+  /**
    * 渲染頁面為 HTML
    */
-  static async renderPage(頁面實例: 頁面, 路由參數: Record<string, string> = {}): Promise<string> {
+  static async renderPage(頁面實例: 頁面, 路由參數: Record<string, string> = {}, c?: Context): Promise<string> {
     try {
       await info('PageService', `開始渲染頁面: ${頁面實例.路徑}`);
       
@@ -18,13 +60,13 @@ export default class PageService {
       const 處理後內容 = this.處理路徑參數(頁面實例.內容, 路由參數);
       
       // 2. 取得當前骨架的佈局設定
-      const 佈局方塊ID = await this.取得佈局方塊ID();
+      const 佈局方塊ID = await this.取得佈局方塊ID(c);
       
       // 3. 建構佈局內容，將頁面內容注入
       const 佈局內容 = await this.建構佈局內容(佈局方塊ID, 頁面實例.方塊, 處理後內容);
       
-      // 4. 渲染佈局方塊（而不是直接渲染頁面方塊）
-      const html = await this.渲染方塊(佈局方塊ID, 佈局內容);
+      // 4. 使用動態解析器渲染佈局方塊
+      const html = await 動態方塊解析器.解析(佈局方塊ID, 佈局內容, 0, c);
       
       await info('PageService', `頁面渲染完成: ${頁面實例.路徑}`);
       return html;
@@ -37,12 +79,26 @@ export default class PageService {
   /**
    * 取得當前骨架的佈局方塊ID
    */
-  private static async 取得佈局方塊ID(): Promise<string> {
+  private static async 取得佈局方塊ID(c: Context): Promise<string> {
     try {
-      // TODO: 從 API 取得當前主題的骨架設定
-      // 目前返回預設的經典佈局
       await info('PageService', '取得佈局方塊ID');
-      return '方塊:方塊:cube-網站-經典'; // ClassicLayout
+      
+      // 使用 innerAPI 取得當前主題的骨架設定
+      const app = c.get('app');
+      const 骨架回應 = await app.request('/api/v1/defaults/skeleton', {
+        headers: { 'host': c.req.header('host') || 'localhost:8000' }
+      });
+      
+      const 骨架資料 = await 骨架回應.json();
+      
+      if (骨架資料.success && 骨架資料.data?.佈局) {
+        await info('PageService', `取得佈局方塊ID: ${骨架資料.data.佈局}`);
+        return 骨架資料.data.佈局;
+      }
+      
+      // fallback 到預設值
+      await info('PageService', '使用預設佈局方塊ID');
+      return '方塊:方塊:cube-網站-經典';
     } catch (err) {
       await error('PageService', `取得佈局方塊ID失敗: ${err.message}`);
       return '方塊:方塊:容器'; // fallback
@@ -139,103 +195,6 @@ export default class PageService {
   }
 
   /**
-   * 渲染單一方塊
-   */
-  private static async 渲染方塊(方塊ID: string, 內容: any): Promise<string> {
-    try {
-      // TODO: 實作方塊載入和渲染邏輯
-      // 目前返回簡單的 HTML 結構，展示方塊和內容
-      const 內容HTML = this.渲染內容為HTML(內容);
-      
-      return `
-        <div class="page-content" data-cube="${方塊ID}">
-          <div class="cube-info">
-            <h2>方塊: ${方塊ID}</h2>
-            <div class="content-display">
-              ${內容HTML}
-            </div>
-          </div>
-        </div>
-      `;
-    } catch (err) {
-      await error('PageService', `方塊渲染失敗: ${err.message}`);
-      return `<div class="error">方塊渲染失敗: ${err.message}</div>`;
-    }
-  }
-
-  /**
-   * 將內容轉換為 HTML 展示
-   */
-  private static 渲染內容為HTML(內容: any): string {
-    if (typeof 內容 === 'string') {
-      return `<p class="text-content">${內容}</p>`;
-    }
-    
-    if (Array.isArray(內容)) {
-      return 內容.map(item => this.渲染內容為HTML(item)).join('\n');
-    }
-    
-    if (內容 && typeof 內容 === 'object') {
-      // 檢查是否是 MultilingualString
-      if (內容.en || 內容['zh-tw'] || 內容.vi) {
-        return this.渲染MultilingualString(內容);
-      }
-      
-      // 處理子方塊
-      if (內容.方塊 && 內容.內容) {
-        return this.渲染子方塊(內容);
-      }
-      
-      // 一般物件
-      let html = '<div class="content-object">\n';
-      for (const [key, value] of Object.entries(內容)) {
-        html += `  <div class="content-item">\n`;
-        html += `    <strong>${key}:</strong>\n`;
-        html += `    <div class="content-value">${this.渲染內容為HTML(value)}</div>\n`;
-        html += `  </div>\n`;
-      }
-      html += '</div>';
-      return html;
-    }
-    
-    return `<div class="content-raw">${JSON.stringify(內容)}</div>`;
-  }
-
-  /**
-   * 渲染 MultilingualString
-   */
-  private static 渲染MultilingualString(多語言字串: any): string {
-    let html = '<div class="multilingual-content">\n';
-    
-    const languages = ['en', 'zh-tw', 'vi'];
-    for (const lang of languages) {
-      if (多語言字串[lang]) {
-        html += `  <div class="lang-${lang}">\n`;
-        html += `    <span class="lang-label">[${lang}]:</span>\n`;
-        html += `    <span class="lang-text">${多語言字串[lang]}</span>\n`;
-        html += `  </div>\n`;
-      }
-    }
-    
-    html += '</div>';
-    return html;
-  }
-
-  /**
-   * 渲染子方塊
-   */
-  private static 渲染子方塊(子方塊: any): string {
-    return `
-      <div class="sub-cube" data-cube="${子方塊.方塊}">
-        <h3>子方塊: ${子方塊.方塊}</h3>
-        <div class="sub-cube-content">
-          ${this.渲染內容為HTML(子方塊.內容)}
-        </div>
-      </div>
-    `;
-  }
-
-  /**
    * 渲染錯誤頁面
    */
   private static 渲染錯誤頁面(err: Error): string {
@@ -249,66 +208,54 @@ export default class PageService {
   }
 
   /**
-   * 根據路徑查找頁面
+   * 根據路徑查找頁面（支援多語言路由）
    */
-  static async findPageByPath(path: string): Promise<頁面 | null> {
+  static async findPageByPath(path: string, c: Context): Promise<頁面 | null> {
     try {
       await info('PageService', `查找頁面: ${path}`);
       
-      // 使用內部 API 查找頁面
-      // TODO: 實作真正的 API 查詢邏輯
-      // 目前返回預設頁面進行測試
+      // 1. 解析 URL 路徑，取得語言和頁面路徑
+      const 解析結果 = await this.解析URL路徑(path, c);
+      await info('PageService', `解析結果: ${JSON.stringify(解析結果)}`);
       
-      if (path === '/' || path === '/home') {
-        const 首頁 = new 頁面({
-          路徑: '/',
-          標題: { en: 'Home', 'zh-tw': '首頁', vi: 'Trang chủ' },
-          方塊: '方塊:方塊:容器',
-          內容: {
-            direction: 'column',
-            gap: 'lg',
-            children: [
-              {
-                方塊: '方塊:方塊:卡片',
-                內容: {
-                  title: {
-                    en: 'Welcome to WebCube 2027',
-                    'zh-tw': '歡迎來到 WebCube 2027',
-                    vi: 'Chào mừng đến với WebCube 2027'
-                  },
-                  content: {
-                    en: 'A powerful, AI-driven website building platform',
-                    'zh-tw': '一個強大、AI 驅動的網站建置平台',
-                    vi: 'Một nền tảng xây dựng trang web mạnh mẽ, được điều khiển bởi AI'
-                  }
-                }
-              }
-            ]
-          },
-          狀態: 'PUBLISHED'
-        });
-        return 首頁;
+      if (!解析結果) {
+        await info('PageService', `URL路徑解析失敗: ${path}`);
+        return null; // 404 - 語言不支援
       }
       
-      if (path === '/about') {
-        const 關於頁面 = new 頁面({
-          路徑: '/about',
-          標題: { en: 'About Us', 'zh-tw': '關於我們', vi: 'Về chúng tôi' },
-          方塊: '方塊:方塊:容器',
-          內容: {
-            direction: 'column',
-            children: {
-              en: 'We are building the next generation of website creation tools.',
-              'zh-tw': '我們正在建立下一代網站創建工具。',
-              vi: 'Chúng tôi đang xây dựng các công cụ tạo trang web thế hệ tiếp theo.'
-            }
-          },
-          狀態: 'PUBLISHED'
-        });
-        return 關於頁面;
+      const { 語言, 頁面路徑 } = 解析結果;
+      await info('PageService', `解析成功 - 語言: ${語言}, 頁面路徑: ${頁面路徑}`);
+      
+      // 2. 使用 InnerAPI 從 pages API 查找頁面
+      const 頁面回應 = await InnerAPI(c, '/api/v1/pages/path');
+      
+      // 手動處理 POST 請求
+      const app = c.get('app');
+      const 頁面回應2 = await app.request('/api/v1/pages/path', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'host': c.req.header('host') || 'localhost:8000',
+          'origin': c.req.header('origin') || 'http://localhost:8000'
+        },
+        body: JSON.stringify({ path: 頁面路徑 })
+      });
+      
+      const 頁面資料 = await 頁面回應2.json();
+      await info('PageService', `API回應: ${JSON.stringify(頁面資料)}`);
+      
+      if (頁面資料.success && 頁面資料.data) {
+        await info('PageService', `成功取得頁面: ${頁面路徑}`);
+        
+        // 將 API 資料轉換為 頁面 實例
+        const 頁面實例 = new 頁面(頁面資料.data, false);
+        await info('PageService', `頁面實例建立: ${頁面實例.路徑}`);
+        return 頁面實例;
       }
       
+      await info('PageService', `找不到頁面: ${頁面路徑}`);
       return null;
+      
     } catch (err) {
       await error('PageService', `查找頁面失敗: ${err.message}`);
       return null;

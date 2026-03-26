@@ -1,6 +1,8 @@
 import { Hono } from 'hono';
 import 方塊 from '../../database/models/方塊.ts';
 import { info, error } from '../../utils/logger.ts';
+import { 三層查詢管理器 } from '../../core/three-tier-query.ts';
+import { 資料過濾器 } from '../../utils/資料過濾器.ts';
 
 const router = new Hono();
 
@@ -9,55 +11,33 @@ router.get('/', async (c) => {
   try {
     await info('Cubes API', '取得所有方塊');
     
-    // TODO: 從資料庫查詢所有方塊
-    // 目前返回預設資料進行測試
-    const cubes = [
-      {
-        id: '方塊:方塊:容器',
-        名稱: { en: 'Container', 'zh-tw': '容器', vi: 'Container' },
-        描述: { 
-          en: 'Flexible container component for layout',
-          'zh-tw': '靈活的容器元件，用於佈局',
-          vi: 'Container linh hoạt cho bố cục'
-        },
-        模式: '內建',
-        元件路徑: 'ui/Container',
-        屬性定義: {
-          children: { type: 'object', required: true },
-          direction: { type: 'string', default: 'column' },
-          padding: { type: 'string', default: 'md' }
-        }
-      },
-      {
-        id: '方塊:方塊:卡片',
-        名稱: { en: 'Card', 'zh-tw': '卡片', vi: 'Thẻ' },
-        描述: { 
-          en: 'Card component for content display',
-          'zh-tw': '卡片元件，用於內容顯示',
-          vi: 'Thành phần thẻ để hiển thị nội dung'
-        },
-        模式: '內建',
-        元件路徑: 'ui/Card',
-        屬性定義: {
-          title: { type: 'string', required: false },
-          content: { type: 'string', required: false },
-          variant: { type: 'string', default: 'default' }
-        }
-      }
-    ];
+    const limit = parseInt(c.req.query('limit') || '10');
+    const offset = parseInt(c.req.query('offset') || '0');
+    
+    const 結果 = await 三層查詢管理器.查詢列表<方塊>(c, '方塊', limit, offset);
+    
+    await info('Cubes API', `取得方塊列表: ${結果.data?.length || 0} 筆 (來源: ${結果.source})`);
+    
+    // 使用資料過濾器處理列表
+    const language = c.get('語言') || 'zh-tw';
+    const 簡化資料 = 結果.data ? await 資料過濾器.列表過濾(結果.data, language, 'simple') : [];
     
     return c.json({
-      成功: true,
-      資料: cubes,
-      來源: '預設值',
-      訊息: '方塊 API 正常運作'
+      success: 結果.success,
+      data: 簡化資料,
+      source: 結果.source,
+      pagination: {
+        limit,
+        offset,
+        total: 結果.data?.length || 0
+      }
     });
+    
   } catch (err) {
-    await error('Cubes API', `取得方塊失敗: ${err.message}`);
+    await error('Cubes API', `取得所有方塊失敗: ${err.message}`);
     return c.json({
-      成功: false,
-      錯誤: err.message,
-      來源: '錯誤'
+      success: false,
+      error: { code: 'INTERNAL_ERROR', message: '取得所有方塊失敗' }
     }, 500);
   }
 });
@@ -68,96 +48,32 @@ router.get('/:id', async (c) => {
     const id = c.req.param('id');
     await info('Cubes API', `取得方塊: ${id}`);
     
-    // TODO: 從資料庫查詢特定方塊
-    // 目前返回預設資料進行測試
-    if (id === '方塊:方塊:容器') {
-      const cube = {
-        id: '方塊:方塊:容器',
-        名稱: { en: 'Container', 'zh-tw': '容器', vi: 'Container' },
-        描述: { 
-          en: 'Flexible container component for layout and grouping',
-          'zh-tw': '靈活的容器元件，用於佈局和分組',
-          vi: 'Container linh hoạt cho bố cục và nhóm'
-        },
-        模式: '內建',
-        元件路徑: 'ui/Container',
-        屬性定義: {
-          children: {
-            type: 'object',
-            description: 'Child elements to render inside the container',
-            required: true,
-            example: '<div>Content here</div>'
-          },
-          direction: {
-            type: 'string',
-            description: 'Flex direction - controls layout orientation',
-            required: false,
-            default: 'column',
-            options: ['row', 'column', 'row-reverse', 'column-reverse'],
-            example: 'column'
-          },
-          align: {
-            type: 'string',
-            description: 'Cross-axis alignment',
-            required: false,
-            default: 'stretch',
-            options: ['start', 'center', 'end', 'stretch'],
-            example: 'center'
-          },
-          justify: {
-            type: 'string',
-            description: 'Main-axis alignment',
-            required: false,
-            default: 'start',
-            options: ['start', 'center', 'end', 'between', 'around', 'evenly'],
-            example: 'start'
-          },
-          gap: {
-            type: 'string',
-            description: 'Spacing between child elements',
-            required: false,
-            default: 'md',
-            options: ['none', 'xs', 'sm', 'md', 'lg', 'xl'],
-            example: 'md'
-          },
-          padding: {
-            type: 'string',
-            description: 'Internal spacing of the container',
-            required: false,
-            default: 'md',
-            options: ['none', 'xs', 'sm', 'md', 'lg', 'xl'],
-            example: 'md'
-          },
-          width: {
-            type: 'string',
-            description: 'Container width',
-            required: false,
-            default: 'full',
-            options: ['auto', 'full', 'fit', 'screen'],
-            example: 'full'
-          }
-        }
-      };
-      
+    const 結果 = await 三層查詢管理器.查詢單一<方塊>(c, '方塊', id);
+    
+    if (!結果.success || !結果.data) {
       return c.json({
-        成功: true,
-        資料: cube,
-        來源: '預設值',
-        訊息: '方塊資料取得成功'
-      });
+        success: false,
+        error: { code: 'NOT_FOUND', message: '方塊不存在' }
+      }, 404);
     }
     
+    await info('Cubes API', `取得方塊: ${id} (來源: ${結果.source})`);
+    
+    // 使用資料過濾器處理多國語言和安全欄位
+    const language = c.get('語言') || 'zh-tw';
+    const 回應資料 = await 資料過濾器.一般過濾(結果.data, language);
+    
     return c.json({
-      成功: false,
-      錯誤: '方塊不存在',
-      來源: '錯誤'
-    }, 404);
+      success: true,
+      data: 回應資料,
+      source: 結果.source
+    });
+    
   } catch (err) {
     await error('Cubes API', `取得方塊失敗: ${err.message}`);
     return c.json({
-      成功: false,
-      錯誤: err.message,
-      來源: '錯誤'
+      success: false,
+      error: { code: 'INTERNAL_ERROR', message: '取得方塊失敗' }
     }, 500);
   }
 });

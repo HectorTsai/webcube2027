@@ -3,6 +3,7 @@ import { Context } from 'hono';
 import { 產生樣式 } from '../../core/unocss.ts';
 import { info, error } from '../../utils/logger.ts';
 import PageService from '../pageService/index.ts';
+import { InnerAPI } from '../index.ts';
 
 // Renderer Service 處理器
 export async function 處理Renderer請求(c: Context): Promise<Response> {
@@ -37,23 +38,29 @@ export async function 處理Renderer請求(c: Context): Promise<Response> {
 // 渲染頁面
 async function 渲染頁面(c: Context, path: string): Promise<Response> {
   try {
-    // 1. 查找頁面
-    const 頁面實例 = await PageService.findPageByPath(path);
+    // 1. 查找頁面（傳遞 Context 進行語言解析）
+    const 頁面實例 = await PageService.findPageByPath(path, c);
     
     if (!頁面實例) {
       // 頁面不存在，返回 404
       return await 渲染404頁面(c, path);
     }
     
-    // 2. 解析動態路由參數
+    // 2. 將解析的語言設定到 context
+    const 解析結果 = await PageService.解析URL路徑(path, c);
+    if (解析結果) {
+      c.set('language', 解析結果.語言);
+    }
+    
+    // 3. 解析動態路由參數
     const 路由參數 = 頁面實例.路徑模式 
       ? PageService.parseRouteParams(path, 頁面實例.路徑模式)
       : {};
     
-    // 3. 渲染頁面內容
-    const 頁面內容 = await PageService.renderPage(頁面實例, 路由參數);
+    // 4. 渲染頁面內容
+    const 頁面內容 = await PageService.renderPage(頁面實例, 路由參數, c);
     
-    // 4. 生成完整 HTML
+    // 5. 生成完整 HTML
     const 完整HTML = await 生成完整HTML(c, 頁面實例, 頁面內容);
     
     return c.html(完整HTML);
@@ -68,16 +75,12 @@ async function 渲染頁面(c: Context, path: string): Promise<Response> {
 async function 生成完整HTML(c: Context, 頁面實例: any, 頁面內容: string): Promise<string> {
   // 1. 取得主題資訊
   const [預設配色回應, 預設骨架回應] = await Promise.all([
-    fetch(`http://localhost:8000/api/v1/defaults/color`, {
-      headers: { 'host': c.req.header('host') || 'localhost:8000' }
-    }),
-    fetch(`http://localhost:8000/api/v1/defaults/skeleton`, {
-      headers: { 'host': c.req.header('host') || 'localhost:8000' }
-    })
+    InnerAPI(c, '/api/v1/defaults/color'),
+    InnerAPI(c, '/api/v1/defaults/skeleton')
   ]);
   
-  const 預設配色 = await 預設配色回應.json();
-  const 預設骨架 = await 預設骨架回應.json();
+  const 預設配色 = await (await 預設配色回應).json();
+  const 預設骨架 = await (await 預設骨架回應).json();
   
   // 2. 生成 CSS
   const css = await 產生樣式('', 預設配色.資料, true);
