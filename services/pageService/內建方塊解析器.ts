@@ -4,6 +4,7 @@ import { resolve } from "https://deno.land/std@0.207.0/path/mod.ts";
 /**
  * 內建方塊解析器
  * 處理內建模式的方塊，動態載入元件並渲染
+ * 元件自己負責處理資料格式，解析器不做任何資料轉換
  */
 export default class 內建方塊解析器 {
   /**
@@ -14,121 +15,29 @@ export default class 內建方塊解析器 {
       await info('內建方塊解析器', `解析內建方塊: ${方塊定義.元件路徑}`);
       
       // 動態 import 元件
-      const 元件路徑 = resolve('.', 'components', 方塊定義.元件路徑 + '.tsx');
+      const 元件路徑 = resolve('.', 'components', ...方塊定義.元件路徑.split('/')) + '.tsx';
       const 元件模組 = await import(元件路徑);
       const 元件 = 元件模組.default;
       
       if (!元件) {
-        throw new Error(`找不到元件: ${元件路徑}`);
+        throw new Error(`找不到元件的 default export: ${方塊定義.元件路徑}`);
       }
       
-      // TODO: 實作真正的元件渲染邏輯
-      // 目前返回結構化顯示
-      return this.生成結構化顯示(方塊定義, 內容);
+      if (typeof 元件 !== 'function') {
+        throw new Error(`元件不是函數: ${方塊定義.元件路徑} (${typeof 元件})`);
+      }
+      
+      // 呼叫元件，直接傳遞內容，讓元件自己處理資料格式
+      const jsxNode = 元件(內容);
+      
+      // HonoJSX 的 JSXNode.toString() 直接返回 HTML 字串
+      const html = jsxNode.toString();
+      
+      await info('內建方塊解析器', `元件渲染成功: ${方塊定義.元件路徑} (${html.length} 字元)`);
+      return html;
     } catch (err) {
       await error('內建方塊解析器', `內建方塊解析失敗: ${err.message}`);
-      return `<div class="error">內建方塊解析失敗: ${err.message}</div>`;
+      return `<div class="error" data-cube="${方塊定義?.id || 'unknown'}">內建方塊解析失敗: ${err.message}</div>`;
     }
-  }
-  
-  /**
-   * 生成結構化顯示（開發階段）
-   */
-  private static 生成結構化顯示(方塊定義: any, 內容: any): string {
-    const 內容HTML = this.渲染內容為HTML(內容);
-    
-    return `
-      <div class="cube-display" data-cube-id="${方塊定義.id}" data-cube-mode="內建">
-        <div class="cube-header">
-          <h3>內建方塊: ${方塊定義.id}</h3>
-          <span class="component-path">${方塊定義.元件路徑 || 'N/A'}</span>
-        </div>
-        <div class="cube-content">
-          ${內容HTML}
-        </div>
-      </div>
-    `;
-  }
-  
-  /**
-   * 將內容轉換為 HTML 顯示
-   */
-  private static 渲染內容為HTML(內容: any, 已訪問: WeakSet<object> = new WeakSet()): string {
-    if (typeof 內容 === 'string') {
-      return `<p class="text-content">${內容}</p>`;
-    }
-    
-    if (Array.isArray(內容)) {
-      return 內容.map(item => this.渲染內容為HTML(item, 已訪問)).join('\n');
-    }
-    
-    if (內容 && typeof 內容 === 'object') {
-      // 檢查循環引用
-      if (已訪問.has(內容)) {
-        return '<div class="circular-reference">[循環引用]</div>';
-      }
-      已訪問.add(內容);
-      
-      // 檢查是否是 MultilingualString
-      if (內容.en || 內容['zh-tw'] || 內容.vi) {
-        return this.渲染MultilingualString(內容);
-      }
-      
-      // 處理子方塊
-      if (內容.方塊 && 內容.內容) {
-        return this.渲染子方塊(內容);
-      }
-      
-      // 一般物件 - 限制深度
-      let html = '<div class="content-object">\n';
-      const entries = Object.entries(內容).slice(0, 10); // 限制最多 10 個屬性
-      for (const [key, value] of entries) {
-        html += `  <div class="content-item">\n`;
-        html += `    <strong>${key}:</strong>\n`;
-        html += `    <div class="content-value">${this.渲染內容為HTML(value, 已訪問)}</div>\n`;
-        html += `  </div>\n`;
-      }
-      if (Object.keys(內容).length > 10) {
-        html += `  <div class="content-item">... 還有 ${Object.keys(內容).length - 10} 個屬性</div>\n`;
-      }
-      html += '</div>';
-      return html;
-    }
-    
-    return `<div class="content-raw">${JSON.stringify(內容)}</div>`;
-  }
-  
-  /**
-   * 渲染 MultilingualString
-   */
-  private static 渲染MultilingualString(多語言字串: any): string {
-    let html = '<div class="multilingual-content">\n';
-    
-    const languages = ['en', 'zh-tw', 'vi'];
-    for (const lang of languages) {
-      if (多語言字串[lang]) {
-        html += `  <div class="lang-${lang}">\n`;
-        html += `    <span class="lang-label">[${lang}]:</span>\n`;
-        html += `    <span class="lang-text">${多語言字串[lang]}</span>\n`;
-        html += `  </div>\n`;
-      }
-    }
-    
-    html += '</div>';
-    return html;
-  }
-  
-  /**
-   * 渲染子方塊
-   */
-  private static 渲染子方塊(子方塊: any): string {
-    return `
-      <div class="sub-cube" data-cube="${子方塊.方塊}">
-        <h4>子方塊: ${子方塊.方塊}</h4>
-        <div class="sub-cube-content">
-          ${this.渲染內容為HTML(子方塊.內容)}
-        </div>
-      </div>
-    `;
   }
 }
