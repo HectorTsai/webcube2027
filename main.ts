@@ -11,8 +11,7 @@ import { 語言解析器 } from './middleware/language-resolver.ts';
 import { 三層查詢管理器 } from './core/three-tier-query.ts';
 import 骨架 from './database/models/骨架.ts';
 import 配色 from './database/models/配色.ts';
-import 頁面API from './services/apiService/pages.ts';
-import 方塊API from './services/apiService/cubes.ts';
+// API 透過動態路由分發器處理，無需直接導入
 
 const app = new Hono();
 
@@ -31,9 +30,7 @@ app.use('*', 資訊載入器);
 // 全域中間件：語言解析器
 app.use('*', 語言解析器);
 
-// API 路由
-app.route('/api/v1/pages', 頁面API);
-app.route('/api/v1/cubes', 方塊API);
+// API 路由由動態路由分發器處理
 
 // 測試頁面 - 驗證 UnoCSS 整合
 app.get('/test-unocss', async (c) => {
@@ -107,7 +104,7 @@ app.get('/test-unocss', async (c) => {
 });
 
 // 動態路由分發器 - 第三階段核心功能
-app.get('*', async (c) => {
+app.all('*', async (c) => {
   const path = c.req.path;
   
   try {

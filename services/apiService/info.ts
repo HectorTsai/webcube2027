@@ -62,3 +62,13 @@ export async function GET(c: Context, params: RouteParams): Promise<Response> {
 export async function ONE(c: Context, params: RouteParams): Promise<Response> {
   return await 處理取得統一資訊(c, params);
 }
+
+// API 模組匯出
+import { APIModule } from './index.ts';
+
+const API: APIModule = {
+  ONE: ONE,
+  GET: GET
+};
+
+export default API;

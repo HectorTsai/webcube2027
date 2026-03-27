@@ -7,37 +7,34 @@ import { 資料過濾器 } from '../../utils/資料過濾器.ts';
 import 配色 from '../../database/models/配色.ts';
 
 // 內部 API 調用輔助函數
-async function InnerAPI(c: Context, path: string): Promise<Response> {
-  const app = c.get('app');
-  return await app.request(path);
-}
+import { InnerAPI } from '../../services/index.ts';
 
-// ONE - 取得當前配色 (/api/v1/color)
-export async function ONE(c: Context, _params: RouteParams): Promise<Response> {
-  try {
-    return await 處理取得當前配色(c);
-  } catch (err) {
-    await error('配色 API', `ONE 請求失敗: ${err}`);
-    return c.json({
-      success: false,
-      error: { code: 'INTERNAL_ERROR', message: '取得當前配色失敗' }
-    }, 500);
-  }
-}
 
-// GET - 取得所有配色或指定ID配色 (/api/v1/colors, /api/v1/colors/:id)
-export async function GET(c: Context, params: RouteParams): Promise<Response> {
+// GET - 取得配色 (/api/v1/color?id=xxx 或 /api/v1/color?all=true 或 /api/v1/color)
+export async function GET(c: Context, _params: RouteParams): Promise<Response> {
   try {
-    // 如果有 ID，取得單一配色
-    if (params.id) {
-      return await 處理取得單一配色(c, params.id);
+    await info('配色 API', '處理取得配色請求');
+    
+    // 從 query string 取得參數
+    const id = c.req.query('id');
+    const allParam = c.req.query('all');
+    const decodedId = id ? decodeURIComponent(id) : undefined;
+    
+    // 如果有 all=true，取得所有配色
+    if (allParam === 'true') {
+      return await 處理取得所有配色(c);
     }
     
-    // 否則取得所有配色
-    return await 處理取得所有配色(c);
+    // 如果有 ID，取得單一配色
+    if (decodedId) {
+      return await 處理取得單一配色(c, decodedId);
+    }
     
-  } catch (err) {
-    await error('配色 API', `GET 請求失敗: ${err}`);
+    // 無參數，取得當前配色
+    return await 處理取得當前配色(c);
+    
+  } catch (錯誤) {
+    await error('配色 API', `GET 請求失敗: ${錯誤}`);
     return c.json({
       success: false,
       error: { code: 'INTERNAL_ERROR', message: '取得配色失敗' }
@@ -79,18 +76,24 @@ export async function POST(c: Context, _params: RouteParams): Promise<Response> 
   }
 }
 
-// PUT - 更新配色 (/api/v1/colors/:id)
-export async function PUT(c: Context, params: RouteParams): Promise<Response> {
+// PUT - 更新配色 (/api/v1/color?id=xxx)
+export async function PUT(c: Context, _params: RouteParams): Promise<Response> {
   try {
-    if (!params.id) {
+    // 從 query string 取得參數
+    const id = c.req.query('id');
+    const decodedId = id ? decodeURIComponent(id) : undefined;
+    
+    if (!decodedId) {
       return c.json({
         success: false,
         error: { code: 'MISSING_ID', message: '缺少配色 ID' }
       }, 400);
     }
     
+    await info('配色 API', `更新配色: ${decodedId}`);
+    
     // 先檢查配色是否存在
-    const 現有資料 = await 三層查詢管理器.查詢單一<配色>(c, '配色', params.id);
+    const 現有資料 = await 三層查詢管理器.查詢單一<配色>(c, decodedId);
     if (!現有資料.success || !現有資料.data) {
       return c.json({
         success: false,
@@ -99,7 +102,7 @@ export async function PUT(c: Context, params: RouteParams): Promise<Response> {
     }
     
     const body = await c.req.json();
-    const 結果 = await 三層查詢管理器.創建或更新<配色>(c, '配色', body, params.id);
+    const 結果 = await 三層查詢管理器.創建或更新<配色>(c, '配色', { ...body, id: decodedId });
     
     if (!結果.success || !結果.data) {
       return c.json({
@@ -113,39 +116,43 @@ export async function PUT(c: Context, params: RouteParams): Promise<Response> {
     // 使用資料過濾器處理多國語言和安全欄位
     const language = c.get('語言') || 'zh-tw';
     const 回應資料 = await 資料過濾器.一般過濾(結果.data, language);
-
+    
     return c.json({
       success: true,
       data: 回應資料,
       source: 結果.source
     });
     
-  } catch (err) {
-    await error('配色 API', `PUT 請求失敗: ${err}`);
+  } catch (錯誤) {
+    await error('配色 API', `PUT 請求失敗: ${錯誤}`);
     return c.json({
       success: false,
-      error: { code: 'INTERNAL_ERROR', message: '更新配色失敗' }
+      error: { code: 'INTERNAL_ERROR', message: '更新配色時發生錯誤' }
     }, 500);
   }
 }
 
-// DELETE - 刪除配色 (/api/v1/colors/:id)
-export async function DELETE(c: Context, params: RouteParams): Promise<Response> {
+// DELETE - 刪除配色 (/api/v1/color?id=xxx)
+export async function DELETE(c: Context, _params: RouteParams): Promise<Response> {
   try {
-    if (!params.id) {
+    // 從 query string 取得參數
+    const id = c.req.query('id');
+    const decodedId = id ? decodeURIComponent(id) : undefined;
+    
+    if (!decodedId) {
       return c.json({
         success: false,
         error: { code: 'MISSING_ID', message: '缺少配色 ID' }
       }, 400);
     }
     
-    const 結果 = await 三層查詢管理器.刪除(c, '配色', params.id);
+    const 結果 = await 三層查詢管理器.刪除(c, decodedId);
     
     if (!結果.success) {
       if (結果.error === 'DELETE_PROTECTED') {
         return c.json({
           success: false,
-          error: { code: 'DELETE_PROTECTED', message: '此配色受保護，無法刪除' }
+          error: { code: 'DELETE_PROTECTED', message: '系統預設配色無法刪除' }
         }, 403);
       }
       return c.json({
@@ -154,7 +161,7 @@ export async function DELETE(c: Context, params: RouteParams): Promise<Response>
       }, 500);
     }
     
-    await info('配色 API', `刪除配色成功: ${params.id} (來源: ${結果.source})`);
+    await info('配色 API', `刪除配色成功: ${decodedId} (來源: ${結果.source})`);
     
     return c.json({
       success: true,
@@ -162,11 +169,11 @@ export async function DELETE(c: Context, params: RouteParams): Promise<Response>
       source: 結果.source
     });
     
-  } catch (err) {
-    await error('配色 API', `DELETE 請求失敗: ${err}`);
+  } catch (錯誤) {
+    await error('配色 API', `DELETE 請求失敗: ${錯誤}`);
     return c.json({
       success: false,
-      error: { code: 'INTERNAL_ERROR', message: '刪除配色失敗' }
+      error: { code: 'INTERNAL_ERROR', message: '刪除配色時發生錯誤' }
     }, 500);
   }
 }
@@ -191,7 +198,7 @@ async function 處理取得當前配色(c: Context): Promise<Response> {
     if (資訊資料.配色) {
       await info('配色 API', `從資訊直接取得配色: ${資訊資料.配色}`);
       
-      const 配色回應 = await InnerAPI(c, `/api/v1/colors/${資訊資料.配色}`);
+      const 配色回應 = await InnerAPI(c, `/api/v1/color?id=${資訊資料.配色}`);
       const 配色結果 = await 配色回應.json();
       
       if (配色結果.success) {
@@ -207,11 +214,11 @@ async function 處理取得當前配色(c: Context): Promise<Response> {
     if (資訊資料.佈景主題) {
       await info('配色 API', `從佈景主題取得配色: ${資訊資料.佈景主題}`);
       
-      const 主題回應 = await InnerAPI(c, `/api/v1/themes/${資訊資料.佈景主題}`);
+      const 主題回應 = await InnerAPI(c, `/api/v1/theme?id=${資訊資料.佈景主題}`);
       const 主題結果 = await 主題回應.json();
       
       if (主題結果.success && 主題結果.data.配色) {
-        const 配色回應 = await InnerAPI(c, `/api/v1/colors/${主題結果.data.配色}`);
+        const 配色回應 = await InnerAPI(c, `/api/v1/color?id=${主題結果.data.配色}`);
         const 配色結果 = await 配色回應.json();
         
         if (配色結果.success) {
@@ -277,7 +284,7 @@ async function 處理取得單一配色(c: Context, id: string): Promise<Respons
   try {
     await info('配色 API', `取得配色: ${id}`);
     
-    const 結果 = await 三層查詢管理器.查詢單一<配色>(c, '配色', id);
+    const 結果 = await 三層查詢管理器.查詢單一<配色>(c, id);
     
     if (!結果.success || !結果.data) {
       return c.json({
@@ -349,7 +356,7 @@ async function 處理取得預設配色(c: Context): Promise<Response> {
     return c.json({
       success: true,
       data: 回應資料,
-      source: 結果.source
+      source: 'L0' // 預設值統一標記為 L0
     });
     
   } catch (錯誤) {
@@ -363,7 +370,6 @@ async function 處理取得預設配色(c: Context): Promise<Response> {
 
 // API 模組匯出
 const API: APIModule = {
-  ONE: ONE,
   GET: GET,
   POST: POST,
   PUT: PUT,

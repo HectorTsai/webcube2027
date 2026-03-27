@@ -7,43 +7,40 @@ import { 資料過濾器 } from '../../utils/資料過濾器.ts';
 import 佈景主題 from '../../database/models/佈景主題.ts';
 
 // 內部 API 調用輔助函數
-async function InnerAPI(c: Context, path: string): Promise<Response> {
-  const app = c.get('app');
-  return await app.request(path);
-}
+import { InnerAPI } from '../../services/index.ts';
 
-// ONE - 取得當前佈景主題 (/api/v1/theme)
-export async function ONE(c: Context, _params: RouteParams): Promise<Response> {
+// GET - 取得佈景主題 (/api/v1/theme?id=xxx 或 /api/v1/theme?all=true 或 /api/v1/theme)
+export async function GET(c: Context, _params: RouteParams): Promise<Response> {
   try {
-    return await 處理取得當前佈景主題(c);
-  } catch (err) {
-    await error('佈景主題 API', `ONE 請求失敗: ${err}`);
-    return c.json({
-      success: false,
-      error: { code: 'INTERNAL_ERROR', message: '取得當前佈景主題失敗' }
-    }, 500);
-  }
-}
-
-// GET - 取得所有佈景主題或指定ID佈景主題 (/api/v1/themes, /api/v1/themes/:id)
-export async function GET(c: Context, params: RouteParams): Promise<Response> {
-  try {
-    // 如果有 ID，取得單一佈景主題
-    if (params.id) {
-      return await 處理取得單一佈景主題(c, params.id);
+    await info('佈景主題 API', '處理取得佈景主題請求');
+    
+    // 從 query string 取得參數
+    const id = c.req.query('id');
+    const allParam = c.req.query('all');
+    const decodedId = id ? decodeURIComponent(id) : undefined;
+    
+    // 如果有 all=true，取得所有佈景主題
+    if (allParam === 'true') {
+      return await 處理取得所有佈景主題(c);
     }
     
-    // 否則取得所有佈景主題
-    return await 處理取得所有佈景主題(c);
+    // 如果有 ID，取得單一佈景主題
+    if (decodedId) {
+      return await 處理取得單一佈景主題(c, decodedId);
+    }
     
-  } catch (err) {
-    await error('佈景主題 API', `GET 請求失敗: ${err}`);
+    // 無參數，取得當前佈景主題
+    return await 處理取得當前佈景主題(c);
+    
+  } catch (錯誤) {
+    await error('佈景主題 API', `GET 請求失敗: ${錯誤}`);
     return c.json({
       success: false,
       error: { code: 'INTERNAL_ERROR', message: '取得佈景主題失敗' }
     }, 500);
   }
 }
+
 
 // POST - 創建新佈景主題 (/api/v1/themes)
 export async function POST(c: Context, _params: RouteParams): Promise<Response> {
@@ -79,10 +76,14 @@ export async function POST(c: Context, _params: RouteParams): Promise<Response> 
   }
 }
 
-// PUT - 更新佈景主題 (/api/v1/themes/:id)
-export async function PUT(c: Context, params: RouteParams): Promise<Response> {
+// PUT - 更新佈景主題 (/api/v1/theme?id=xxx)
+export async function PUT(c: Context, _params: RouteParams): Promise<Response> {
   try {
-    if (!params.id) {
+    // 從 query string 取得參數
+    const id = c.req.query('id');
+    const decodedId = id ? decodeURIComponent(id) : undefined;
+    
+    if (!decodedId) {
       return c.json({
         success: false,
         error: { code: 'MISSING_ID', message: '缺少佈景主題 ID' }
@@ -90,7 +91,7 @@ export async function PUT(c: Context, params: RouteParams): Promise<Response> {
     }
     
     // 先檢查佈景主題是否存在
-    const 現有資料 = await 三層查詢管理器.查詢單一<佈景主題>(c, '佈景主題', params.id);
+    const 現有資料 = await 三層查詢管理器.查詢單一<佈景主題>(c, decodedId);
     if (!現有資料.success || !現有資料.data) {
       return c.json({
         success: false,
@@ -99,7 +100,7 @@ export async function PUT(c: Context, params: RouteParams): Promise<Response> {
     }
     
     const body = await c.req.json();
-    const 結果 = await 三層查詢管理器.創建或更新<佈景主題>(c, '佈景主題', body, params.id);
+    const 結果 = await 三層查詢管理器.創建或更新<佈景主題>(c, '佈景主題', { ...body, id: decodedId });
     
     if (!結果.success || !結果.data) {
       return c.json({
@@ -139,7 +140,7 @@ export async function DELETE(c: Context, params: RouteParams): Promise<Response>
       }, 400);
     }
     
-    const 結果 = await 三層查詢管理器.刪除(c, '佈景主題', params.id);
+    const 結果 = await 三層查詢管理器.刪除(c, params.id);
     
     if (!結果.success) {
       if (結果.error === 'DELETE_PROTECTED') {
@@ -191,7 +192,7 @@ async function 處理取得當前佈景主題(c: Context): Promise<Response> {
     if (資訊資料.佈景主題) {
       await info('佈景主題 API', `從資訊直接取得佈景主題: ${資訊資料.佈景主題}`);
       
-      const 主題回應 = await InnerAPI(c, `/api/v1/themes/${資訊資料.佈景主題}`);
+      const 主題回應 = await InnerAPI(c, `/api/v1/theme?id=${資訊資料.佈景主題}`);
       const 主題結果 = await 主題回應.json();
       
       if (主題結果.success) {
@@ -266,7 +267,7 @@ async function 處理取得單一佈景主題(c: Context, id: string): Promise<R
   try {
     await info('佈景主題 API', `取得佈景主題: ${id}`);
     
-    const 結果 = await 三層查詢管理器.查詢單一<佈景主題>(c, '佈景主題', id);
+    const 結果 = await 三層查詢管理器.查詢單一<佈景主題>(c, id);
     
     if (!結果.success || !結果.data) {
       return c.json({
@@ -321,7 +322,7 @@ async function 處理取得預設佈景主題(c: Context): Promise<Response> {
     return c.json({
       success: true,
       data: 回應資料,
-      source: 結果.source
+      source: 'L0' // 預設值統一標記為 L0
     });
     
   } catch (錯誤) {
@@ -335,7 +336,6 @@ async function 處理取得預設佈景主題(c: Context): Promise<Response> {
 
 // API 模組匯出
 const API: APIModule = {
-  ONE: ONE,
   GET: GET,
   POST: POST,
   PUT: PUT,

@@ -171,3 +171,15 @@ export async function DELETE(c: Context, _params: RouteParams): Promise<Response
     }, 500);
   }
 }
+
+// API 模組匯出
+import { APIModule } from '../index.ts';
+
+const API: APIModule = {
+  GET: GET,
+  POST: POST,
+  PUT: PUT,
+  DELETE: DELETE
+};
+
+export default API;

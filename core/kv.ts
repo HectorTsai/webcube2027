@@ -39,6 +39,8 @@ export class KV資料庫 {
         await this.初始化Model('骨架');
         await this.初始化Model('配色');
         await this.初始化Model('佈景主題');
+        await this.初始化Model('方塊');
+        await this.初始化Model('頁面');
         this.已初始化 = true;
       }
       return this.kvInstance;

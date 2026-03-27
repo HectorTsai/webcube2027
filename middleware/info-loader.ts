@@ -17,7 +17,6 @@ export async function 資訊載入器(c: Context, next: Next) {
   try {
     const 系統資訊結果 = await 三層查詢管理器.查詢單一<系統資訊>(
       c, 
-      '系統資訊', 
       '系統資訊:系統資訊:預設'
     );
     

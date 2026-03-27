@@ -3,23 +3,37 @@ import { Context } from 'hono';
 import { info, error } from '../utils/logger.ts';
 
 /**
+ * 自動編碼 URL 參數
+ */
+function encodeUrlParams(url: string): string {
+  const [path, queryString] = url.split('?');
+  
+  if (!queryString) return url;
+  
+  return `${path}?${new URLSearchParams(queryString).toString()}`;
+}
+
+/**
  * InnerAPI 函數用於內部 API 調用
- * 統一所有 Service 的內部 API 呼叫邏輯
+ * 統一所有 Service 的內部 API 呼叫邏輯，自動編碼參數
  */
 export async function InnerAPI(c: Context, apiPath: string): Promise<Response> {
   try {
+    // 自動編碼參數
+    const encodedPath = encodeUrlParams(apiPath);
+    
     const app = c.get('app');
     if (app && typeof app.request === 'function') {
-      await info('InnerAPI', `呼叫內部API: ${apiPath}`);
+      await info('InnerAPI', `呼叫內部API: ${apiPath} -> ${encodedPath}`);
       
-      const response = await app.request(apiPath, {
+      const response = await app.request(encodedPath, {
         headers: {
           'host': c.req.header('host') || 'localhost:8000',
           'origin': c.req.header('origin') || 'http://localhost:8000'
         }
       });
       
-      await info('InnerAPI', `內部API成功: ${apiPath} (${response.status})`);
+      await info('InnerAPI', `內部API成功: ${encodedPath} (${response.status})`);
       return response;
     } else {
       throw new Error('App instance not available for InnerAPI');
