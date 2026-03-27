@@ -18,11 +18,11 @@ export default function Section({
   const baseClasses = "w-full";
   
   const backgroundClasses = {
-    white: "bg-white",
-    gray: "bg-gray-50",
-    primary: "bg-blue-50",
-    secondary: "bg-gray-100",
-    gradient: "bg-gradient-to-br from-blue-50 to-indigo-100",
+    white: "bg-base-100",
+    gray: "bg-base-200",
+    primary: "bg-primary",
+    secondary: "bg-secondary",
+    gradient: "bg-gradient-to-br from-primary to-secondary",
   };
   
   const paddingClasses = {

@@ -30,17 +30,37 @@ export async function 處理API請求(c: Context): Promise<Response> {
     const pathParts = path.replace('/api/v1/', '').split('/');
     const resourceName = pathParts[0];
     
-    // 動態載入模組 - 直接對應檔案路徑
+    // 動態載入模組 - 智能回退機制
     let apiModule: APIModule | null = null;
+    let modulePath: string;
+    let routeParams: RouteParams = {};
     
-    try {
-      const modulePath = `./${pathParts.join('/')}.ts`;
-      const module = await import(modulePath);
-      apiModule = module.default;
+    // 嘗試完整路徑到單一模組的回退
+    const fallbackAttempts = [
+      { path: pathParts.join('/'), params: {} },                    // ./xxx/yyy/zzz.ts
+      { path: pathParts.slice(0, -1).join('/'), params: { id: pathParts[pathParts.length - 1] } }, // ./xxx/yyy.ts + {id: 'zzz'}
+      { path: pathParts.slice(0, -2).join('/'), params: { id: pathParts.slice(-2).join('/') } }, // ./xxx.ts + {id: 'yyy/zzz'}
+    ];
+    
+    for (const attempt of fallbackAttempts) {
+      if (!attempt.path) continue; // 避免空路徑
       
-      await info('API Service', `成功載入模組: ${modulePath}`);
-    } catch (moduleError) {
-      await error('API Service', `載入模組失敗: ${pathParts.join('/')} - ${moduleError}`);
+      try {
+        modulePath = `./${attempt.path}.ts`;
+        const module = await import(modulePath);
+        apiModule = module.default;
+        routeParams = attempt.params;
+        
+        await info('API Service', `成功載入模組: ${modulePath}, 參數: ${JSON.stringify(routeParams)}`);
+        break; // 成功載入，跳出迴圈
+      } catch (moduleError) {
+        await info('API Service', `嘗試載入失敗: ${attempt.path} - ${moduleError}`);
+        // 繼續下一個嘗試
+      }
+    }
+    
+    if (!apiModule) {
+      await error('API Service', `所有回退嘗試都失敗: ${pathParts.join('/')}`);
       
       return c.json({
         success: false,
@@ -80,8 +100,9 @@ export async function 處理API請求(c: Context): Promise<Response> {
       }, 405);
     }
     
-    // 執行處理函數（不傳遞路徑參數，所有參數從 query string 取得）
-    const response = await handler(c, {});
+    // 執行處理函數（使用智能回退機制找到的參數）
+    
+    const response = await handler(c, routeParams);
     await info('API Service', `API 請求成功: ${method} ${path}`);
     
     return response;

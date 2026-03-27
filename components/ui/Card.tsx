@@ -38,16 +38,16 @@ export default function Card({
   };
 
   const shadowClasses = {
-    none: "shadow-none",
+    none: "",
     sm: "shadow-sm", 
     md: "shadow-md",
     lg: "shadow-lg"
   };
 
-  const finalShadow = shadow ? shadowClasses[shadow as keyof typeof shadowClasses] || "shadow-md" : "shadow-md";
+  const finalShadow = shadow ? (shadowClasses[shadow as unknown as keyof typeof shadowClasses] || "shadow-md") : "shadow-md";
 
   return (
-    <div class={`${baseClasses} ${variantClasses[variant]} ${paddingClasses[padding]} ${shadowClasses}`}>
+    <div class={`${baseClasses} ${variantClasses[variant]} ${paddingClasses[padding]} ${finalShadow}`}>
       {image && (
         <div class="w-full h-48 bg-base-200 mb-md">
           <img 

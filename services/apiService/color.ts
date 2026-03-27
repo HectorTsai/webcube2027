@@ -10,12 +10,22 @@ import 配色 from '../../database/models/配色.ts';
 import { InnerAPI } from '../../services/index.ts';
 
 
-// GET - 取得配色 (/api/v1/color?id=xxx 或 /api/v1/color?all=true 或 /api/v1/color)
-export async function GET(c: Context, _params: RouteParams): Promise<Response> {
+// GET - 取得配色 (/api/v1/color?id=xxx 或 /api/v1/color?all=true 或 /api/v1/color/all 或 /api/v1/color)
+export async function GET(c: Context, params: RouteParams): Promise<Response> {
   try {
     await info('配色 API', '處理取得配色請求');
     
-    // 從 query string 取得參數
+    // 優先檢查路徑參數 (智能回退機制)
+    if (params.id === 'all') {
+      return await 處理取得所有配色(c);
+    }
+    
+    // 如果有路徑參數且不是 'all'，當作 ID 處理
+    if (params.id) {
+      return await 處理取得單一配色(c, params.id);
+    }
+    
+    // 從 query string 取得參數 (向後兼容)
     const id = c.req.query('id');
     const allParam = c.req.query('all');
     const decodedId = id ? decodeURIComponent(id) : undefined;
@@ -198,14 +208,14 @@ async function 處理取得當前配色(c: Context): Promise<Response> {
     if (資訊資料.配色) {
       await info('配色 API', `從資訊直接取得配色: ${資訊資料.配色}`);
       
-      const 配色回應 = await InnerAPI(c, `/api/v1/color?id=${資訊資料.配色}`);
-      const 配色結果 = await 配色回應.json();
+      // 直接使用三層查詢管理器，避免循環調用
+      const 結果 = await 三層查詢管理器.查詢單一<配色>(c, 資訊資料.配色);
       
-      if (配色結果.success) {
+      if (結果.success && 結果.data) {
         return c.json({
           success: true,
-          data: 配色結果.data,
-          source: 'info'
+          data: 結果.data,
+          source: 結果.source
         });
       }
     }
@@ -218,14 +228,14 @@ async function 處理取得當前配色(c: Context): Promise<Response> {
       const 主題結果 = await 主題回應.json();
       
       if (主題結果.success && 主題結果.data.配色) {
-        const 配色回應 = await InnerAPI(c, `/api/v1/color?id=${主題結果.data.配色}`);
-        const 配色結果 = await 配色回應.json();
+        // 直接使用三層查詢管理器，避免循環調用
+        const 結果 = await 三層查詢管理器.查詢單一<配色>(c, 主題結果.data.配色);
         
-        if (配色結果.success) {
+        if (結果.success && 結果.data) {
           return c.json({
             success: true,
-            data: 配色結果.data,
-            source: 'theme',
+            data: 結果.data,
+            source: 結果.source,
             themeId: 資訊資料.佈景主題
           });
         }

@@ -50,7 +50,7 @@ export default function Container({
   };
   
   const gapClasses = {
-    none: "gap-0",
+    none: "",
     xs: "gap-xs",
     sm: "gap-sm",
     md: "gap-md",

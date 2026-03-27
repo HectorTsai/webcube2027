@@ -54,13 +54,14 @@ export default function ClassicLayout({ children }) {
 ### 取得可用的 CSS Classes
 ```tsx
 // 從 API 取得最新的 UnoCSS preset 列表
-const response = await fetch('/api/styles/available');
-const { classes, colors, spacing, typography } = await response.json();
+const response = await fetch('/api/v1/unocss/classes');
+const { data } = await response.json();
+const { customColors, semanticColors, statusColors, customSpacing, customComponents } = data.data;
 
 // 使用可用的 classes
-<div className={classes.container}>
-  <h1 className={typography.h1}>標題</h1>
-  <button className={`${colors.primary} ${spacing.padding.lg}`}>
+<div className="container">
+  <h1 className="text-2xl font-bold">標題</h1>
+  <button className="btn btn-primary p-lg">
     按鈕
   </button>
 </div>
@@ -105,26 +106,31 @@ const { classes, colors, spacing, typography } = await response.json();
 {
   "success": true,
   "data": {
-    "classes": {
-      "container": "container mx-auto",
-      "btn": "btn",
-      "btn-primary": "btn-primary bg-blue-500 hover:bg-blue-600"
-    },
-    "colors": {
-      "primary": "text-blue-500",
-      "secondary": "text-gray-500"
-    },
-    "spacing": {
-      "padding": {
-        "sm": "p-2",
-        "md": "p-4",
-        "lg": "p-6"
+    "message": "WebCube 自訂 UnoCSS classes",
+    "data": {
+      "description": "WebCube 自訂 UnoCSS preset 擴展",
+      "customColors": {
+        "description": "自訂顏色系統 - 基於 oklch 色彩空間",
+        "classes": ["bg-primary", "bg-secondary", "text-primary-content", ...]
+      },
+      "semanticColors": {
+        "description": "語意化顏色 - 用於佈局和內容",
+        "classes": ["bg-base-100", "bg-base-200", "text-base-content", ...]
+      },
+      "customSpacing": {
+        "description": "自訂間距系統 - 語意化的間距命名",
+        "classes": ["p-xs", "p-sm", "p-md", "gap-xs", "gap-sm", ...]
+      },
+      "customComponents": {
+        "description": "元件快捷樣式 - 預定義的元件組合樣式",
+        "classes": ["btn", "btn-primary", "card", "input", ...]
       }
     },
-    "typography": {
-      "h1": "text-4xl font-bold",
-      "h2": "text-3xl font-bold"
-    }
+    "usage": "在標準 TailwindCSS v4 基礎上使用這些自訂 classes",
+    "examples": [
+      "class='btn btn-primary p-md gap-sm'",
+      "class='card bg-base-100 text-base-content'"
+    ]
   }
 }
 ```

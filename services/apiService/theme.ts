@@ -9,24 +9,19 @@ import 佈景主題 from '../../database/models/佈景主題.ts';
 // 內部 API 調用輔助函數
 import { InnerAPI } from '../../services/index.ts';
 
-// GET - 取得佈景主題 (/api/v1/theme?id=xxx 或 /api/v1/theme?all=true 或 /api/v1/theme)
-export async function GET(c: Context, _params: RouteParams): Promise<Response> {
+// GET - 取得佈景主題 (/api/v1/theme/all 或 /api/v1/theme/id 或 /api/v1/theme)
+export async function GET(c: Context, params: RouteParams): Promise<Response> {
   try {
     await info('佈景主題 API', '處理取得佈景主題請求');
     
-    // 從 query string 取得參數
-    const id = c.req.query('id');
-    const allParam = c.req.query('all');
-    const decodedId = id ? decodeURIComponent(id) : undefined;
-    
-    // 如果有 all=true，取得所有佈景主題
-    if (allParam === 'true') {
+    // 優先檢查路徑參數 (智能回退機制)
+    if (params.id === 'all') {
       return await 處理取得所有佈景主題(c);
     }
     
-    // 如果有 ID，取得單一佈景主題
-    if (decodedId) {
-      return await 處理取得單一佈景主題(c, decodedId);
+    // 如果有路徑參數且不是 'all'，當作 ID 處理
+    if (params.id) {
+      return await 處理取得單一佈景主題(c, params.id);
     }
     
     // 無參數，取得當前佈景主題
@@ -192,14 +187,14 @@ async function 處理取得當前佈景主題(c: Context): Promise<Response> {
     if (資訊資料.佈景主題) {
       await info('佈景主題 API', `從資訊直接取得佈景主題: ${資訊資料.佈景主題}`);
       
-      const 主題回應 = await InnerAPI(c, `/api/v1/theme?id=${資訊資料.佈景主題}`);
-      const 主題結果 = await 主題回應.json();
+      // 直接使用三層查詢管理器，避免循環調用
+      const 結果 = await 三層查詢管理器.查詢單一<佈景主題>(c, 資訊資料.佈景主題);
       
-      if (主題結果.success) {
+      if (結果.success && 結果.data) {
         return c.json({
           success: true,
-          data: 主題結果.data,
-          source: 'info'
+          data: 結果.data,
+          source: 結果.source
         });
       }
     }

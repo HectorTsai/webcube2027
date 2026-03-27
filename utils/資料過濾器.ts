@@ -84,6 +84,11 @@ export class 資料過濾器 {
         ? await (data.描述 as MultilingualSmartContent).toStringAsync(language)
         : data.描述;
     }
+    
+    // 如果有路徑，加入路徑
+    if ('路徑' in data && data.路徑) {
+      結果.路徑 = data.路徑;
+    }
 
     return 結果;
   }

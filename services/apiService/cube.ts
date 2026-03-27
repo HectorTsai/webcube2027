@@ -9,27 +9,22 @@ import 方塊 from '../../database/models/方塊.ts';
 // 內部 API 調用輔助函數
 import { InnerAPI } from '../../services/index.ts';
 
-// GET - 取得方塊 (/api/v1/cube?id=xxx 或 /api/v1/cube?all=true 或 /api/v1/cube)
-export async function GET(c: Context, _params: RouteParams): Promise<Response> {
+// GET - 取得方塊 (/api/v1/cube/all 或 /api/v1/cube/id 或 /api/v1/cube)
+export async function GET(c: Context, params: RouteParams): Promise<Response> {
   try {
     await info('方塊 API', '處理取得方塊請求');
     
-    // 從 query string 取得參數
-    const id = c.req.query('id');
-    const allParam = c.req.query('all');
-    const decodedId = id ? decodeURIComponent(id) : undefined;
-    
-    // 如果有 all=true，取得所有方塊
-    if (allParam === 'true') {
+    // 優先檢查路徑參數 (智能回退機制)
+    if (params.id === 'all') {
       return await 處理取得所有方塊(c);
     }
     
-    // 如果有 ID，取得單一方塊
-    if (decodedId) {
-      return await 處理取得單一方塊(c, decodedId);
+    // 如果有路徑參數且不是 'all'，當作 ID 處理
+    if (params.id) {
+      return await 處理取得單一方塊(c, params.id);
     }
     
-    // 無參數，取得當前方塊（預設方塊）
+    // 無參數，取得當前方塊
     return await 處理取得當前方塊(c);
     
   } catch (錯誤) {
@@ -245,13 +240,9 @@ async function 處理取得所有方塊(c: Context): Promise<Response> {
     
     await info('方塊 API', `取得方塊列表: ${結果.data?.length || 0} 筆 (來源: ${結果.source})`);
     
-    let 過濾資料 = 結果.data || [];
-    
-    // 使用資料過濾器處理多國語言和安全欄位
+    // 使用資料過濾器處理多國語言和安全欄位 - 精簡列表
     const language = c.get('語言') || 'zh-tw';
-    過濾資料 = await Promise.all(
-      過濾資料.map(item => 資料過濾器.一般過濾(item, language))
-    ) as any[];
+    const 過濾資料 = 結果.data ? await 資料過濾器.列表過濾(結果.data, language, 'simple') : [];
 
     return c.json({
       success: true,

@@ -9,24 +9,19 @@ import 骨架 from '../../database/models/骨架.ts';
 // 內部 API 調用輔助函數
 import { InnerAPI } from '../../services/index.ts';
 
-// GET - 取得骨架 (/api/v1/skeleton?id=xxx 或 /api/v1/skeleton?all=true 或 /api/v1/skeleton)
-export async function GET(c: Context, _params: RouteParams): Promise<Response> {
+// GET - 取得骨架 (/api/v1/skeleton/all 或 /api/v1/skeleton/id 或 /api/v1/skeleton)
+export async function GET(c: Context, params: RouteParams): Promise<Response> {
   try {
     await info('骨架 API', '處理取得骨架請求');
     
-    // 從 query string 取得參數
-    const id = c.req.query('id');
-    const allParam = c.req.query('all');
-    const decodedId = id ? decodeURIComponent(id) : undefined;
-    
-    // 如果有 all=true，取得所有骨架
-    if (allParam === 'true') {
+    // 優先檢查路徑參數 (智能回退機制)
+    if (params.id === 'all') {
       return await 處理取得所有骨架(c);
     }
     
-    // 如果有 ID，取得單一骨架
-    if (decodedId) {
-      return await 處理取得單一骨架(c, decodedId);
+    // 如果有路徑參數且不是 'all'，當作 ID 處理
+    if (params.id) {
+      return await 處理取得單一骨架(c, params.id);
     }
     
     // 無參數，取得當前骨架
@@ -192,14 +187,14 @@ async function 處理取得當前骨架(c: Context): Promise<Response> {
     if (資訊資料.骨架) {
       await info('骨架 API', `從資訊直接取得骨架: ${資訊資料.骨架}`);
       
-      const 骨架回應 = await InnerAPI(c, `/api/v1/skeleton?id=${資訊資料.骨架}`);
-      const 骨架結果 = await 骨架回應.json();
+      // 直接使用三層查詢管理器，避免循環調用
+      const 結果 = await 三層查詢管理器.查詢單一<骨架>(c, 資訊資料.骨架);
       
-      if (骨架結果.success) {
+      if (結果.success && 結果.data) {
         return c.json({
           success: true,
-          data: 骨架結果.data,
-          source: 'info'
+          data: 結果.data,
+          source: 結果.source
         });
       }
     }
@@ -212,15 +207,14 @@ async function 處理取得當前骨架(c: Context): Promise<Response> {
       const 主題結果 = await 主題回應.json();
       
       if (主題結果.success && 主題結果.data.骨架) {
-        const 骨架回應 = await InnerAPI(c, `/api/v1/skeleton?id=${主題結果.data.骨架}`);
-        const 骨架結果 = await 骨架回應.json();
+        // 直接使用三層查詢管理器，避免循環調用
+        const 結果 = await 三層查詢管理器.查詢單一<骨架>(c, 主題結果.data.骨架);
         
-        if (骨架結果.success) {
+        if (結果.success && 結果.data) {
           return c.json({
             success: true,
-            data: 骨架結果.data,
-            source: 'theme',
-            themeId: 資訊資料.佈景主題
+            data: 結果.data,
+            source: 結果.source
           });
         }
       }

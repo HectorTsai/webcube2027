@@ -6,12 +6,22 @@ import { 三層查詢管理器 } from '../../core/three-tier-query.ts';
 import { 資料過濾器 } from '../../utils/資料過濾器.ts';
 import 頁面 from '../../database/models/頁面.ts';
 
-// GET - 取得頁面 (/api/v1/page?id=xxx 或 /api/v1/page?route=/en/home)
-export async function GET(c: Context, _params: RouteParams): Promise<Response> {
+// GET - 取得頁面 (/api/v1/page?id=xxx 或 /api/v1/page?route=/en/home 或 /api/v1/page/all)
+export async function GET(c: Context, params: RouteParams): Promise<Response> {
   try {
     await info('頁面 API', '處理取得頁面請求');
     
-    // 從 query string 取得參數
+    // 優先檢查路徑參數 (智能回退機制)
+    if (params.id === 'all') {
+      return await 處理取得所有頁面(c);
+    }
+    
+    // 如果有路徑參數且不是 'all'，當作 ID 處理
+    if (params.id) {
+      return await 處理取得單一頁面(c, params.id);
+    }
+    
+    // 從 query string 取得參數 (向後兼容)
     const id = c.req.query('id');
     const route = c.req.query('route');
     const decodedId = id ? decodeURIComponent(id) : undefined;
@@ -278,6 +288,42 @@ async function 處理取得單一頁面(c: Context, id: string): Promise<Respons
     return c.json({
       success: false,
       error: { code: 'INTERNAL_ERROR', message: '取得單一頁面失敗' }
+    }, 500);
+  }
+}
+
+// 處理取得所有頁面
+async function 處理取得所有頁面(c: Context): Promise<Response> {
+  try {
+    await info('頁面 API', '取得所有頁面');
+    
+    const limit = parseInt(c.req.query('limit') || '10');
+    const offset = parseInt(c.req.query('offset') || '0');
+    
+    const 結果 = await 三層查詢管理器.查詢列表<頁面>(c, '頁面', limit, offset);
+    
+    await info('頁面 API', `取得頁面列表: ${結果.data?.length || 0} 筆 (來源: ${結果.source})`);
+    
+    // 使用資料過濾器處理多國語言和安全欄位 - 精簡列表
+    const language = c.get('語言') || 'zh-tw';
+    const 過濾資料 = 結果.data ? await 資料過濾器.列表過濾(結果.data, language, 'simple') : [];
+    
+    return c.json({
+      success: 結果.success,
+      data: 過濾資料,
+      source: 結果.source,
+      pagination: {
+        limit,
+        offset,
+        total: 過濾資料.length
+      }
+    });
+    
+  } catch (錯誤) {
+    await error('頁面 API', `取得所有頁面失敗: ${錯誤}`);
+    return c.json({
+      success: false,
+      error: { code: 'INTERNAL_ERROR', message: '取得所有頁面失敗' }
     }, 500);
   }
 }

@@ -148,11 +148,13 @@ interface ImageProps {
 ### 取得可用的 CSS Classes
 ```tsx
 // AI 生成組件時，先取得可用的 classes
-const styles = await fetch('/api/styles/available').then(r => r.json());
+const response = await fetch('/api/v1/unocss/classes');
+const { data } = await response.json();
+const { customComponents } = data.data;
 
 // 使用正確的 preset classes
-const buttonClasses = `${styles.classes.btn} ${styles.classes.btnPrimary}`;
-const iconSizes = styles.spacing.sizing; // xs, sm, md, lg
+const buttonClasses = `${customComponents.classes.btn} ${customComponents.classes.btnPrimary}`;
+const customSpacing = customComponents.customSpacing; // xs, sm, md, lg
 ```
 
 ### UI 組件的 CSS 規範

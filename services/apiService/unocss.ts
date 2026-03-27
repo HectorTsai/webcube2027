@@ -1,11 +1,14 @@
+// UnoCSS API 模組 - 統一處理 /api/v1/unocss/* 路由
 import { Context } from 'hono';
+import { APIModule, RouteParams } from './index.ts';
+import { info, error } from '../../utils/logger.ts';
 import { 回應成功 } from '../../utils/response.ts';
 
 /**
  * 取得自訂 UnoCSS classes 列表
  * 提供給 AI 使用的自訂 class 列表（不包含標準 TailwindCSS）
  */
-export function 處理取得自訂Classes(c: Context) {
+function 處理取得自訂Classes(c: Context) {
   try {
     const 自訂Classes = {
       description: "WebCube 自訂 UnoCSS preset 擴展 - 除了標準 TailwindCSS v4 之外的自訂 classes",
@@ -120,7 +123,7 @@ export function 處理取得自訂Classes(c: Context) {
 /**
  * 取得主題資訊
  */
-export function 處理取得主題資訊(c: Context) {
+function 處理取得主題資訊(c: Context) {
   try {
     const 主題資訊 = {
       colorSystem: {
@@ -153,3 +156,99 @@ export function 處理取得主題資訊(c: Context) {
     }, 'default', 500);
   }
 }
+
+// 處理取得所有 classes
+async function 處理取得所有Classes(c: Context, params: RouteParams): Promise<Response> {
+  try {
+    await info('UnoCSS API', '處理取得所有 classes 請求');
+    
+    // 從 query string 取得參數 (向後兼容)
+    const theme = c.req.query('theme');
+    const decodedTheme = theme ? decodeURIComponent(theme) : undefined;
+    
+    // 優先檢查路徑參數 (智能回退機制)
+    if (params.id === 'classes') {
+      return await 處理取得自訂Classes(c);
+    }
+    
+    // 如果有路徑參數且不是 'classes'，當作 theme 處理
+    if (params.id) {
+      return await 處理取得主題資訊(c);
+    }
+    
+    // 如果有 query 參數，向後兼容
+    if (decodedTheme) {
+      return await 處理取得主題資訊(c);
+    }
+    
+    // 無參數，返回所有 classes
+    return await 處理取得自訂Classes(c);
+    
+  } catch (錯誤) {
+    await error('UnoCSS API', `GET 請求失敗: ${錯誤}`);
+    return c.json({
+      success: false,
+      error: { code: 'INTERNAL_ERROR', message: '取得 UnoCSS 資料失敗' }
+    }, 500);
+  }
+}
+
+// 處理取得主題資訊
+async function 處理取得主題Info(c: Context, params: RouteParams): Promise<Response> {
+  try {
+    await info('UnoCSS API', '處理取得主題資訊請求');
+    
+    // 如果有路徑參數，當作 theme 處理
+    if (params.id) {
+      return await 處理取得主題資訊(c);
+    }
+    
+    // 無參數，返回預設主題資訊
+    return await 處理取得主題資訊(c);
+    
+  } catch (錯誤) {
+    await error('UnoCSS API', `取得主題資訊失敗: ${錯誤}`);
+    return c.json({
+      success: false,
+      error: { code: 'INTERNAL_ERROR', message: '取得主題資訊失敗' }
+    }, 500);
+  }
+}
+
+// GET - 統一處理 UnoCSS API (/api/v1/unocss/*)
+export async function GET(c: Context, params: RouteParams): Promise<Response> {
+  try {
+    await info('UnoCSS API', '處理取得 UnoCSS 資料請求');
+    
+    // 優先檢查路徑參數 (智能回退機制)
+    if (params.id === 'classes') {
+      return await 處理取得所有Classes(c, params);
+    }
+    
+    if (params.id === 'info') {
+      return await 處理取得主題Info(c, params);
+    }
+    
+    // 如果有路徑參數且不是 'classes' 或 'info'，當作 theme 處理
+    if (params.id) {
+      return await 處理取得主題資訊(c);
+    }
+    
+    // 無參數，返回所有 classes (預設行為)
+    return await 處理取得自訂Classes(c);
+    
+  } catch (錯誤) {
+    await error('UnoCSS API', `GET 請求失敗: ${錯誤}`);
+    return c.json({
+      success: false,
+      error: { code: 'INTERNAL_ERROR', message: '取得 UnoCSS 資料失敗' }
+    }, 500);
+  }
+}
+
+// API 模組匯出
+const API: APIModule = {
+  GET: GET
+};
+
+export default API;
