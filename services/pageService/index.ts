@@ -228,22 +228,11 @@ export default class PageService {
       const { 語言, 頁面路徑 } = 解析結果;
       await info('PageService', `解析成功 - 語言: ${語言}, 頁面路徑: ${頁面路徑}`);
       
-      // 2. 使用 InnerAPI 從 pages API 查找頁面
-      const 頁面回應 = await InnerAPI(c, '/api/v1/pages/path');
+      // 2. 使用 InnerAPI 從 page API 查找頁面
+      const apiPath = 頁面路徑 === '/' ? '/api/v1/page/path' : `/api/v1/page/path${頁面路徑}`;
       
-      // 手動處理 POST 請求
-      const app = c.get('app');
-      const 頁面回應2 = await app.request('/api/v1/pages/path', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'host': c.req.header('host') || 'localhost:8000',
-          'origin': c.req.header('origin') || 'http://localhost:8000'
-        },
-        body: JSON.stringify({ path: 頁面路徑 })
-      });
-      
-      const 頁面資料 = await 頁面回應2.json();
+      const 頁面回應 = await InnerAPI(c, apiPath);
+      const 頁面資料 = await 頁面回應.json();
       await info('PageService', `API回應: ${JSON.stringify(頁面資料)}`);
       
       if (頁面資料.success && 頁面資料.data) {

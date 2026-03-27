@@ -1,4 +1,5 @@
 import { info, error } from "../../utils/logger.ts";
+import { resolve } from "https://deno.land/std@0.207.0/path/mod.ts";
 
 /**
  * 內建方塊解析器
@@ -13,7 +14,7 @@ export default class 內建方塊解析器 {
       await info('內建方塊解析器', `解析內建方塊: ${方塊定義.元件路徑}`);
       
       // 動態 import 元件
-      const 元件路徑 = `../../components/${方塊定義.元件路徑}.tsx`;
+      const 元件路徑 = resolve('.', 'components', 方塊定義.元件路徑 + '.tsx');
       const 元件模組 = await import(元件路徑);
       const 元件 = 元件模組.default;
       

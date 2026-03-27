@@ -49,8 +49,8 @@ export default class 動態方塊解析器 {
     try {
       await info('動態方塊解析器', `取得方塊定義: ${方塊ID}`);
       
-      // 使用 InnerAPI 從 cubes API 取得方塊定義
-      const 方塊回應 = await InnerAPI(c, `/api/v1/cubes/${方塊ID}`);
+      // 使用 InnerAPI 從 cube API 取得方塊定義
+      const 方塊回應 = await InnerAPI(c, `/api/v1/cube/${方塊ID}`);
       const 方塊資料 = await 方塊回應.json();
       
       if (方塊資料.success && 方塊資料.data) {
