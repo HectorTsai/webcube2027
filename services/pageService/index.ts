@@ -61,13 +61,26 @@ export default class PageService {
       // 1. 處理路徑參數替換
       const 處理後內容 = this.處理路徑參數(頁面實例.內容, 路由參數);
       
-      // 2. 取得當前骨架的佈局設定
+      // 2. 將 JSON 內容轉換為 MultilingualString 物件
+      const MultilingualString內容 = await this.轉換JSON為MultilingualString(處理後內容);
+      
+      // 檢查轉換結果
+      await info('PageService', `轉換後類型檢查: title=${typeof MultilingualString內容?.title?.toStringAsync}`);
+      
+      // 3. 處理多語言解析
+      const 語言 = c?.get('語言') || 'zh-tw';
+      const 多語言處理後內容 = this.處理多語言(MultilingualString內容, 語言);
+      
+      // 4. 將 MultilingualString 轉換為字串
+      const 轉換後內容 = await this.轉換MultilingualString(多語言處理後內容, 語言);
+      
+      // 5. 取得當前骨架的佈局設定
       const 佈局方塊ID = await this.取得佈局方塊ID(c);
       
-      // 3. 建構佈局內容，將頁面內容注入
-      const 佈局內容 = await this.建構佈局內容(佈局方塊ID, 頁面實例.方塊, 處理後內容);
+      // 6. 建構佈局內容，將頁面內容注入
+      const 佈局內容 = await this.建構佈局內容(佈局方塊ID, 頁面實例.方塊, 轉換後內容, 語言);
       
-      // 4. 使用動態解析器渲染佈局方塊
+      // 7. 使用動態解析器渲染佈局方塊
       const html = await 動態方塊解析器.解析(佈局方塊ID, 佈局內容, 0, c);
       
       await info('PageService', `頁面渲染完成: ${頁面實例.路徑}`);
@@ -81,26 +94,15 @@ export default class PageService {
   /**
    * 取得當前骨架的佈局方塊ID
    */
-  private static async 取得佈局方塊ID(c: Context): Promise<string> {
+  private static async 取得佈局方塊ID(c?: Context): Promise<string> {
     try {
       await info('PageService', '取得佈局方塊ID');
       
-      // 使用 innerAPI 取得當前主題的骨架設定
-      const app = c.get('app');
-      const 骨架回應 = await app.request('/api/v1/defaults/skeleton', {
-        headers: { 'host': c.req.header('host') || 'localhost:8000' }
-      });
+      // 使用預設的 ClassicLayout
+      const 預設佈局 = '方塊:方塊:cube-網站-經典';
+      await info('PageService', `使用預設佈局方塊ID: ${預設佈局}`);
+      return 預設佈局;
       
-      const 骨架資料 = await 骨架回應.json();
-      
-      if (骨架資料.success && 骨架資料.data?.佈局) {
-        await info('PageService', `取得佈局方塊ID: ${骨架資料.data.佈局}`);
-        return 骨架資料.data.佈局;
-      }
-      
-      // fallback 到預設值
-      await info('PageService', '使用預設佈局方塊ID');
-      return '方塊:方塊:cube-網站-經典';
     } catch (err) {
       await error('PageService', `取得佈局方塊ID失敗: ${err.message}`);
       return '方塊:方塊:容器'; // fallback
@@ -110,24 +112,28 @@ export default class PageService {
   /**
    * 建構佈局內容，將頁面內容注入到佈局中
    */
-  private static async 建構佈局內容(佈局方塊ID: string, 頁面方塊ID: string, 頁面內容: any): Promise<any> {
+  private static async 建構佈局內容(佈局方塊ID: string, 頁面方塊ID: string, 頁面內容: any, 語言: string): Promise<any> {
     try {
       await info('PageService', `建構佈局內容: ${佈局方塊ID} + ${頁面方塊ID}`);
       
       // TODO: 從 API 取得佈局方塊的結構定義
       // 目前返回預設的經典佈局結構
-      return {
+      const 佈局結構 = {
         direction: 'column',
         gap: 'none',
         children: [
           {
             方塊: '方塊:方塊:MainMenu',
             內容: {
-              logo: 'WebCube 2027',
+              logo: {
+                en: 'WebCube 2027',
+                'zh-tw': 'WebCube 2027',
+                vi: 'WebCube 2027'
+              },
               menuItems: [
-                { label: '首頁', href: '/' },
-                { label: '關於我們', href: '/about' },
-                { label: '聯絡我們', href: '/contact' }
+                { label: { en: 'Home', 'zh-tw': '首頁', vi: 'Trang chủ' }, href: '/' },
+                { label: { en: 'About', 'zh-tw': '關於我們', vi: 'Về chúng tôi' }, href: '/about' },
+                { label: { en: 'Contact', 'zh-tw': '聯絡我們', vi: 'Liên hệ' }, href: '/contact' }
               ]
             }
           },
@@ -138,15 +144,22 @@ export default class PageService {
           {
             方塊: '方塊:方塊:Footer',
             內容: {
-              text: '© 2026 WebCube 2027. All rights reserved.',
+              text: {
+                en: '© 2026 WebCube 2027. All rights reserved.',
+                'zh-tw': '© 2026 WebCube 2027. 版權所有。',
+                vi: '© 2026 WebCube 2027. Đã đăng ký bản quyền.'
+              },
               links: [
-                { label: 'Privacy', href: '/privacy' },
-                { label: 'Terms', href: '/terms' }
+                { label: { en: 'Privacy', 'zh-tw': '隱私政策', vi: 'Chính sách bảo mật' }, href: '/privacy' },
+                { label: { en: 'Terms', 'zh-tw': '使用條款', vi: 'Điều khoản sử dụng' }, href: '/terms' }
               ]
             }
           }
         ]
       };
+      
+      // 處理佈局結構中的多語言
+      return this.處理多語言(佈局結構, 語言);
     } catch (err) {
       await error('PageService', `建構佈局內容失敗: ${err.message}`);
       return {
@@ -158,6 +171,126 @@ export default class PageService {
         ]
       };
     }
+  }
+
+  /**
+   * 將 JSON 內容轉換為 MultilingualString 物件
+   */
+  private static async 轉換JSON為MultilingualString(內容: any): Promise<any> {
+    if (!內容 || typeof 內容 !== 'object') return 內容;
+    
+    // 導入 MultilingualString
+    const { MultilingualString } = await import("@dui/smartmultilingual");
+    
+    const 轉換物件 = (obj: any): any => {
+      // 檢查是否已經是 MultilingualString
+      if (obj instanceof MultilingualString) {
+        return obj;
+      }
+      
+      // 檢查是否是多語言字串的 JSON 格式 - 更嚴格的檢查
+      if (obj && typeof obj === 'object' && 
+          (obj.en || obj['zh-tw'] || obj.vi || obj.zh || obj.ja || obj.ko) &&
+          Object.keys(obj).every(key => typeof obj[key] === 'string')) {
+        // 轉換為 MultilingualString 物件
+        return new MultilingualString(obj);
+      }
+      
+      if (typeof obj === 'string') {
+        return obj;
+      }
+      
+      if (Array.isArray(obj)) {
+        return obj.map(轉換物件);
+      }
+      
+      if (obj && typeof obj === 'object') {
+        const result: any = {};
+        for (const [key, value] of Object.entries(obj)) {
+          result[key] = 轉換物件(value);
+        }
+        return result;
+      }
+      
+      return obj;
+    };
+    
+    return 轉換物件(內容);
+  }
+
+  /**
+   * 將 MultilingualString 轉換為字串
+   */
+  private static async 轉換MultilingualString(內容: any, 語言: string): Promise<any> {
+    if (!內容 || typeof 內容 !== 'object') return 內容;
+    
+    const 轉換物件 = async (obj: any): Promise<any> => {
+      // 檢查是否是 MultilingualString (有 toStringAsync 方法)
+      if (obj && typeof obj === 'object' && typeof obj.toStringAsync === 'function') {
+        try {
+          const result = await obj.toStringAsync(語言);
+          return result;
+        } catch (err) {
+          await error('PageService', `toStringAsync 失敗: ${err.message}`);
+          return obj['zh-tw'] || obj.en || obj.vi || '';
+        }
+      }
+      
+      if (typeof obj === 'string') {
+        return obj;
+      }
+      
+      if (Array.isArray(obj)) {
+        return await Promise.all(obj.map(轉換物件));
+      }
+      
+      if (obj && typeof obj === 'object') {
+        const result: any = {};
+        for (const [key, value] of Object.entries(obj)) {
+          result[key] = await 轉換物件(value);
+        }
+        return result;
+      }
+      
+      return obj;
+    };
+    
+    return await 轉換物件(內容);
+  }
+
+  /**
+   * 處理多語言解析
+   */
+  private static 處理多語言(內容: any, 語言: string): any {
+    if (!內容 || typeof 內容 !== 'object') return 內容;
+    
+    const 處理物件 = (obj: any): any => {
+      // 檢查是否是多語言字串
+      if (obj && typeof obj === 'object' && (obj.en || obj['zh-tw'] || obj.vi)) {
+        // 優先順序：指定語言 > zh-tw > en > vi
+        return obj[語言] || obj['zh-tw'] || obj.en || obj.vi || '';
+      }
+      
+      if (typeof obj === 'string') {
+        return obj;
+      }
+      
+      if (Array.isArray(obj)) {
+        return obj.map(處理物件);
+      }
+      
+      if (obj && typeof obj === 'object') {
+        const result: any = {};
+        for (const [key, value] of Object.entries(obj)) {
+          result[key] = 處理物件(value);
+        }
+        return result;
+      }
+      
+      return obj;
+    };
+    
+    return 處理物件(內容);
   }
 
   /**

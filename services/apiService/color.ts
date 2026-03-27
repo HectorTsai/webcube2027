@@ -18,7 +18,7 @@ export async function GET(c: Context, params: RouteParams): Promise<Response> {
     // 優先檢查路徑參數 (智能回退機制)
     if (params.id === 'all') {
       return await 處理取得所有配色(c);
-    }
+    } 
     
     // 如果有路徑參數且不是 'all'，當作 ID 處理
     if (params.id) {

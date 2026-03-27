@@ -23,6 +23,7 @@ export async function 處理Renderer請求(c: Context): Promise<Response> {
     }
     
     // 使用新的頁面系統
+    await info('Renderer Service', `開始渲染頁面: ${path}`);
     return await 渲染頁面(c, path);
     
   } catch (錯誤) {
@@ -46,18 +47,15 @@ async function 渲染頁面(c: Context, path: string): Promise<Response> {
       return await 渲染404頁面(c, path);
     }
     
-    // 2. 將解析的語言設定到 context
-    const 解析結果 = await PageService.解析URL路徑(path, c);
-    if (解析結果) {
-      c.set('language', 解析結果.語言);
-    }
+    // 2. 取得語言解析器設定的語言
+    const 當前語言 = c.get('語言') || 'zh-tw';
     
-    // 3. 解析動態路由參數
+    // 解析動態路由參數
     const 路由參數 = 頁面實例.路徑模式 
       ? PageService.parseRouteParams(path, 頁面實例.路徑模式)
       : {};
     
-    // 4. 渲染頁面內容
+    // 4. 渲染頁面內容，傳遞 Context
     const 頁面內容 = await PageService.renderPage(頁面實例, 路由參數, c);
     
     // 5. 生成完整 HTML
@@ -76,7 +74,7 @@ async function 生成完整HTML(c: Context, 頁面實例: any, 頁面內容: str
   // 1. 取得主題資訊
   const [預設配色回應, 預設骨架回應] = await Promise.all([
     InnerAPI(c, '/api/v1/defaults/color'),
-    InnerAPI(c, '/api/v1/defaults/skeleton')
+    InnerAPI(c, '/api/v1/skeleton')
   ]);
   
   const 預設配色 = await (await 預設配色回應).json();
@@ -86,7 +84,7 @@ async function 生成完整HTML(c: Context, 頁面實例: any, 頁面內容: str
   const css = await 產生樣式('', 預設配色.資料, true);
   
   // 3. 取得頁面標題
-  const 語言 = c.get('language') || 'zh-tw';
+  const 語言 = c.get('語言') || 'zh-tw';
   const 標題 = 頁面實例.標題?.[語言] || 頁面實例.標題?.en || 'WebCube 2027';
   
   // 4. 建構完整 HTML

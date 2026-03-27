@@ -24,16 +24,14 @@ export async function InnerAPI(c: Context, apiPath: string): Promise<Response> {
     
     const app = c.get('app');
     if (app && typeof app.request === 'function') {
-      await info('InnerAPI', `呼叫內部API: ${apiPath} -> ${encodedPath}`);
-      
       const response = await app.request(encodedPath, {
         headers: {
           'host': c.req.header('host') || 'localhost:8000',
-          'origin': c.req.header('origin') || 'http://localhost:8000'
+          'origin': c.req.header('origin') || 'http://localhost:8000',
+          'cookie': `lang=${c.get('語言') || 'zh-tw'}; Path=/; HttpOnly; SameSite=Lax`
         }
       });
       
-      await info('InnerAPI', `內部API成功: ${encodedPath} (${response.status})`);
       return response;
     } else {
       throw new Error('App instance not available for InnerAPI');
