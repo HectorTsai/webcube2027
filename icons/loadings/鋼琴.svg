@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <rect x="0" y="8" width="4" height="8" opacity="0.5" fill="oklch(var(--bc))" />
+    <rect x="5" y="8" width="4" height="8" opacity="0.5" fill="oklch(var(--bc))" />
+    <rect x="10" y="8" width="4" height="8" opacity="0.5" fill="oklch(var(--bc))" />
+    <rect x="15" y="8" width="4" height="8" opacity="0.5" fill="oklch(var(--bc))" />
+    <rect x="20" y="8" width="4" height="8" opacity="0.5" fill="oklch(var(--bc))" />
+    <rect x="0" y="8" width="4" height="8" fill="currentColor" transform-origin="2px 12px">
+        <animateTransform attributeName="transform" type="scale"
+              values="1;1;1.5;1.5;1.5;1.5;1.5" dur="1s"
+              begin="0s" repeatCount="indefinite" />
+        <animate attributeName="visibility" dur="1s"
+                 values="visible;visible;hidden;hidden;hidden;hidden"
+                 begin="0s" repeatCount="indefinite" />
+    </rect>
+    <rect x="5" y="8" width="4" height="8" fill="currentColor" transform-origin="7px 12px">
+        <animateTransform attributeName="transform" type="scale"
+                  values="1;1;1;1.5;1.5;1.5;1.5" dur="1s"
+                  begin="0s" repeatCount="indefinite" />
+        <animate attributeName="visibility" dur="1s"
+                 values="hidden;hidden;visible;hidden;hidden;hidden"
+                 begin="0s" repeatCount="indefinite" />
+    </rect>
+    <rect x="10" y="8" width="4" height="8" fill="currentColor" transform-origin="12px 12px">
+        <animateTransform attributeName="transform" type="scale"
+                  values="1;1;1;1;1.5;1.5;1.5" dur="1s"
+                  begin="0s" repeatCount="indefinite" />
+        <animate attributeName="visibility" dur="1s"
+                 values="hidden;hidden;hidden;visible;hidden;hidden"
+                 begin="0s" repeatCount="indefinite" />
+    </rect>
+    <rect x="15" y="8" width="4" height="8" fill="currentColor" transform-origin="17px 12px">
+        <animateTransform attributeName="transform" type="scale"
+                  values="1;1;1;1;1;1.5;1.5" dur="1s"
+                  begin="0s" repeatCount="indefinite" />
+        <animate attributeName="visibility" dur="1s"
+                 values="hidden;hidden;hidden;hidden;visible;hidden"
+                 begin="0s" repeatCount="indefinite" />
+    </rect>
+    <rect x="20" y="8" width="4" height="8" fill="currentColor" transform-origin="22px 12px">
+        <animateTransform attributeName="transform" type="scale"
+                  values="1;1;1;1;1;1;1.5" dur="1s"
+                  begin="0s" repeatCount="indefinite" />
+        <animate attributeName="visibility" dur="1s"
+                 values="hidden;hidden;hidden;hidden;hidden;visible"
+                 begin="0s" repeatCount="indefinite" />
+    </rect>
+</svg>

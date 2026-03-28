@@ -14,6 +14,7 @@ export default class 網站資訊 extends 資料 {
   public 密碼密鑰: SecretString;
   public 設定: Record<string, string> = {};
   public 私密設定: Record<string, SecretString> = {};
+  public 主選單: string[];
   public 版權資料: 版權資料;
   public 語言: string[];
   public 預設語言: string;
@@ -37,7 +38,8 @@ export default class 網站資訊 extends 資料 {
     for (const [key, value] of Object.entries(data?.私密設定 ?? {})) {
       this.私密設定[key] = new SecretString({ cipherText: value as string });
     }
-    this.版權資料 = (data?.版權資料 as 版權資料) ?? {};
+    this.主選單 = (data?.主選單 as string[]) ?? ["頁面:頁面:home"];
+    this.版權資料 = new 版權資料(data?.版權資料 as 版權資料);
     this.語言 = (data?.語言 as string[]) ?? ["zh-tw", "en"];
     this.預設語言 = (data?.預設語言 as string) ?? "zh-tw";
     this.資料庫 = new SecretString({ cipherText: data?.資料庫 as string | undefined });
@@ -58,7 +60,8 @@ export default class 網站資訊 extends 資料 {
       密碼密鑰: this.密碼密鑰.toJSON(),
       設定: this.設定,
       私密設定: this.私密設定,
-      版權資料: this.版權資料,
+      主選單:this.主選單,
+      版權資料: this.版權資料.toJSON(),
       語言: this.語言,
       預設語言: this.預設語言,
       資料庫: this.資料庫,

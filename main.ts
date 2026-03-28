@@ -11,11 +11,15 @@ import { 語言解析器 } from './middleware/language-resolver.ts';
 import { 三層查詢管理器 } from './core/three-tier-query.ts';
 import 骨架 from './database/models/骨架.ts';
 import 配色 from './database/models/配色.ts';
+import { 處理API請求 } from "./services/apiService/index.ts";
+import { 處理Media請求 } from "./services/mediaService/index.ts";
+import { 處理Renderer請求 } from './services/rendererService/index.ts';
+
 // API 透過動態路由分發器處理，無需直接導入
 
 const app = new Hono();
 
-// 全域中間件：設定 app 實例到 context
+// 全域中間件：設定 app 實例到 context (必須要有)
 app.use('*', (c, next) => {
   (c as any).set('app', app);
   return next();
@@ -32,6 +36,11 @@ app.use('*', 語言解析器);
 
 // API 路由由動態路由分發器處理
 
+// 全域請求攔截器
+app.all('*', (c, next) => {
+  return next();
+});
+
 // 健康檢查
 app.get('/health', (c) => {
   return c.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -40,26 +49,26 @@ app.get('/health', (c) => {
 // 動態路由分發器 - 第三階段核心功能 (必須是最後一個路由)
 app.all('*', async (c) => {
   const path = c.req.path;
+  const method = c.req.method;
   
-  // 強制輸出日誌
-  console.log(`[路由分發器] 處理請求: ${path}`);
-  await info('路由分發器', `處理請求: ${path}`);
+  // 記錄路由日誌
+  await info('路由分發器', `${method} ${path}`);
   
   try {
-    
-    // 導入服務處理器
-    const { 處理API請求 } = await import('./services/apiService/index.ts');
-    const { 處理Media請求 } = await import('./services/mediaService/index.ts');
-    const { 處理Renderer請求 } = await import('./services/rendererService/index.ts');
+    await info('路由分發器', `服務處理器導入完成`);
     
     // 路由分發邏輯
     if (path.startsWith('/api/')) {
       // API 服務
       await info('路由分發器', `分發到 API 服務: ${path}`);
       return await 處理API請求(c);
+    } else if (path.startsWith('/media/v1/')) {
+      // Media v1 服務
+      await info('路由分發器', `分發到 Media v1 服務: ${path}`);
+      return await 處理Media請求(c);
     } else if (path.startsWith('/medias/')) {
-      // Media 服務
-      await info('路由分發器', `分發到 Media 服務: ${path}`);
+      // 舊版 Media 服務（向後兼容）
+      await info('路由分發器', `分發到舊版 Media 服務: ${path}`);
       return await 處理Media請求(c);
     } else {
       // Renderer 服務 (處理所有其他請求)

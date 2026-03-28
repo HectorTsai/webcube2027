@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <g class="origin-center animate__動畫 animate__無限次 animate__旋轉">
+        <circle cx="4" cy="12" r="4"
+                fill="currentColor"
+        />
+        <circle cx="20" cy="12" r="4"
+                opacity="0.5"
+                fill="currentColor"
+        />
+    </g>
+</svg>

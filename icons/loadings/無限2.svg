@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle cx="6.5" cy="12" r="5px"
+            stroke-width="3"
+            stroke-opacity="0.5"
+            stroke="oklch(var(--bc))"
+    />
+    <path stroke="currentColor" stroke-width="3"
+          d="M6.5 7A5 5 0 0 1 11.5 12" transform="rotate(45,6.5,12)">
+        <animateTransform id="r2" attributeName="transform" type="rotate"
+              from="405 6.5 12" to="45 6.5 12"
+              dur=".5s" begin="r1.end"
+        />
+    </path>
+    <circle cx="17.5" cy="12" r="5px"
+            stroke-width="3"
+            stroke-opacity="0.5"
+            stroke="oklch(var(--bc))"
+    />
+    <path stroke="currentColor" stroke-width="3"
+        d="M17.5 7A5 5 0 0 0 12.5 12" transform="rotate(-45,17.5,12)">
+        <animateTransform id="r1" attributeName="transform" type="rotate"
+              from="-45 17.5 12" to="325 17.5 12"
+              dur=".5s" begin="0s;r1.end+.5s"
+        />
+    </path>
+</svg>

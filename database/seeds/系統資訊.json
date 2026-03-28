@@ -7,6 +7,7 @@
         "橫幅": "圖示:圖示:web_cube_banner",
         "預設語言": "zh-tw",
         "資料庫": "",
+        "主選單":["頁面:頁面:home","頁面:頁面:about","頁面:頁面:contact"],
         "版權資料": {
             "公司": {
                 "en": "Dit Union co., Ltd.",
@@ -14,7 +15,7 @@
                 "zh-cn": "鼎越国际有限公司",
                 "vi": "Dit Union oc., Ltd."
             },
-            "網址": "www.dui.com.tw",
+            "網址": "https://www.dui.com.tw",
             "開始年份": 2000
         },
         "軟體服務條款":{"zh-tw":{"格式":"MARKDOWN","內容":"file://docs:軟體服務條款.md"}},

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <g class="origin-center animate-spin-y-5">
+        <path d="M6 13 A5 5 0 1 0 11 18"
+              stroke-width="2" stroke="currentColor"
+              class="animate-spin"
+              opacity="0.6"
+              style="transform-origin:6px 18px"
+        />
+        <path d="M8 9 A7 7 0 1 1 15 16"
+              stroke-width="2" stroke="currentColor"
+              class="animate-spin"
+              opacity="0.9"
+              style="transform-origin:15px 9px"
+        />
+    </g>
+</svg>

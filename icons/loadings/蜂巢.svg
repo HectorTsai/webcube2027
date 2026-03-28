@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <polygon points="12,10 14,11 14,13 12,14 10,13 10,11 12,10" fill="currentColor" transform-origin="center" transform="translate(-4.5,0)">
+        <animate attributeName="opacity" dur="2s" repeatCount="indefinite"
+                 values="0;1;1;1;1;1;1;1;1;0;0;0;0;0;0;0;0;0;" />
+    </polygon>
+    <polygon points="12,10 14,11 14,13 12,14 10,13 10,11 12,10" fill="currentColor" transform-origin="center" transform="translate(-2.25,3.3)">
+        <animate attributeName="opacity" dur="2s" repeatCount="indefinite"
+                 values="0;0;1;1;1;1;1;1;1;1;0;0;0;0;0;0;0;0;" />
+    </polygon>
+    <polygon points="12,10 14,11 14,13 12,14 10,13 10,11 12,10" fill="currentColor" transform-origin="center" transform="translate(2.25,3.3)">
+        <animate attributeName="opacity" dur="2s" repeatCount="indefinite"
+                 values="0;0;0;1;1;1;1;1;1;1;1;0;0;0;0;0;0;0;" />
+    </polygon>
+    <polygon points="12,10 14,11 14,13 12,14 10,13 10,11 12,10" fill="currentColor" transform-origin="center" transform="translate(4.5,0)">
+        <animate attributeName="opacity" dur="2s" repeatCount="indefinite"
+                 values="0;0;0;0;1;1;1;1;1;1;1;1;0;0;0;0;0;0;" />
+    </polygon>
+    <polygon points="12,10 14,11 14,13 12,14 10,13 10,11 12,10" fill="currentColor" transform-origin="center" transform="translate(2.25,-3.3)">
+        <animate attributeName="opacity" dur="2s" repeatCount="indefinite"
+                 values="0;0;0;0;0;1;1;1;1;1;1;1;1;0;0;0;0;0;" />
+    </polygon>
+    <polygon points="12,10 14,11 14,13 12,14 10,13 10,11 12,10" fill="currentColor" transform-origin="center" transform="translate(-2.25,-3.3)">
+        <animate attributeName="opacity" dur="2s" repeatCount="indefinite"
+                 values="0;0;0;0;0;0;1;1;1;1;1;1;1;1;0;0;0;0;" />
+    </polygon>
+    <polygon points="12,10 14,11 14,13 12,14 10,13 10,11 12,10" fill="currentColor" transform-origin="center">
+        <animate attributeName="opacity" dur="2s" repeatCount="indefinite"
+                 values="0;0;0;0;0;0;0;1;1;1;1;1;1;1;1;0;0;0;" />
+    </polygon>
+</svg>

@@ -74,14 +74,60 @@ export default class PageService {
       // 4. 將 MultilingualString 轉換為字串
       const 轉換後內容 = await this.轉換MultilingualString(多語言處理後內容, 語言);
       
-      // 5. 取得當前骨架的佈局設定
+      // 5. 頁面內容已經轉換完成，準備渲染佈局
+      await info('PageService', '頁面內容轉換完成，準備渲染佈局');
+      
+      // 6. 取得當前骨架的佈局設定
       const 佈局方塊ID = await this.取得佈局方塊ID(c);
       
-      // 6. 建構佈局內容，將頁面內容注入
-      const 佈局內容 = await this.建構佈局內容(佈局方塊ID, 頁面實例.方塊, 轉換後內容, 語言);
+      // 7. 將方塊結構轉換為 JSX 元件
+      const childrenJSX = await this.渲染方塊結構為JSX(轉換後內容, c);
       
-      // 7. 使用動態解析器渲染佈局方塊
-      const html = await 動態方塊解析器.解析(佈局方塊ID, 佈局內容, 0, c);
+      // 8. 取得網站資訊並處理佈局資料
+      await info('PageService', '取得網站資訊');
+      const { InnerAPI } = await import('../../services/index.ts');
+      const 網站資訊Response = await InnerAPI(c!, "/api/v1/info");
+      const 網站資訊 = await 網站資訊Response.json();
+      
+      // 9. 處理主選單
+      await info('PageService', '處理主選單');
+      const menuItems = [];
+      for (const 頁面ID of 網站資訊.data?.主選單 || []) {
+        try {
+          const 頁面Response = await InnerAPI(c!, `/api/v1/cube/${頁面ID}`);
+          const 頁面資料 = await 頁面Response.json();
+          menuItems.push({
+            label: 頁面資料.data?.標題,  // API 已經 toStringAsync 處理過
+            href: 頁面資料.data?.路徑 || '/'
+          });
+        } catch (err) {
+          return this.渲染錯誤頁面(err);
+        }
+      }
+      
+      // 10. 處理版權資料
+      const 版權資料 = 網站資訊.data?.版權資料 || {};
+      const companyName = 版權資料.公司 || "WebCube 2027";
+      const companyUrl = 版權資料.網址 || "";
+      const logo = 網站資訊.data?.商標 || "";
+      
+      // 11. 組合佈局參數
+      const 佈局參數 = {
+        children: childrenJSX,
+        menuItems,
+        companyName,
+        companyUrl,
+        year: new Date().getFullYear(),
+        logo,
+        language: c?.get('語言') || 'zh-tw'
+      };
+      
+      await info('PageService', `渲染佈局方塊: ${佈局方塊ID}`);
+      const 動態方塊JSX解析器 = await import('./動態方塊JSX解析器.ts');
+      const 佈局JSX = await 動態方塊JSX解析器.default.解析(佈局方塊ID, 佈局參數, 0, c);
+      
+      // 將最終 JSX 轉為 HTML
+      const html = 佈局JSX.toString();
       
       await info('PageService', `頁面渲染完成: ${頁面實例.路徑}`);
       return html;
@@ -111,8 +157,9 @@ export default class PageService {
 
   /**
    * 建構佈局內容，將頁面內容注入到佈局中
+   * @deprecated 不再需要，直接將頁面內容作為 children 傳給佈局
    */
-  private static async 建構佈局內容(佈局方塊ID: string, 頁面方塊ID: string, 頁面內容: any, 語言: string): Promise<any> {
+  /* private static async 建構佈局內容(佈局方塊ID: string, 頁面方塊ID: string, 頁面內容: any, 語言: string): Promise<any> {
     try {
       await info('PageService', `建構佈局內容: ${佈局方塊ID} + ${頁面方塊ID}`);
       
@@ -144,15 +191,11 @@ export default class PageService {
           {
             方塊: '方塊:方塊:Footer',
             內容: {
-              text: {
-                en: '© 2026 WebCube 2027. All rights reserved.',
-                'zh-tw': '© 2026 WebCube 2027. 版權所有。',
-                vi: '© 2026 WebCube 2027. Đã đăng ký bản quyền.'
-              },
-              links: [
-                { label: { en: 'Privacy', 'zh-tw': '隱私政策', vi: 'Chính sách bảo mật' }, href: '/privacy' },
-                { label: { en: 'Terms', 'zh-tw': '使用條款', vi: 'Điều khoản sử dụng' }, href: '/terms' }
-              ]
+              companyName: companyName,
+              companyUrl: companyUrl,
+              year: new Date().getFullYear(),
+              logo: logo,
+              language: 語言
             }
           }
         ]
@@ -163,18 +206,10 @@ export default class PageService {
     } catch (err) {
       await error('PageService', `建構佈局內容失敗: ${err.message}`);
       return {
-        children: [
-          {
-            方塊: 頁面方塊ID,
-            內容: 頁面內容
-          }
-        ]
-      };
-    }
-  }
-
-  /**
    * 將 JSON 內容轉換為 MultilingualString 物件
+   * @description 將 JSON 內容轉換為 MultilingualString 物件，處理多語言字串
+   * @param 內容 JSON 內容
+   * @returns MultilingualString 物件
    */
   private static async 轉換JSON為MultilingualString(內容: any): Promise<any> {
     if (!內容 || typeof 內容 !== 'object') return 內容;
@@ -412,5 +447,47 @@ export default class PageService {
     }
     
     return 參數;
+  }
+
+  /**
+   * 將方塊結構渲染為 JSX
+   */
+  private static async 渲染方塊結構為JSX(結構: any, c: any): Promise<any> {
+    try {
+      if (!結構 || typeof 結構 !== 'object') {
+        return String(結構 || '');
+      }
+
+      // 如果是字串，直接返回
+      if (typeof 結構 === 'string') {
+        return 結構;
+      }
+
+      // 如果是陣列，遞迴渲染每個元素
+      if (Array.isArray(結構)) {
+        const jsx陣列 = await Promise.all(
+          結構.map(item => this.渲染方塊結構為JSX(item, c))
+        );
+        return jsx陣列;
+      }
+
+      // 如果是物件且有方塊屬性，渲染方塊
+      if (結構.方塊) {
+        const 動態方塊JSX解析器 = await import('./動態方塊JSX解析器.ts');
+        return await 動態方塊JSX解析器.default.解析(結構.方塊, 結構.內容, 0, c);
+      }
+
+      // 如果是物件但有 children 屬性，遞迴渲染 children
+      if (結構.children) {
+        const childrenJSX = await this.渲染方塊結構為JSX(結構.children, c);
+        return childrenJSX;
+      }
+
+      // 其他情況，轉為字串
+      return JSON.stringify(結構);
+    } catch (err) {
+      await error('PageService', `渲染方塊結構失敗: ${err.message}`);
+      return `<div class="error">渲染失敗: ${err.message}</div>`;
+    }
   }
 }

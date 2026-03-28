@@ -56,6 +56,13 @@ const DEFAULT_VALUES = {
     "視窗.開": "animate__fadeIn",
     "視窗.關": "animate__fadeOut",
   },
+  圖示尺寸: {
+    xs: '1rem',
+    sm: '1.25rem',
+    md: '1.5rem', 
+    lg: '1.75rem',
+    xl: '2.5rem'
+  },
   "售價": 0,
 };
 
@@ -75,6 +82,7 @@ export default class 骨架 extends 資料 {
   public 行高: Record<string, string>;
   public 陰影: Record<string, string>;
   public 動畫: Record<string, Record<string, string>>;
+  public 圖示尺寸:Record<string, string>;
   public 售價: number;
 
   public constructor(
@@ -98,6 +106,7 @@ export default class 骨架 extends 資料 {
     this.陰影 = (data?.陰影 as Record<string, string>) ?? DEFAULT_VALUES.陰影;
     this.動畫 = (data?.動畫 as Record<string, Record<string, string>>) ??
       DEFAULT_VALUES.動畫;
+    this.圖示尺寸 = (data?.圖示尺寸 as Record<string, string>) ?? DEFAULT_VALUES.圖示尺寸;
     this.售價 = (data?.售價 as number) ?? DEFAULT_VALUES.售價;
   }
   public override toJSON(): Record<string, unknown> {
@@ -105,7 +114,6 @@ export default class 骨架 extends 資料 {
       ...super.toJSON(),
       名稱: this.名稱.toJSON(),
       描述: this.描述.toJSON(),
-      售價: this.售價,
       影像: this.影像,
       佈局: this.佈局,
       風格: this.風格,
@@ -119,6 +127,8 @@ export default class 骨架 extends 資料 {
       行高: this.行高,
       陰影: this.陰影,
       動畫: this.動畫,
+      圖示尺寸: this.圖示尺寸,
+      售價: this.售價,
     };
   }
 }

@@ -41,14 +41,13 @@ async function 渲染頁面(c: Context, path: string): Promise<Response> {
   try {
     // 1. 查找頁面（傳遞 Context 進行語言解析）
     const 頁面實例 = await PageService.findPageByPath(path, c);
-    
+
     if (!頁面實例) {
       // 頁面不存在，返回 404
       return await 渲染404頁面(c, path);
     }
     
-    // 2. 取得語言解析器設定的語言
-    const 當前語言 = c.get('語言') || 'zh-tw';
+    // 2. 取得語言解析器設定的語言    
     
     // 解析動態路由參數
     const 路由參數 = 頁面實例.路徑模式 
@@ -80,14 +79,28 @@ async function 生成完整HTML(c: Context, 頁面實例: any, 頁面內容: str
   const 預設配色 = await (await 預設配色回應).json();
   const 預設骨架 = await (await 預設骨架回應).json();
   
-  // 2. 生成 CSS
-  const css = await 產生樣式('', 預設配色.資料, true);
+  // 2. 先建立預覽 HTML（用於 UnoCSS 掃描）
+  const 預覽HTML = `
+    <div class="min-h-screen bg-base-100 text-base-content">
+      ${頁面內容}
+    </div>
+  `;
   
-  // 3. 取得頁面標題
+  // 3. 生成 CSS（傳入實際 HTML 和完整骨架配置）
+  const css = await 產生樣式(預覽HTML, 預設配色.資料, true, {
+    圖示尺寸: 預設骨架.資料?.圖示尺寸,
+    圓角: 預設骨架.資料?.圓角,
+    空間: 預設骨架.資料?.空間,
+    字型: 預設骨架.資料?.字型,
+    行高: 預設骨架.資料?.行高,
+    陰影: 預設骨架.資料?.陰影
+  });
+  
+  // 4. 取得頁面標題
   const 語言 = c.get('語言') || 'zh-tw';
   const 標題 = 頁面實例.標題?.[語言] || 頁面實例.標題?.en || 'WebCube 2027';
   
-  // 4. 建構完整 HTML
+  // 5. 建構完整 HTML
   return `
 <!DOCTYPE html>
 <html lang="${語言}">

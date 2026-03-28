@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="10"
+            stroke-width="2"
+            stroke="currentColor"
+    />
+    <g class="animate__動畫 animate__無限次 animate__旋轉" transform-origin="center">
+        <circle cx="9" cy="18" r="3" fill="color-mix(in oklch, currentColor 80%, black)" />
+        <circle cx="15" cy="18" r="3" fill="color-mix(in oklch, currentColor 80%, black)" />
+        <circle cx="12" cy="20" r="3" fill="currentColor" />
+        <circle cx="11" cy="19" r="0.5" fill="color-mix(in oklch, currentColor 80%, black)" />
+        <circle cx="13" cy="19" r="0.5" fill="color-mix(in oklch, currentColor 80%, black)" />
+        <path d="M10,21A12,20 0 0 0 14,21" stroke="color-mix(in oklch, currentColor 80%, black)" stroke-width="0.5px" />
+    </g>
+</svg>

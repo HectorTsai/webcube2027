@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="10"
+            stroke-width="2"
+            stroke-opacity="0.3"
+            stroke="oklch(var(--bc))"
+    />
+    <path d="M12 22 A10 10 0 0 0 22 12" stroke-width="2" stroke="currentColor">
+        <animateTransform type="rotate" attributeName="transform"
+              from="0 12,12" to="360 12 12"
+              dur="1s" begin="0s" repeatCount="indefinite" />
+    </path>
+</svg>

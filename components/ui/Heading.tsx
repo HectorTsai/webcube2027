@@ -18,7 +18,8 @@ export default function Heading({
   weight = "semibold",
   align = "left",
 }: HeadingProps) {
-    
+  const tagName = `h${level}`;
+  
   const sizeClasses = {
     xs: "text-xs",
     sm: "text-sm",

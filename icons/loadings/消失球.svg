@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <defs>
+        <mask id="mask1">
+            <circle cx="12" cy="12" r="8" fill="white" />
+            <circle cx="12" cy="12" r="0" fill="black">
+                <animate id="clip" attributeName="r"
+                     values="0;5;6;6" dur="0.5s"
+                     begin="0s" repeatCount="indefinite" />
+            </circle>
+        </mask>
+    </defs>
+    <circle cx="12" cy="12" r="8" stroke-width="2" stroke="currentColor" opacity="1">
+        <animate id="c1" attributeName="r"
+                 values="8;12;12" dur="1s"
+                 begin="0.5s" repeatCount="indefinite"  />
+        <animate id="c2" attributeName="opacity"
+                 values="1;0;0" dur="1s"
+                 begin="0.5s" repeatCount="indefinite"  />
+    </circle>
+    <circle cx="12" cy="12" r="8" fill="currentColor" mask="url(#mask1)" visibility="visible">
+        <animate id="visibility" attributeName="visibility" values="visible;hidden" dur="1s" begin="0s" repeatCount="indefinite" />
+    </circle>
+</svg>

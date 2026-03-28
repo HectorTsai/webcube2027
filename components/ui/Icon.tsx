@@ -6,7 +6,7 @@ export interface IconProps {
   /** SVG string content (AI generated) */
   svg?: string;
   /** Icon size */
-  size?: "xs" | "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "lg" | "xl";
   /** Icon color (SVG only) */
   color?: string;
   /** Additional CSS classes */
@@ -21,21 +21,10 @@ export default function Icon({
   color,
   className = "",
 }: IconProps) {
-  const sizeMap = {
-    xs: 16,
-    sm: 24,
-    md: 32,
-    lg: 48,
-  };
-  
-  const pixelSize = sizeMap[size];
-  
   // If SVG content is provided directly
   if (svg) {
     return (
       <svg
-        width={pixelSize}
-        height={pixelSize}
         fill={color || "currentColor"}
         viewBox="0 0 24 24"
         className={`icon icon-${size} ${className}`}
@@ -44,25 +33,23 @@ export default function Icon({
     );
   }
   
-  // If database ID is provided, load from database
+  // If database ID is provided, load from Media service
   if (id) {
-    // TODO: Implement database loading
-    // For now, render a placeholder
     return (
-      <div 
+      <img 
+        src={`/media/v1/icon/${id}`}
+        alt={`Icon ${id}`}
         className={`icon icon-${size} ${className}`}
         style={{ 
-          width: pixelSize, 
-          height: pixelSize,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "#e5e7eb",
-          borderRadius: "4px"
+          objectFit: "contain"
         }}
-      >
-        <span style={{ fontSize: pixelSize * 0.5 }}>?</span>
-      </div>
+        onError={(e: any) => {
+          // Fallback to placeholder on error
+          e.target.style.display = "none";
+          const placeholder = e.target?.nextSibling;
+          if (placeholder) placeholder.style.display = "flex";
+        }}
+      />
     );
   }
   
@@ -71,8 +58,6 @@ export default function Icon({
     return (
       <img
         src={src}
-        width={pixelSize}
-        height={pixelSize}
         alt="Icon"
         className={`icon icon-${size} ${className}`}
         style={{ objectFit: "contain" }}
@@ -85,8 +70,6 @@ export default function Icon({
     <div 
       className={`icon icon-${size} ${className}`}
       style={{ 
-        width: pixelSize, 
-        height: pixelSize,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -94,7 +77,7 @@ export default function Icon({
         borderRadius: "4px"
       }}
     >
-      <span style={{ fontSize: pixelSize * 0.5 }}>!</span>
+      <span>!</span>
     </div>
   );
 }

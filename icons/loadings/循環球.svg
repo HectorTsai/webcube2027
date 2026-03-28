@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="9" stroke-opacity="0.3" stroke="oklch(var(--bc))" stroke-width="1.5px" />
+    <g class="origin-center animate-spin">
+        <circle cx="3" cy="12" r="2" fill="currentColor" />
+        <circle cx="21" cy="12" r="2" fill="currentColor" />
+    </g>
+</svg>

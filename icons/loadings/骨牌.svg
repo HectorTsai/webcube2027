@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <rect x="0" y="10" width="2" height="6" fill="currentColor" transform-origin="2px 16px">
+        <animateTransform attributeName="transform" type="rotate"
+              values="0;60;60;60;60;60" begin="0s"
+              dur="2s" repeatCount="indefinite" />
+        <animate attributeName="fill-opacity" dur="2s"
+                 values="1;0;0;0" begin="0s" repeatCount="indefinite" />
+    </rect>
+    <rect x="4" y="10" width="2" height="6" fill="currentColor" transform-origin="6px 16px">
+        <animateTransform attributeName="transform" type="rotate"
+              values="0;0;60;60;60;60;60;60;60" begin="0s"
+              dur="2s" repeatCount="indefinite" />
+        <animate attributeName="fill-opacity" dur="2s"
+                 values="1;1;0;0;0;0" begin="0s" repeatCount="indefinite" />
+    </rect>
+    <rect x="8" y="10" width="2" height="6" fill="currentColor" transform-origin="10px 16px">
+        <animateTransform attributeName="transform" type="rotate"
+              values="0;0;0;60;60;60;60;60;60;60;60" begin="0s"
+              dur="2s" repeatCount="indefinite" />
+        <animate attributeName="fill-opacity" dur="2s"
+                 values="1;1;1;0;0;0;0" begin="0s" repeatCount="indefinite" />
+    </rect>
+    <rect x="12" y="10" width="2" height="6" fill="currentColor" transform-origin="14px 16px">
+        <animateTransform attributeName="transform" type="rotate"
+              values="0;0;0;0;65;65;65;65;65;65;65;65;65" begin="0s"
+              dur="2s" repeatCount="indefinite" />
+        <animate attributeName="fill-opacity" dur="2s"
+                 values="1;1;1;1;0;0;0;0;0" begin="0s" repeatCount="indefinite" />
+    </rect>
+    <rect x="16" y="10" width="2" height="6" fill="currentColor" transform-origin="18px 16px">
+        <animateTransform attributeName="transform" type="rotate"
+              values="0;0;0;0;0;90;90;90;90;90;90;90;90;90" begin="0s"
+              dur="2s" repeatCount="indefinite" />
+        <animate attributeName="fill-opacity" dur="2s"
+                 values="1;1;1;1;1;1;0;0;0;0;0" begin="0s" repeatCount="indefinite" />
+    </rect>
+</svg>

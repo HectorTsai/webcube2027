@@ -1,6 +1,6 @@
 import Container from "../container/Container.tsx";
 import MainMenu, { MenuItem, CtaButton } from "../navigation/MainMenu.tsx";
-import Footer, { FooterSection, SocialLink } from "../navigation/Footer.tsx";
+import Footer from "../navigation/Footer.tsx";
 
 export interface ClassicLayoutProps {
   /** Child elements to render inside the layout */
@@ -9,23 +9,29 @@ export interface ClassicLayoutProps {
   menuItems?: MenuItem[];
   /** Call-to-action button for navigation */
   ctaButton?: CtaButton;
-  /** Footer sections */
-  footerSections?: FooterSection[];
-  /** Social links for footer */
-  socialLinks?: SocialLink[];
   /** Company name for footer */
   companyName?: string;
+  /** Company website URL for footer */
+  companyUrl?: string;
+  /** Current year for footer */
+  year?: number;
+  /** Company logo for footer */
+  logo?: string;
+  /** Current language for display */
+  language?: string;
 }
 
 export default function ClassicLayout({ 
   children,
   menuItems = [],
   ctaButton,
-  footerSections = [],
-  socialLinks = [],
-  companyName = "WebCube 2027"
+  companyName = "WebCube 2027",
+  companyUrl = "",
+  year = new Date().getFullYear(),
+  logo = "",
+  language
 }: ClassicLayoutProps) {
-  return (
+    return (
     <Container 
       direction="column" 
       width="full"
@@ -36,6 +42,7 @@ export default function ClassicLayout({
         menuItems={menuItems}
         ctaButton={ctaButton}
         variant="default"
+        language={language}
       />
       
       {/* Main Content Area */}
@@ -49,10 +56,12 @@ export default function ClassicLayout({
       {/* Footer */}
       <Footer 
         companyName={companyName}
-        sections={footerSections}
-        socialLinks={socialLinks}
-        variant="default"
+        companyUrl={companyUrl}
+        year={year}
+        logo={logo}
+        language={language}
       />
     </Container>
   );
 }
+

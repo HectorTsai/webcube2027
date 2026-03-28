@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+    <defs>
+        <mask id="square">
+            <rect width="24" height="24" fill="white" />
+            <rect x="10" y="10" width="4" height="4" fill="black" />
+        </mask>
+    </defs>
+    <path id="coin" stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+          fill="currentColor"
+          fill-opacity="0.8"
+          mask="url(#square)"
+          class="origin-center animate__動畫 animate__無限次 animate__旋轉錢幣"
+    />
+</svg>

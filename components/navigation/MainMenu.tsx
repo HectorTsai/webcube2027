@@ -22,6 +22,8 @@ export interface MainMenuProps {
   variant?: "default" | "minimal" | "centered" | "split";
   /** Whether menu should stick to top when scrolling */
   sticky?: boolean;
+  /** Language for multilingual support */
+  language?: string;
 }
 
 export default function MainMenu({
@@ -31,6 +33,7 @@ export default function MainMenu({
   ctaButton,
   variant = "default",
   sticky = false,
+  language = "zh-tw",
 }: MainMenuProps) {
   // 使用 UnoCSS 自訂 preset 的 classes
   const baseClasses = "w-full border-b border-base-300 bg-base-100";

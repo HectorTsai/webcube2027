@@ -8,10 +8,24 @@ export interface 編號 {
   _id: string;
 }
 
-export interface 版權資料 {
-  公司?: MultilingualString;
-  網址?: string;
-  開始年份?: number;
+export class 版權資料 {
+  public 公司: MultilingualString;
+  public 網址: string = "";
+  public 開始年份: number = 2000;
+
+  constructor(data ?: Record<string,any>) {
+    this.公司 = new MultilingualString(data?.公司??"");
+    this.網址 = data?.網址 ?? "";
+    this.開始年份 = data?.開始年份 ?? 2000;
+  }
+
+  public toJSON(): Record<string, unknown> {
+    return {
+      公司: this.公司.toJSON(),
+      網址: this.網址,
+      開始年份: this.開始年份
+    };
+  }
 }
 
 // L2 資料庫連線資訊

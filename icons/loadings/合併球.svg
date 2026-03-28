@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 100 100"
+     class="origin-center animate-spin">
+        <circle cx="50" cy="50" r="28"
+                fill="currentColor"
+                fill-opacity="0.8"
+                class="animate__動畫 animate__無限次 animate__縮放-大小大 animate__慢"
+        />
+        <circle cx="50" cy="50" r="28"
+                fill="currentColor"
+                fill-opacity="0.5"
+                class="animate__動畫 animate__無限次 animate__縮放-大小大 animate__慢"
+                style="transform-origin: 100% 20%"
+        />
+</svg>

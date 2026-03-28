@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 40 40">
+    <path fill="currentColor"
+          d="M0 20 A20 20 0 0 1 40 20 A20 10 0 0 0 0 20"
+          class="origin-center animate-spin" />
+</svg>

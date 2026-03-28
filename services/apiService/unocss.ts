@@ -3,6 +3,7 @@ import { Context } from 'hono';
 import { APIModule, RouteParams } from './index.ts';
 import { info, error } from '../../utils/logger.ts';
 import { 回應成功 } from '../../utils/response.ts';
+import { 清理樣式快取 } from '../../core/unocss.ts';
 
 /**
  * 取得自訂 UnoCSS classes 列表
@@ -73,7 +74,8 @@ function 處理取得自訂Classes(c: Context) {
         description: "元件快捷樣式 - 預定義的元件組合樣式",
         classes: [
           "btn", "btn-primary", "btn-secondary", "btn-accent",
-          "card", "input", "container"
+          "card", "input", "container",
+          "icon-xs", "icon-sm", "icon-md", "icon-lg", "icon-xl"
         ],
         details: {
           "btn": "基礎按鈕樣式 (px-4 py-2 rounded-lg font-medium transition-colors)",
@@ -82,7 +84,12 @@ function 處理取得自訂Classes(c: Context) {
           "btn-accent": "強調按鈕 (btn + bg-accent + text-accent-content)",
           "card": "卡片樣式 (bg-base-100 text-base-content rounded-lg shadow-md p-6)",
           "input": "輸入框樣式 (px-3 py-2 border border-base-300 rounded-md focus:ring-2 focus:ring-primary)",
-          "container": "容器樣式 (max-w-7xl mx-auto px-4 sm:px-6 lg:px-8)"
+          "container": "容器樣式 (max-w-7xl mx-auto px-4 sm:px-6 lg:px-8)",
+          "icon-xs": "超小圖示 (16px)",
+          "icon-sm": "小圖示 (20px)",
+          "icon-md": "中圖示 (24px)",
+          "icon-lg": "大圖示 (28px)",
+          "icon-xl": "超大圖示 (40px)"
         }
       },
       customRules: {
@@ -108,8 +115,8 @@ function 處理取得自訂Classes(c: Context) {
       ]
     });
     
-  } catch (error) {
-    console.error('取得自訂 UnoCSS classes 失敗:', error);
+  } catch (_error) {
+    // 靜默處理錯誤，返回預設值
     return 回應成功(c, {
       message: "WebCube 自訂 UnoCSS classes",
       data: {
@@ -215,6 +222,28 @@ async function 處理取得主題Info(c: Context, params: RouteParams): Promise<
   }
 }
 
+// POST - 處理清理快取請求
+async function 處理清理快取(c: Context): Promise<Response> {
+  try {
+    await info('UnoCSS API', '處理清理快取請求');
+    
+    // 清理 UnoCSS 樣式快取
+    清理樣式快取();
+    
+    return 回應成功(c, {
+      message: "UnoCSS 樣式快取已清理",
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (錯誤) {
+    await error('UnoCSS API', `清理快取失敗: ${錯誤}`);
+    return c.json({
+      success: false,
+      error: { code: 'INTERNAL_ERROR', message: '清理快取失敗' }
+    }, 500);
+  }
+}
+
 // GET - 統一處理 UnoCSS API (/api/v1/unocss/*)
 export async function GET(c: Context, params: RouteParams): Promise<Response> {
   try {
@@ -248,7 +277,8 @@ export async function GET(c: Context, params: RouteParams): Promise<Response> {
 
 // API 模組匯出
 const API: APIModule = {
-  GET: GET
+  GET: GET,
+  POST: 處理清理快取
 };
 
 export default API;

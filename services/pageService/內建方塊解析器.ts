@@ -36,8 +36,8 @@ export default class 內建方塊解析器 {
       await info('內建方塊解析器', `元件渲染成功: ${方塊定義.元件路徑} (${html.length} 字元)`);
       return html;
     } catch (err) {
-      await error('內建方塊解析器', `內建方塊解析失敗: ${err.message}`);
-      return `<div class="error" data-cube="${方塊定義?.id || 'unknown'}">內建方塊解析失敗: ${err.message}</div>`;
+      await error('內建方塊解析器', `內建方塊解析失敗: ${(err as Error).message}`);
+      return `<div class="error" data-cube="${方塊定義?.id || 'unknown'}">內建方塊解析失敗: ${(err as Error).message}</div>`;
     }
   }
 }

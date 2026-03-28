@@ -44,7 +44,7 @@
     "名稱": {"en":"cube","zh-tw":"方塊","vi":"hình lập phương"},
     "資料": {
       "格式": "SVG",
-      "內容":"file://images/webcube.svg"
+      "內容":"file://icons/webcube.svg"
     },
     "標籤集": ["圖示:標籤:物件","圖示:標籤:外框"],
     "可刪除": false
@@ -54,7 +54,7 @@
     "名稱": {"en":"cubes","zh-tw": "方塊","vi": "hình lập phương"},
     "資料": {
       "格式": "SVG",
-      "內容":"file://images/webcube_banner.svg"
+      "內容":"file://icons/webcube_banner.svg"
     },
     "標籤集": ["圖示:標籤:物件","圖示:標籤:實體"],
     "可刪除": false
@@ -64,7 +64,7 @@
     "名稱": {"en":"user","zh-tw": "使用者","vi": "người sử dụng"},
     "資料": {
       "格式": "SVG",
-      "內容":"file://images:user.svg"
+      "內容":"file://icons/user.svg"
     },
     "標籤集": ["圖示:標籤:頭像","圖示:標籤:外框"],
     "可刪除": false
@@ -74,7 +74,7 @@
     "名稱":{"en":"home", "zh-tw":"首頁", "zh-cn":"首页", "vi":"trang chủ"},
     "資料":{
       "格式":"SVG",
-      "內容":"file://images/home.svg"
+      "內容":"file://icons/home.svg"
     },
     "標籤集":[],
     "可刪除": false
@@ -84,7 +84,7 @@
     "名稱":{"en":"info", "zh-tw":"資訊", "zh-cn":"信息", "vi":"thông tin"},
     "資料":{
       "格式":"SVG",
-      "內容":"file://images/info.svg"
+      "內容":"file://icons/info.svg"
     },
     "標籤集":[],
     "可刪除": false
@@ -94,7 +94,7 @@
     "名稱":{"en":"phone", "zh-tw":"電話", "zh-cn":"电话", "vi":"điện thoại"},
     "資料":{
       "格式":"SVG",
-      "內容":"file://images/phone.svg"
+      "內容":"file://icons/phone.svg"
     },
     "標籤集":[],
     "可刪除": false
@@ -104,7 +104,7 @@
     "名稱": {"en":"menu","zh-tw": "選單","vi": "thực đơn"},
     "資料": {
       "格式": "SVG",
-      "內容":"file://images/menu.svg"
+      "內容":"file://icons/menu.svg"
     },
     "標籤集": ["圖示:標籤:符號","圖示:標籤:動畫"],
     "可刪除": false
@@ -114,7 +114,7 @@
     "名稱": {"en":"menu 2","zh-tw": "選單2","vi": "thực đơn 2"},
     "資料": {
       "格式": "SVG",
-      "內容":"file://images/menu2.svg"
+      "內容":"file://icons/menu2.svg"
     },
     "標籤集": ["圖示:標籤:符號","圖示:標籤:動畫"],
     "可刪除": false
@@ -124,7 +124,7 @@
     "名稱": {"en":"menu 3","zh-tw": "選單3","vi": "thực đơn 3"},
     "資料": {
       "格式": "SVG",
-      "內容":"file://images/menu3.svg"
+      "內容":"file://icons/menu3.svg"
     },
     "標籤集": ["圖示:標籤:符號","圖示:標籤:動畫"],
     "可刪除": false

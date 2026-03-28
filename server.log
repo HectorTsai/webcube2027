@@ -1,2 +1,0 @@
-[2026-03-26 10:02:23] [ERROR] [KV] KV 資料庫連線失敗: Error: Deno KV 不可用，請確保使用 --unstable-kv 參數啟動
-[2026-03-26 10:02:23] [ERROR] [伺服器] 伺服器啟動失敗: Error: Deno KV 不可用，請確保使用 --unstable-kv 參數啟動

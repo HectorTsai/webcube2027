@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="3"
+            stroke-width="2"
+            stroke-opacity="0.3"
+            opacity="0.4"
+            stroke="currentColor"
+    />
+    <circle cx="12" cy="3" r="3"
+            fill="currentColor"
+            class="origin-center animate__動畫 animate__無限次 animate__旋轉"
+    />
+    <circle cx="12" cy="3" r="3"
+            fill="currentColor"
+            opacity="0.7"
+            class="origin-center animate__延遲 animate__動畫 animate__無限次 animate__旋轉"
+    />
+</svg>
