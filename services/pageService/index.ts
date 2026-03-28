@@ -40,10 +40,32 @@ export default class PageService {
         }
       }
       
+      // 3. 檢查 Cookie 中的語言
+      const cookieHeader = c.req.header('Cookie');
+      const cookieLang = cookieHeader?.match(/lang=([^;]+)/)?.[1];
+      if (cookieLang) {
+        // 驗證 Cookie 中的語言是否支援
+        const isSupported = await languageService.檢查語言支援(c, cookieLang);
+        if (isSupported) {
+          await info('PageService', `使用 Cookie 語言: ${cookieLang} → ${path}`);
+          return { 語言: cookieLang, 頁面路徑: path };
+        }
+      }
+      
       // 4. 沒有語言前綴，使用預設語言
-      const 預設語言 = 支援語言.length > 0 ? 支援語言[0] : 'zh-tw';
-      await info('PageService', `使用預設語言: ${預設語言} → ${path}`);
-      return { 語言: 預設語言, 頁面路徑: path };
+      const 系統資訊 = c.get('系統資訊');
+      const 預設語言 = 系統資訊?.預設語言 || 'zh-tw';
+      
+      // 如果預設語言在支援列表中，使用預設語言
+      if (支援語言.includes(預設語言)) {
+        await info('PageService', `使用預設語言: ${預設語言} → ${path}`);
+        return { 語言: 預設語言, 頁面路徑: path };
+      }
+      
+      // 否則使用第一個支援語言
+      const 第一個支援語言 = 支援語言.length > 0 ? 支援語言[0] : 'zh-tw';
+      await info('PageService', `使用第一個支援語言: ${第一個支援語言} → ${path}`);
+      return { 語言: 第一個支援語言, 頁面路徑: path };
       
     } catch (err) {
       await error('PageService', `URL路徑解析失敗: ${err.message}`);
@@ -92,6 +114,7 @@ export default class PageService {
       // 9. 處理主選單
       await info('PageService', '處理主選單');
       const menuItems = [];
+      
       for (const 頁面ID of 網站資訊.data?.主選單 || []) {
         try {
           const 頁面Response = await InnerAPI(c!, `/api/v1/cube/${頁面ID}`);
@@ -110,6 +133,7 @@ export default class PageService {
       const companyName = 版權資料.公司 || "WebCube 2027";
       const companyUrl = 版權資料.網址 || "";
       const logo = 網站資訊.data?.商標 || "";
+      const siteName = 網站資訊.data?.名稱 || "WebCube";
       
       // 11. 組合佈局參數
       const 佈局參數 = {
@@ -119,6 +143,7 @@ export default class PageService {
         companyUrl,
         year: new Date().getFullYear(),
         logo,
+        siteName,
         language: c?.get('語言') || 'zh-tw'
       };
       
@@ -382,37 +407,28 @@ export default class PageService {
    */
   static async findPageByPath(path: string, c: Context): Promise<頁面 | null> {
     try {
-      await info('PageService', `查找頁面: ${path}`);
+      // 2. 處理語言前綴路徑，轉換為實際頁面路徑
+      let 實際頁面路徑 = path;
       
-      // 1. 解析 URL 路徑，取得語言和頁面路徑
-      const 解析結果 = await this.解析URL路徑(path, c);
-      await info('PageService', `解析結果: ${JSON.stringify(解析結果)}`);
-      
-      if (!解析結果) {
-        await info('PageService', `URL路徑解析失敗: ${path}`);
-        return null; // 404 - 語言不支援
+      // 檢查是否是語言前綴格式
+      const match = path.match(/^\/([a-z]{2}(?:-[a-z]{2})?)(\/.*)?$/);
+      if (match) {
+        const [, _語言前綴, 頁面路徑部分] = match;
+        實際頁面路徑 = 頁面路徑部分 || '/'; // /en → /
       }
       
-      const { 語言, 頁面路徑 } = 解析結果;
-      await info('PageService', `解析成功 - 語言: ${語言}, 頁面路徑: ${頁面路徑}`);
+      // 3. 使用實際頁面路徑查找頁面
+      const apiPath = 實際頁面路徑 === '/' ? '/api/v1/page/path' : `/api/v1/page/path${實際頁面路徑}`;
       
-      // 2. 使用 InnerAPI 從 page API 查找頁面
-      const apiPath = 頁面路徑 === '/' ? '/api/v1/page/path' : `/api/v1/page/path${頁面路徑}`;
+      const response = await InnerAPI(c, apiPath);
+      const data = await response.json();
       
-      const 頁面回應 = await InnerAPI(c, apiPath);
-      const 頁面資料 = await 頁面回應.json();
-      await info('PageService', `API回應: ${JSON.stringify(頁面資料)}`);
-      
-      if (頁面資料.success && 頁面資料.data) {
-        await info('PageService', `成功取得頁面: ${頁面路徑}`);
-        
+      if (data.success && data.data) {
         // 將 API 資料轉換為 頁面 實例
-        const 頁面實例 = new 頁面(頁面資料.data, false);
-        await info('PageService', `頁面實例建立: ${頁面實例.路徑}`);
-        return 頁面實例;
+        const pageInstance = new 頁面(data.data, false);
+        return pageInstance;
       }
       
-      await info('PageService', `找不到頁面: ${頁面路徑}`);
       return null;
       
     } catch (err) {

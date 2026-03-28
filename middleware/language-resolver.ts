@@ -1,6 +1,5 @@
 // 語言解析中間件
 import { Context, Next } from 'hono';
-import { info } from '../utils/logger.ts';
 import languageService from '../services/languageService/index.ts';
 
 /**
@@ -65,12 +64,20 @@ async function 取得使用者語言(c: Context, checkUrl: boolean = true): Prom
     }
   }
   
-  // 4. 使用第一個支援的語言
+  // 4. 使用預設語言
+  const 系統資訊 = c.get('系統資訊');
+  const 預設語言 = 系統資訊?.預設語言 || 'zh-tw';
+  
+  if (支援語言.includes(預設語言)) {
+    return 預設語言;
+  }
+  
+  // 5. 使用第一個支援的語言
   if (支援語言.length > 0) {
     return 支援語言[0];
   }
   
-  // 5. 最後預設語言
+  // 6. 最後預設語言
   return 'zh-tw';
 }
 
@@ -87,7 +94,7 @@ export async function 語言解析器(c: Context, next: Next) {
   c.set('語言', language);
   
   // 確定語言後寫入 cookie
-  c.header('Set-Cookie', `lang=${language}; Path=/; HttpOnly; SameSite=Lax`);
+  c.header('Set-Cookie', `lang=${language}; Path=/; SameSite=Lax; Max-Age=31536000`);
   
   await next();
 }

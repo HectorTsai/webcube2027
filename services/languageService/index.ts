@@ -99,12 +99,21 @@ class LanguageServiceImpl implements ILanguageService {
         return language;
       }
       
-      // 2. 如果不支援，取得第一個支援的語言
+      // 2. 如果不支援，取得預設語言
       const 支援語言 = await this.取得支援語言(c);
-      const 預設語言 = 支援語言.length > 0 ? 支援語言[0] : 'zh-tw';
+      const 系統資訊 = c.get('系統資訊');
+      const 預設語言 = 系統資訊?.預設語言 || 'zh-tw';
       
-      await info('語言服務', `語言 ${language} 不支援，使用預設語言: ${預設語言}`);
-      return 預設語言;
+      // 如果預設語言在支援列表中，使用預設語言
+      if (支援語言.includes(預設語言)) {
+        await info('語言服務', `語言 ${language} 不支援，使用預設語言: ${預設語言}`);
+        return 預設語言;
+      }
+      
+      // 否則使用第一個支援的語言
+      const 第一個支援語言 = 支援語言.length > 0 ? 支援語言[0] : 'zh-tw';
+      await info('語言服務', `語言 ${language} 不支援，預設語言也不支援，使用第一個支援語言: ${第一個支援語言}`);
+      return 第一個支援語言;
       
     } catch (err) {
       await error('語言服務', `驗證語言失敗: ${err}`);

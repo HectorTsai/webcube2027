@@ -17,6 +17,8 @@ export interface ClassicLayoutProps {
   year?: number;
   /** Company logo for footer */
   logo?: string;
+  /** Site name for header */
+  siteName?: string;
   /** Current language for display */
   language?: string;
 }
@@ -29,16 +31,20 @@ export default function ClassicLayout({
   companyUrl = "",
   year = new Date().getFullYear(),
   logo = "",
+  siteName = "WebCube",
   language
 }: ClassicLayoutProps) {
     return (
     <Container 
       direction="column" 
       width="full"
+      padding="none"
+      className="min-h-screen flex flex-col"
     >
       {/* Header with Navigation */}
       <MainMenu 
-        logoText="WebCube"
+        logo={logo}
+        logoText={siteName}
         menuItems={menuItems}
         ctaButton={ctaButton}
         variant="default"
@@ -49,6 +55,7 @@ export default function ClassicLayout({
       <Container 
         direction="column" 
         padding="lg"
+        className="flex-1 overflow-y-auto"
       >
         {children}
       </Container>

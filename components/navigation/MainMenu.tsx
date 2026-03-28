@@ -1,3 +1,5 @@
+import Icon from "../ui/Icon.tsx";
+
 export interface MenuItem {
   label: string;
   href: string;
@@ -6,7 +8,8 @@ export interface MenuItem {
 export interface CtaButton {
   text: string;
   href: string;
-  variant?: "primary" | "secondary";
+  variant?: "primary" | "secondary" | "accent";
+  size?: "sm" | "md" | "lg";
 }
 
 export interface MainMenuProps {
@@ -36,7 +39,7 @@ export default function MainMenu({
   language = "zh-tw",
 }: MainMenuProps) {
   // 使用 UnoCSS 自訂 preset 的 classes
-  const baseClasses = "w-full border-b border-base-300 bg-base-100";
+  const baseClasses = "w-full border-b border-base-300 bg-primary text-primary-content";
   const stickyClasses = sticky ? "sticky top-0 z-50" : "";
   
   const variantClasses = {
@@ -54,10 +57,11 @@ export default function MainMenu({
         {/* Logo */}
         <div class="flex items-center">
           {logo ? (
-            <img src={logo} alt={logoText} class="h-8 w-auto" />
+            <Icon id={logo} size="xl" />
           ) : (
-            <span class="text-xl font-bold text-base-content">{logoText}</span>
+            ""
           )}
+          <span class="text-xl">{logoText}</span>
         </div>
 
         {/* Menu Items */}
@@ -66,7 +70,7 @@ export default function MainMenu({
             <a
               key={index}
               href={item.href}
-              class="text-base-content hover:text-primary-content px-sm py-sm text-sm font-medium transition-colors"
+              class="btn btn-ghost text-primary-content no-underline hover:btn-secondary"
             >
               {item.label}
             </a>
@@ -78,7 +82,7 @@ export default function MainMenu({
           <div class="flex items-center">
             <a
               href={ctaButton.href}
-              class={`btn ${ctaButton.variant === "secondary" ? "btn-secondary" : "btn-primary"}`}
+              class={`btn ${ctaButton.variant === "secondary" ? "btn-secondary" : ctaButton.variant === "accent" ? "btn-accent" : "btn-primary"} ${ctaButton.size === "sm" ? "text-sm" : ctaButton.size === "lg" ? "text-lg" : "text-md"} no-underline`}
             >
               {ctaButton.text}
             </a>

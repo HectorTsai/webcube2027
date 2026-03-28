@@ -13,6 +13,8 @@ export interface ContainerProps {
   padding?: "none" | "xs" | "sm" | "md" | "lg" | "xl";
   /** Container width - controls responsive behavior */
   width?: "auto" | "full" | "fit" | "screen";
+  /** Additional CSS classes */
+  className?: string;
 }
 
 export default function Container({
@@ -23,6 +25,7 @@ export default function Container({
   gap = "md",
   padding = "md",
   width = "full",
+  className = "",
 }: ContainerProps) {
   const baseClasses = "flex";
   
@@ -74,7 +77,7 @@ export default function Container({
     screen: "w-screen",
   };
 
-  const classes = `${baseClasses} ${directionClasses[direction]} ${alignClasses[align]} ${justifyClasses[justify]} ${gapClasses[gap]} ${paddingClasses[padding]} ${widthClasses[width]}`;
+  const classes = `${baseClasses} ${directionClasses[direction]} ${alignClasses[align]} ${justifyClasses[justify]} ${gapClasses[gap]} ${paddingClasses[padding]} ${widthClasses[width]} ${className}`;
 
   return <div class={classes}>{children}</div>;
 }
