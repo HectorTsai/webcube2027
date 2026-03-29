@@ -2,6 +2,7 @@
 import { createGenerator } from '@unocss/core';
 import { presetWind } from '@unocss/preset-wind';
 import { info, error } from '../utils/logger.ts';
+import { 所有動畫規則, 生成完整動畫CSS } from './animate.ts';
 
 // 自訂 preset (學習 daisyUI 設計理念)
 const 自訂Preset = {
@@ -100,11 +101,14 @@ export async function 初始化UnoCSS(): Promise<void> {
         presetWind(), // Tailwind 相容 preset
       ],
       theme: 自訂Preset.theme,
-      rules: 自訂Preset.rules as any,
+      rules: [
+        ...自訂Preset.rules as any,
+        ...所有動畫規則 as any,
+      ],
       shortcuts: 自訂Preset.shortcuts as any // 直接添加 shortcuts
     } as any);
 
-    await info('UnoCSS', 'UnoCSS 生成器初始化完成');
+    await info('UnoCSS', 'UnoCSS 生成器初始化完成 (含動畫支援)');
   } catch (錯誤) {
     await error('UnoCSS', `UnoCSS 初始化失敗: ${錯誤}`);
     throw 錯誤;
@@ -263,6 +267,10 @@ body {
 `;
 
     finalCSS = `${finalCSS}\n\n${基礎樣式}`;
+
+    // 添加動畫 CSS
+    const 動畫樣式 = 生成完整動畫CSS();
+    finalCSS = `${動畫樣式}\n\n${finalCSS}`;
 
     // 快取結果
     if (啟用快取) {
