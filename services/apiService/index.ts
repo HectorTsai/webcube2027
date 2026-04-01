@@ -21,8 +21,6 @@ export interface RouteParams {
  */
 export async function 處理API請求(c: Context): Promise<Response> {
   try {
-    await info('API Service', `處理 API 請求: ${c.req.path}`);
-    
     const path = c.req.path;
     const method = c.req.method;
     
@@ -51,10 +49,8 @@ export async function 處理API請求(c: Context): Promise<Response> {
         apiModule = module.default;
         routeParams = attempt.params;
         
-        await info('API Service', `成功載入模組: ${modulePath}, 參數: ${JSON.stringify(routeParams)}`);
         break; // 成功載入，跳出迴圈
       } catch (moduleError) {
-        await info('API Service', `嘗試載入失敗: ${attempt.path} - ${moduleError}`);
         // 繼續下一個嘗試
       }
     }

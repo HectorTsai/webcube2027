@@ -70,6 +70,10 @@ const 自訂Preset = {
   shortcuts: {
     // 常用組合樣式
     'btn': 'px-4 py-2 rounded-md font-medium transition-colors duration-200',
+    'btn-ghost': 'btn bg-transparent text-current hover:bg-base-200 hover:text-current',
+    'icon-current': '[&>img]:filter [&>img]:brightness-0 [&>img]:invert [&>img]:transition-filter [&>img]:duration-200',
+    'icon-primary': '[&>img]:filter [&>img]:brightness-0 [&>img]:invert',
+    'icon-secondary': '[&>img]:filter [&>img]:brightness-0) [&>img]:hue-rotate-180 [&>img]:invert',
     'btn-primary': 'btn bg-primary text-primary-content hover:opacity-90',
     'btn-secondary': 'btn bg-secondary text-secondary-content hover:opacity-90',
     'btn-accent': 'btn bg-accent text-accent-content hover:opacity-90',

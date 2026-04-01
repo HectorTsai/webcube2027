@@ -2,30 +2,27 @@
 import { Context } from 'hono';
 import { info, error } from '../../utils/logger.ts';
 import { MediaModule, RouteParams } from './index.ts';
+import 圖示 from "../../database/models/圖示.ts";
+import { 三層查詢管理器 } from '../../core/three-tier-query.ts';
 
-// 從 KV 資料庫載入圖示
-async function 從資料庫載入圖示(iconId: string): Promise<Response | null> {
+// 從三層資料庫載入圖示
+async function 從資料庫載入圖示(c: Context, iconId: string): Promise<Response | null> {
   try {
-    await info('Icon Media', `從資料庫載入圖示: ${iconId}`);
+    await info('Icon Media', `從三層資料庫載入圖示: ${iconId}`);
     
-    // 開啟 KV 資料庫
-    const kv = await Deno.openKv();
+    // 使用三層查詢管理器直接查詢
+    const 查詢結果 = await 三層查詢管理器.查詢單一<圖示>(c, iconId);
     
-    // 查詢圖示資料庫（使用完整的圖示 ID）
-    const key = ['圖示', iconId];
-    const result = await kv.get(key);
-    kv.close();
-    
-    if (!result.value) {
+    if (!查詢結果.success || !查詢結果.data) {
       await info('Icon Media', `圖示不存在於資料庫: ${iconId}`);
       return null;
     }
     
-    const iconData = result.value as any;
+    const 圖示資料 = 查詢結果.data;
     
     // 處理圖示資料格式
-    if (iconData.資料 && iconData.資料.格式 === 'SVG' && iconData.資料.資料) {
-      const 內容 = iconData.資料.資料;
+    if (圖示資料.資料 && 圖示資料.資料.format === 'SVG') {
+      const 內容 = 圖示資料.資料.content;
       
       // 直接使用 SVG 內容
       if (typeof 內容 === 'string' && 內容.trim().startsWith('<svg')) {
@@ -184,7 +181,7 @@ const icon: MediaModule = {
       
       // 第三層：從資料庫載入
       if (!response) {
-        response = await 從資料庫載入圖示(iconId);
+        response = await 從資料庫載入圖示(c, iconId);
       }
       
       // 第四層：嘗試檔案系統（直接檔名）

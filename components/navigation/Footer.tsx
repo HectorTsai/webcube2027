@@ -1,25 +1,37 @@
 import { MultilingualString } from "@dui/smartmultilingual";
 import Icon from "../ui/Icon.tsx"
+import { Context } from "hono";
 
 export interface FooterProps {
-  /** Company logo URL */
-  logo?: string;
-  /** Company name */
-  companyName?: string;
-  /** Company website URL */
-  companyUrl?: string;
-  /** Current year */
-  year?: number;
-  language?: string;
+  /** Hono context for API calls */
+  context?: Context;
 }
 
 export default async function Footer({
-  logo = "",
-  companyName = "",
-  companyUrl = "",
-  year = new Date().getFullYear(),
-  language = "zh-tw",
+  context
 }: FooterProps) {
+  // 從 API 取得網站資訊
+  let logo = "";
+  let companyName = "";
+  let companyUrl = "";
+  let year = new Date().getFullYear();
+  
+  if (context) {
+    try {
+      const { InnerAPI } = await import('../../services/index.ts');
+      const response = await InnerAPI(context, "/api/v1/info");
+      const info = await response.json();
+      
+      // 取得基本資訊
+      logo = info.data?.商標 || "";
+      companyName = info.data?.版權資料?.公司 || "WebCube 2027";
+      companyUrl = info.data?.版權資料?.網址 || "";
+    } catch (error) {
+      // API 失敗時使用預設值
+      console.error('Footer API 失敗:', error);
+    }
+  }
+  
   const right = new MultilingualString({
     en:"All rights reserved.",
     "zh-tw": "版權所有",
@@ -31,7 +43,7 @@ export default async function Footer({
         <div class="flex flex-col items-center space-y-4">
           {/* Copyright */}
           <p class="text-sm flex items-center" style="text-align: center; width: 100%; display: flex; justify-content: center; gap: 0.5rem;">
-            {logo && <Icon id={logo} size="sm" />}
+            {logo && <Icon id={logo} className="w-10" context={context} />}
             <span>@{year} </span>
             {companyUrl ? (
               <a 
@@ -45,7 +57,7 @@ export default async function Footer({
             ) : (
               <span>{companyName}</span>
             )}
-            <span> {await right.toStringAsync(language)}.</span>
+            <span> {await right.toStringAsync(context?.get('語言') || 'zh-tw')}.</span>
           </p>
         </div>
       </div>

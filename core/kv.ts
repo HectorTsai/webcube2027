@@ -93,6 +93,7 @@ export class KV資料庫 {
               if (模型類別 && typeof 模型類別 === 'function') {
                 try {
                   const 模型實例 = new 模型類別(資料項目, 資料項目.可刪除 || false);
+                  await 模型實例.初始化();
                   await kv.set([model, 模型實例.id], 模型實例.toJSON());
                 } catch (實例錯誤) {
                   await error('KV', `建立 ${model} 模型實例失敗，使用原始資料: ${實例錯誤}`);

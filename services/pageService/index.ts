@@ -3,7 +3,6 @@ import 方塊 from "../../database/models/方塊.ts";
 import { info, error } from "../../utils/logger.ts";
 import { 三層查詢管理器 } from '../../core/three-tier-query.ts';
 import { 資料過濾器 } from '../../utils/資料過濾器.ts';
-import 動態方塊解析器 from "./動態方塊解析器.ts";
 import { InnerAPI } from "../index.ts";
 import { Context } from "hono";
 import languageService from "../languageService/index.ts";
@@ -74,9 +73,9 @@ export default class PageService {
   }
 
   /**
-   * 渲染頁面為 HTML
+   * 渲染頁面 - 主要入口點
    */
-  static async renderPage(頁面實例: 頁面, 路由參數: Record<string, string> = {}, c?: Context): Promise<string> {
+  static async renderPage(頁面實例: any, 路由參數: any, c: any): Promise<string> {
     try {
       await info('PageService', `開始渲染頁面: ${頁面實例.路徑}`);
       
@@ -138,13 +137,7 @@ export default class PageService {
       // 11. 組合佈局參數
       const 佈局參數 = {
         children: childrenJSX,
-        menuItems,
-        companyName,
-        companyUrl,
-        year: new Date().getFullYear(),
-        logo,
-        siteName,
-        language: c?.get('語言') || 'zh-tw'
+        context: c
       };
       
       await info('PageService', `渲染佈局方塊: ${佈局方塊ID}`);

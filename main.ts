@@ -51,6 +51,7 @@ app.all('*', async (c) => {
   const path = c.req.path;
   const method = c.req.method;
   
+  
   // 記錄路由日誌
   await info('路由分發器', `${method} ${path}`);
   

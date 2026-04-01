@@ -118,9 +118,29 @@ export default class Surreal資料庫 {
       const seedPath = new URL(`./seeds/${model}.json`, import.meta.url);
       const text = await Deno.readTextFile(seedPath);
       const items = JSON.parse(text) as Record<string, unknown>[];
+      
+      // 動態導入模型類別
+      let 模型類別: any = null;
+      try {
+        const 模型模組 = await import(`../database/models/${model}.ts`);
+        模型類別 = 模型模組.default;
+      } catch (_導入錯誤) {
+        console.error(`[surrealdb.ts] 無法導入 ${model} 模型類別`);
+      }
+      
       for (const item of items) {
         try {
-          await this.查詢(`CREATE ${model} CONTENT ${JSON.stringify(item)};`);
+          if (模型類別 && typeof 模型類別 === 'function') {
+            // 建立模型實例並初始化
+            const 模型實例 = new 模型類別(item, item.可刪除 || false);
+            await 模型實例.初始化();
+            
+            // 使用處理後的資料
+            await this.查詢(`CREATE ${model} CONTENT ${JSON.stringify(模型實例.toJSON())};`);
+          } else {
+            // 沒有模型類別，使用原始資料
+            await this.查詢(`CREATE ${model} CONTENT ${JSON.stringify(item)};`);
+          }
         } catch (_) {
           // swallow and continue importing others
         }

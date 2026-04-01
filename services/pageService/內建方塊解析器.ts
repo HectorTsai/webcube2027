@@ -40,4 +40,24 @@ export default class 內建方塊解析器 {
       return `<div class="error" data-cube="${方塊定義?.id || 'unknown'}">內建方塊解析失敗: ${(err as Error).message}</div>`;
     }
   }
+  
+  /* TODO: 已廢棄 - 水合偵測已移至動態方塊JSX解析器，自動偵測 getHydrationScript
+  private static async 解析水合方塊(方塊定義: any, 內容: any): Promise<string> {
+    try {
+      await info('內建方塊解析器', `解析水合方塊: ${方塊定義.元件路徑}`);
+      const 元件路徑 = resolve('.', 'components', ...方塊定義.元件路徑.split('/')) + '.tsx';
+      const 元件模組 = await import(元件路徑);
+      const 元件 = 元件模組.default;
+      if (!元件) throw new Error(`找不到元件: ${方塊定義.元件路徑}`);
+      const jsxNode = 元件(內容);
+      const SSR內容 = jsxNode.toString();
+      const API路徑 = `/api/v1/hydrate/${方塊定義.元件路徑}`;
+      const 水合腳本 = `<script>fetch('${API路徑}').then(r=>r.text()).then(code=>eval(code)).catch(err=>console.error('Hydration failed:', err));</script>`;
+      return SSR內容 + 水合腳本;
+    } catch (err) {
+      await error('內建方塊解析器', `水合方塊解析失敗: ${(err as Error).message}`);
+      return `<div class="error">水合方塊解析失敗: ${(err as Error).message}</div>`;
+    }
+  }
+  */
 }

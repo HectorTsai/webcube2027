@@ -142,6 +142,7 @@ const { customColors, semanticColors, statusColors, customSpacing, customCompone
 - `Image` - 大型圖片 (支援多種格式)
 - `Input` - 輸入框
 - `Card` - 卡片
+- `Drawer` - 抽屜面板 (四方向滑入動畫)
 
 ## 🔄 匯入規則
 ```tsx
@@ -150,5 +151,6 @@ import Container from "../container/Container.tsx";
 import Button from "../ui/Button.tsx";
 import Icon from "../ui/Icon.tsx";
 import Image from "../ui/Image.tsx";
+import Drawer from "../ui/Drawer.tsx";
 import ClassicLayout from "../layouts/ClassicLayout.tsx";
 ```

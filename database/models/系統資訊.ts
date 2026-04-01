@@ -84,4 +84,10 @@ export default class 系統資訊 extends 資料 {
       骨架: this.骨架,
     };
   }
+  public override async 初始化(): Promise<void> {
+    await this.軟體服務條款.fetchAsync();
+    await this.使用者服務條款.fetchAsync();
+    await this.隱私權政策.fetchAsync();
+    return;
+  }
 }

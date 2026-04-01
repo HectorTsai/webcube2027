@@ -1,38 +1,24 @@
 import Container from "../container/Container.tsx";
-import MainMenu, { MenuItem, CtaButton } from "../navigation/MainMenu.tsx";
+import MainMenu from "../navigation/MainMenu.tsx";
 import Footer from "../navigation/Footer.tsx";
+
+// 直接定義水合腳本函數
+export async function getHydrationScript() {
+  // 從 MainMenu 導入水合腳本
+  const MainMenu = await import("../navigation/MainMenu.tsx");
+  return MainMenu.getHydrationScript();
+}
 
 export interface ClassicLayoutProps {
   /** Child elements to render inside the layout */
   children: any;
-  /** Menu items for navigation */
-  menuItems?: MenuItem[];
-  /** Call-to-action button for navigation */
-  ctaButton?: CtaButton;
-  /** Company name for footer */
-  companyName?: string;
-  /** Company website URL for footer */
-  companyUrl?: string;
-  /** Current year for footer */
-  year?: number;
-  /** Company logo for footer */
-  logo?: string;
-  /** Site name for header */
-  siteName?: string;
-  /** Current language for display */
-  language?: string;
+  /** Hono context for API calls */
+  context?: any;
 }
 
 export default function ClassicLayout({ 
   children,
-  menuItems = [],
-  ctaButton,
-  companyName = "WebCube 2027",
-  companyUrl = "",
-  year = new Date().getFullYear(),
-  logo = "",
-  siteName = "WebCube",
-  language
+  context
 }: ClassicLayoutProps) {
     return (
     <Container 
@@ -42,14 +28,7 @@ export default function ClassicLayout({
       className="min-h-screen flex flex-col"
     >
       {/* Header with Navigation */}
-      <MainMenu 
-        logo={logo}
-        logoText={siteName}
-        menuItems={menuItems}
-        ctaButton={ctaButton}
-        variant="default"
-        language={language}
-      />
+      <MainMenu context={context} />
       
       {/* Main Content Area */}
       <Container 
@@ -62,11 +41,7 @@ export default function ClassicLayout({
       
       {/* Footer */}
       <Footer 
-        companyName={companyName}
-        companyUrl={companyUrl}
-        year={year}
-        logo={logo}
-        language={language}
+        context={context}
       />
     </Container>
   );

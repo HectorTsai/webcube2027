@@ -11,6 +11,7 @@ const DEFAULT_VALUES = {
   影像: "",
   佈局: "方塊:方塊:cube-網站-經典",
   風格: "實心",
+  選單按鈕:"圖示:圖示:menu",
   書本樣式: "經典",
   圖示: "外框",
   開始動畫: "Buildings",
@@ -74,6 +75,7 @@ export default class 骨架 extends 資料 {
   public 風格: string; // 風格id
   public 圖示: string;
   public 書本樣式: string;
+  public 選單按鈕:string;
   public 開始動畫: string;
   public 載入器: string;
   public 圓角: Record<string, string>;
@@ -96,6 +98,7 @@ export default class 骨架 extends 資料 {
     this.佈局 = (data?.佈局 as string) ?? DEFAULT_VALUES.佈局;
     this.風格 = (data?.風格 as string) ?? DEFAULT_VALUES.風格;
     this.圖示 = (data?.圖示 as string) ?? DEFAULT_VALUES.圖示;
+    this.選單按鈕 = (data?.選單按鈕 as string) ?? DEFAULT_VALUES.選單按鈕;
     this.書本樣式 = (data?.書本樣式 as string) ?? DEFAULT_VALUES.書本樣式;
     this.開始動畫 = (data?.開始動畫 as string) ?? DEFAULT_VALUES.開始動畫;
     this.載入器 = (data?.載入器 as string) ?? DEFAULT_VALUES.載入器;
@@ -118,6 +121,7 @@ export default class 骨架 extends 資料 {
       佈局: this.佈局,
       風格: this.風格,
       圖示: this.圖示,
+      選單按鈕: this.選單按鈕,
       書本樣式: this.書本樣式,
       開始動畫: this.開始動畫,
       載入器: this.載入器,

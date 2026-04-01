@@ -10,9 +10,9 @@ export default class 動態方塊JSX解析器 {
   private static readonly 最大深度 = 10;
 
   /**
-   * 解析方塊為 JSX 元件
+   * 解析方塊 - 主要入口點
    */
-  static async 解析(方塊ID: string, 內容: any, 深度: number = 0, c?: any): Promise<any> {
+  static async 解析(方塊ID: string, 內容: any, 深度: number = 0, c: any): Promise<any> {
     try {
       if (深度 > this.最大深度) {
         throw new Error(`方塊解析深度超過限制: ${深度}`);
@@ -66,6 +66,7 @@ export default class 動態方塊JSX解析器 {
 
   /**
    * 解析內建方塊
+   * 自動偵測元件是否提供 getHydrationScript，有則注入水合腳本
    */
   private static async 解析內建方塊(方塊定義: any, 內容: any): Promise<any> {
     try {
@@ -86,6 +87,31 @@ export default class 動態方塊JSX解析器 {
 
       // 呼叫元件，返回 JSX 元件
       const jsxElement = 元件(內容);
+
+      // 自動偵測水合：元件有提供 getHydrationScript 就直接內嵌水合腳本
+      if (typeof 元件模組.getHydrationScript === 'function') {
+        await info('動態方塊JSX解析器', `偵測到水合支援: ${方塊定義.元件路徑}`);
+        const 水合資料 = 元件模組.getHydrationScript();
+        
+        // 組合水合腳本：imports + component + initCode
+        let 水合程式碼 = '';
+        if (typeof 水合資料 === 'string') {
+          水合程式碼 = 水合資料;
+        } else if (typeof 水合資料 === 'object') {
+          const imports = 水合資料.imports?.join('\n') || '';
+          const componentStr = 水合資料.component
+            ? `const HydrationComponent = ${水合資料.component.toString()};`
+            : '';
+          const initCode = 水合資料.initCode || '';
+          水合程式碼 = [imports, componentStr, initCode].filter(Boolean).join('\n');
+        }
+        
+        const 水合腳本 = jsx('script', {
+          type: 'module',
+          dangerouslySetInnerHTML: { __html: 水合程式碼 }
+        });
+        return jsx('div', { 'data-hydrate': 方塊定義.元件路徑 }, [jsxElement, 水合腳本] as any);
+      }
 
       await info('動態方塊JSX解析器', `元件渲染成功: ${方塊定義.元件路徑}`);
       return jsxElement;

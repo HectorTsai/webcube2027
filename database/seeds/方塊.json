@@ -857,5 +857,92 @@
     "審核狀態": "approved",
     "上架狀態": true,
     "可刪除": false
+  },
+  {
+    "id": "方塊:方塊:抽屜",
+    "名稱": {
+      "en": "Drawer",
+      "zh-tw": "抽屜",
+      "vi": "Kéo"
+    },
+    "描述": {
+      "en": "A sliding panel that can be hidden on any screen edge and slides in when triggered. Supports four directions and multiple closing methods.",
+      "zh-tw": "可隱藏在螢幕邊緣的滑動面板，觸發時滑入顯示。支援四個方向和多種關閉方式。",
+      "vi": "Một bảng trượt có thể ẩn trên bất kỳ cạnh màn hình và trượt vào khi được kích hoạt. Hỗ trợ bốn hướng nhiều phương pháp đóng khác nhau."
+    },
+    "售價": 0,
+    "標籤集": ["ui", "drawer", "panel", "overlay", "slide", "圖示:標籤:面板"],
+    "模式": "內建",
+    "元件路徑": "ui/Drawer",
+    "屬性定義": {
+      "id": {
+        "type": "string",
+        "description": "Unique identifier for the drawer - used for external control via JavaScript",
+        "required": true,
+        "example": "my-drawer"
+      },
+      "position": {
+        "type": "string",
+        "description": "Screen edge where the drawer should slide in from",
+        "required": true,
+        "options": ["top", "bottom", "left", "right"],
+        "example": "right"
+      },
+      "defaultOpen": {
+        "type": "boolean",
+        "description": "Whether the drawer should be open by default when rendered",
+        "required": false,
+        "default": false,
+        "example": false
+      },
+      "children": {
+        "type": "object",
+        "description": "Content to display inside the drawer panel",
+        "required": true,
+        "example": "<div class='p-4'><h2>Drawer Title</h2><p>Content here</p></div>"
+      },
+      "size": {
+        "type": "string | number",
+        "description": "Size of the drawer - width for left/right, height for top/bottom",
+        "required": false,
+        "example": "400px or 400"
+      },
+      "openAnimation": {
+        "type": "string",
+        "description": "Custom animation class for opening - uses WebCube animation system",
+        "required": false,
+        "example": "animate-in slide-in-from-right duration-500"
+      },
+      "closeAnimation": {
+        "type": "string",
+        "description": "Custom animation class for closing - uses WebCube animation system",
+        "required": false,
+        "example": "animate-out slide-out-to-right duration-300"
+      },
+      "onClose": {
+        "type": "function",
+        "description": "Callback function triggered when drawer is closed",
+        "required": false,
+        "example": "() => console.log('Drawer closed')"
+      },
+      "onOpen": {
+        "type": "function",
+        "description": "Callback function triggered when drawer is opened",
+        "required": false,
+        "example": "() => console.log('Drawer opened')"
+      },
+      "className": {
+        "type": "string",
+        "description": "Additional CSS classes to apply to the drawer container",
+        "required": false,
+        "example": "custom-drawer-class"
+      }
+    },
+    "子方塊": [],
+    "對外參數": {},
+    "程式碼": "<button onClick={() => document.getElementById('my-drawer')?.open()}>開啟抽屜</button>\n<Drawer id='my-drawer' position='right' size={400}>\n  <div class='p-4'>\n    <h2>抽屜標題</h2>\n    <p>抽屜內容</p>\n  </div>\n</Drawer>",
+    "審核狀態": "approved",
+    "上架狀態": true,
+    "可刪除": false
   }
 ]

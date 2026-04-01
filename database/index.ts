@@ -122,4 +122,7 @@ export class 資料 {
       最後修改: this.最後修改,
     };
   }
+  public async 初始化(): Promise<void> {
+    // 由子類別實現
+  }
 }

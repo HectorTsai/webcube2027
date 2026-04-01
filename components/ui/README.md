@@ -11,6 +11,7 @@
 - **圖片** (Image) - 大型圖片，支援多種格式
 - **卡片** (Card) - 內容容器
 - **標題** (Heading) - H1-H6 標題
+- **抽屜** (Drawer) - 四方向滑入動畫面板
 
 ## 🎨 樣式規範
 - 使用 UnoCSS classes
@@ -195,3 +196,60 @@ const customSpacing = customComponents.customSpacing; // xs, sm, md, lg
 
 ## 📦 相依組件
 - 無外部相依，保持獨立
+
+## 🗄️ Drawer 抽屜元件
+
+### 基本使用
+```tsx
+import Drawer from "./Drawer.tsx";
+
+// 開啟按鈕
+<button onClick={() => document.getElementById('my-drawer')?.open()}>
+  開啟右側抽屜
+</button>
+
+// 抽屜元件
+<Drawer 
+  id="my-drawer"
+  position="right"
+  size={400}
+  onClose={() => console.log('已關閉')}
+  onOpen={() => console.log('已開啟')}
+>
+  <div class="p-4">
+    <h2 class="text-xl font-bold">抽屜標題</h2>
+    <p>抽屜內容</p>
+  </div>
+</Drawer>
+```
+
+### 支援的 Props
+- `id` - 元件 ID，用於外部控制
+- `position` - "top" | "bottom" | "left" | "right"
+- `defaultOpen` - 預設開關狀態
+- `size` - 尺寸控制（寬度或高度）
+- `openAnimation` - 開啟動畫類名
+- `closeAnimation` - 關閉動畫類名
+- `onClose` - 關閉回調函數
+- `onOpen` - 開啟回調函數
+- `className` - 額外 CSS 類名
+
+### 控制方式
+```tsx
+// 全域方法控制
+document.getElementById('drawer-id')?.open();
+document.getElementById('drawer-id')?.close();
+document.getElementById('drawer-id')?.toggle();
+document.getElementById('drawer-id')?.isOpen();
+```
+
+### 關閉方式
+- 內建關閉按鈕（X 圖示）
+- 點擊外部區域關閉
+- ESC 鍵盤關閉
+
+### 預設動畫
+- 左側：`slide-in-from-left` / `slide-out-to-left`
+- 右側：`slide-in-from-right` / `slide-out-to-right`
+- 上方：`slide-in-from-top` / `slide-out-to-top`
+- 下方：`slide-in-from-bottom` / `slide-out-to-bottom`
