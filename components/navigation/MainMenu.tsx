@@ -2,7 +2,7 @@ import { InnerAPI } from "../../services/index.ts";
 import Icon from "../ui/Icon.tsx";
 import Drawer from "../ui/Drawer.tsx";
 import { Context } from "hono";
-import { useRef } from "hono/jsx";
+import { useRef, useEffect } from 'hono/jsx/dom';
 
 interface MenuItem {
   label: string;
@@ -66,7 +66,16 @@ export default async function MainMenu({ context }: { context?: Context }) {
   }
   
   // 使用 useRef 引用 Drawer 組件
-  const drawerRef = useRef(null);
+  const systemDrawerRef = useRef(null);
+  const mainDrawerRef = useRef(null);
+
+  // 暴露 ref 到 globalThis，讓水合腳本可以訪問
+  useEffect(() => {
+    if (typeof globalThis !== 'undefined') {
+      (globalThis as any).systemDrawerRef = systemDrawerRef;
+      (globalThis as any).mainDrawerRef = mainDrawerRef;
+    }
+  }, [systemDrawerRef, mainDrawerRef]);
 
   // 使用 UnoCSS 自訂 preset 的 classes - 固定 sticky
   const classes = "w-full border-b border-base-300 bg-primary text-primary-content sticky top-0 z-50 px-md py-md";
@@ -75,7 +84,7 @@ export default async function MainMenu({ context }: { context?: Context }) {
     <>
       <nav class={classes}>
         {/* 系統選單 Drawer - 由 logo 按鈕觸發 */}
-        <Drawer id="system-menu-drawer" position="left" defaultOpen={false}>
+        <Drawer id="system-menu-drawer" ref={systemDrawerRef} position="left" defaultOpen={false}>
           <div class="p-4">
             <h3 class="text-lg font-bold mb-4">系統選單</h3>
             <div class="text-xs text-gray-500 mb-2">
@@ -88,7 +97,7 @@ export default async function MainMenu({ context }: { context?: Context }) {
         </Drawer>
         
         {/* 主選單 Drawer - 由選單按鈕觸發 */}
-        <Drawer ref={drawerRef} id="main-menu-drawer" position="right" defaultOpen={false}>
+        <Drawer ref={mainDrawerRef} id="main-menu-drawer" position="right" defaultOpen={false}>
           <div class="p-4">
             <h3 class="text-lg font-bold mb-4">主選單</h3>
             {menuItems.map((item, index) => (
@@ -173,103 +182,71 @@ export default async function MainMenu({ context }: { context?: Context }) {
 export function getHydrationScript() {
   return {
     imports: [],
-    component: function() {
-      // 全域函數：切換指定 Drawer
+    component: function(drawerId) {
+      console.log('toggleMainMenuDrawer called:', drawerId);
+    },
+    initCode: `
+      // 完整的實作邏輯
       globalThis.toggleMainMenuDrawer = function(drawerId) {
         const drawer = document.getElementById(drawerId);
         if (drawer) {
-          // 確保 toggle 方法可用
-          if (!drawer.toggle) {
-            drawer.toggle = function() {
-              // 自動檢測 Drawer 位置
-              const isLeftDrawer = this.classList.contains('left-0');
-              const isRightDrawer = this.classList.contains('right-0');
-              const isTopDrawer = this.classList.contains('top-0');
-              const isBottomDrawer = this.classList.contains('bottom-0');
-              
-              let isOpen;
-              if (isLeftDrawer) {
-                isOpen = this.classList.contains('-translate-x-full');
-              } else if (isRightDrawer) {
-                isOpen = this.classList.contains('translate-x-full');
-              } else if (isTopDrawer) {
-                isOpen = this.classList.contains('-translate-y-full');
-              } else if (isBottomDrawer) {
-                isOpen = this.classList.contains('translate-y-full');
-              } else {
-                isOpen = this.classList.contains('-translate-x-full'); // 預設左邊
-              }
-              
-              if (isOpen) {
-                // 開啟 Drawer
-                if (isLeftDrawer) {
-                  this.classList.remove('-translate-x-full', 'animate-out', 'slide-out-to-left');
-                  this.classList.add('translate-x-0', 'animate-in', 'slide-in-from-left');
-                } else if (isRightDrawer) {
-                  this.classList.remove('translate-x-full', 'animate-out', 'slide-out-to-right');
-                  this.classList.add('translate-x-0', 'animate-in', 'slide-in-from-right');
-                } else if (isTopDrawer) {
-                  this.classList.remove('-translate-y-full', 'animate-out', 'slide-out-to-top');
-                  this.classList.add('translate-y-0', 'animate-in', 'slide-in-from-top');
-                } else if (isBottomDrawer) {
-                  this.classList.remove('-translate-y-full', 'animate-out', 'slide-out-to-bottom');
-                  this.classList.add('translate-y-0', 'animate-in', 'slide-in-from-bottom');
-                }
-              } else {
-                // 關閉 Drawer
-                if (isLeftDrawer) {
-                  this.classList.remove('translate-x-0', 'animate-in', 'slide-in-from-left');
-                  this.classList.add('-translate-x-full', 'animate-out', 'slide-out-to-left');
-                } else if (isRightDrawer) {
-                  this.classList.remove('translate-x-0', 'animate-in', 'slide-in-from-right');
-                  this.classList.add('translate-x-full', 'animate-out', 'slide-out-to-right');
-                } else if (isTopDrawer) {
-                  this.classList.remove('translate-y-0', 'animate-in', 'slide-in-from-top');
-                  this.classList.add('-translate-y-full', 'animate-out', 'slide-out-to-top');
-                } else if (isBottomDrawer) {
-                  this.classList.remove('translate-y-0', 'animate-in', 'slide-in-from-bottom');
-                  this.classList.add('-translate-y-full', 'animate-out', 'slide-out-to-bottom');
-                }
-              }
-              
-              // 切換 overlay
-              const overlayId = this.id + '-overlay';
-              const overlay = document.getElementById(overlayId);
-              if (overlay) {
-                overlay.style.display = isOpen ? 'block' : 'none';
-              }
-            };
+          // 在 SSR 環境中，只能使用手動 DOM 操作
+          console.log('使用手動 DOM 操作');
+          
+          // 檢查當前狀態
+          const isOpen = !drawer.classList.contains('-translate-x-full') && 
+                         !drawer.classList.contains('translate-x-full') &&
+                         !drawer.classList.contains('-translate-y-full') && 
+                         !drawer.classList.contains('translate-y-full');
+          
+          if (isOpen) {
+            // 關閉 Drawer
+            drawer.classList.remove('translate-x-0', 'translate-y-0');
+            if (drawer.classList.contains('left-0')) {
+              drawer.classList.add('-translate-x-full');
+            } else if (drawer.classList.contains('right-0')) {
+              drawer.classList.add('translate-x-full');
+            } else if (drawer.classList.contains('top-0')) {
+              drawer.classList.add('-translate-y-full');
+            } else if (drawer.classList.contains('bottom-0')) {
+              drawer.classList.add('translate-y-full');
+            }
+          } else {
+            // 開啟 Drawer
+            drawer.classList.remove('-translate-x-full', 'translate-x-full', '-translate-y-full', 'translate-y-full');
+            drawer.classList.remove('animate-in', 'animate-out', 'slide-in-from-left', 'slide-in-from-right', 'slide-in-from-top', 'slide-in-from-bottom');
+            drawer.classList.remove('slide-out-to-left', 'slide-out-to-right', 'slide-out-to-top', 'slide-out-to-bottom');
+            drawer.classList.add('translate-x-0', 'translate-y-0');
           }
           
-          drawer.toggle();
+          // 切換 overlay
+          const overlay = document.getElementById(drawerId + '-overlay');
+          if (overlay) {
+            overlay.style.display = isOpen ? 'none' : 'block';
+          }
         }
       };
       
-      // 也賦值給 window 以確保相容性
+      // 同時定義到 window
       if (typeof window !== 'undefined') {
         window.toggleMainMenuDrawer = globalThis.toggleMainMenuDrawer;
       }
-    },
-    initCode: `
-      // 執行 HydrationComponent 來定義全域函數
-      HydrationComponent();
       
-      // 立即覆蓋所有 overlay 和關閉按鈕的事件
+      // 設置事件監聽器
       function setupDrawerEvents() {
         const overlays = document.querySelectorAll('[id$="-overlay"]');
         overlays.forEach(overlay => {
           const drawerId = overlay.id.replace('-overlay', '');
-          // 移除原來的 onclick
           overlay.removeAttribute('onclick');
           overlay.addEventListener('click', function() {
             globalThis.toggleMainMenuDrawer(drawerId);
           });
         });
         
-        // 覆蓋 Drawer 內建的關閉按鈕
         const closeButtons = document.querySelectorAll('button[aria-label="關閉抽屜"]');
         closeButtons.forEach(button => {
-          const drawerId = button.closest('[id^="drawer-"]')?.id;
+          const drawerContainer = button.closest('[id$="-drawer"]');
+          const drawerId = drawerContainer?.id;
           if (drawerId) {
             button.removeAttribute('onclick');
             button.addEventListener('click', function() {
@@ -279,7 +256,7 @@ export function getHydrationScript() {
         });
       }
       
-      // 立即設置事件
+      // 立即執行
       setupDrawerEvents();
     `
   };
