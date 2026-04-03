@@ -43,6 +43,7 @@ const 自訂Preset = {
       '3xl': ['var(--font-size-3xl)', 'var(--line-height-3xl)']
     },
     borderRadius: {
+      none: '0',
       sm: 'var(--radius-sm)',
       md: 'var(--radius-md)',
       lg: 'var(--radius-lg)',
@@ -60,6 +61,13 @@ const 自訂Preset = {
     [/^bg-(.+)$/, ([, color]) => ({
       'background-color': `var(--color-${color})`
     })],
+    // 背景透明度支援 (Tailwind CSS v4 格式)
+    [/^bg-(.+)\/(\d+)$/, ([, color, opacity]) => {
+      const opacityValue = parseInt(opacity) / 100;
+      return {
+        'background-color': `oklch(var(--${color}) / ${opacityValue})`
+      };
+    }],
     // 佈景主題相關的 utility classes
     [/^theme-(.+)$/, ([, theme]: [string, string]) => {
       return {
@@ -70,13 +78,33 @@ const 自訂Preset = {
   shortcuts: {
     // 常用組合樣式
     'btn': 'px-4 py-2 rounded-md font-medium transition-colors duration-200',
-    'btn-ghost': 'btn bg-transparent text-current hover:bg-base-200 hover:text-current',
     'icon-current': '[&>img]:filter [&>img]:brightness-0 [&>img]:invert [&>img]:transition-filter [&>img]:duration-200',
     'icon-primary': '[&>img]:filter [&>img]:brightness-0 [&>img]:invert',
     'icon-secondary': '[&>img]:filter [&>img]:brightness-0) [&>img]:hue-rotate-180 [&>img]:invert',
     'btn-primary': 'btn bg-primary text-primary-content hover:opacity-90',
     'btn-secondary': 'btn bg-secondary text-secondary-content hover:opacity-90',
     'btn-accent': 'btn bg-accent text-accent-content hover:opacity-90',
+    'btn-info': 'btn bg-info text-primary-content hover:opacity-90',
+    'btn-success': 'btn bg-success text-primary-content hover:opacity-90',
+    'btn-warning': 'btn bg-warning text-primary-content hover:opacity-90',
+    'btn-error': 'btn bg-error text-primary-content hover:opacity-90',
+    'btn-danger': 'btn bg-error text-primary-content hover:opacity-90',
+    // 新增按鈕風格
+    'btn-outline': 'btn bg-transparent border-2 hover:bg-current hover:text-current',
+    'btn-ghost': 'btn bg-transparent hover:bg-current hover:text-current',
+    'btn-dot': 'btn bg-transparent border-2 border-dashed hover:bg-current hover:text-current',
+    'btn-gradient': 'btn bg-gradient-to-r hover:opacity-90',
+    'btn-glow': 'btn shadow-lg hover:shadow-xl hover:scale-105 transition-transform',
+    // 滾動條樣式
+    'scrollbar-themed': '[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-base-300 [&::-webkit-scrollbar-thumb]:rounded',
+    // 新增按鈕尺寸
+    'btn-xs': 'px-2 py-1 text-xs',
+    'btn-sm': 'px-3 py-1.5 text-sm',
+    'btn-md': 'px-4 py-2 text-base',
+    'btn-lg': 'px-6 py-3 text-lg',
+    'btn-xl': 'px-8 py-4 text-xl',
+    'btn-2xl': 'px-10 py-5 text-2xl',
+    'btn-3xl': 'px-12 py-6 text-3xl',
     'card': 'bg-base-100 text-base-content rounded-md p-md shadow-md',
     'input': 'px-3 py-2 border border-base-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary',
     'container': 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8',
@@ -112,7 +140,7 @@ export async function 初始化UnoCSS(): Promise<void> {
       shortcuts: 自訂Preset.shortcuts as any // 直接添加 shortcuts
     } as any);
 
-    await info('UnoCSS', 'UnoCSS 生成器初始化完成 (含動畫支援)');
+    // await info('UnoCSS', 'UnoCSS 生成器初始化完成 (含動畫支援)');
   } catch (錯誤) {
     await error('UnoCSS', `UnoCSS 初始化失敗: ${錯誤}`);
     throw 錯誤;
@@ -141,7 +169,7 @@ export async function 產生樣式(html: string, 主題配色?: any, 啟用快�
     
     // 檢查快取
     if (啟用快取 && 樣式快取.has(快取鍵)) {
-      await info('UnoCSS', '使用快取的 CSS');
+      // await info('UnoCSS', '使用快取的 CSS');
       return 樣式快取.get(快取鍵)!;
     }
 
@@ -289,7 +317,7 @@ body {
       }
     }
 
-    await info('UnoCSS', `生成 CSS 完成，共 ${finalCSS.length} 字元`);
+    // await info('UnoCSS', `生成 CSS 完成，共 ${finalCSS.length} 字元`);
     return finalCSS;
     
   } catch (錯誤) {
@@ -334,7 +362,9 @@ export function 取得可用Classes(): string[] {
 
   const 自訂Classes = [
     // 按鈕
-    'btn', 'btn-primary', 'btn-secondary', 'btn-accent',
+    'btn', 'btn-primary', 'btn-secondary', 'btn-accent', 'btn-info', 'btn-success', 'btn-warning', 'btn-error', 'btn-danger',
+    'btn-outline', 'btn-ghost', 'btn-dot', 'btn-gradient', 'btn-glow',
+    'btn-xs', 'btn-sm', 'btn-md', 'btn-lg', 'btn-xl', 'btn-2xl', 'btn-3xl',
     // 卡片
     'card',
     // 輸入框

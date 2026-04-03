@@ -1,0 +1,79 @@
+[
+  {
+    "id": "方塊:方塊:抽屜",
+    "名稱": {
+      "en": "Drawer",
+      "zh-tw": "抽屜",
+      "vi": "Kéo"
+    },
+    "描述": {
+      "en": "A sliding panel that can be hidden on any screen edge and slides in when triggered. Supports four directions, custom sizes, color themes, title display, accessibility features (ESC key, focus management, ARIA), and optimized scrolling. Alpine.js-enabled for client-side state management.",
+      "zh-tw": "可隱藏在螢幕邊緣的滑動面板，觸發時滑入顯示。支援四個方向、自定義尺寸、顏色主題、標題顯示、無障礙功能（ESC 鍵、焦點管理、ARIA）、優化滾動。支援 Alpine.js 客戶端狀態管理。",
+      "vi": "Một bảng trượt có thể ẩn trên bất kỳ cạnh màn hình và trượt vào khi được kích hoạt. Hỗ trợ bốn hướng, kích thước tùy chỉnh, chủ đề màu, hiển thị tiêu đề, tính năng tiếp cận (phím ESC, quản lý tiêu điểm, ARIA), cuộn tối ưu. Được bật Alpine.js để quản lý trạng thái phía máy khách."
+    },
+    "售價": 0,
+    "標籤集": ["ui", "drawer", "panel", "overlay", "slide", "圖示:標籤:面板", "alpine", "accessibility", "scrolling"],
+    "模式": "內建",
+    "元件路徑": "ui/Drawer",
+    "屬性定義": {
+      "position": {
+        "type": "string",
+        "description": "Screen edge where the drawer should slide in from",
+        "required": true,
+        "options": ["top", "bottom", "left", "right"],
+        "example": "right"
+      },
+      "children": {
+        "type": "object",
+        "description": "Content to display inside the drawer panel",
+        "required": true,
+        "example": "<div class='p-4'><h2>Drawer Title</h2><p>Content here</p></div>"
+      },
+      "size": {
+        "type": "string | number",
+        "description": "Size of the drawer - width for left/right, height for top/bottom. Supports both string (e.g., '400px') and number (e.g., 400) formats",
+        "required": false,
+        "example": "400px or 400"
+      },
+      "className": {
+        "type": "string",
+        "description": "Additional CSS classes to apply to the drawer container",
+        "required": false,
+        "example": "custom-drawer"
+      },
+      "color": {
+        "type": "string",
+        "description": "Color theme for the drawer background and content",
+        "required": false,
+        "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "danger"],
+        "default": "primary",
+        "example": "primary"
+      },
+      "title": {
+        "type": "string",
+        "description": "Optional title displayed in the drawer header area",
+        "required": false,
+        "example": "Settings Panel"
+      },
+      "stateName": {
+        "type": "string",
+        "description": "Alpine.js state variable name for controlling drawer open/close state",
+        "required": false,
+        "default": "drawerOpen",
+        "example": "myDrawerOpen"
+      },
+      "xData": {
+        "type": "string",
+        "description": "Additional Alpine.js data binding for the drawer",
+        "required": false,
+        "example": "{ isOpen: false }"
+      }
+    },
+    "子方塊": [],
+    "對外參數": {},
+    "程式碼": "",
+    "審核狀態": "approved",
+    "上架狀態": true,
+    "可刪除": false
+  }
+]
