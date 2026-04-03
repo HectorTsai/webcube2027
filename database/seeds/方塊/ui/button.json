@@ -1,0 +1,92 @@
+[
+  {
+    "id": "方塊:方塊:按鈕",
+    "名稱": {
+      "en": "Button",
+      "zh-tw": "按鈕",
+      "vi": "Nút bấm"
+    },
+    "描述": {
+      "en": "A clickable button component that triggers actions when clicked. Supports 8 color themes, 8 visual styles (solid, outline, ghost, dot, dashed, double, gradient, glow), 7 sizes, 5 rounded options, and disabled states. Alpine.js-enabled for client-side interactions. Flexible content system allows text, icons, loading spinners, or complex JSX.",
+      "zh-tw": "可點擊的按鈕元件，點擊時觸發動作。支援 8 種顏色主題、8 種視覺風格（實心、邊框、幽靈、點線、虛線、雙線、漸層、發光）、7 種尺寸、5 種圓角選項和禁用狀態。支援 Alpine.js 客戶端互動。靈活的內容系統允許文字、圖標、載入動畫或自定義 JSX。",
+      "vi": "Một thành phần nút có thể nhấp được kích hoạt hành động khi được nhấp. Hỗ trợ 8 chủ đề màu, 8 kiểu trực quan (solid, outline, ghost, dot, dashed, double, gradient, glow), 7 kích thước, 5 lựa chọn bo tròn và trạng thái vô hiệu hóa. Được bật Alpine.js để tương tác phía máy khách. Hệ thống nội dung linh hoạt cho phép văn bản, biểu tượng, spinner tải hoặc JSX tùy chỉnh."
+    },
+    "售價": 0,
+    "標籤集": ["ui", "button", "interactive", "alpine", "unocss", "flexible"],
+    "模式": "內建",
+    "元件路徑": "ui/Button",
+    "屬性定義": {
+      "children": {
+        "type": "object",
+        "description": "Content to display inside the button - can be text, icons, loading spinners, or complex JSX. Complete flexibility for button content.",
+        "required": true,
+        "example": "<span>Click me</span>, <Icon name=\"save\" /><span>Save</span>, or <LoadingSpinner />"
+      },
+      "color": {
+        "type": "string",
+        "description": "Button color theme - controls the base color used across all variants",
+        "required": false,
+        "default": "primary",
+        "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "danger"],
+        "example": "primary"
+      },
+      "variant": {
+        "type": "string",
+        "description": "Button visual style - controls how the color is applied and border styling",
+        "required": false,
+        "default": "solid",
+        "options": ["solid", "outline", "ghost", "dot", "dashed", "double", "gradient", "glow"],
+        "example": "solid"
+      },
+      "size": {
+        "type": "string",
+        "description": "Button size - controls the padding and font size",
+        "required": false,
+        "default": "md",
+        "options": ["xs", "sm", "md", "lg", "xl", "2xl", "3xl"],
+        "example": "md"
+      },
+      "rounded": {
+        "type": "string",
+        "description": "Button border radius - controls the corner rounding",
+        "required": false,
+        "default": "md",
+        "options": ["none", "sm", "md", "lg", "full"],
+        "example": "md"
+      },
+      "disabled": {
+        "type": "boolean",
+        "description": "Whether the button is disabled and cannot be clicked",
+        "required": false,
+        "default": false,
+        "example": false
+      },
+      "type": {
+        "type": "string",
+        "description": "Button type for form submission behavior",
+        "required": false,
+        "default": "button",
+        "options": ["button", "submit", "reset"],
+        "example": "button"
+      },
+      "onClick": {
+        "type": "string",
+        "description": "Alpine.js click event handler - JavaScript expression to execute when clicked",
+        "required": false,
+        "example": "count++"
+      },
+      "className": {
+        "type": "string",
+        "description": "Additional CSS classes to apply to the button - can override or extend default styles",
+        "required": false,
+        "example": "w-full"
+      }
+    },
+    "子方塊": [],
+    "對外參數": {},
+    "程式碼": "",
+    "審核狀態": "approved",
+    "上架狀態": true,
+    "可刪除": false
+  }
+]

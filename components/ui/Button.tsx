@@ -1,52 +1,127 @@
 
 export interface ButtonProps {
-  /** Content to display inside the button */
-  children: any;
-  /** Button style variant */
-  variant?: "primary" | "secondary" | "accent" | "outline" | "ghost";
-  /** Button size */
-  size?: "sm" | "md" | "lg";
-  /** Whether the button is disabled */
+  children: unknown;
+  color?: "primary" | "secondary" | "accent" | "info" | "success" | "warning" | "error" | "danger";
+  variant?: "solid" | "outline" | "ghost" | "dot" | "dashed" | "double" | "gradient" | "glow";
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
+  rounded?: "none" | "sm" | "md" | "lg" | "full";
   disabled?: boolean;
-  /** Function called when button is clicked */
-  onClick?: () => void;
-  /** Button type for form submission */
   type?: "button" | "submit" | "reset";
+  
+  // Alpine.js 相關屬性
+  onClick?: string; // Alpine.js 點擊事件
+  className?: string; // 額外 CSS 類名
 }
 
 export default function Button({
   children,
-  variant = "primary",
+  color = "primary",
+  variant = "solid",
   size = "md",
+  rounded = "md",
   disabled = false,
-  onClick,
   type = "button",
+  onClick,
+  className
 }: ButtonProps) {
   // 使用 UnoCSS 自訂 preset 的 classes
   const baseClasses = "btn";
   
+  // 顏色類別 - 只定義顏色，不含風格
+  const colorClasses = {
+    primary: "bg-primary text-primary-content",
+    secondary: "bg-secondary text-secondary-content",
+    accent: "bg-accent text-accent-content",
+    info: "bg-info text-primary-content",
+    success: "bg-success text-primary-content",
+    warning: "bg-warning text-primary-content",
+    error: "bg-error text-primary-content",
+    danger: "bg-error text-primary-content",
+  };
+  
+  // 風格類別 - 定義不同的視覺風格
   const variantClasses = {
-    primary: "btn-primary",
-    secondary: "btn-secondary",
-    accent: "btn-accent",
-    outline: "border border-base-300 bg-base-100 text-base-content hover:bg-base-200 focus:ring-primary",
-    ghost: "text-base-content hover:bg-base-200 focus:ring-base-content",
+    solid: "", // 預設實心
+    outline: "bg-transparent border-2 hover:bg-current hover:text-current",
+    ghost: "bg-transparent hover:bg-current hover:text-current",
+    dot: "bg-transparent border-2 border-dotted hover:bg-current hover:text-current",
+    dashed: "bg-transparent border-2 border-dashed hover:bg-current hover:text-current",
+    double: "bg-transparent border-4 border-double hover:bg-current hover:text-current",
+    gradient: "bg-gradient-to-r hover:opacity-90",
+    glow: "shadow-lg hover:shadow-xl hover:scale-105 transition-transform",
   };
   
   const sizeClasses = {
-    sm: "text-sm",
-    md: "text-md",
-    lg: "text-lg",
+    xs: "px-2 py-1 text-xs",
+    sm: "px-3 py-1.5 text-sm",
+    md: "px-4 py-2 text-base",
+    lg: "px-6 py-3 text-lg",
+    xl: "px-8 py-4 text-xl",
+    "2xl": "px-10 py-5 text-2xl",
+    "3xl": "px-12 py-6 text-3xl",
   };
-
-  const classes = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`;
-
+  
+  // 添加圓角類別
+  const roundedClasses = {
+    none: "rounded-none",
+    sm: "rounded-sm", 
+    md: "rounded-md",
+    lg: "rounded-lg",
+    full: "rounded-full"
+  };
+  
+  // 組合類別
+  const finalClasses = [baseClasses, sizeClasses[size]];
+  
+  // 根據風格組合顏色
+  if (variant === "solid") {
+    finalClasses.push(colorClasses[color]);
+    finalClasses.push("hover:opacity-90");
+  } else if (variant === "outline" || variant === "dot" || variant === "dashed" || variant === "double") {
+    finalClasses.push(variantClasses[variant]);
+    finalClasses.push(`border-${color} text-${color}`);
+    finalClasses.push(`hover:bg-${color} hover:text-primary-content`);
+  } else if (variant === "ghost") {
+    finalClasses.push(variantClasses["ghost"]);
+    finalClasses.push(`text-${color}`);
+    finalClasses.push(`hover:bg-${color} hover:text-primary-content`);
+  } else if (variant === "gradient") {
+    finalClasses.push(`bg-gradient-to-r from-${color} to-${color}-600`);
+    finalClasses.push("text-white");
+  } else if (variant === "glow") {
+    finalClasses.push(colorClasses[color]);
+    finalClasses.push(variantClasses["glow"]);
+    finalClasses.push(`shadow-${color}`);
+  }
+  
+  // 添加圓角和通用樣式
+  finalClasses.push(roundedClasses[rounded]);
+  finalClasses.push("font-medium transition-all duration-200");
+  
+  // 添加額外類別
+  if (className) {
+    finalClasses.push(className);
+  }
+  
+  // 禁用狀態
+  if (disabled) {
+    finalClasses.push("opacity-50 cursor-not-allowed");
+  }
+  
+  const classes = finalClasses.filter(Boolean).join(" ");
+  
+  // 準備 Alpine.js 屬性
+  const alpineProps: Record<string, string> = {};
+  if (onClick) {
+    alpineProps['@click'] = onClick;
+  }
+  
   return (
     <button
-      class={classes}
-      disabled={disabled}
-      onClick={onClick}
       type={type}
+      disabled={disabled}
+      class={classes}
+      {...alpineProps}
     >
       {children}
     </button>
