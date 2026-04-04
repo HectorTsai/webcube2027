@@ -1,0 +1,78 @@
+[
+  {
+    "id": "方塊:方塊:圖片",
+    "名稱": {
+      "en": "Image",
+      "zh-tw": "圖片",
+      "vi": "Hình ảnh"
+    },
+    "描述": {
+      "en": "An image component for displaying photos, illustrations, banners, and other visual content. Supports various formats and responsive sizing.",
+      "zh-tw": "圖片組件，用於顯示照片、插畫、橫幅和其他視覺內容。支援多種格式和響應式尺寸。",
+      "vi": "Một thành phần hình ảnh để hiển thị ảnh, minh họa, biểu ngữ và nội dung hình ảnh khác. Hỗ trợ nhiều định dạng và kích thước phản ứng."
+    },
+    "售價": 0,
+    "標籤集": [
+      "ui",
+      "image",
+      "media"
+    ],
+    "模式": "內建",
+    "元件路徑": "ui/Image",
+    "屬性定義": {
+      "src": {
+        "type": "string",
+        "description": "Image source URL or path",
+        "required": true,
+        "example": "/images/banner.jpg"
+      },
+      "alt": {
+        "type": "string",
+        "description": "Alt text for accessibility",
+        "required": true,
+        "example": "Company banner showing our products"
+      },
+      "width": {
+        "type": "string",
+        "description": "Image width in pixels or CSS units",
+        "required": false,
+        "example": "1200"
+      },
+      "height": {
+        "type": "string",
+        "description": "Image height in pixels or CSS units",
+        "required": false,
+        "example": "400"
+      },
+      "className": {
+        "type": "string",
+        "description": "Additional CSS classes",
+        "required": false,
+        "example": "rounded-lg shadow-md"
+      },
+      "loading": {
+        "type": "string",
+        "description": "Loading behavior for performance",
+        "required": false,
+        "default": "lazy",
+        "options": [
+          "lazy",
+          "eager"
+        ],
+        "example": "lazy"
+      },
+      "fallback": {
+        "type": "string",
+        "description": "Fallback image source if loading fails",
+        "required": false,
+        "example": "/images/placeholder.jpg"
+      }
+    },
+    "子方塊": [],
+    "對外參數": {},
+    "程式碼": "",
+    "審核狀態": "approved",
+    "上架狀態": true,
+    "可刪除": false
+  }
+]

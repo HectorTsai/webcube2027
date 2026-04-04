@@ -12,7 +12,7 @@ export default class 內建方塊解析器 {
    */
   static async 解析(方塊定義: any, 內容: any): Promise<string> {
     try {
-      await info('內建方塊解析器', `解析內建方塊: ${方塊定義.元件路徑}`);
+      // await info('內建方塊解析器', `解析內建方塊: ${方塊定義.元件路徑}`);
       
       // 動態 import 元件
       const 元件路徑 = resolve('.', 'components', ...方塊定義.元件路徑.split('/')) + '.tsx';
@@ -33,7 +33,7 @@ export default class 內建方塊解析器 {
       // HonoJSX 的 JSXNode.toString() 直接返回 HTML 字串
       const html = jsxNode.toString();
       
-      await info('內建方塊解析器', `元件渲染成功: ${方塊定義.元件路徑} (${html.length} 字元)`);
+      // await info('內建方塊解析器', `元件渲染成功: ${方塊定義.元件路徑} (${html.length} 字元)`);
       return html;
     } catch (err) {
       await error('內建方塊解析器', `內建方塊解析失敗: ${(err as Error).message}`);
@@ -44,7 +44,7 @@ export default class 內建方塊解析器 {
   /* TODO: 已廢棄 - 水合偵測已移至動態方塊JSX解析器，自動偵測 getHydrationScript
   private static async 解析水合方塊(方塊定義: any, 內容: any): Promise<string> {
     try {
-      await info('內建方塊解析器', `解析水合方塊: ${方塊定義.元件路徑}`);
+      // await info('內建方塊解析器', `解析水合方塊: ${方塊定義.元件路徑}`);
       const 元件路徑 = resolve('.', 'components', ...方塊定義.元件路徑.split('/')) + '.tsx';
       const 元件模組 = await import(元件路徑);
       const 元件 = 元件模組.default;

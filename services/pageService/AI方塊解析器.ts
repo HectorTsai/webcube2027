@@ -10,7 +10,7 @@ export default class AI方塊解析器 {
    */
   static async 解析(方塊定義: any, 內容: any): Promise<string> {
     try {
-      await info('AI方塊解析器', `解析AI方塊: ${方塊定義.id}`);
+      // await info('AI方塊解析器', `解析AI方塊: ${方塊定義.id}`);
       
       if (!方塊定義.程式碼) {
         throw new Error(`AI方塊缺少程式碼: ${方塊定義.id}`);

@@ -1,0 +1,65 @@
+[
+  {
+    "id": "方塊:方塊:cube-網站-經典",
+    "名稱": {
+      "en": "Website Classic Layout",
+      "zh-tw": "網站經典佈局",
+      "vi": "Bố cục trang web cổ điển"
+    },
+    "描述": {
+      "en": "Classic website layout with header, main content area, and footer. Perfect for business and blog websites.",
+      "zh-tw": "經典的網站佈局，包含標題、主要內容區域和頁腳。適合商業和博客網站。",
+      "vi": "Bố cục trang web cổ điển với điều hướng header, khu vực nội dung chính và footer. Hoàn hảo cho trang web kinh doanh và blog."
+    },
+    "售價": 0,
+    "標籤集": [
+      "ui",
+      "layout",
+      "website"
+    ],
+    "模式": "內建",
+    "元件路徑": "layout/WebsiteClassic",
+    "屬性定義": {
+      "header": {
+        "type": "object",
+        "description": "Header configuration",
+        "required": false,
+        "example": {
+          "showLogo": true,
+          "showMenu": true,
+          "style": "fixed"
+        }
+      },
+      "mainContent": {
+        "type": "object",
+        "description": "Main content area configuration",
+        "required": false,
+        "example": {
+          "maxWidth": "1200px",
+          "padding": "2rem"
+        }
+      },
+      "footer": {
+        "type": "object",
+        "description": "Footer configuration",
+        "required": false,
+        "example": {
+          "showCopyright": true,
+          "showLinks": true
+        }
+      },
+      "className": {
+        "type": "string",
+        "description": "Additional CSS classes",
+        "required": false,
+        "example": "website-layout"
+      }
+    },
+    "子方塊": [],
+    "對外參數": {},
+    "程式碼": "",
+    "審核狀態": "approved",
+    "上架狀態": true,
+    "可刪除": false
+  }
+]

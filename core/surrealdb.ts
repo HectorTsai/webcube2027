@@ -115,34 +115,22 @@ export default class Surreal資料庫 {
     }
 
     if (await this.個數(model) === 0) {
-      const seedPath = new URL(`./seeds/${model}.json`, import.meta.url);
-      const text = await Deno.readTextFile(seedPath);
-      const items = JSON.parse(text) as Record<string, unknown>[];
+      // 使用統一的讀取種子函數
+      const { 讀取種子 } = await import('../database/index.ts');
+      const items = await 讀取種子(model);
       
-      // 動態導入模型類別
-      let 模型類別: any = null;
-      try {
-        const 模型模組 = await import(`../database/models/${model}.ts`);
-        模型類別 = 模型模組.default;
-      } catch (_導入錯誤) {
-        console.error(`[surrealdb.ts] 無法導入 ${model} 模型類別`);
+      if (!items) {
+        console.error(`[surrealdb.ts] ${model} 種子資料不存在`);
+        return;
       }
       
-      for (const item of items) {
+      // 將已實體化的模型直接存入資料庫
+      for (const 模型實例 of items) {
         try {
-          if (模型類別 && typeof 模型類別 === 'function') {
-            // 建立模型實例並初始化
-            const 模型實例 = new 模型類別(item, item.可刪除 || false);
-            await 模型實例.初始化();
-            
-            // 使用處理後的資料
-            await this.查詢(`CREATE ${model} CONTENT ${JSON.stringify(模型實例.toJSON())};`);
-          } else {
-            // 沒有模型類別，使用原始資料
-            await this.查詢(`CREATE ${model} CONTENT ${JSON.stringify(item)};`);
-          }
-        } catch (_) {
-          // swallow and continue importing others
+          await 模型實例.初始化();
+          await this.查詢(`CREATE ${model} CONTENT ${JSON.stringify(模型實例.toJSON())};`);
+        } catch (錯誤) {
+          console.error(`[surrealdb.ts] 儲存 ${model} 模型實例失敗: ${錯誤}`);
         }
       }
     }

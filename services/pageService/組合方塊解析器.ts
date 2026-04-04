@@ -14,7 +14,7 @@ export default class 組合方塊解析器 {
   static async 解析(方塊定義: any, 內容: any, 深度: number = 0, c?: Context): Promise<any> {
     try {
       const 方塊定義Obj = 方塊定義 as any;
-      await info('組合方塊解析器', `解析組合方塊: ${方塊定義Obj.id}, 子方塊數量: ${方塊定義Obj.子方塊.length}`);
+      // await info('組合方塊解析器', `解析組合方塊: ${方塊定義Obj.id}, 子方塊數量: ${方塊定義Obj.子方塊.length}`);
       
       // 處理對外參數映射
       const 處理後子方塊 = await this.處理參數映射(方塊定義Obj.子方塊, 方塊定義Obj.對外參數, 內容);

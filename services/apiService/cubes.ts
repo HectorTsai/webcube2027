@@ -12,7 +12,7 @@ import { InnerAPI } from '../../services/index.ts';
 // GET - 取得方塊 (/api/v1/cube/all 或 /api/v1/cube/id 或 /api/v1/cube)
 export async function GET(c: Context, params: RouteParams): Promise<Response> {
   try {
-    await info('方塊 API', '處理取得方塊請求');
+    // await info('方塊 API', '處理取得方塊請求');
     
     // 優先檢查路徑參數 (智能回退機制)
     if (params.id === 'all') {
@@ -49,7 +49,7 @@ export async function POST(c: Context, _params: RouteParams): Promise<Response> 
       }, 500);
     }
     
-    await info('方塊 API', `創建方塊成功: ${結果.data.id} (來源: ${結果.source})`);
+    // await info('方塊 API', `創建方塊成功: ${結果.data.id} (來源: ${結果.source})`);
     
     // 使用資料過濾器處理多國語言和安全欄位
     const language = c.get('語言') || 'zh-tw';
@@ -103,7 +103,7 @@ export async function PUT(c: Context, _params: RouteParams): Promise<Response> {
       }, 500);
     }
     
-    await info('方塊 API', `更新方塊成功: ${結果.data.id} (來源: ${結果.source})`);
+    // await info('方塊 API', `更新方塊成功: ${結果.data.id} (來源: ${結果.source})`);
     
     // 使用資料過濾器處理多國語言和安全欄位
     const language = c.get('語言') || 'zh-tw';
@@ -156,7 +156,7 @@ export async function DELETE(c: Context, _params: RouteParams): Promise<Response
       }, 500);
     }
     
-    await info('方塊 API', `刪除方塊成功: ${decodedId}`);
+    // await info('方塊 API', `刪除方塊成功: ${decodedId}`);
     
     return c.json({
       success: true,
@@ -176,7 +176,7 @@ export async function DELETE(c: Context, _params: RouteParams): Promise<Response
 // 處理取得當前方塊
 async function 處理取得當前方塊(c: Context): Promise<Response> {
   try {
-    await info('方塊 API', '取得當前方塊');
+    // await info('方塊 API', '取得當前方塊');
     
     // 從系統資訊取得當前方塊設定
     const 系統資訊回應 = await InnerAPI(c, '/api/v1/info');
@@ -207,7 +207,7 @@ async function 處理取得當前方塊(c: Context): Promise<Response> {
       }, 404);
     }
     
-    await info('方塊 API', `成功取得當前方塊: ${當前方塊ID}`);
+    // await info('方塊 API', `成功取得當前方塊: ${當前方塊ID}`);
     
     // 使用資料過濾器處理多國語言和安全欄位
     const language = c.get('語言') || 'zh-tw';
@@ -231,14 +231,14 @@ async function 處理取得當前方塊(c: Context): Promise<Response> {
 // 處理取得所有方塊
 async function 處理取得所有方塊(c: Context): Promise<Response> {
   try {
-    await info('方塊 API', '取得所有方塊');
+    // await info('方塊 API', '取得所有方塊');
     
     const limit = parseInt(c.req.query('limit') || '10');
     const offset = parseInt(c.req.query('offset') || '0');
     
     const 結果 = await 三層查詢管理器.查詢列表<方塊>(c, '方塊', limit, offset);
     
-    await info('方塊 API', `取得方塊列表: ${結果.data?.length || 0} 筆 (來源: ${結果.source})`);
+    // await info('方塊 API', `取得方塊列表: ${結果.data?.length || 0} 筆 (來源: ${結果.source})`);
     
     // 使用資料過濾器處理多國語言和安全欄位 - 精簡列表
     const language = c.get('語言') || 'zh-tw';
@@ -267,7 +267,7 @@ async function 處理取得所有方塊(c: Context): Promise<Response> {
 // 處理取得單一方塊
 async function 處理取得單一方塊(c: Context, id: string): Promise<Response> {
   try {
-    await info('方塊 API', `取得方塊: ${id}`);
+    // await info('方塊 API', `取得方塊: ${id}`);
     
     const 結果 = await 三層查詢管理器.查詢單一<方塊>(c, id);
     
@@ -278,7 +278,7 @@ async function 處理取得單一方塊(c: Context, id: string): Promise<Respons
       }, 404);
     }
     
-    await info('方塊 API', `成功取得方塊: ${id}`);
+    // await info('方塊 API', `成功取得方塊: ${id}`);
     
     // 使用資料過濾器處理多國語言和安全欄位
     const language = c.get('語言') || 'zh-tw';

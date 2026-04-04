@@ -71,37 +71,19 @@ export class KV資料庫 {
       const 筆數 = 模型資料列表.length;
       
       if (筆數 === 0) {
-        // 讀取 seeds/${model}.json
+        // 使用統一的讀取種子函數
         try {
-          const seed檔案路徑 = `./database/seeds/${model}.json`;
-          const seed內容 = await Deno.readTextFile(seed檔案路徑);
-          const seed資料 = JSON.parse(seed內容);
+          const { 讀取種子 } = await import('../database/index.ts');
+          const seed資料 = await 讀取種子(model);
           
-          if (Array.isArray(seed資料)) {
-            // 動態導入模型類別
-            let 模型類別: any = null;
-            try {
-              const 模型模組 = await import(`../database/models/${model}.ts`);
-              模型類別 = 模型模組.default;
-            } catch (_導入錯誤) {
-              // 如果無法導入模型類別，使用原始資料
-              await info('KV', `無法導入 ${model} 模型類別，使用原始資料`);
-            }
-            
-            // 將 seed 資料轉換為模型實例並存入 KV
-            for (const 資料項目 of seed資料) {
-              if (模型類別 && typeof 模型類別 === 'function') {
-                try {
-                  const 模型實例 = new 模型類別(資料項目, 資料項目.可刪除 || false);
-                  await 模型實例.初始化();
-                  await kv.set([model, 模型實例.id], 模型實例.toJSON());
-                } catch (實例錯誤) {
-                  await error('KV', `建立 ${model} 模型實例失敗，使用原始資料: ${實例錯誤}`);
-                  await kv.set([model, 資料項目.id], 資料項目);
-                }
-              } else {
-                // 直接存入原始資料
-                await kv.set([model, 資料項目.id], 資料項目);
+          if (seed資料 && Array.isArray(seed資料)) {
+            // 將已實體化的模型直接存入 KV
+            for (const 模型實例 of seed資料) {
+              try {
+                await 模型實例.初始化();
+                await kv.set([model, 模型實例.id], 模型實例.toJSON());
+              } catch (實例錯誤) {
+                await error('KV', `儲存 ${model} 模型實例失敗: ${實例錯誤}`);
               }
             }
             await info('KV', `${model} 模型初始化完成，共 ${seed資料.length} 筆資料`);

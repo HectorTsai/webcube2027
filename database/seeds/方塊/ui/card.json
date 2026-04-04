@@ -1,0 +1,85 @@
+[
+  {
+    "id": "方塊:方塊:卡片",
+    "名稱": {
+      "en": "Card",
+      "zh-tw": "卡片",
+      "vi": "Thẻ"
+    },
+    "描述": {
+      "en": "A flexible container component for displaying content in a structured layout. Can contain text, images, and other components.",
+      "zh-tw": "靈活的容器元件，用於在結構化佈局中顯示內容。可以包含文字、圖片和其他元件。",
+      "vi": "Một thành phần container linh hoạt để hiển thị nội dung trong bố cục có cấu trúc. Có thể chứa văn bản, hình ảnh và các thành phần khác."
+    },
+    "售價": 0,
+    "標籤集": [
+      "ui",
+      "card",
+      "container",
+      "layout"
+    ],
+    "模式": "內建",
+    "元件路徑": "ui/Card",
+    "屬性定義": {
+      "title": {
+        "type": "string",
+        "description": "Card title displayed at the top",
+        "required": false,
+        "default": "",
+        "example": "Product Card"
+      },
+      "content": {
+        "type": "string",
+        "description": "Main content of the card - can be text or HTML",
+        "required": false,
+        "default": "",
+        "example": "This is a beautiful product card with description."
+      },
+      "image": {
+        "type": "string",
+        "description": "URL or path to card image - supports web URLs and relative paths",
+        "required": false,
+        "default": "",
+        "example": "/images/product.jpg"
+      },
+      "variant": {
+        "type": "string",
+        "description": "Card style variant - controls border and background",
+        "required": false,
+        "default": "default",
+        "options": [
+          "default",
+          "outlined",
+          "elevated"
+        ],
+        "example": "default"
+      },
+      "padding": {
+        "type": "string",
+        "description": "Card padding size - controls internal spacing",
+        "required": false,
+        "default": "md",
+        "options": [
+          "none",
+          "sm",
+          "md",
+          "lg"
+        ],
+        "example": "md"
+      },
+      "shadow": {
+        "type": "boolean",
+        "description": "Whether to show card shadow for depth effect",
+        "required": false,
+        "default": true,
+        "example": true
+      }
+    },
+    "子方塊": [],
+    "對外參數": {},
+    "程式碼": "",
+    "審核狀態": "approved",
+    "上架狀態": true,
+    "可刪除": false
+  }
+]

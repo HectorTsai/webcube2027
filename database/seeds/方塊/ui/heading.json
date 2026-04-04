@@ -1,0 +1,95 @@
+[
+  {
+    "id": "方塊:方塊:標題",
+    "名稱": {
+      "en": "Heading",
+      "zh-tw": "標題",
+      "vi": "Tiêu đề"
+    },
+    "描述": {
+      "en": "A heading component for displaying titles and headings. Supports different levels (h1-h6) and styling options.",
+      "zh-tw": "用於顯示標題的標題元件。支援不同層級（h1-h6）和樣式選項。",
+      "vi": "Một thành phần tiêu đề để hiển thị các tiêu đề. Hỗ trợ các cấp độ khác nhau (h1-h6) và tùy chọn kiểu dáng."
+    },
+    "售價": 0,
+    "標籤集": [
+      "ui",
+      "heading",
+      "text",
+      "typography"
+    ],
+    "模式": "內建",
+    "元件路徑": "ui/Heading",
+    "屬性定義": {
+      "text": {
+        "type": "string",
+        "description": "Heading text content - the main text to display",
+        "required": true,
+        "default": "Heading",
+        "example": "Welcome to Our Site"
+      },
+      "level": {
+        "type": "number",
+        "description": "Heading level - controls semantic HTML tag (h1-h6)",
+        "required": false,
+        "default": 2,
+        "min": 1,
+        "max": 6,
+        "example": 2
+      },
+      "size": {
+        "type": "string",
+        "description": "Text size override - controls font size regardless of level",
+        "required": false,
+        "default": "",
+        "options": [
+          "xs",
+          "sm",
+          "md",
+          "lg",
+          "xl",
+          "2xl",
+          "3xl",
+          "4xl",
+          "5xl",
+          "6xl"
+        ],
+        "example": "2xl"
+      },
+      "weight": {
+        "type": "string",
+        "description": "Font weight - controls text thickness",
+        "required": false,
+        "default": "semibold",
+        "options": [
+          "light",
+          "normal",
+          "medium",
+          "semibold",
+          "bold",
+          "extrabold"
+        ],
+        "example": "semibold"
+      },
+      "align": {
+        "type": "string",
+        "description": "Text alignment - controls horizontal positioning",
+        "required": false,
+        "default": "left",
+        "options": [
+          "left",
+          "center",
+          "right",
+          "justify"
+        ],
+        "example": "center"
+      }
+    },
+    "子方塊": [],
+    "對外參數": {},
+    "程式碼": "",
+    "審核狀態": "approved",
+    "上架狀態": true,
+    "可刪除": false
+  }
+]

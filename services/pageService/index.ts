@@ -17,7 +17,7 @@ export default class PageService {
    */
   static async 解析URL路徑(path: string, c: Context): Promise<{ 語言: string; 頁面路徑: string } | null> {
     try {
-      await info('PageService', `解析URL路徑: ${path}`);
+      // await info('PageService', `解析URL路徑: ${path}`);
       
       // 1. 取得支援的語言列表
       const 支援語言 = await languageService.取得支援語言(c);
@@ -31,10 +31,10 @@ export default class PageService {
         // 3. 驗證語言是否支援
         const isSupported = await languageService.檢查語言支援(c, 語言前綴);
         if (isSupported) {
-          await info('PageService', `語言前綴解析成功: ${語言前綴} → ${頁面路徑}`);
+          // await info('PageService', `語言前綴解析成功: ${語言前綴} → ${頁面路徑}`);
           return { 語言: 語言前綴, 頁面路徑 };
         } else {
-          await info('PageService', `語言不支援: ${語言前綴}`);
+          // await info('PageService', `語言不支援: ${語言前綴}`);
           return null; // 404 - 語言不支援
         }
       }
@@ -46,7 +46,7 @@ export default class PageService {
         // 驗證 Cookie 中的語言是否支援
         const isSupported = await languageService.檢查語言支援(c, cookieLang);
         if (isSupported) {
-          await info('PageService', `使用 Cookie 語言: ${cookieLang} → ${path}`);
+          // await info('PageService', `使用 Cookie 語言: ${cookieLang} → ${path}`);
           return { 語言: cookieLang, 頁面路徑: path };
         }
       }
@@ -57,13 +57,13 @@ export default class PageService {
       
       // 如果預設語言在支援列表中，使用預設語言
       if (支援語言.includes(預設語言)) {
-        await info('PageService', `使用預設語言: ${預設語言} → ${path}`);
+        // await info('PageService', `使用預設語言: ${預設語言} → ${path}`);
         return { 語言: 預設語言, 頁面路徑: path };
       }
       
       // 否則使用第一個支援語言
       const 第一個支援語言 = 支援語言.length > 0 ? 支援語言[0] : 'zh-tw';
-      await info('PageService', `使用第一個支援語言: ${第一個支援語言} → ${path}`);
+      // await info('PageService', `使用第一個支援語言: ${第一個支援語言} → ${path}`);
       return { 語言: 第一個支援語言, 頁面路徑: path };
       
     } catch (err) {
@@ -77,7 +77,7 @@ export default class PageService {
    */
   static async renderPage(頁面實例: any, 路由參數: any, c: any): Promise<string> {
     try {
-      await info('PageService', `開始渲染頁面: ${頁面實例.路徑}`);
+      // await info('PageService', `開始渲染頁面: ${頁面實例.路徑}`);
       
       // 1. 處理路徑參數替換
       const 處理後內容 = this.處理路徑參數(頁面實例.內容, 路由參數);
@@ -86,7 +86,7 @@ export default class PageService {
       const MultilingualString內容 = await this.轉換JSON為MultilingualString(處理後內容);
       
       // 檢查轉換結果
-      await info('PageService', `轉換後類型檢查: title=${typeof MultilingualString內容?.title?.toStringAsync}`);
+      // await info('PageService', `轉換後類型檢查: title=${typeof MultilingualString內容?.title?.toStringAsync}`);
       
       // 3. 處理多語言解析
       const 語言 = c?.get('語言') || 'zh-tw';
@@ -96,7 +96,7 @@ export default class PageService {
       const 轉換後內容 = await this.轉換MultilingualString(多語言處理後內容, 語言);
       
       // 5. 頁面內容已經轉換完成，準備渲染佈局
-      await info('PageService', '頁面內容轉換完成，準備渲染佈局');
+      // await info('PageService', '頁面內容轉換完成，準備渲染佈局');
       
       // 6. 取得當前骨架的佈局設定
       const 佈局方塊ID = await this.取得佈局方塊ID(c);
@@ -105,13 +105,13 @@ export default class PageService {
       const childrenJSX = await this.渲染方塊結構為JSX(轉換後內容, c);
       
       // 8. 取得網站資訊並處理佈局資料
-      await info('PageService', '取得網站資訊');
+      // await info('PageService', '取得網站資訊');
       const { InnerAPI } = await import('../../services/index.ts');
       const 網站資訊Response = await InnerAPI(c!, "/api/v1/info");
       const 網站資訊 = await 網站資訊Response.json();
       
       // 9. 處理主選單
-      await info('PageService', '處理主選單');
+      // await info('PageService', '處理主選單');
       const menuItems = [];
       
       for (const 頁面ID of 網站資訊.data?.主選單 || []) {
@@ -140,14 +140,14 @@ export default class PageService {
         context: c
       };
       
-      await info('PageService', `渲染佈局方塊: ${佈局方塊ID}`);
+      // await info('PageService', `渲染佈局方塊: ${佈局方塊ID}`);
       const 動態方塊JSX解析器 = await import('./動態方塊JSX解析器.ts');
       const 佈局JSX = await 動態方塊JSX解析器.default.解析(佈局方塊ID, 佈局參數, 0, c);
       
       // 將最終 JSX 轉為 HTML
       const html = 佈局JSX.toString();
       
-      await info('PageService', `頁面渲染完成: ${頁面實例.路徑}`);
+      // await info('PageService', `頁面渲染完成: ${頁面實例.路徑}`);
       return html;
     } catch (err) {
       await error('PageService', `頁面渲染失敗: ${err.message}`);
@@ -160,11 +160,11 @@ export default class PageService {
    */
   private static async 取得佈局方塊ID(c?: Context): Promise<string> {
     try {
-      await info('PageService', '取得佈局方塊ID');
+      // await info('PageService', '取得佈局方塊ID');
       
       // 使用預設的 ClassicLayout
       const 預設佈局 = '方塊:方塊:cube-網站-經典';
-      await info('PageService', `使用預設佈局方塊ID: ${預設佈局}`);
+      // await info('PageService', `使用預設佈局方塊ID: ${預設佈局}`);
       return 預設佈局;
       
     } catch (err) {
@@ -179,7 +179,7 @@ export default class PageService {
    */
   /* private static async 建構佈局內容(佈局方塊ID: string, 頁面方塊ID: string, 頁面內容: any, 語言: string): Promise<any> {
     try {
-      await info('PageService', `建構佈局內容: ${佈局方塊ID} + ${頁面方塊ID}`);
+      // await info('PageService', `建構佈局內容: ${佈局方塊ID} + ${頁面方塊ID}`);
       
       // TODO: 從 API 取得佈局方塊的結構定義
       // 目前返回預設的經典佈局結構

@@ -85,14 +85,14 @@ async function 處理取得網站資訊(c: Context, _params: RouteParams): Promi
 // 處理取得統一資訊 (預設：優先網站資訊，回退系統資訊)
 async function 處理取得統一資訊(c: Context, _params: RouteParams): Promise<Response> {
   try {
-    await info('統一資訊 API', '處理取得統一資訊請求');
+    // await info('統一資訊 API', '處理取得統一資訊請求');
     
     const language = c.get('語言') || 'zh-tw';
     
     // 1. 先嘗試從 context 取得網站資訊
     const 網站資訊 = c.get('網站資訊');
     if (網站資訊) {
-      await info('統一資訊 API', '從 context 取得網站資訊');
+      // await info('統一資訊 API', '從 context 取得網站資訊');
       // 使用資料過濾器處理多國語言字串
       const 過濾後資料 = await 資料過濾器.一般過濾(網站資訊, language);
       return c.json({
@@ -105,7 +105,7 @@ async function 處理取得統一資訊(c: Context, _params: RouteParams): Promi
     // 2. 如果網站資訊不存在，從 context 取得系統資訊
     const 系統資訊 = c.get('系統資訊');
     if (系統資訊) {
-      await info('統一資訊 API', '從 context 取得系統資訊');
+      // await info('統一資訊 API', '從 context 取得系統資訊');
       // 使用資料過濾器處理多國語言字串
       const 過濾後資料 = await 資料過濾器.一般過濾(系統資訊, language);
       return c.json({
@@ -134,7 +134,7 @@ async function 處理取得統一資訊(c: Context, _params: RouteParams): Promi
 // GET - 取得資訊 (/api/v1/info/system 或 /api/v1/info/website 或 /api/v1/info)
 export async function GET(c: Context, params: RouteParams): Promise<Response> {
   try {
-    await info('統一資訊 API', '處理取得資訊請求');
+    // await info('統一資訊 API', '處理取得資訊請求');
     
     // 優先檢查路徑參數 (智能回退機制)
     if (params.id === 'system') {

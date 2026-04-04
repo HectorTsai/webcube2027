@@ -8,13 +8,13 @@ import { 三層查詢管理器 } from '../../core/three-tier-query.ts';
 // 從三層資料庫載入圖示
 async function 從資料庫載入圖示(c: Context, iconId: string): Promise<Response | null> {
   try {
-    await info('Icon Media', `從三層資料庫載入圖示: ${iconId}`);
+    // await info('Icon Media', `從三層資料庫載入圖示: ${iconId}`);
     
     // 使用三層查詢管理器直接查詢
     const 查詢結果 = await 三層查詢管理器.查詢單一<圖示>(c, iconId);
     
     if (!查詢結果.success || !查詢結果.data) {
-      await info('Icon Media', `圖示不存在於資料庫: ${iconId}`);
+      // await info('Icon Media', `圖示不存在於資料庫: ${iconId}`);
       return null;
     }
     
@@ -28,7 +28,7 @@ async function 從資料庫載入圖示(c: Context, iconId: string): Promise<Res
       if (typeof 內容 === 'string' && 內容.trim().startsWith('<svg')) {
         try {
           const fileContent = new TextEncoder().encode(內容);
-          await info('Icon Media', `使用直接 SVG 內容 (${內容.length} 字符)`);
+          // await info('Icon Media', `使用直接 SVG 內容 (${內容.length} 字符)`);
           
           return new Response(fileContent, {
             headers: {
@@ -59,7 +59,7 @@ async function 從資料庫載入圖示(c: Context, iconId: string): Promise<Res
 // 從檔案系統載入圖示
 async function 從檔案系統載入圖示(iconId: string): Promise<Response | null> {
   try {
-    await info('Icon Media', `從檔案系統載入圖示: ${iconId}`);
+    // await info('Icon Media', `從檔案系統載入圖示: ${iconId}`);
     
     // 解析圖示 ID
     const parts = iconId.split(':');
@@ -85,7 +85,7 @@ async function 從檔案系統載入圖示(iconId: string): Promise<Response | n
     const extension = mediaId.split('.').pop()?.toLowerCase() || 'png';
     const contentType = 取得ContentType(extension);
     
-    await info('Icon Media', `成功載入檔案: ${filePath} (${fileContent.length} bytes)`);
+    // await info('Icon Media', `成功載入檔案: ${filePath} (${fileContent.length} bytes)`);
     
     return new Response(fileContent, {
       headers: {
@@ -104,7 +104,7 @@ async function 從檔案系統載入圖示(iconId: string): Promise<Response | n
 // 從外部 URL 載入圖示
 async function 從外部URL載入圖示(url: string): Promise<Response | null> {
   try {
-    await info('Icon Media', `從外部 URL 載入圖示: ${url}`);
+    // await info('Icon Media', `從外部 URL 載入圖示: ${url}`);
     
     const response = await fetch(url);
     if (!response.ok) {
@@ -115,7 +115,7 @@ async function 從外部URL載入圖示(url: string): Promise<Response | null> {
     const fileContent = new Uint8Array(await response.arrayBuffer());
     const contentType = response.headers.get('Content-Type') || 'image/png';
     
-    await info('Icon Media', `成功從 URL 載入: ${url} (${fileContent.length} bytes)`);
+    // await info('Icon Media', `成功從 URL 載入: ${url} (${fileContent.length} bytes)`);
     
     return new Response(fileContent, {
       headers: {
@@ -161,7 +161,7 @@ const icon: MediaModule = {
         });
       }
       
-      await info('Icon Media', `處理圖示請求: ${iconId}`);
+      // await info('Icon Media', `處理圖示請求: ${iconId}`);
       
       let response: Response | null = null;
       

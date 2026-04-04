@@ -1,0 +1,69 @@
+[
+  {
+    "id": "方塊:方塊:主選單",
+    "名稱": {
+      "en": "Main Menu",
+      "zh-tw": "主選單",
+      "vi": "Menu Chính"
+    },
+    "描述": {
+      "en": "A main navigation menu component for website header. Supports logo, menu items, and call-to-action buttons.",
+      "zh-tw": "網站標頭的主要導航選單元件。支援標誌、選單項目和行動呼籲按鈕。",
+      "vi": "Một thành phần menu điều hướng chính cho tiêu đề trang web. Hỗ trợ logo, mục menu và nút kêu gọi hành động."
+    },
+    "售價": 0,
+    "標籤集": [
+      "ui",
+      "navigation",
+      "menu"
+    ],
+    "模式": "內建",
+    "元件路徑": "navigation/MainMenu",
+    "屬性定義": {
+      "logo": {
+        "type": "string",
+        "description": "Logo image URL or text",
+        "required": false,
+        "example": "/logo.png"
+      },
+      "menuItems": {
+        "type": "array",
+        "description": "Array of menu items",
+        "required": false,
+        "default": [],
+        "example": [
+          {
+            "label": "Home",
+            "href": "/"
+          },
+          {
+            "label": "About",
+            "href": "/about"
+          }
+        ]
+      },
+      "ctaButton": {
+        "type": "object",
+        "description": "Call-to-action button configuration",
+        "required": false,
+        "example": {
+          "label": "Get Started",
+          "href": "/signup",
+          "variant": "primary"
+        }
+      },
+      "className": {
+        "type": "string",
+        "description": "Additional CSS classes",
+        "required": false,
+        "example": "main-menu"
+      }
+    },
+    "子方塊": [],
+    "對外參數": {},
+    "程式碼": "",
+    "審核狀態": "approved",
+    "上架狀態": true,
+    "可刪除": false
+  }
+]

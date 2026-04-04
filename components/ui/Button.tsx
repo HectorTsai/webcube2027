@@ -2,7 +2,9 @@
 export interface ButtonProps {
   children: unknown;
   color?: "primary" | "secondary" | "accent" | "info" | "success" | "warning" | "error" | "danger";
-  variant?: "solid" | "outline" | "ghost" | "dot" | "dashed" | "double" | "gradient" | "glow";
+  variant?: "solid" | "outline" | "ghost" | "dot" | "dashed" | "double" | 
+           "gradient-right" | "gradient-left" | "gradient-up" | "gradient-down" |
+           "gradient-diagonal" | "gradient-circle" | "gradient-cone" | "glow";
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
   rounded?: "none" | "sm" | "md" | "lg" | "full";
   disabled?: boolean;
@@ -85,10 +87,55 @@ export default function Button({
     finalClasses.push(variantClasses["ghost"]);
     finalClasses.push(`text-${color}`);
     finalClasses.push(`hover:bg-${color} hover:text-primary-content`);
-  } else if (variant === "gradient") {
-    finalClasses.push(`bg-gradient-to-r from-${color} to-${color}-600`);
-    finalClasses.push("text-white");
-  } else if (variant === "glow") {
+  } else if (variant.startsWith("gradient-")) {
+      // 多種漸層類型 - 與 Container 保持一致
+      const gradientColors: Record<string, string> = {
+        primary: "oklch(0.7 0.15 260), oklch(0.5 0.2 260)",
+        secondary: "oklch(0.6 0.12 290), oklch(0.4 0.15 290)",
+        accent: "oklch(0.65 0.2 150), oklch(0.45 0.25 150)",
+        info: "oklch(0.7 0.15 200), oklch(0.5 0.2 200)",
+        success: "oklch(0.7 0.15 120), oklch(0.5 0.2 120)",
+        warning: "oklch(0.8 0.15 80), oklch(0.6 0.2 80)",
+        error: "oklch(0.7 0.2 25), oklch(0.5 0.25 25)",
+        danger: "oklch(0.7 0.2 25), oklch(0.5 0.25 25)",
+      };
+      
+      const colors = gradientColors[color] || gradientColors.primary;
+      let gradientStyle = "";
+      
+      switch (variant) {
+        case "gradient-right":
+          gradientStyle = `background: linear-gradient(to right, ${colors});`;
+          break;
+        case "gradient-left":
+          gradientStyle = `background: linear-gradient(to left, ${colors});`;
+          break;
+        case "gradient-up":
+          gradientStyle = `background: linear-gradient(to top, ${colors});`;
+          break;
+        case "gradient-down":
+          gradientStyle = `background: linear-gradient(to bottom, ${colors});`;
+          break;
+        case "gradient-diagonal":
+          gradientStyle = `background: linear-gradient(45deg, ${colors});`;
+          break;
+        case "gradient-circle":
+          gradientStyle = `background: radial-gradient(circle, ${colors});`;
+          break;
+        case "gradient-cone":
+          gradientStyle = `background: conic-gradient(from 0deg, ${colors});`;
+          break;
+        default:
+          gradientStyle = `background: linear-gradient(to right, ${colors});`;
+      }
+      
+      finalClasses.push("text-white");
+      finalClasses.push("hover:opacity-90");
+      
+      const classes = `${baseClasses} ${roundedClasses[rounded]} font-medium transition-all duration-200 ${finalClasses.filter(Boolean).join(" ")} ${className}`.trim();
+      
+      return <button class={classes} style={gradientStyle} disabled={disabled} type={type}>{children}</button>;
+    } else if (variant === "glow") {
     finalClasses.push(colorClasses[color]);
     finalClasses.push(variantClasses["glow"]);
     finalClasses.push(`shadow-${color}`);

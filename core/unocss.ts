@@ -57,9 +57,17 @@ const 自訂Preset = {
         color: `var(--color-${color}-content)`
       };
     }],
+    // 統一使用 CSS 變數的文字顏色
+    [/^text-(.+)$/, ([, color]) => ({
+      color: `var(--color-${color})`
+    })],
     // 主題背景色
     [/^bg-(.+)$/, ([, color]) => ({
       'background-color': `var(--color-${color})`
+    })],
+    // 統一使用 CSS 變數的邊框顏色 (只處理顏色，不影響寬度和樣式)
+    [/^border-(primary|secondary|accent|info|success|warning|error|danger|base-100|base-200|base-300)$/, ([, color]) => ({
+      'border-color': `var(--color-${color})`
     })],
     // 背景透明度支援 (Tailwind CSS v4 格式)
     [/^bg-(.+)\/(\d+)$/, ([, color, opacity]) => {

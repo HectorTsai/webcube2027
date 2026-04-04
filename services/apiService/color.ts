@@ -13,7 +13,7 @@ import { InnerAPI } from '../../services/index.ts';
 // GET - 取得配色 (/api/v1/color?id=xxx 或 /api/v1/color?all=true 或 /api/v1/color/all 或 /api/v1/color)
 export async function GET(c: Context, params: RouteParams): Promise<Response> {
   try {
-    await info('配色 API', '處理取得配色請求');
+    // await info('配色 API', '處理取得配色請求');
     
     // 優先檢查路徑參數 (智能回退機制)
     if (params.id === 'all') {
@@ -65,7 +65,7 @@ export async function POST(c: Context, _params: RouteParams): Promise<Response> 
       }, 500);
     }
     
-    await info('配色 API', `創建配色成功: ${結果.data.id} (來源: ${結果.source})`);
+    // await info('配色 API', `創建配色成功: ${結果.data.id} (來源: ${結果.source})`);
     
     // 使用資料過濾器處理多國語言和安全欄位
     const language = c.get('語言') || 'zh-tw';
@@ -100,7 +100,7 @@ export async function PUT(c: Context, _params: RouteParams): Promise<Response> {
       }, 400);
     }
     
-    await info('配色 API', `更新配色: ${decodedId}`);
+    // await info('配色 API', `更新配色: ${decodedId}`);
     
     // 先檢查配色是否存在
     const 現有資料 = await 三層查詢管理器.查詢單一<配色>(c, decodedId);
@@ -121,7 +121,7 @@ export async function PUT(c: Context, _params: RouteParams): Promise<Response> {
       }, 500);
     }
     
-    await info('配色 API', `更新配色成功: ${結果.data.id} (來源: ${結果.source})`);
+    // await info('配色 API', `更新配色成功: ${結果.data.id} (來源: ${結果.source})`);
     
     // 使用資料過濾器處理多國語言和安全欄位
     const language = c.get('語言') || 'zh-tw';
@@ -171,7 +171,7 @@ export async function DELETE(c: Context, _params: RouteParams): Promise<Response
       }, 500);
     }
     
-    await info('配色 API', `刪除配色成功: ${decodedId} (來源: ${結果.source})`);
+    // await info('配色 API', `刪除配色成功: ${decodedId} (來源: ${結果.source})`);
     
     return c.json({
       success: true,
@@ -191,14 +191,14 @@ export async function DELETE(c: Context, _params: RouteParams): Promise<Response
 // 處理取得當前配色（層級邏輯：系統資訊 -> 佈景主題 -> 預設）
 async function 處理取得當前配色(c: Context): Promise<Response> {
   try {
-    await info('配色 API', '開始取得當前配色');
+    // await info('配色 API', '開始取得當前配色');
     
     // 1. 取得統一資訊
     const 資訊回應 = await InnerAPI(c, '/api/v1/info');
     const 資訊 = await 資訊回應.json();
     
     if (!資訊.success || !資訊.data) {
-      await info('配色 API', '無法取得資訊，回傳預設配色');
+      // await info('配色 API', '無法取得資訊，回傳預設配色');
       return await 處理取得預設配色(c);
     }
     
@@ -206,7 +206,7 @@ async function 處理取得當前配色(c: Context): Promise<Response> {
     
     // 2. 如果有資訊中的配色 ID，直接取得配色
     if (資訊資料.配色) {
-      await info('配色 API', `從資訊直接取得配色: ${資訊資料.配色}`);
+      // await info('配色 API', `從資訊直接取得配色: ${資訊資料.配色}`);
       
       // 直接使用三層查詢管理器，避免循環調用
       const 結果 = await 三層查詢管理器.查詢單一<配色>(c, 資訊資料.配色);
@@ -222,7 +222,7 @@ async function 處理取得當前配色(c: Context): Promise<Response> {
     
     // 3. 如果沒有直接配色，從佈景主題取得
     if (資訊資料.佈景主題) {
-      await info('配色 API', `從佈景主題取得配色: ${資訊資料.佈景主題}`);
+      // await info('配色 API', `從佈景主題取得配色: ${資訊資料.佈景主題}`);
       
       const 主題回應 = await InnerAPI(c, `/api/v1/theme?id=${資訊資料.佈景主題}`);
       const 主題結果 = await 主題回應.json();
@@ -243,7 +243,7 @@ async function 處理取得當前配色(c: Context): Promise<Response> {
     }
     
     // 4. 如果都沒有，回傳預設配色
-    await info('配色 API', '無法從資訊或主題取得配色，回傳預設配色');
+    // await info('配色 API', '無法從資訊或主題取得配色，回傳預設配色');
     return await 處理取得預設配色(c);
     
   } catch (錯誤) {
@@ -263,7 +263,7 @@ async function 處理取得所有配色(c: Context): Promise<Response> {
     
     const 結果 = await 三層查詢管理器.查詢列表<配色>(c, '配色', limit, offset);
     
-    await info('配色 API', `取得配色列表: ${結果.data?.length || 0} 筆 (來源: ${結果.source})`);
+    // await info('配色 API', `取得配色列表: ${結果.data?.length || 0} 筆 (來源: ${結果.source})`);
     
     // 使用資料過濾器處理列表
     const language = c.get('語言') || 'zh-tw';
@@ -292,7 +292,7 @@ async function 處理取得所有配色(c: Context): Promise<Response> {
 // 處理取得單一配色
 async function 處理取得單一配色(c: Context, id: string): Promise<Response> {
   try {
-    await info('配色 API', `取得配色: ${id}`);
+    // await info('配色 API', `取得配色: ${id}`);
     
     const 結果 = await 三層查詢管理器.查詢單一<配色>(c, id);
     
@@ -303,7 +303,7 @@ async function 處理取得單一配色(c: Context, id: string): Promise<Respons
       }, 404);
     }
     
-    await info('配色 API', `取得配色: ${id} (來源: ${結果.source})`);
+    // await info('配色 API', `取得配色: ${id} (來源: ${結果.source})`);
     
     // 使用資料過濾器處理多國語言和安全欄位
     const language = c.get('語言') || 'zh-tw';
@@ -336,7 +336,7 @@ async function 處理取得預設配色(c: Context): Promise<Response> {
       }, 500);
     }
     
-    await info('預設值 API', `取得預設配色: ${結果.data.id} (來源: ${結果.source})`);
+    // await info('預設值 API', `取得預設配色: ${結果.data.id} (來源: ${結果.source})`);
     
     // 過濾並格式化回應資料
     const 回應資料 = {

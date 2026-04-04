@@ -16,7 +16,7 @@
     "svgson": "npm:svgson@^5.3.1"
   },
   "compilerOptions": {
-    "jsx": "react-jsx",
+    "jsx": "precompile",
     "jsxImportSource": "hono/jsx"
   }
 }

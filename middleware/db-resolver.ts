@@ -50,7 +50,7 @@ class L3連線池 {
       const 租戶資訊 = await this.查詢租戶資訊(tenant, l2DB);
       
       if (!租戶資訊) {
-        await info('DB-Resolver', `租戶 ${tenant} 無 L3 資料庫配置`);
+        // await info('DB-Resolver', `租戶 ${tenant} 無 L3 資料庫配置`);
         this.連線中.delete(tenant);
         return null;
       }
@@ -69,7 +69,7 @@ class L3連線池 {
       
       if (登入成功) {
         this.連線池.set(tenant, l3DB);
-        await info('DB-Resolver', `租戶 ${tenant} L3 連線建立成功`);
+        // await info('DB-Resolver', `租戶 ${tenant} L3 連線建立成功`);
       } else {
         await error('DB-Resolver', `租戶 ${tenant} L3 連線失敗`);
       }
@@ -113,7 +113,7 @@ class L3連線池 {
     const 連線 = this.連線池.get(tenant);
     if (連線) {
       this.連線池.delete(tenant);
-      await info('DB-Resolver', `租戶 ${tenant} L3 連線已關閉`);
+      // await info('DB-Resolver', `租戶 ${tenant} L3 連線已關閉`);
     }
   }
   
@@ -152,7 +152,7 @@ class L2系統資料庫 {
       const l2連線資訊 = await kvDB.取得L2連線資訊();
       
       if (!l2連線資訊) {
-        await info('DB-Resolver', 'L2 連線資訊不存在，跳過 L2 初始化');
+        // await info('DB-Resolver', 'L2 連線資訊不存在，跳過 L2 初始化');
         L2系統資料庫.初始化中 = false;
         return null;
       }
@@ -171,7 +171,7 @@ class L2系統資料庫 {
       
       if (登入成功) {
         L2系統資料庫.instance = l2DB;
-        await info('DB-Resolver', 'L2 系統資料庫連線成功');
+        // await info('DB-Resolver', 'L2 系統資料庫連線成功');
       } else {
         await error('DB-Resolver', 'L2 系統資料庫登入失敗');
       }
@@ -206,7 +206,7 @@ export async function 資料庫解析器(c: Context, next: Next) {
     const host = c.req.header('host') || 'localhost';
     const tenant = 解析租戶名稱(host);
     
-    await info('DB-Resolver', `處理請求: host=${host}, tenant=${tenant}`);
+    // await info('DB-Resolver', `處理請求: host=${host}, tenant=${tenant}`);
   
     // 設定基本資訊
     c.set('host', host);
@@ -237,7 +237,7 @@ export async function 資料庫解析器(c: Context, next: Next) {
       l3DB ? 'L3(Tenant)' : null
     ].filter(Boolean);
     
-    await info('DB-Resolver', `可用資料庫層級: ${可用層級.join(', ')}`);
+    // await info('DB-Resolver', `可用資料庫層級: ${可用層級.join(', ')}`);
     
     // 繼續處理請求
     await next();
@@ -260,5 +260,5 @@ export async function 資料庫解析器(c: Context, next: Next) {
 export async function 清理資料庫連線() {
   const 連線池 = L3連線池.getInstance();
   await 連線池.關閉所有連線();
-  await info('DB-Resolver', '所有資料庫連線已清理');
+  // await info('DB-Resolver', '所有資料庫連線已清理');
 }

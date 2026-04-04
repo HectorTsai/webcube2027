@@ -11,7 +11,7 @@ export async function 處理Renderer請求(c: Context): Promise<Response> {
   const method = c.req.method;
   
   try {
-    await info('Renderer Service', `處理 ${method} ${path}`);
+    // await info('Renderer Service', `處理 ${method} ${path}`);
     
     // 只處理 GET 請求
     if (method !== 'GET') {
@@ -23,7 +23,7 @@ export async function 處理Renderer請求(c: Context): Promise<Response> {
     }
     
     // 使用新的頁面系統
-    await info('Renderer Service', `開始渲染頁面: ${path}`);
+    // await info('Renderer Service', `開始渲染頁面: ${path}`);
     return await 渲染頁面(c, path);
     
   } catch (錯誤) {

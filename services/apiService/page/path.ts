@@ -12,7 +12,7 @@ import 頁面 from '../../../database/models/頁面.ts';
  */
 export async function GET(c: Context, params: RouteParams): Promise<Response> {
   try {
-    await info('頁面路徑 API', '處理頁面路徑請求');
+    // await info('頁面路徑 API', '處理頁面路徑請求');
     
     // 從路由參數取得路徑
     const path = params.id || ''; // 從 RouteParams.id 取得路徑參數
@@ -20,11 +20,11 @@ export async function GET(c: Context, params: RouteParams): Promise<Response> {
     // 處理路徑：空字串變為 "/"，其他加上 "/"
     const normalizedPath = path === '' ? '/' : `/${path}`;
     
-    await info('頁面路徑 API', `處理路徑: "${path}" -> "${normalizedPath}"`);
+    // await info('頁面路徑 API', `處理路徑: "${path}" -> "${normalizedPath}"`);
     
     // 直接實作處理邏輯，避免循環匯入
     try {
-      await info('頁面路徑 API', `根據路徑取得頁面: ${normalizedPath}`);
+      // await info('頁面路徑 API', `根據路徑取得頁面: ${normalizedPath}`);
       
       // 使用查詢列表來根據路徑查找頁面
       const 結果 = await 三層查詢管理器.查詢列表<頁面>(c, '頁面', 100, 0);
@@ -46,7 +46,7 @@ export async function GET(c: Context, params: RouteParams): Promise<Response> {
         }, 404);
       }
       
-      await info('頁面路徑 API', `成功根據路徑取得頁面: ${normalizedPath} (來源: ${結果.source})`);
+      // await info('頁面路徑 API', `成功根據路徑取得頁面: ${normalizedPath} (來源: ${結果.source})`);
       
       // 使用資料過濾器處理多國語言和安全欄位
       const language = c.get('語言') || 'zh-tw';

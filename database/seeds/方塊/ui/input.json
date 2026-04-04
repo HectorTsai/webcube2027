@@ -1,0 +1,111 @@
+[
+  {
+    "id": "方塊:方塊:輸入框",
+    "名稱": {
+      "en": "Input Field",
+      "zh-tw": "輸入框",
+      "vi": "Trường nhập liệu"
+    },
+    "描述": {
+      "en": "A text input field for user input. Supports various input types, validation, and styling options. HTMX-enabled for real-time validation and server-side interactions.",
+      "zh-tw": "供使用者輸入的文字輸入框。支援各種輸入類型、驗證和樣式選項。支援 HTMX 即時驗證和伺服器端互動。",
+      "vi": "Một trường nhập văn bản để nhập liệu của người dùng. Hỗ trợ các loại nhập liệu khác nhau, xác thực và tùy chọn kiểu dáng. Được bật HTMX để xác thực thời gian thực và tương tác phía máy chủ."
+    },
+    "售價": 0,
+    "標籤集": [
+      "ui",
+      "input",
+      "form",
+      "htmx"
+    ],
+    "模式": "內建",
+    "元件路徑": "ui/Input",
+    "屬性定義": {
+      "placeholder": {
+        "type": "string",
+        "description": "Placeholder text displayed when input is empty",
+        "required": false,
+        "default": "Enter text...",
+        "example": "Enter your name"
+      },
+      "type": {
+        "type": "string",
+        "description": "Input type - controls browser validation and keyboard type",
+        "required": false,
+        "default": "text",
+        "options": [
+          "text",
+          "email",
+          "password",
+          "number",
+          "tel"
+        ],
+        "example": "text"
+      },
+      "value": {
+        "type": "string",
+        "description": "Current value of the input field",
+        "required": false,
+        "default": "",
+        "example": "John Doe"
+      },
+      "required": {
+        "type": "boolean",
+        "description": "Whether the input is required",
+        "required": false,
+        "default": false,
+        "example": true
+      },
+      "disabled": {
+        "type": "boolean",
+        "description": "Whether the input is disabled",
+        "required": false,
+        "default": false,
+        "example": false
+      },
+      "className": {
+        "type": "string",
+        "description": "Additional CSS classes",
+        "required": false,
+        "example": "form-control"
+      },
+      "name": {
+        "type": "string",
+        "description": "Input name for form submission",
+        "required": false,
+        "example": "username"
+      },
+      "id": {
+        "type": "string",
+        "description": "Input ID for HTMX targeting",
+        "required": false,
+        "example": "input-field"
+      },
+      "validate": {
+        "type": "string",
+        "description": "HTMX validation URL - for real-time validation",
+        "required": false,
+        "example": "/api/validate-input"
+      },
+      "trigger": {
+        "type": "string",
+        "description": "HTMX trigger event - when to validate",
+        "required": false,
+        "default": "keyup changed delay:500ms",
+        "example": "blur"
+      },
+      "target": {
+        "type": "string",
+        "description": "HTMX target selector - where to show validation results",
+        "required": false,
+        "example": "#validation-result"
+      }
+    },
+    "子方塊": [],
+    "對外參數": {},
+    "程式碼": "",
+    "審核狀態": "approved",
+    "上架狀態": true,
+    "可刪除": false
+  }
+]

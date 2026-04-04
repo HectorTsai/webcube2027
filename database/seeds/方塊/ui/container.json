@@ -1,0 +1,78 @@
+[
+  {
+    "id": "方塊:方塊:容器",
+    "名稱": {
+      "en": "Container",
+      "zh-tw": "容器",
+      "vi": "Container"
+    },
+    "描述": {
+      "en": "A flexible container component with automatic theme integration. Supports 8 color themes, 8 visual styles (solid, outline, ghost, dot, dashed, double, gradient, glow), flexbox layouts, and automatic rounded corners. Automatically applies theme colors and ensures design consistency.",
+      "zh-tw": "靈活的容器元件，具備自動主題整合功能。支援 8 種顏色主題、8 種視覺風格（實心、邊框、幽靈、點線、虛線、雙線、漸層、發光）、彈性佈局和自動圓角。自動套用主題顏色並確保設計一致性。",
+      "vi": "Một thành phần container linh hoạt với tích hợp chủ đề tự động. Hỗ trợ 8 chủ đề màu, 8 kiểu trực quan (solid, outline, ghost, dot, dashed, double, gradient, glow), bố cục flexbox và bo tròn tự động. Tự động áp dụng màu chủ đề và đảm bảo tính nhất quán của thiết kế."
+    },
+    "售價": 0,
+    "標籤集": ["ui", "container", "layout", "theme", "alpine", "unocss", "flexible"],
+    "模式": "內建",
+    "元件路徑": "ui/Container",
+    "屬性定義": {
+      "children": {
+        "type": "object",
+        "description": "Content to display inside the container - can be any JSX elements or components",
+        "required": true,
+        "example": "<div>Container content</div> or <Card><p>Content</p></Card>"
+      },
+      "direction": {
+        "type": "string",
+        "description": "Flex direction - controls layout orientation of child elements",
+        "required": false,
+        "default": "column",
+        "options": ["row", "column"],
+        "example": "column"
+      },
+      "align": {
+        "type": "string",
+        "description": "Cross-axis alignment - controls vertical positioning of child elements",
+        "required": false,
+        "default": "stretch",
+        "options": ["start", "center", "end", "stretch"],
+        "example": "center"
+      },
+      "justify": {
+        "type": "string",
+        "description": "Main-axis alignment - controls horizontal positioning of child elements",
+        "required": false,
+        "default": "start",
+        "options": ["start", "center", "end", "between", "around", "evenly"],
+        "example": "start"
+      },
+      "color": {
+        "type": "string",
+        "description": "Color theme - automatically sets background and text colors, ensures theme consistency",
+        "required": false,
+        "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "danger"],
+        "example": "primary"
+      },
+      "variant": {
+        "type": "string",
+        "description": "Visual style - controls how the color is applied and border styling, with multiple gradient options",
+        "required": false,
+        "default": "solid",
+        "options": ["solid", "outline", "ghost", "dot", "dashed", "double", "gradient-right", "gradient-left", "gradient-up", "gradient-down", "gradient-diagonal", "gradient-circle", "gradient-cone", "glow"],
+        "example": "solid"
+      },
+      "className": {
+        "type": "string",
+        "description": "Additional CSS classes - can include width, gap, padding, and other styling",
+        "required": false,
+        "example": "w-full gap-4"
+      }
+    },
+    "子方塊": [],
+    "對外參數": {},
+    "程式碼": "",
+    "審核狀態": "approved",
+    "上架狀態": true,
+    "可刪除": false
+  }
+]

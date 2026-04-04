@@ -12,7 +12,7 @@ import { InnerAPI } from '../../services/index.ts';
 // GET - 取得佈景主題 (/api/v1/theme/all 或 /api/v1/theme/id 或 /api/v1/theme)
 export async function GET(c: Context, params: RouteParams): Promise<Response> {
   try {
-    await info('佈景主題 API', '處理取得佈景主題請求');
+    // await info('佈景主題 API', '處理取得佈景主題請求');
     
     // 優先檢查路徑參數 (智能回退機制)
     if (params.id === 'all') {
@@ -50,7 +50,7 @@ export async function POST(c: Context, _params: RouteParams): Promise<Response> 
       }, 500);
     }
     
-    await info('佈景主題 API', `創建佈景主題成功: ${結果.data.id} (來源: ${結果.source})`);
+    // await info('佈景主題 API', `創建佈景主題成功: ${結果.data.id} (來源: ${結果.source})`);
     
     // 使用資料過濾器處理多國語言和安全欄位
     const language = c.get('語言') || 'zh-tw';
@@ -104,7 +104,7 @@ export async function PUT(c: Context, _params: RouteParams): Promise<Response> {
       }, 500);
     }
     
-    await info('佈景主題 API', `更新佈景主題成功: ${結果.data.id} (來源: ${結果.source})`);
+    // await info('佈景主題 API', `更新佈景主題成功: ${結果.data.id} (來源: ${結果.source})`);
     
     // 使用資料過濾器處理多國語言和安全欄位
     const language = c.get('語言') || 'zh-tw';
@@ -150,7 +150,7 @@ export async function DELETE(c: Context, params: RouteParams): Promise<Response>
       }, 500);
     }
     
-    await info('佈景主題 API', `刪除佈景主題成功: ${params.id} (來源: ${結果.source})`);
+    // await info('佈景主題 API', `刪除佈景主題成功: ${params.id} (來源: ${結果.source})`);
     
     return c.json({
       success: true,
@@ -170,14 +170,14 @@ export async function DELETE(c: Context, params: RouteParams): Promise<Response>
 // 處理取得當前佈景主題（層級邏輯：統一資訊 -> 預設）
 async function 處理取得當前佈景主題(c: Context): Promise<Response> {
   try {
-    await info('佈景主題 API', '開始取得當前佈景主題');
+    // await info('佈景主題 API', '開始取得當前佈景主題');
     
     // 1. 取得統一資訊
     const 資訊回應 = await InnerAPI(c, '/api/v1/info');
     const 資訊 = await 資訊回應.json();
     
     if (!資訊.success || !資訊.data) {
-      await info('佈景主題 API', '無法取得資訊，回傳預設佈景主題');
+      // await info('佈景主題 API', '無法取得資訊，回傳預設佈景主題');
       return await 處理取得預設佈景主題(c);
     }
     
@@ -185,7 +185,7 @@ async function 處理取得當前佈景主題(c: Context): Promise<Response> {
     
     // 2. 如果有資訊中的佈景主題 ID，直接取得佈景主題
     if (資訊資料.佈景主題) {
-      await info('佈景主題 API', `從資訊直接取得佈景主題: ${資訊資料.佈景主題}`);
+      // await info('佈景主題 API', `從資訊直接取得佈景主題: ${資訊資料.佈景主題}`);
       
       // 直接使用三層查詢管理器，避免循環調用
       const 結果 = await 三層查詢管理器.查詢單一<佈景主題>(c, 資訊資料.佈景主題);
@@ -200,7 +200,7 @@ async function 處理取得當前佈景主題(c: Context): Promise<Response> {
     }
     
     // 3. 如果都沒有，回傳預設佈景主題
-    await info('佈景主題 API', '無法從資訊取得佈景主題，回傳預設佈景主題');
+    // await info('佈景主題 API', '無法從資訊取得佈景主題，回傳預設佈景主題');
     return await 處理取得預設佈景主題(c);
     
   } catch (錯誤) {
@@ -231,7 +231,7 @@ async function 處理取得所有佈景主題(c: Context): Promise<Response> {
       });
     }
     
-    await info('佈景主題 API', `取得佈景主題列表: ${過濾資料.length} 筆 (來源: ${結果.source})`);
+    // await info('佈景主題 API', `取得佈景主題列表: ${過濾資料.length} 筆 (來源: ${結果.source})`);
     
     // 複數 API (themes) 只回傳簡化資料：id, 名稱, 描述
     const language = c.get('語言') || 'zh-tw';
@@ -260,7 +260,7 @@ async function 處理取得所有佈景主題(c: Context): Promise<Response> {
 // 處理取得單一佈景主題
 async function 處理取得單一佈景主題(c: Context, id: string): Promise<Response> {
   try {
-    await info('佈景主題 API', `取得佈景主題: ${id}`);
+    // await info('佈景主題 API', `取得佈景主題: ${id}`);
     
     const 結果 = await 三層查詢管理器.查詢單一<佈景主題>(c, id);
     
@@ -271,7 +271,7 @@ async function 處理取得單一佈景主題(c: Context, id: string): Promise<R
       }, 404);
     }
     
-    await info('佈景主題 API', `取得佈景主題: ${id} (來源: ${結果.source})`);
+    // await info('佈景主題 API', `取得佈景主題: ${id} (來源: ${結果.source})`);
     
     // 使用資料過濾器處理多國語言和安全欄位
     const language = c.get('語言') || 'zh-tw';
@@ -304,7 +304,7 @@ async function 處理取得預設佈景主題(c: Context): Promise<Response> {
       }, 500);
     }
     
-    await info('預設值 API', `取得預設佈景主題: ${結果.data.id} (來源: ${結果.source})`);
+    // await info('預設值 API', `取得預設佈景主題: ${結果.data.id} (來源: ${結果.source})`);
     
     // 使用資料過濾器處理多國語言和安全欄位
     const language = c.get('語言') || 'zh-tw';

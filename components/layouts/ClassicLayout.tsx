@@ -1,12 +1,15 @@
 import Container from "../container/Container.tsx";
-import MainMenu from "../navigation/MainMenu.tsx";
+import MainMenu, { getHydrationScript as getMenuHydrationScript } from "../navigation/MainMenu.tsx";
 import Footer from "../navigation/Footer.tsx";
 
 // 直接定義水合腳本函數
-export async function getHydrationScript() {
-  // 從 MainMenu 導入水合腳本
-  const MainMenu = await import("../navigation/MainMenu.tsx");
-  return MainMenu.getHydrationScript();
+export function getHydrationScript() {
+  // 使用命名導入的 getHydrationScript
+  console.log('ClassicLayout: 直接調用 getMenuHydrationScript()');
+  const hydrationData = getMenuHydrationScript();
+  console.log('ClassicLayout: hydrationData type:', typeof hydrationData);
+  console.log('ClassicLayout: hydrationData keys:', hydrationData ? Object.keys(hydrationData) : 'null/undefined');
+  return hydrationData;
 }
 
 export interface ClassicLayoutProps {

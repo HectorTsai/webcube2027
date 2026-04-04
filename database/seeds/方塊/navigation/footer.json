@@ -1,0 +1,67 @@
+[
+  {
+    "id": "方塊:方塊:頁腳",
+    "名稱": {
+      "en": "Footer",
+      "zh-tw": "頁腳",
+      "vi": "Footer"
+    },
+    "描述": {
+      "en": "Website footer component with links, copyright information, and optional sections.",
+      "zh-tw": "網站頁腳元件，包含連結、版權資訊和可選區段。",
+      "vi": "Thành phần footer trang web với liên kết, thông tin bản quyền và các phần tùy chọn."
+    },
+    "售價": 0,
+    "標籤集": [
+      "ui",
+      "layout",
+      "footer"
+    ],
+    "模式": "內建",
+    "元件路徑": "layout/Footer",
+    "屬性定義": {
+      "sections": {
+        "type": "array",
+        "description": "Footer sections with links and information",
+        "required": false,
+        "default": [],
+        "example": [
+          {
+            "title": "Company",
+            "links": [
+              {"label": "About", "href": "/about"},
+              {"label": "Contact", "href": "/contact"}
+            ]
+          }
+        ]
+      },
+      "copyright": {
+        "type": "string",
+        "description": "Copyright text",
+        "required": false,
+        "example": "© 2024 Your Company. All rights reserved."
+      },
+      "socialLinks": {
+        "type": "array",
+        "description": "Social media links",
+        "required": false,
+        "example": [
+          {"platform": "twitter", "url": "https://twitter.com/yourcompany"},
+          {"platform": "facebook", "url": "https://facebook.com/yourcompany"}
+        ]
+      },
+      "className": {
+        "type": "string",
+        "description": "Additional CSS classes",
+        "required": false,
+        "example": "site-footer"
+      }
+    },
+    "子方塊": [],
+    "對外參數": {},
+    "程式碼": "",
+    "審核狀態": "approved",
+    "上架狀態": true,
+    "可刪除": false
+  }
+]

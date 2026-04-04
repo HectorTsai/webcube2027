@@ -9,7 +9,7 @@ import 頁面 from '../../database/models/頁面.ts';
 // GET - 取得頁面 (/api/v1/page?id=xxx 或 /api/v1/page?route=/en/home 或 /api/v1/page/all)
 export async function GET(c: Context, params: RouteParams): Promise<Response> {
   try {
-    await info('頁面 API', '處理取得頁面請求');
+    // await info('頁面 API', '處理取得頁面請求');
     
     // 優先檢查路徑參數 (智能回退機制)
     if (params.id === 'all') {
@@ -56,7 +56,7 @@ export async function GET(c: Context, params: RouteParams): Promise<Response> {
 export async function POST(c: Context, _params: RouteParams): Promise<Response> {
   try {
     const body = await c.req.json();
-    await info('頁面 API', '建立新頁面');
+    // await info('頁面 API', '建立新頁面');
     
     const 結果 = await 三層查詢管理器.創建或更新<頁面>(c, '頁面', {
       ...body,
@@ -83,7 +83,7 @@ export async function POST(c: Context, _params: RouteParams): Promise<Response> 
       }, 500);
     }
     
-    await info('頁面 API', `建立頁面成功: ${結果.data.id} (來源: ${結果.source})`);
+    // await info('頁面 API', `建立頁面成功: ${結果.data.id} (來源: ${結果.source})`);
     
     // 使用資料過濾器處理多國語言和安全欄位
     const language = c.get('語言') || 'zh-tw';
@@ -119,7 +119,7 @@ export async function PUT(c: Context, _params: RouteParams): Promise<Response> {
     }
     
     const body = await c.req.json();
-    await info('頁面 API', `更新頁面: ${decodedId}`);
+    // await info('頁面 API', `更新頁面: ${decodedId}`);
     
     // 先檢查頁面是否存在
     const 現有資料 = await 三層查詢管理器.查詢單一<頁面>(c, decodedId);
@@ -139,7 +139,7 @@ export async function PUT(c: Context, _params: RouteParams): Promise<Response> {
       }, 500);
     }
     
-    await info('頁面 API', `更新頁面成功: ${結果.data.id} (來源: ${結果.source})`);
+    // await info('頁面 API', `更新頁面成功: ${結果.data.id} (來源: ${結果.source})`);
     
     // 使用資料過濾器處理多國語言和安全欄位
     const language = c.get('語言') || 'zh-tw';
@@ -174,7 +174,7 @@ export async function DELETE(c: Context, _params: RouteParams): Promise<Response
       }, 400);
     }
     
-    await info('頁面 API', `刪除頁面: ${decodedId}`);
+    // await info('頁面 API', `刪除頁面: ${decodedId}`);
     
     // 先檢查頁面是否存在
     const 現有資料 = await 三層查詢管理器.查詢單一<頁面>(c, decodedId);
@@ -194,7 +194,7 @@ export async function DELETE(c: Context, _params: RouteParams): Promise<Response
       }, 500);
     }
     
-    await info('頁面 API', '成功刪除頁面');
+    // await info('頁面 API', '成功刪除頁面');
     
     return c.json({
       success: true,
@@ -214,7 +214,7 @@ export async function DELETE(c: Context, _params: RouteParams): Promise<Response
 // 處理根據路徑取得頁面
 async function 處理根據路徑取得頁面(c: Context, route: string): Promise<Response> {
   try {
-    await info('頁面 API', `根據路徑取得頁面: ${route}`);
+    // await info('頁面 API', `根據路徑取得頁面: ${route}`);
     
     // 使用查詢列表來根據路徑查找頁面
     const 結果 = await 三層查詢管理器.查詢列表<頁面>(c, '頁面', 100, 0);
@@ -236,7 +236,7 @@ async function 處理根據路徑取得頁面(c: Context, route: string): Promis
       }, 404);
     }
     
-    await info('頁面 API', `成功根據路徑取得頁面: ${route} (來源: ${結果.source})`);
+    // await info('頁面 API', `成功根據路徑取得頁面: ${route} (來源: ${結果.source})`);
     
     // 使用資料過濾器處理多國語言和安全欄位
     const language = c.get('語言') || 'zh-tw';
@@ -260,7 +260,7 @@ async function 處理根據路徑取得頁面(c: Context, route: string): Promis
 // 處理取得單一頁面
 async function 處理取得單一頁面(c: Context, id: string): Promise<Response> {
   try {
-    await info('頁面 API', `取得單一頁面: ${id}`);
+    // await info('頁面 API', `取得單一頁面: ${id}`);
     
     const 結果 = await 三層查詢管理器.查詢單一<頁面>(c, id);
     
@@ -271,7 +271,7 @@ async function 處理取得單一頁面(c: Context, id: string): Promise<Respons
       }, 404);
     }
     
-    await info('頁面 API', `成功取得頁面: ${id} (來源: ${結果.source})`);
+    // await info('頁面 API', `成功取得頁面: ${id} (來源: ${結果.source})`);
     
     // 使用資料過濾器處理多國語言和安全欄位
     const language = c.get('語言') || 'zh-tw';
@@ -295,14 +295,14 @@ async function 處理取得單一頁面(c: Context, id: string): Promise<Respons
 // 處理取得所有頁面
 async function 處理取得所有頁面(c: Context): Promise<Response> {
   try {
-    await info('頁面 API', '取得所有頁面');
+    // await info('頁面 API', '取得所有頁面');
     
     const limit = parseInt(c.req.query('limit') || '10');
     const offset = parseInt(c.req.query('offset') || '0');
     
     const 結果 = await 三層查詢管理器.查詢列表<頁面>(c, '頁面', limit, offset);
     
-    await info('頁面 API', `取得頁面列表: ${結果.data?.length || 0} 筆 (來源: ${結果.source})`);
+    // await info('頁面 API', `取得頁面列表: ${結果.data?.length || 0} 筆 (來源: ${結果.source})`);
     
     // 使用資料過濾器處理多國語言和安全欄位 - 精簡列表
     const language = c.get('語言') || 'zh-tw';

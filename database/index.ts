@@ -39,17 +39,90 @@ export interface L2連線資訊 {
   啟用: boolean;
 }
 
+// 讀取一顆種子 - 處理單一 JSON 檔案
+async function 讀取一顆種子(filePath: string | URL): Promise<Record<string, unknown>[]> {
+  try {
+    // 如果是 file:// URL，轉換為檔案路徑
+    let path: string;
+    if (filePath instanceof URL && filePath.protocol === 'file:') {
+      path = filePath.pathname;
+    } else {
+      path = filePath as string;
+    }
+    
+    const text = await Deno.readTextFile(path);
+    const raw = JSON.parse(text) as Record<string, unknown>[];
+    const result = Array.isArray(raw) ? raw : [raw];
+    return result;
+  } catch (err) {
+    return [];
+  }
+}
+
+// 讀取目錄種子 - 遞迴讀取目錄下的所有 JSON 檔案
+async function 讀取目錄種子(currentDir: URL, model: string, 所有資料: Record<string, unknown>[], relativePath: string = ''): Promise<void> {
+  for await (const entry of Deno.readDir(currentDir)) {
+    if (entry.isFile && entry.name.endsWith('.json')) {
+      const filePath = `./database/seeds/${model}${relativePath}/${entry.name}`;
+      const 檔案資料 = await 讀取一顆種子(filePath);
+      所有資料.push(...檔案資料);
+    } else if (entry.isDirectory) {
+      const subDirUrl = new URL(entry.name + '/', currentDir);
+      await 讀取目錄種子(subDirUrl, model, 所有資料, `${relativePath}/${entry.name}`);
+    }
+  }
+}
+
+// 讀取種子 - 主要函數
 export async function 讀取種子<T extends 資料>(model: string): Promise<T[] | null> {
   try {
-    const seedPath = new URL(`./seeds/${model}.json`, import.meta.url);
-    const text = await Deno.readTextFile(seedPath);
-    const raw = JSON.parse(text) as Record<string, unknown>[];
-
-    const mod = await import(`./models/${model}.ts`);
-    const Model = mod.default;
-
-    return raw.map((item) => new Model(item));
-  } catch (_err) {
+    const 所有資料: Record<string, unknown>[] = [];
+    
+    // 1. 先檢查單一檔案 model.json
+    try {
+      const seedPath = `./database/seeds/${model}.json`;
+      const 單一檔案資料 = await 讀取一顆種子(seedPath);
+      if (單一檔案資料 && 單一檔案資料.length > 0) {
+        所有資料.push(...單一檔案資料);
+      }
+    } catch (錯誤) {
+      // 單一檔案不存在，繼續檢查目錄
+    }
+    
+    // 2. 檢查目錄 model/ 下的所有 JSON 檔案
+    try {
+      const dirPath = new URL(`./seeds/${model}/`, import.meta.url);
+      const dirInfo = await Deno.stat(dirPath);
+      
+      if (dirInfo.isDirectory) {
+        await 讀取目錄種子(dirPath, model, 所有資料);
+      }
+    } catch (錯誤) {
+      // 目錄不存在或沒有檔案
+    }
+    
+    // 如果沒有找到任何資料，返回 null
+    if (所有資料.length === 0) {
+      return null;
+    }
+    
+    // 載入模型並轉換
+    try {
+      const mod = await import(`./models/${model}.ts`);
+      const Model = mod.default;
+      
+      const result = 所有資料.map((item) => {
+        return new Model(item);
+      });
+      return result;
+    } catch (modelErr) {
+      console.error(`[讀取種子] 模型實例化失敗: ${model}`, modelErr);
+      return null;
+    }
+    
+  } catch (err) {
+    console.error(`讀取種子失敗: ${model}`, err);
+    console.error(`錯誤詳情:`, err.stack);
     return null;
   }
 }

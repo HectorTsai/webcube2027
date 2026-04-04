@@ -42,7 +42,7 @@ export class 三層查詢管理器 {
           if (l3結果 && l3結果[0] && l3結果[0].result && l3結果[0].result.length > 0) {
             const 資料 = await 三層查詢管理器.轉換為模型實例<T>(l3結果[0].result[0]);
             if (資料) {
-              await info('三層查詢', `L3 查詢成功: ${model}:${id} (tenant: ${tenant})`);
+              // await info('三層查詢', `L3 查詢成功: ${model}:${id} (tenant: ${tenant})`);
               return { data: 資料, source: 'L3', success: true };
             }
           }
@@ -59,7 +59,7 @@ export class 三層查詢管理器 {
           if (l2結果 && l2結果[0] && l2結果[0].result && l2結果[0].result.length > 0) {
             const 資料 = await 三層查詢管理器.轉換為模型實例<T>(l2結果[0].result[0]);
             if (資料) {
-              await info('三層查詢', `L2 查詢成功: ${model}:${id}`);
+              // await info('三層查詢', `L2 查詢成功: ${model}:${id}`);
               return { data: 資料, source: 'L2', success: true };
             }
           }
@@ -72,7 +72,7 @@ export class 三層查詢管理器 {
       try {
         const l1資料 = await kvDB.取得(id);
         if (l1資料) {
-          await info('三層查詢', `L1 查詢成功: ${model}:${id}`);
+          // await info('三層查詢', `L1 查詢成功: ${model}:${id}`);
           return { data: l1資料 as T, source: 'L1', success: true };
         }
       } catch (l1錯誤) {
@@ -119,7 +119,7 @@ export class 三層查詢管理器 {
               }
             }
             主要來源 = 'L3';
-            await info('三層查詢', `L3 列表查詢成功: ${model} (${合併結果.length} 筆, tenant: ${tenant})`);
+            // await info('三層查詢', `L3 列表查詢成功: ${model} (${合併結果.length} 筆, tenant: ${tenant})`);
           }
         } catch (l3錯誤) {
           await error('三層查詢', `L3 列表查詢失敗: ${l3錯誤}`);
@@ -141,7 +141,7 @@ export class 三層查詢管理器 {
               }
             }
             主要來源 = 'L2';
-            await info('三層查詢', `L2 列表查詢成功: ${model} (${合併結果.length} 筆)`);
+            // await info('三層查詢', `L2 列表查詢成功: ${model} (${合併結果.length} 筆)`);
           }
         } catch (l2錯誤) {
           await error('三層查詢', `L2 列表查詢失敗: ${l2錯誤}`);
@@ -169,7 +169,7 @@ export class 三層查詢管理器 {
           l1資料.sort((a, b) => b.最後修改.getTime() - a.最後修改.getTime());
           合併結果 = l1資料.slice(offset, offset + limit);
           
-          await info('三層查詢', `L1 列表查詢成功: ${model} (${合併結果.length} 筆)`);
+          // await info('三層查詢', `L1 列表查詢成功: ${model} (${合併結果.length} 筆)`);
         } catch (l1錯誤) {
           await error('三層查詢', `L1 列表查詢失敗: ${l1錯誤}`);
         }
@@ -194,7 +194,7 @@ export class 三層查詢管理器 {
       const 預設資料 = await kvDB.取得一個(model);
       
       if (預設資料) {
-        await info('三層查詢', `取得預設值成功: ${model}`);
+        // await info('三層查詢', `取得預設值成功: ${model}`);
         return { data: 預設資料 as T, source: 'L1', success: true };
       } else {
         return { data: null, source: 'L1', success: false, error: '查詢過程發生錯誤' };
@@ -322,7 +322,7 @@ export class 三層查詢管理器 {
             const 模型實例 = await 三層查詢管理器.轉換為模型實例<T>(更新後資料);
             
             if (模型實例) {
-              await info('三層查詢', `L3 ${isUpdate ? '更新' : '創建'}成功: ${model} (tenant: ${tenant})`);
+              // await info('三層查詢', `L3 ${isUpdate ? '更新' : '創建'}成功: ${model} (tenant: ${tenant})`);
               return { data: 模型實例, source: 'L3', success: true };
             }
           }
@@ -345,7 +345,7 @@ export class 三層查詢管理器 {
             const 模型實例 = await 三層查詢管理器.轉換為模型實例<T>(更新後資料);
             
             if (模型實例) {
-              await info('三層查詢', `L2 ${isUpdate ? '更新' : '創建'}成功: ${model}`);
+              // await info('三層查詢', `L2 ${isUpdate ? '更新' : '創建'}成功: ${model}`);
               return { data: 模型實例, source: 'L2', success: true };
             }
           }
@@ -390,7 +390,7 @@ export class 三層查詢管理器 {
       if (查詢結果.source === 'L3' && l3DB) {
         try {
           await l3DB.查詢(`DELETE FROM ${model} WHERE id = '${id}';`);
-          await info('三層查詢', `L3 刪除成功: ${model}:${id}`);
+          // await info('三層查詢', `L3 刪除成功: ${model}:${id}`);
           return { data: true, source: 'L3', success: true };
         } catch (錯誤) {
           await error('三層查詢', `L3 刪除失敗: ${錯誤}`);
@@ -400,7 +400,7 @@ export class 三層查詢管理器 {
       if (查詢結果.source === 'L2' && l2DB) {
         try {
           await l2DB.查詢(`DELETE FROM ${model} WHERE id = '${id}';`);
-          await info('三層查詢', `L2 刪除成功: ${model}:${id}`);
+          // await info('三層查詢', `L2 刪除成功: ${model}:${id}`);
           return { data: true, source: 'L2', success: true };
         } catch (錯誤) {
           await error('三層查詢', `L2 刪除失敗: ${錯誤}`);

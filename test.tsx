@@ -1,6 +1,7 @@
 import { jsx } from "hono/jsx";
 import Button from "./components/ui/Button.tsx";
 import Drawer from "./components/ui/Drawer.tsx";
+import Container from "./components/ui/Container.tsx";
 
 export default async function TestPage() {
   // 創建四個方向的 Drawer 元件
@@ -168,6 +169,51 @@ export default async function TestPage() {
     drawerTop,
     drawerBottom,
     
+    // Container 測試
+    jsx(Container, { className: "mb-6 p-4" }, [
+      jsx('h2', { class: "text-xl font-semibold mb-4 text-base-content" }, "Container 組件測試"),
+      jsx(Container, { direction: "row", align: "center", justify: "between", color: "secondary", className: "mb-4 p-4 gap-4" }, [
+        jsx('div', { class: "bg-base-200 p-2 rounded text-base-content" }, "左側項目"),
+        jsx('div', { class: "bg-base-200 p-2 rounded text-base-content" }, "中間項目"),
+        jsx('div', { class: "bg-base-200 p-2 rounded text-base-content" }, "右側項目")
+      ]),
+      jsx(Container, { color: "info", variant: "outline", className: "mb-4 p-4" }, [
+        jsx('h3', { class: "text-lg font-semibold" }, "Outline Container"),
+        jsx('p', {}, "使用 outline 風格的容器")
+      ]),
+      jsx(Container, { color: "success", variant: "ghost", className: "mb-4 p-4" }, [
+        jsx('h3', { class: "text-lg font-semibold" }, "Ghost Container"),
+        jsx('p', {}, "使用 ghost 風格的容器")
+      ]),
+      jsx(Container, { color: "warning", variant: "gradient-right", className: "mb-4 p-4" }, [
+        jsx('h3', { class: "text-lg font-semibold text-white" }, "Gradient Right Container"),
+        jsx('p', { class: "text-white" }, "使用向右線性漸層的容器")
+      ]),
+      jsx(Container, { color: "error", variant: "gradient-diagonal", className: "mb-4 p-4" }, [
+        jsx('h3', { class: "text-lg font-semibold text-white" }, "Gradient Diagonal Container"),
+        jsx('p', { class: "text-white" }, "使用對角線性漸層的容器")
+      ]),
+      jsx(Container, { color: "info", variant: "gradient-circle", className: "mb-4 p-4" }, [
+        jsx('h3', { class: "text-lg font-semibold text-white" }, "Gradient Circle Container"),
+        jsx('p', { class: "text-white" }, "使用圓形漸層的容器")
+      ]),
+      jsx(Container, { color: "error", variant: "glow", className: "mb-4 p-4" }, [
+        jsx('h3', { class: "text-lg font-semibold text-error-content" }, "Glow Container"),
+        jsx('p', { class: "text-error-content" }, "使用 glow 風格的容器")
+      ]),
+      jsx(Container, { direction: "row", className: "gap-4 p-4" }, [
+        jsx(Container, { color: "primary", variant: "dot", className: "p-4" }, [
+          jsx('h4', { class: "text-sm font-semibold" }, "Dot")
+        ]),
+        jsx(Container, { color: "secondary", variant: "dashed", className: "p-4" }, [
+          jsx('h4', { class: "text-sm font-semibold" }, "Dashed")
+        ]),
+        jsx(Container, { color: "accent", variant: "double", className: "p-4" }, [
+          jsx('h4', { class: "text-sm font-semibold" }, "Double")
+        ])
+      ])
+    ]),
+    
     jsx('div', { class: "bg-base-100 rounded-lg p-6 shadow-lg" }, [
       jsx('h2', { class: "text-xl font-semibold mb-4 text-base-content" }, "測試說明"),
       jsx('ul', { class: "list-disc list-inside space-y-2 text-base-content" }, [
@@ -175,7 +221,10 @@ export default async function TestPage() {
         jsx('li', {}, "測試不同顏色、風格、尺寸的按鈕"),
         jsx('li', {}, "驗證 UnoCSS 類別是否正確應用"),
         jsx('li', {}, "檢查 Drawer 開關動畫是否流暢"),
-        jsx('li', {}, "點擊背景遮罩關閉 Drawer")
+        jsx('li', {}, "點擊背景遮罩關閉 Drawer"),
+        jsx('li', {}, "測試 Container 組件的主題整合和自動圓角"),
+        jsx('li', {}, "驗證 Container 的 8 種視覺風格"),
+        jsx('li', {}, "檢查 Container 的 Flexbox 佈局功能")
       ])
     ])
   ]);

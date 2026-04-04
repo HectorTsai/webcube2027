@@ -32,10 +32,10 @@
       },
       "variant": {
         "type": "string",
-        "description": "Button visual style - controls how the color is applied and border styling",
+        "description": "Visual style - controls how the color is applied and border styling, with multiple gradient options",
         "required": false,
         "default": "solid",
-        "options": ["solid", "outline", "ghost", "dot", "dashed", "double", "gradient", "glow"],
+        "options": ["solid", "outline", "ghost", "dot", "dashed", "double", "gradient-right", "gradient-left", "gradient-up", "gradient-down", "gradient-diagonal", "gradient-circle", "gradient-cone", "glow"],
         "example": "solid"
       },
       "size": {

@@ -18,7 +18,7 @@ export default class 動態方塊JSX解析器 {
         throw new Error(`方塊解析深度超過限制: ${深度}`);
       }
 
-      await info('動態方塊JSX解析器', `解析方塊: ${方塊ID}, 深度: ${深度}`);
+      // await info('動態方塊JSX解析器', `解析方塊: ${方塊ID}, 深度: ${深度}`);
 
       // 1. 取得方塊定義
       const 方塊定義 = await this.取得方塊定義(方塊ID, c);
@@ -45,7 +45,7 @@ export default class 動態方塊JSX解析器 {
    */
   private static async 取得方塊定義(方塊ID: string, c: any): Promise<any> {
     try {
-      await info('動態方塊JSX解析器', `取得方塊定義: ${方塊ID}`);
+      // await info('動態方塊JSX解析器', `取得方塊定義: ${方塊ID}`);
 
       // 使用 InnerAPI 從 cube API 取得方塊定義
       const { InnerAPI } = await import("../index.ts");
@@ -53,7 +53,7 @@ export default class 動態方塊JSX解析器 {
       const 方塊資料 = await 方塊回應.json();
 
       if (方塊資料.success && 方塊資料.data) {
-        await info('動態方塊JSX解析器', `成功取得方塊定義: ${方塊ID}`);
+        // await info('動態方塊JSX解析器', `成功取得方塊定義: ${方塊ID}`);
         return 方塊資料.data;
       }
 
@@ -70,7 +70,7 @@ export default class 動態方塊JSX解析器 {
    */
   private static async 解析內建方塊(方塊定義: any, 內容: any): Promise<any> {
     try {
-      await info('動態方塊JSX解析器', `解析內建方塊: ${方塊定義.元件路徑}`);
+      // await info('動態方塊JSX解析器', `解析內建方塊: ${方塊定義.元件路徑}`);
 
       // 動態 import 元件
       const 元件路徑 = resolve('.', 'components', ...方塊定義.元件路徑.split('/')) + '.tsx';
@@ -91,7 +91,7 @@ export default class 動態方塊JSX解析器 {
       // 自動偵測水合：元件有提供 getHydrationScript 就直接內嵌水合腳本
       if (typeof 元件模組.getHydrationScript === 'function') {
         await info('動態方塊JSX解析器', `偵測到水合支援: ${方塊定義.元件路徑}`);
-        const 水合資料 = 元件模組.getHydrationScript();
+        const 水合資料 = await 元件模組.getHydrationScript();
         
         // 組合水合腳本：imports + component + initCode
         let 水合程式碼 = '';
@@ -104,6 +104,9 @@ export default class 動態方塊JSX解析器 {
             : '';
           const initCode = 水合資料.initCode || '';
           水合程式碼 = [imports, componentStr, initCode].filter(Boolean).join('\n');
+          
+          // Debug: 檢查水合資料內容
+          await info('動態方塊JSX解析器', `水合資料 - component: ${typeof 水合資料.component}, componentStr 長度: ${componentStr.length}, initCode 長度: ${initCode.length}`);
         }
         
         const 水合腳本 = jsx('script', {
@@ -113,7 +116,8 @@ export default class 動態方塊JSX解析器 {
         return jsx('div', { 'data-hydrate': 方塊定義.元件路徑 }, [jsxElement, 水合腳本] as any);
       }
 
-      await info('動態方塊JSX解析器', `元件渲染成功: ${方塊定義.元件路徑}`);
+      // await info('動態方塊JSX解析器', `元件渲染成功: ${方塊定義.元件路徑}`);
+      await info('動態方塊JSX解析器', `內建方塊渲染完成: ${方塊定義.元件路徑}`);
       return jsxElement;
     } catch (err) {
       await error('動態方塊JSX解析器', `內建方塊解析失敗: ${(err as Error).message}`);
@@ -126,7 +130,7 @@ export default class 動態方塊JSX解析器 {
    */
   private static async 解析組合方塊(方塊定義: any, 內容: any, 深度: number, c: any): Promise<any> {
     try {
-      await info('動態方塊JSX解析器', `解析組合方塊: ${方塊定義.id}, 子方塊數量: ${方塊定義.子方塊.length}`);
+      // await info('動態方塊JSX解析器', `解析組合方塊: ${方塊定義.id}, 子方塊數量: ${方塊定義.子方塊.length}`);
 
       // 處理對外參數映射
       const 處理後子方塊 = await this.處理參數映射(方塊定義.子方塊, 方塊定義.對外參數, 內容);
@@ -156,7 +160,7 @@ export default class 動態方塊JSX解析器 {
    */
   private static async 解析AI方塊(方塊定義: any, 內容: any): Promise<any> {
     try {
-      await info('動態方塊JSX解析器', `解析AI方塊: ${方塊定義.id}`);
+      // await info('動態方塊JSX解析器', `解析AI方塊: ${方塊定義.id}`);
       
       // TODO: 實作 AI 方塊解析邏輯
       return jsx('div', { className: 'ai-block' }, `AI方塊: ${方塊定義.id}`);

@@ -22,11 +22,17 @@ export async function 處理Media請求(c: Context): Promise<Response> {
     const path = c.req.path;
     const method = c.req.method;
     
-    await info('Media Service', `處理 ${method} ${path}`);
+    // await info('Media Service', `處理 ${method} ${path}`);
     
     // 檢查是否為新版 Media v1 路由
     if (path.startsWith('/media/v1/')) {
       return await 處理MediaV1請求(c);
+    }
+    
+    // 檢查是否為 script 路由
+    if (path.startsWith('/media/script/')) {
+      const scriptPath = path.replace('/media/script/', '');
+      return await 處理Script請求(c, scriptPath);
     }
     
     // 舊版路由處理（向後兼容）
@@ -64,13 +70,55 @@ export async function 處理Media請求(c: Context): Promise<Response> {
   }
 }
 
+// 處理 Script 請求
+async function 處理Script請求(c: Context, scriptPath: string): Promise<Response> {
+  try {
+    // await info('Script Service', `處理腳本請求: ${scriptPath}`);
+    
+    // 動態載入 script 模組
+    try {
+      const module = await import('./script.ts');
+      const scriptModule = module;
+      
+      if (!scriptModule || !scriptModule.GET) {
+        return c.json({
+          success: false,
+          message: '腳本模組不存在',
+          error: 'MODULE_NOT_FOUND'
+        }, 404);
+      }
+      
+      // 解析腳本名稱作為參數
+      const params = { id: scriptPath };
+      
+      return await scriptModule.GET(c, params);
+      
+    } catch (moduleError) {
+      await error('Script Service', `載入腳本模組失敗: ${moduleError}`);
+      return c.json({
+        success: false,
+        message: '腳本模組載入失敗',
+        error: 'MODULE_LOAD_ERROR'
+      }, 500);
+    }
+    
+  } catch (錯誤) {
+    await error('Script Service', `腳本請求處理失敗: ${錯誤}`);
+    return c.json({
+      success: false,
+      message: '腳本請求處理失敗',
+      error: (錯誤 as Error).toString()
+    }, 500);
+  }
+}
+
 // 處理 Media v1 請求 - 智能路由機制
 async function 處理MediaV1請求(c: Context): Promise<Response> {
   try {
     const path = c.req.path;
     const method = c.req.method;
     
-    await info('Media v1 Service', `處理 ${method} ${path}`);
+    // await info('Media v1 Service', `處理 ${method} ${path}`);
     
     // 解析路徑 /media/v1/xxx 或 /media/v1/xxx/yyy
     const pathParts = path.replace('/media/v1/', '').split('/');
@@ -97,10 +145,10 @@ async function 處理MediaV1請求(c: Context): Promise<Response> {
         mediaModule = module.default;
         routeParams = attempt.params;
         
-        await info('Media v1 Service', `成功載入模組: ${modulePath}, 參數: ${JSON.stringify(routeParams)}`);
+        // await info('Media v1 Service', `成功載入模組: ${modulePath}, 參數: ${JSON.stringify(routeParams)}`);
         break; // 成功載入，跳出迴圈
       } catch (moduleError) {
-        await info('Media v1 Service', `嘗試載入失敗: ${attempt.path} - ${moduleError}`);
+        // await info('Media v1 Service', `嘗試載入失敗: ${attempt.path} - ${moduleError}`);
         // 繼續下一個嘗試
       }
     }
@@ -201,7 +249,7 @@ async function 處理靜態檔案(c: Context, filePath: string): Promise<Respons
         'Last-Modified': fileInfo.mtime?.toUTCString() || ''
       });
       
-      await info('Media Service', `提供檔案: ${filePath} (${fileContent.length} bytes)`);
+      // await info('Media Service', `提供檔案: ${filePath} (${fileContent.length} bytes)`);
       return new Response(fileContent, { headers });
       
     } catch {
@@ -226,7 +274,7 @@ async function 處理靜態檔案(c: Context, filePath: string): Promise<Respons
 async function 處理檔案上傳(c: Context): Promise<Response> {
   try {
     // TODO: 實作檔案上傳邏輯
-    await info('Media Service', '檔案上傳功能待實作');
+    // await info('Media Service', '檔案上傳功能待實作');
     
     return c.json({
       success: false,
@@ -248,7 +296,7 @@ async function 處理檔案上傳(c: Context): Promise<Response> {
 async function 處理檔案刪除(c: Context, filePath: string): Promise<Response> {
   try {
     // TODO: 實作檔案刪除邏輯
-    await info('Media Service', `檔案刪除功能待實作: ${filePath}`);
+    // await info('Media Service', `檔案刪除功能待實作: ${filePath}`);
     
     return c.json({
       success: false,
@@ -294,6 +342,10 @@ function 取得ContentType(filePath: string): string {
     'mp4': 'video/mp4',
     'webm': 'video/webm',
     'avi': 'video/x-msvideo',
+    
+    // 腳本檔案
+    'js': 'application/javascript',
+    'mjs': 'application/javascript',
     
     // 字型
     'woff': 'font/woff',

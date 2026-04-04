@@ -167,7 +167,7 @@ function 處理取得主題資訊(c: Context) {
 // 處理取得所有 classes
 async function 處理取得所有Classes(c: Context, params: RouteParams): Promise<Response> {
   try {
-    await info('UnoCSS API', '處理取得所有 classes 請求');
+    // await info('UnoCSS API', '處理取得所有 classes 請求');
     
     // 從 query string 取得參數 (向後兼容)
     const theme = c.req.query('theme');
@@ -203,7 +203,7 @@ async function 處理取得所有Classes(c: Context, params: RouteParams): Promi
 // 處理取得主題資訊
 async function 處理取得主題Info(c: Context, params: RouteParams): Promise<Response> {
   try {
-    await info('UnoCSS API', '處理取得主題資訊請求');
+    // await info('UnoCSS API', '處理取得主題資訊請求');
     
     // 如果有路徑參數，當作 theme 處理
     if (params.id) {
@@ -225,7 +225,7 @@ async function 處理取得主題Info(c: Context, params: RouteParams): Promise<
 // POST - 處理清理快取請求
 async function 處理清理快取(c: Context): Promise<Response> {
   try {
-    await info('UnoCSS API', '處理清理快取請求');
+    // await info('UnoCSS API', '處理清理快取請求');
     
     // 清理 UnoCSS 樣式快取
     清理樣式快取();
@@ -247,7 +247,7 @@ async function 處理清理快取(c: Context): Promise<Response> {
 // GET - 統一處理 UnoCSS API (/api/v1/unocss/*)
 export async function GET(c: Context, params: RouteParams): Promise<Response> {
   try {
-    await info('UnoCSS API', '處理取得 UnoCSS 資料請求');
+    // await info('UnoCSS API', '處理取得 UnoCSS 資料請求');
     
     // 優先檢查路徑參數 (智能回退機制)
     if (params.id === 'classes') {

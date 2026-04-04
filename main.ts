@@ -1,5 +1,6 @@
 // deno-lint-ignore-file no-explicit-any
-import { Hono } from 'hono';
+import { Hono } from "hono";
+import { jsx } from "hono/jsx";
 import { 初始化UnoCSS, 產生樣式 } from './core/unocss.ts';
 import { 取得KV資料庫 } from './core/kv.ts';
 import { info, error } from './utils/logger.ts';
@@ -31,7 +32,51 @@ app.use('*', 資料庫解析器);
 // 全域中間件：資訊載入器（預先載入系統資訊和網站資訊）
 app.use('*', 資訊載入器);
 
-// 全域中間件：語言解析器
+// 測試路由
+app.get('/test', async (c) => {
+  const { 產生樣式 } = await import('./core/unocss.ts');
+  const { default: TestPage } = await import('./test.tsx');
+  
+  // 獲取 JSX 內容
+  const jsxContent = await TestPage();
+  
+  // 使用 Hono 的 jsxToHTML 方法轉換
+  const htmlContent = String(jsxContent);
+  
+  console.log('HTML 內容:', htmlContent);
+  
+  // 產生 UnoCSS 樣式
+  const css = await 產生樣式(htmlContent);
+  
+  console.log('生成的 CSS:', css);
+  
+  return c.html(`
+    <!DOCTYPE html>
+    <html lang="zh-TW">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>WebCube Alpine.js 測試</title>
+        <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.10.2/dist/cdn.min.js" defer></script>
+        <style>${css}</style>
+        <style>
+            /* 基礎樣式 - 只保留必要的 */
+            body {
+                font-family: system-ui, -apple-system, sans-serif;
+                margin: 0;
+                padding: 2rem;
+                background: #f5f5f5;
+            }
+        </style>
+    </head>
+    <body>
+        ${htmlContent}
+    </body>
+    </html>
+  `);
+});
+
+// 全域中間件：語言解析器（必須在資訊載入器之後）
 app.use('*', 語言解析器);
 
 // API 路由由動態路由分發器處理
@@ -53,27 +98,23 @@ app.all('*', async (c) => {
   
   
   // 記錄路由日誌
-  await info('路由分發器', `${method} ${path}`);
+  // await info('路由分發器', `${method} ${path}`);
   
   try {
-    await info('路由分發器', `服務處理器導入完成`);
+    // await info('路由分發器', `服務處理器導入完成`);
     
     // 路由分發邏輯
     if (path.startsWith('/api/')) {
       // API 服務
-      await info('路由分發器', `分發到 API 服務: ${path}`);
+      // await info('路由分發器', `分發到 API 服務: ${path}`);
       return await 處理API請求(c);
-    } else if (path.startsWith('/media/v1/')) {
-      // Media v1 服務
-      await info('路由分發器', `分發到 Media v1 服務: ${path}`);
-      return await 處理Media請求(c);
-    } else if (path.startsWith('/medias/')) {
-      // 舊版 Media 服務（向後兼容）
-      await info('路由分發器', `分發到舊版 Media 服務: ${path}`);
+    } else if (path.startsWith('/media/')) {
+      // Media 服務 (包含 /media/v1/, /media/script/, /medias/)
+      // await info('路由分發器', `分發到 Media 服務: ${path}`);
       return await 處理Media請求(c);
     } else {
       // Renderer 服務 (處理所有其他請求)
-      await info('路由分發器', `分發到 Renderer 服務: ${path}`);
+      // await info('路由分發器', `分發到 Renderer 服務: ${path}`);
       return await 處理Renderer請求(c);
     }
     
@@ -93,19 +134,19 @@ async function 啟動伺服器() {
     // 初始化 KV 資料庫
     const kvDB = 取得KV資料庫();
     await kvDB.初始化();
-    await info('伺服器', 'KV 資料庫初始化完成');
+    // await info('伺服器', 'KV 資料庫初始化完成');
     
     // 初始化 UnoCSS
     await 初始化UnoCSS();
-    await info('伺服器', 'UnoCSS 初始化完成');
+    // await info('伺服器', 'UnoCSS 初始化完成');
     
     // 啟動伺服器
     const port = 8000;
-    await info('伺服器', `伺服器啟動於 http://localhost:${port}`);
-    await info('伺服器', `UnoCSS 測試頁面: http://localhost:${port}/test-unocss`);
-    await info('伺服器', `內部調用測試頁面: http://localhost:${port}/test-internal-call`);
-    await info('伺服器', `系統資訊 API: http://localhost:${port}/api/v1/system/info`);
-    await info('伺服器', `三層查詢測試 API: http://localhost:${port}/api/v1/test/three-tier`);
+    // await info('伺服器', `伺服器啟動於 http://localhost:${port}`);
+    // await info('伺服器', `UnoCSS 測試頁面: http://localhost:${port}/test-unocss`);
+    // await info('伺服器', `內部調用測試頁面: http://localhost:${port}/test-internal-call`);
+    // await info('伺服器', `系統資訊 API: http://localhost:${port}/api/v1/system/info`);
+    // await info('伺服器', `三層查詢測試 API: http://localhost:${port}/api/v1/test/three-tier`);
     
     Deno.serve({ port }, app.fetch);
     

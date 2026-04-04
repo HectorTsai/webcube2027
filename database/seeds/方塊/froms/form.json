@@ -1,0 +1,119 @@
+[
+  {
+    "id": "方塊:方塊:表單",
+    "名稱": {
+      "en": "Form",
+      "zh-tw": "表單",
+      "vi": "Biểu mẫu"
+    },
+    "描述": {
+      "en": "A form container that combines multiple input components. Provides validation, submission handling, and form state management. HTMX-enabled for server-side processing.",
+      "zh-tw": "結合多個輸入元件的表單容器。提供驗證、提交處理和表單狀態管理。支援 HTMX 伺服器端處理。",
+      "vi": "Một container biểu mẫu kết hợp nhiều thành phần nhập liệu. Cung cấp xác thực, xử lý gửi và quản lý trạng thái biểu mẫu. Được bật HTMX để xử lý phía máy chủ."
+    },
+    "售價": 0,
+    "標籤集": ["ui", "form", "container", "composition", "htmx"],
+    "模式": "組合",
+    "元件路徑": "ui/Form",
+    "屬性定義": {
+      "action": {
+        "type": "string",
+        "description": "HTMX form action URL - where to submit the form",
+        "required": false,
+        "example": "/api/submit-form"
+      },
+      "method": {
+        "type": "string",
+        "description": "HTTP method for form submission",
+        "required": false,
+        "default": "POST",
+        "options": ["GET", "POST", "PUT", "DELETE", "PATCH"],
+        "example": "POST"
+      },
+      "target": {
+        "type": "string",
+        "description": "HTMX target selector - where to put the response",
+        "required": false,
+        "example": "#form-result"
+      },
+      "swap": {
+        "type": "string",
+        "description": "HTMX swap method - how to update the target",
+        "required": false,
+        "default": "innerHTML",
+        "options": ["innerHTML", "outerHTML", "beforebegin", "afterbegin", "beforeend", "afterend", "delete"],
+        "example": "innerHTML"
+      },
+      "validate": {
+        "type": "boolean",
+        "description": "Whether to enable client-side validation before HTMX submission",
+        "required": false,
+        "default": true,
+        "example": true
+      },
+      "loading": {
+        "type": "string",
+        "description": "CSS class to apply during HTMX loading",
+        "required": false,
+        "example": "form-loading"
+      },
+      "className": {
+        "type": "string",
+        "description": "Additional CSS classes for the form container",
+        "required": false,
+        "example": "contact-form"
+      }
+    },
+    "子方塊": [
+      {
+        "方塊ID": "方塊:方塊:標題",
+        "參數": {
+          "text": "Contact Form",
+          "level": 2,
+          "align": "center"
+        }
+      },
+      {
+        "方塊ID": "方塊:方塊:輸入框",
+        "參數": {
+          "placeholder": "Your Name",
+          "type": "text",
+          "required": true
+        }
+      },
+      {
+        "方塊ID": "方塊:方塊:輸入框",
+        "參數": {
+          "placeholder": "Your Email",
+          "type": "email",
+          "required": true
+        }
+      },
+      {
+        "方塊ID": "方塊:方塊:按鈕",
+        "參數": {
+          "title": "Submit",
+          "color": "primary"
+        }
+      }
+    ],
+    "對外參數": {
+      "formTitle": {
+        "映射到": "子方塊[0].參數.text"
+      },
+      "namePlaceholder": {
+        "映射到": "子方塊[1].參數.placeholder"
+      },
+      "emailPlaceholder": {
+        "映射到": "子方塊[2].參數.placeholder"
+      },
+      "submitText": {
+        "映射到": "子方塊[3].參數.title"
+      }
+    },
+    "程式碼": "",
+    "審核狀態": "approved",
+    "上架狀態": true,
+    "可刪除": false
+  }
+]
