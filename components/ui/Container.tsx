@@ -107,8 +107,8 @@ export default function Container({
       finalClasses.push(`hover:bg-${color} hover:text-${color}-content`);
     } else if (variant === "ghost") {
       finalClasses.push(variantClasses["ghost"]);
-      finalClasses.push(`text-${color}`);
-      finalClasses.push(`hover:bg-${color} hover:text-primary-content`);
+      finalClasses.push(`text-neutral-content`);
+      finalClasses.push(`hover:bg-${color} hover:text-${color}-content`);
     } else if (variant.startsWith("gradient-")) {
       // 多種漸層類型 - 不依賴 UnoCSS
       const gradientColors: Record<string, string> = {

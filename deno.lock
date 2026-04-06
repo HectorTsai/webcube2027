@@ -19,8 +19,8 @@
     "jsr:@std/path@^1.1.4": "1.1.4",
     "jsr:@std/toml@^1.0.0-rc.3": "1.0.11",
     "jsr:@std/yaml@^1.0.0-rc.1": "1.0.12",
-    "npm:@unocss/core@0.58": "0.58.9",
-    "npm:@unocss/preset-wind@0.58": "0.58.9",
+    "npm:@unocss/core@^66.6.7": "66.6.7",
+    "npm:@unocss/preset-wind3@^66.6.7": "66.6.7",
     "npm:github-slugger@2": "2.0.0",
     "npm:he@^1.2.0": "1.2.0",
     "npm:katex@0.16": "0.16.39",
@@ -142,33 +142,33 @@
     "@surrealdb/cbor@2.0.0-alpha.4": {
       "integrity": "sha512-l/hNZ3ZCOJq8rzwx1y5ZV/8b2bYCWdhGqRVY33Pu50NAHyAW5qLsMn3ZBkZow77mAKwNCsbDsRGnyYEuU95mjw=="
     },
-    "@unocss/core@0.58.9": {
-      "integrity": "sha512-wYpPIPPsOIbIoMIDuH8ihehJk5pAZmyFKXIYO/Kro98GEOFhz6lJoLsy6/PZuitlgp2/TSlubUuWGjHWvp5osw=="
+    "@unocss/core@66.6.7": {
+      "integrity": "sha512-Q8456iWFtdwrUNYKVOQY8ygRggjZOVtLc6Jc8KIkxig7OiNlUWOgXJTfCh4I8g6jBYzC5eHaHFDLgJOmOrxBsg=="
     },
-    "@unocss/extractor-arbitrary-variants@0.58.9": {
-      "integrity": "sha512-M/BvPdbEEMdhcFQh/z2Bf9gylO1Ky/ZnpIvKWS1YJPLt4KA7UWXSUf+ZNTFxX+X58Is5qAb5hNh/XBQmL3gbXg==",
+    "@unocss/extractor-arbitrary-variants@66.6.7": {
+      "integrity": "sha512-PQiBHK0yUJ0BR+3GYnTPU6va6HVSRPV+O+s1zZmt23TWbyIeucoKCNR47TDtv+Z1xuksY8krIjtDYtufdrVWKw==",
       "dependencies": [
         "@unocss/core"
       ]
     },
-    "@unocss/preset-mini@0.58.9": {
-      "integrity": "sha512-m4aDGYtueP8QGsU3FsyML63T/w5Mtr4htme2jXy6m50+tzC1PPHaIBstMTMQfLc6h8UOregPJyGHB5iYQZGEvQ==",
+    "@unocss/preset-mini@66.6.7": {
+      "integrity": "sha512-tf0mqiSEhPQ49WZOqjNhxlbZbNakiBLzCoxfLSzqfIGglOPYShP8mxsdp9Jv0n+Ntn0rHcBiX5KTLfax1/Bd9g==",
       "dependencies": [
         "@unocss/core",
         "@unocss/extractor-arbitrary-variants",
         "@unocss/rule-utils"
       ]
     },
-    "@unocss/preset-wind@0.58.9": {
-      "integrity": "sha512-7l+7Vx5UoN80BmJKiqDXaJJ6EUqrnUQYv8NxCThFi5lYuHzxsYWZPLU3k3XlWRUQt8XL+6rYx7mMBmD7EUSHyw==",
+    "@unocss/preset-wind3@66.6.7": {
+      "integrity": "sha512-PKyqeRzlIMd3Irdt6fCKMm73zgwweiXESk5edUK8dVWndvPIcZCOqrEq7yg6Pr/Q8tHdq26viYSkVY3a3t8RSg==",
       "dependencies": [
         "@unocss/core",
         "@unocss/preset-mini",
         "@unocss/rule-utils"
       ]
     },
-    "@unocss/rule-utils@0.58.9": {
-      "integrity": "sha512-45bDa+elmlFLthhJmKr2ltKMAB0yoXnDMQ6Zp5j3OiRB7dDMBkwYRPvHLvIe+34Ey7tDt/kvvDPtWMpPl2quUQ==",
+    "@unocss/rule-utils@66.6.7": {
+      "integrity": "sha512-4PT/s8yKIShSqP9XPSw4EjbZopcu3wlIB9i3kbGbzQwF91H+0Yy10guK3kHDGtkmWVN6Np6VvaGIj2UcbmaivA==",
       "dependencies": [
         "@unocss/core",
         "magic-string"
@@ -634,8 +634,8 @@
       "jsr:@b-fuze/deno-dom@~0.1.47",
       "jsr:@dui/smartmultilingual@0.2.3",
       "jsr:@hono/hono@^4.6.3",
-      "npm:@unocss/core@0.58",
-      "npm:@unocss/preset-wind@0.58",
+      "npm:@unocss/core@^66.6.7",
+      "npm:@unocss/preset-wind3@^66.6.7",
       "npm:nanoid@^5.1.7",
       "npm:surrealdb@^2.0.3",
       "npm:svgson@^5.3.1"

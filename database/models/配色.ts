@@ -15,10 +15,7 @@ const DEFAULT_COLORS = {
   次色: "39.24% 0.128 255",            // --s
   強調色: "77.86% 0.1489 226.0173",    // --a
   中性色: "35.5192% .032071 262.988584", // --nc
-  背景1: "100% 0 0",                    // --b1
-  背景2: "93% 0 0",                     // --b2
-  背景3: "88% 0 0",                     // --b3
-  背景內容: "35.5192% .032071 262.988584", // --bc
+  背景色: "100% 0 0",                    // --b1
   資訊色: "71.17% 0.166 241.15",       // --info
   成功色: "60.9% 0.135 161.2",         // --success
   警告色: "73% 0.19 52",               // --warning
@@ -32,10 +29,7 @@ export default class 配色 extends 資料 {
   public 次色: string;
   public 強調色: string;
   public 中性色: string;
-  public 背景1: string;
-  public 背景2: string;
-  public 背景3: string;
-  public 背景內容: string;
+  public 背景色: string;
   public 資訊色: string;
   public 成功色: string;
   public 警告色: string;
@@ -53,10 +47,7 @@ export default class 配色 extends 資料 {
     this.次色 = (data?.次色 as string) ?? DEFAULT_COLORS.次色;
     this.強調色 = (data?.強調色 as string) ?? DEFAULT_COLORS.強調色;
     this.中性色 = (data?.中性色 as string) ?? DEFAULT_COLORS.中性色;
-    this.背景1 = (data?.背景1 as string) ?? DEFAULT_COLORS.背景1;
-    this.背景2 = (data?.背景2 as string) ?? DEFAULT_COLORS.背景2;
-    this.背景3 = (data?.背景3 as string) ?? DEFAULT_COLORS.背景3;
-    this.背景內容 = (data?.背景內容 as string) ?? DEFAULT_COLORS.背景內容;
+    this.背景色 = (data?.背景1 as string) ?? DEFAULT_COLORS.背景色;
     this.資訊色 = (data?.資訊色 as string) ?? DEFAULT_COLORS.資訊色;
     this.成功色 = (data?.成功色 as string) ?? DEFAULT_COLORS.成功色;
     this.警告色 = (data?.警告色 as string) ?? DEFAULT_COLORS.警告色;
@@ -73,10 +64,7 @@ export default class 配色 extends 資料 {
       次色: this.次色,
       強調色: this.強調色,
       中性色: this.中性色,
-      背景1: this.背景1,
-      背景2: this.背景2,
-      背景3: this.背景3,
-      背景內容: this.背景內容,
+      背景色: this.背景色,
       資訊色: this.資訊色,
       成功色: this.成功色,
       警告色: this.警告色,

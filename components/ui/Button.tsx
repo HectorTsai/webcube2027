@@ -45,7 +45,7 @@ export default function Button({
   const variantClasses = {
     solid: "", // 預設實心
     outline: "bg-transparent border-2 hover:bg-current hover:text-current",
-    ghost: "bg-transparent hover:bg-current hover:text-current",
+    ghost: "bg-transparent hover:bg-current",
     dot: "bg-transparent border-2 border-dotted hover:bg-current hover:text-current",
     dashed: "bg-transparent border-2 border-dashed hover:bg-current hover:text-current",
     double: "bg-transparent border-4 border-double hover:bg-current hover:text-current",
@@ -85,8 +85,9 @@ export default function Button({
     finalClasses.push(`hover:bg-${color} hover:text-primary-content`);
   } else if (variant === "ghost") {
     finalClasses.push(variantClasses["ghost"]);
-    finalClasses.push(`text-${color}`);
-    finalClasses.push(`hover:bg-${color} hover:text-primary-content`);
+    finalClasses.push(`!text-gray-800`);
+    finalClasses.push(`dark:!text-gray-200`);
+    finalClasses.push(`hover:bg-${color} hover:text-${color}-content`);
   } else if (variant.startsWith("gradient-")) {
       // 多種漸層類型 - 與 Container 保持一致
       const gradientColors: Record<string, string> = {

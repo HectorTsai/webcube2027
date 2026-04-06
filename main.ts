@@ -37,43 +37,41 @@ app.get('/test', async (c) => {
   const { 產生樣式 } = await import('./core/unocss.ts');
   const { default: TestPage } = await import('./test.tsx');
   
-  // 獲取 JSX 內容
-  const jsxContent = await TestPage();
-  
-  // 使用 Hono 的 jsxToHTML 方法轉換
-  const htmlContent = String(jsxContent);
-  
-  console.log('HTML 內容:', htmlContent);
-  
-  // 產生 UnoCSS 樣式
-  const css = await 產生樣式(htmlContent);
-  
-  console.log('生成的 CSS:', css);
-  
-  return c.html(`
-    <!DOCTYPE html>
-    <html lang="zh-TW">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>WebCube Alpine.js 測試</title>
-        <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.10.2/dist/cdn.min.js" defer></script>
-        <style>${css}</style>
-        <style>
-            /* 基礎樣式 - 只保留必要的 */
-            body {
-                font-family: system-ui, -apple-system, sans-serif;
-                margin: 0;
-                padding: 2rem;
-                background: #f5f5f5;
-            }
-        </style>
-    </head>
-    <body>
-        ${htmlContent}
-    </body>
-    </html>
-  `);
+  try {
+    // 獲取 JSX 內容
+    const jsxContent = await TestPage();
+    
+    // 簡單轉換為字串
+    const htmlContent = String(jsxContent);
+    
+    console.log('HTML 內容:', htmlContent);
+    
+    // 產生 UnoCSS 樣式
+    const css = await 產生樣式(htmlContent);
+    
+    console.log('生成的 CSS:', css);
+    
+    return c.html(`
+      <!DOCTYPE html>
+      <html lang="zh-TW">
+      <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>WebCube Alpine.js 測試</title>
+          <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.10.2/dist/cdn.min.js" defer></script>
+          <style>
+              ${css}
+          </style>
+      </head>
+      <body>
+          ${htmlContent}
+      </body>
+      </html>
+    `);
+  } catch (error) {
+    console.error('測試頁面錯誤:', error);
+    return c.text('Internal Server Error: ' + String(error), 500);
+  }
 });
 
 // 全域中間件：語言解析器（必須在資訊載入器之後）
