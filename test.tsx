@@ -151,6 +151,16 @@ export default async function TestPage() {
       await Button({ color: "error", variant: "diagonal-stripes", children: "Error" }),
     ];
     
+    const minimalistButtons = [
+      await Button({ color: "primary", variant: "minimalist", children: "Primary" }),
+      await Button({ color: "secondary", variant: "minimalist", children: "Secondary" }),
+      await Button({ color: "accent", variant: "minimalist", children: "Accent" }),
+      await Button({ color: "info", variant: "minimalist", children: "Info" }),
+      await Button({ color: "success", variant: "minimalist", children: "Success" }),
+      await Button({ color: "warning", variant: "minimalist", children: "Warning" }),
+      await Button({ color: "error", variant: "minimalist", children: "Error" }),
+    ];
+    
     const doubleButtons = [
       await Button({ color: "primary", variant: "double", children: "Primary" }),
       await Button({ color: "secondary", variant: "double", children: "Secondary" }),
@@ -233,6 +243,9 @@ export default async function TestPage() {
       
       jsx('h2', { class: "text-2xl font-bold mb-4 mt-8" }, "Diagonal Stripes 按鈕"),
       jsx('div', { class: "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" }, diagonalStripesButtons),
+      
+      jsx('h2', { class: "text-2xl font-bold mb-4 mt-8" }, "Minimalist 按鈕"),
+      jsx('div', { class: "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" }, minimalistButtons),
       
     ]);
   } catch (error) {

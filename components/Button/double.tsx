@@ -8,9 +8,7 @@ export default function DoubleButton({
   type = "button",
   onClick,
   className
-}: ButtonProps) {
-  const baseClasses = "btn";
-  
+}: ButtonProps) {  
   const sizeClasses = {
     xs: "px-2 py-1 text-xs",
     sm: "px-3 py-1.5 text-sm",
@@ -22,14 +20,13 @@ export default function DoubleButton({
   };
   
   const finalClasses = [
-    baseClasses,
+    "btn",
     "bg-transparent",
-    "!border-4 !border-double",
-    `!border-${color} text-${color}`,
+    "border-4 border-double",
+    `border-${color} text-${color}`,
     `hover:bg-${color} hover:text-${color}-content`,
     sizeClasses[size],
-    "rounded-sm",
-    "font-medium transition-all duration-200"
+    "transition-all duration-200"
   ];
   
   if (className) {

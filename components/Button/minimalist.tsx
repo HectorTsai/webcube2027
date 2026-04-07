@@ -1,6 +1,6 @@
 import type { ButtonProps } from "./index.tsx";
 
-export default function OutlineButton({
+export default function MinimalistButton({
   children,
   color = "primary",
   size = "md",
@@ -8,7 +8,7 @@ export default function OutlineButton({
   type = "button",
   onClick,
   className
-}: ButtonProps) {  
+}: ButtonProps) {
   const sizeClasses = {
     xs: "px-2 py-1 text-xs",
     sm: "px-3 py-1.5 text-sm",
@@ -21,14 +21,16 @@ export default function OutlineButton({
   
   const finalClasses = [
     "btn",
-    "bg-transparent",
-    "!border !border-solid",
-    `!border-${color} text-${color}`,
-    `hover:bg-${color} hover:text-${color}-content`,
+    "bg-white",
+    "border border-solid border-gray-200",
+    "shadow-sm",
+    "rounded-sm",
+    `text-${color}`,
+    "hover:bg-gray-50",
+    "hover:border-gray-300",
+    "hover:shadow-md",
+    "transition-all duration-200",
     sizeClasses[size],
-    "border-0",
-    "hover:opacity-90",
-    "font-medium transition-all duration-200"
   ];
   
   if (className) {
@@ -37,20 +39,19 @@ export default function OutlineButton({
   
   if (disabled) {
     finalClasses.push("opacity-50 cursor-not-allowed");
+    finalClasses.push("hover:bg-white hover:border-gray-200 hover:shadow-sm");
   }
-  
-  const classes = finalClasses.filter(Boolean).join(" ");
   
   const alpineProps: Record<string, string> = {};
   if (onClick) {
-    alpineProps['@click'] = onClick;
+    alpineProps["x-on:click"] = onClick;
   }
   
   return (
     <button
       type={type}
       disabled={disabled}
-      class={classes}
+      class={`${finalClasses.join(" ")}`}
       {...alpineProps}
     >
       {children}

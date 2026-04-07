@@ -9,8 +9,6 @@ export default function GradientDiagonalButton({
   onClick,
   className
 }: ButtonProps) {
-  const baseClasses = "btn";
-  
   const sizeClasses = {
     xs: "px-2 py-1 text-xs",
     sm: "px-3 py-1.5 text-sm",
@@ -22,12 +20,12 @@ export default function GradientDiagonalButton({
   };
   
   const finalClasses = [
-    baseClasses,
+    "btn",
+    "border-0",
     `text-${color}-content`,
     "hover:opacity-90",
     sizeClasses[size],
-    "rounded-sm",
-    "font-medium transition-all duration-200"
+    "transition-all duration-200"
   ];
   
   if (className) {

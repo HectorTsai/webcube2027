@@ -347,7 +347,7 @@ export class UnoCSS生成器 {
   getShortcuts() {
     return {
       // 按鈕
-      'btn': 'px-4 py-2 rounded-md font-medium transition-colors duration-200',
+      'btn': 'px-4 py-2 rounded-sm transition-colors duration-200',
       'btn-primary': 'btn bg-primary text-primary-content hover:opacity-90',
       'btn-secondary': 'btn bg-secondary text-secondary-content hover:opacity-90',
       'btn-accent': 'btn bg-accent text-accent-content hover:opacity-90',
