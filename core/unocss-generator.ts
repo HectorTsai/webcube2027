@@ -4,7 +4,7 @@
 import 配色 from "../database/models/配色.ts";
 import 骨架 from "../database/models/骨架.ts";
 import { 快取管理器 } from './unocss-cache.ts';
-import { 所有動畫規則 } from './animate.ts';
+import { 所有動畫規則, 生成動畫CSS } from './animate.ts';
 import { createGenerator } from '@unocss/core';
 import { presetWind3 } from '@unocss/preset-wind3';
 
@@ -183,6 +183,10 @@ export class UnoCSS生成器 {
       const result = await this.unoGenerator.generate(html, { preflights: true });
       let finalCSS = result.css;
 
+      // 添加動畫 CSS keyframes
+      const 動畫CSS = 生成動畫CSS();
+      finalCSS = `${動畫CSS}\n\n${finalCSS}`;
+
       // 添加主題 CSS Variables
       const 主題CSS = this.從配色生成主題CSS(this.配色, this.骨架);
       finalCSS = `${主題CSS}\n\n${finalCSS}`;
@@ -330,9 +334,6 @@ export class UnoCSS生成器 {
           'background-image': `radial-gradient(circle, oklch(var(--color-${from})/1) 0%, oklch(var(--color-${via})/1) 50%, transparent 100%)`
         };
       }] as any,
-      [/^border-(primary|secondary|accent|info|success|warning|error|danger|base)$/, ([, color]: [string, string]) => ({
-        'border-color': `oklch(var(--color-${color}) / %alpha)`
-      })] as any,
       [/^theme-(.+)$/, ([, theme]: [string, string]) => ({
         '--theme': theme
       })] as any
@@ -355,7 +356,6 @@ export class UnoCSS生成器 {
       'btn-success': 'btn bg-success text-primary-content hover:opacity-90',
       'btn-warning': 'btn bg-warning text-primary-content hover:opacity-90',
       'btn-error': 'btn bg-error text-primary-content hover:opacity-90',
-      'btn-danger': 'btn bg-error text-primary-content hover:opacity-90',
       
       // 按鈕尺寸
       'btn-xs': 'px-2 py-1 text-xs',

@@ -1,6 +1,6 @@
 // Services 主要入口點
 import { Context } from 'hono';
-import { info, error } from '../utils/logger.ts';
+import { error } from '../utils/logger.ts';
 
 /**
  * 自動編碼 URL 參數
@@ -37,7 +37,8 @@ export async function InnerAPI(c: Context, apiPath: string): Promise<Response> {
       throw new Error('App instance not available for InnerAPI');
     }
   } catch (err) {
-    await error('InnerAPI', `內部API失敗: ${apiPath} - ${err.message}`);
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    await error('InnerAPI', `內部API失敗: ${apiPath} - ${errorMessage}`);
     throw err;
   }
 }
@@ -48,3 +49,4 @@ export async function InnerAPI(c: Context, apiPath: string): Promise<Response> {
 export * as PageService from './pageService/index.ts';
 export * as RendererService from './rendererService/index.ts';
 export * as LanguageService from './languageService/index.ts';
+export * as TestService from './testService.ts';

@@ -10,13 +10,13 @@ const DEFAULT_VALUES = {
   },
   影像: "",
   佈局: "方塊:方塊:cube-網站-經典",
-  風格: "實心",
+  風格: { "default": "solid" },
   選單按鈕:"圖示:圖示:menu",
   書本樣式: "經典",
   圖示: "外框",
   開始動畫: "Buildings",
   載入器: "loading-dot",
-  圓角: { "sm": "0.25rem", "md": "0.5rem", "lg": "1rem" },
+  圓角: { "sm": "0.25rem", "md": "0.5rem", "lg": "1rem", "avatar": "999rem" },
   空間: {
     "xs": "0.5rem",
     "sm": "0.75rem", 
@@ -72,7 +72,7 @@ export default class 骨架 extends 資料 {
   public 描述: MultilingualString;
   public 影像: string;
   public 佈局: string;
-  public 風格: string; // 風格id
+  public 風格: Record<string, string>; // 風格配置
   public 圖示: string;
   public 書本樣式: string;
   public 選單按鈕:string;
@@ -96,7 +96,7 @@ export default class 骨架 extends 資料 {
     this.描述 = new MultilingualString(data?.描述 as Record<string, string> | undefined ?? DEFAULT_VALUES.描述);
     this.影像 = (data?.影像 as string) ?? DEFAULT_VALUES.影像;
     this.佈局 = (data?.佈局 as string) ?? DEFAULT_VALUES.佈局;
-    this.風格 = (data?.風格 as string) ?? DEFAULT_VALUES.風格;
+    this.風格 = (data?.風格 as Record<string, string>) ?? DEFAULT_VALUES.風格;
     this.圖示 = (data?.圖示 as string) ?? DEFAULT_VALUES.圖示;
     this.選單按鈕 = (data?.選單按鈕 as string) ?? DEFAULT_VALUES.選單按鈕;
     this.書本樣式 = (data?.書本樣式 as string) ?? DEFAULT_VALUES.書本樣式;

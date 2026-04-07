@@ -42,7 +42,7 @@ async function 從資料庫載入圖示(c: Context, iconId: string): Promise<Res
           return null;
         }
       } else {
-        await error('Icon Media', `不支援的內容格式: ${typeof 內容}`);
+        await error('Icon Media', `不支援的內容格式: ${typeof 內容} ${內容}`);
         return null;
       }
     } else {

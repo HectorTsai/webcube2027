@@ -3,7 +3,7 @@ import { jsx } from "hono/jsx";
 export default async function TestPage() {
   // 測試載入 Button index
   try {
-    const ButtonModule = await import("./components/Button/index.tsx");
+    const ButtonModule = await import("../components/Button/index.tsx");
     const Button = ButtonModule.default;
     
     // 渲染所有 Button variant
@@ -214,6 +214,15 @@ export default async function TestPage() {
       jsx('h2', { class: "text-2xl font-bold mb-4 mt-8" }, "Ghost 按鈕"),
       jsx('div', { class: "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" }, ghostButtons),
       
+      jsx('h2', { class: "text-2xl font-bold mb-4 mt-8" }, "Minimalist 按鈕"),
+      jsx('div', { class: "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" }, minimalistButtons),
+      
+      jsx('h2', { class: "text-2xl font-bold mb-4 mt-8" }, "Crystal 按鈕"),
+      jsx('div', { class: "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" }, crystalButtons),
+      
+      jsx('h2', { class: "text-2xl font-bold mb-4 mt-8" }, "Diagonal Stripes 按鈕"),
+      jsx('div', { class: "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" }, diagonalStripesButtons),
+      
       jsx('h2', { class: "text-2xl font-bold mb-4 mt-8" }, "Gradient Left 按鈕"),
       jsx('div', { class: "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" }, gradientLeftButtons),
       
@@ -229,9 +238,6 @@ export default async function TestPage() {
       jsx('h2', { class: "text-2xl font-bold mb-4 mt-8" }, "Gradient Middle 按鈕"),
       jsx('div', { class: "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" }, gradientMiddleButtons),
       
-      jsx('h2', { class: "text-2xl font-bold mb-4 mt-8" }, "Crystal 按鈕"),
-      jsx('div', { class: "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" }, crystalButtons),
-      
       jsx('h2', { class: "text-2xl font-bold mb-4 mt-8" }, "Gradient Down 按鈕"),
       jsx('div', { class: "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" }, gradientDownButtons),
       
@@ -240,12 +246,6 @@ export default async function TestPage() {
       
       jsx('h2', { class: "text-2xl font-bold mb-4 mt-8" }, "Gradient Diagonal 按鈕"),
       jsx('div', { class: "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" }, gradientDiagonalButtons),
-      
-      jsx('h2', { class: "text-2xl font-bold mb-4 mt-8" }, "Diagonal Stripes 按鈕"),
-      jsx('div', { class: "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" }, diagonalStripesButtons),
-      
-      jsx('h2', { class: "text-2xl font-bold mb-4 mt-8" }, "Minimalist 按鈕"),
-      jsx('div', { class: "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" }, minimalistButtons),
       
     ]);
   } catch (error) {

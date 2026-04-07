@@ -49,7 +49,7 @@ export default function CrystalButton({
       class={`${finalClasses.join(" ")} bg-gradient-to-t from-${color} via-${color}-50 to-${color} relative overflow-hidden`}
       {...alpineProps}
     >
-      <div class={`absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-gray-100 to-gray-100/40`}></div>
+      <div class={`absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-gray-100/80 to-gray-100/10`}></div>
       {/* 內容層 */}
       <span class="relative z-10 text-${color}-content">{children}</span>
     </button>

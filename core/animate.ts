@@ -506,24 +506,24 @@ export const 特殊動畫規則 = [
   ['caret-blink', { animation: 'caret-blink 1.25s ease-out infinite' }],
   
   // Attention Seekers
-  ['animate-bounce', { animation: 'bounce 1s infinite' }],
-  ['animate-flash', { animation: 'flash 1s' }],
-  ['animate-pulse', { animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }],
-  ['animate-rubber-band', { animation: 'rubberBand 1s' }],
-  ['animate-shake-x', { animation: 'shakeX 1s' }],
-  ['animate-shake-y', { animation: 'shakeY 1s' }],
-  ['animate-head-shake', { animation: 'headShake 1s' }],
-  ['animate-swing', { animation: 'swing 1s' }],
-  ['animate-tada', { animation: 'tada 1s' }],
-  ['animate-wobble', { animation: 'wobble 1s' }],
-  ['animate-jello', { animation: 'jello 1s' }],
-  ['animate-heart-beat', { animation: 'heartBeat 1.3s' }],
+  ['animate-bounce', { animation: 'bounce 1s var(--tw-repeat, 1)' }],
+  ['animate-flash', { animation: 'flash 1s var(--tw-repeat, 1)' }],
+  ['animate-pulse', { animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) var(--tw-repeat, 1)' }],
+  ['animate-rubber-band', { animation: 'rubberBand 1s var(--tw-repeat, 1)' }],
+  ['animate-shake-x', { animation: 'shakeX 1s var(--tw-repeat, 1)' }],
+  ['animate-shake-y', { animation: 'shakeY 1s var(--tw-repeat, 1)' }],
+  ['animate-head-shake', { animation: 'headShake 1s var(--tw-repeat, 1)' }],
+  ['animate-swing', { animation: 'swing 1s var(--tw-repeat, 1)' }],
+  ['animate-tada', { animation: 'tada 1s var(--tw-repeat, 1)' }],
+  ['animate-wobble', { animation: 'wobble 1s var(--tw-repeat, 1)' }],
+  ['animate-jello', { animation: 'jello 1s var(--tw-repeat, 1)' }],
+  ['animate-heart-beat', { animation: 'heartBeat 1.3s var(--tw-repeat, 1)' }],
   
   // Back Entrances
-  ['animate-back-in-down', { animation: 'backInDown 1s' }],
-  ['animate-back-in-left', { animation: 'backInLeft 1s' }],
-  ['animate-back-in-right', { animation: 'backInRight 1s' }],
-  ['animate-back-in-up', { animation: 'backInUp 1s' }],
+  ['animate-back-in-down', { animation: 'backInDown 1s var(--tw-repeat, 1)' }],
+  ['animate-back-in-left', { animation: 'backInLeft 1s var(--tw-repeat, 1)' }],
+  ['animate-back-in-right', { animation: 'backInRight 1s var(--tw-repeat, 1)' }],
+  ['animate-back-in-up', { animation: 'backInUp 1s var(--tw-repeat, 1)' }],
   
   // Back Exits
   ['animate-back-out-down', { animation: 'backOutDown 1s forwards' }],
@@ -532,34 +532,34 @@ export const 特殊動畫規則 = [
   ['animate-back-out-up', { animation: 'backOutUp 1s forwards' }],
   
   // Bouncing Entrances
-  ['animate-bounce-in', { animation: 'bounceIn 750ms' }],
-  ['animate-bounce-in-down', { animation: 'bounceInDown 750ms' }],
-  ['animate-bounce-in-left', { animation: 'bounceInLeft 750ms' }],
-  ['animate-bounce-in-right', { animation: 'bounceInRight 750ms' }],
-  ['animate-bounce-in-up', { animation: 'bounceInUp 750ms' }],
+  ['animate-bounce-in', { animation: 'bounceIn 750ms var(--tw-repeat, 1)' }],
+  ['animate-bounce-in-down', { animation: 'bounceInDown 750ms var(--tw-repeat, 1)' }],
+  ['animate-bounce-in-left', { animation: 'bounceInLeft 750ms var(--tw-repeat, 1)' }],
+  ['animate-bounce-in-right', { animation: 'bounceInRight 750ms var(--tw-repeat, 1)' }],
+  ['animate-bounce-in-up', { animation: 'bounceInUp 750ms var(--tw-repeat, 1)' }],
   
   // Bouncing Exits
-  ['animate-bounce-out', { animation: 'bounceOut 750ms forwards' }],
-  ['animate-bounce-out-down', { animation: 'bounceOutDown 750ms forwards' }],
-  ['animate-bounce-out-left', { animation: 'bounceOutLeft 750ms forwards' }],
-  ['animate-bounce-out-right', { animation: 'bounceOutRight 750ms forwards' }],
-  ['animate-bounce-out-up', { animation: 'bounceOutUp 750ms forwards' }],
+  ['animate-bounce-out', { animation: 'bounceOut 750ms var(--tw-repeat, 1) forwards' }],
+  ['animate-bounce-out-down', { animation: 'bounceOutDown 750ms var(--tw-repeat, 1) forwards' }],
+  ['animate-bounce-out-left', { animation: 'bounceOutLeft 750ms var(--tw-repeat, 1) forwards' }],
+  ['animate-bounce-out-right', { animation: 'bounceOutRight 750ms var(--tw-repeat, 1) forwards' }],
+  ['animate-bounce-out-up', { animation: 'bounceOutUp 750ms var(--tw-repeat, 1) forwards' }],
   
   // Flippers
-  ['animate-flip', { animation: 'flip 1s', backfaceVisibility: 'visible' }],
-  ['animate-flip-in-x', { animation: 'flipInX 1s', backfaceVisibility: 'visible' }],
-  ['animate-flip-in-y', { animation: 'flipInY 1s', backfaceVisibility: 'visible' }],
-  ['animate-flip-out-x', { animation: 'flipOutX 1s forwards', backfaceVisibility: 'visible' }],
-  ['animate-flip-out-y', { animation: 'flipOutY 1s forwards', backfaceVisibility: 'visible' }],
+  ['animate-flip', { animation: 'flip 1s var(--tw-repeat, 1)', backfaceVisibility: 'visible' }],
+  ['animate-flip-in-x', { animation: 'flipInX 1s var(--tw-repeat, 1)', backfaceVisibility: 'visible' }],
+  ['animate-flip-in-y', { animation: 'flipInY 1s var(--tw-repeat, 1)', backfaceVisibility: 'visible' }],
+  ['animate-flip-out-x', { animation: 'flipOutX 1s var(--tw-repeat, 1) forwards', backfaceVisibility: 'visible' }],
+  ['animate-flip-out-y', { animation: 'flipOutY 1s var(--tw-repeat, 1) forwards', backfaceVisibility: 'visible' }],
   
   // Specials
-  ['animate-hinge', { animation: 'hinge 2s' }],
-  ['animate-jack-in-the-box', { animation: 'jackInTheBox 1s' }],
-  ['animate-roll-in', { animation: 'rollIn 1s' }],
-  ['animate-roll-out', { animation: 'rollOut 1s forwards' }],
+  ['animate-hinge', { animation: 'hinge 2s var(--tw-repeat, 1)' }],
+  ['animate-jack-in-the-box', { animation: 'jackInTheBox 1s var(--tw-repeat, 1)' }],
+  ['animate-roll-in', { animation: 'rollIn 1s var(--tw-repeat, 1)' }],
+  ['animate-roll-out', { animation: 'rollOut 1s var(--tw-repeat, 1) forwards' }],
   
   // Basic utilities
-  ['animate-spin', { animation: 'spin 1s linear infinite' }],
+  ['animate-spin', { animation: 'spin 1s linear var(--tw-repeat, 1)' }],
 ] as any;
 
 // 動畫參數規則

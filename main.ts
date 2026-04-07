@@ -15,6 +15,7 @@ import 配色 from './database/models/配色.ts';
 import { 處理API請求 } from "./services/apiService/index.ts";
 import { 處理Media請求 } from "./services/mediaService/index.ts";
 import { 處理Renderer請求 } from './services/rendererService/index.ts';
+import { 處理測試請求 } from './services/testService.ts';
 
 // API 透過動態路由分發器處理，無需直接導入
 
@@ -31,48 +32,6 @@ app.use('*', 資料庫解析器);
 
 // 全域中間件：資訊載入器（預先載入系統資訊和網站資訊）
 app.use('*', 資訊載入器);
-
-// 測試路由
-app.get('/test', async (c) => {
-  const { 產生樣式 } = await import('./core/unocss.ts');
-  const { default: TestPage } = await import('./test.tsx');
-  
-  try {
-    // 獲取 JSX 內容
-    const jsxContent = await TestPage();
-    
-    // 簡單轉換為字串
-    const htmlContent = String(jsxContent);
-    
-    console.log('HTML 內容:', htmlContent);
-    
-    // 產生 UnoCSS 樣式
-    const css = await 產生樣式(htmlContent);
-    
-    console.log('生成的 CSS:', css);
-    
-    return c.html(`
-      <!DOCTYPE html>
-      <html lang="zh-TW">
-      <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>WebCube Alpine.js 測試</title>
-          <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.10.2/dist/cdn.min.js" defer></script>
-          <style>
-              ${css}
-          </style>
-      </head>
-      <body>
-          ${htmlContent}
-      </body>
-      </html>
-    `);
-  } catch (error) {
-    console.error('測試頁面錯誤:', error);
-    return c.text('Internal Server Error: ' + String(error), 500);
-  }
-});
 
 // 全域中間件：語言解析器（必須在資訊載入器之後）
 app.use('*', 語言解析器);
@@ -102,18 +61,23 @@ app.all('*', async (c) => {
     // await info('路由分發器', `服務處理器導入完成`);
     
     // 路由分發邏輯
-    if (path.startsWith('/api/')) {
-      // API 服務
-      // await info('路由分發器', `分發到 API 服務: ${path}`);
-      return await 處理API請求(c);
-    } else if (path.startsWith('/media/')) {
-      // Media 服務 (包含 /media/v1/, /media/script/, /medias/)
-      // await info('路由分發器', `分發到 Media 服務: ${path}`);
-      return await 處理Media請求(c);
-    } else {
-      // Renderer 服務 (處理所有其他請求)
-      // await info('路由分發器', `分發到 Renderer 服務: ${path}`);
-      return await 處理Renderer請求(c);
+    switch (true) {
+      case path.startsWith('/test/'):
+        // 測試服務
+        // await info('路由分發器', `分發到測試服務: ${path}`);
+        return await 處理測試請求(c);
+      case path.startsWith('/api/'):
+        // API 服務
+        // await info('路由分發器', `分發到 API 服務: ${path}`);
+        return await 處理API請求(c);
+      case path.startsWith('/media/'):
+        // Media 服務 (包含 /media/v1/, /media/script/, /medias/)
+        // await info('路由分發器', `分發到 Media 服務: ${path}`);
+        return await 處理Media請求(c);
+      default:
+        // Renderer 服務 (處理所有其他請求)
+        // await info('路由分發器', `分發到 Renderer 服務: ${path}`);
+        return await 處理Renderer請求(c);
     }
     
   } catch (錯誤) {

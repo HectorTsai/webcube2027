@@ -21,7 +21,7 @@ export default class 圖示 extends 資料 {
   }
 
   public override async 初始化(): Promise<void> {
-    // SmartContent 不需要 fetchAsync，已經在構造函數中處理
+    await this.資料.fetchAsync();
     return;
   }
 }
