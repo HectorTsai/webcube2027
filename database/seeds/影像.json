@@ -1,0 +1,34 @@
+[
+  {"id": "影像:標籤:商標","名稱":{"en":"logo","zh-tw":"商標","vi":"logo"},"標籤集":[],"可刪除": false},
+  {"id": "影像:標籤:商品","名稱":{"en":"goods","zh-tw":"商品","vi":"hàng hóa"},"標籤集":[],"可刪除": false},
+  {
+    "id": "影像:影像:deno2",
+    "名稱": {"en":"deno 2 logo","zh-tw":"Deno 2 標誌","vi":"Biểu trưng Deno 2"},
+    "資料": {
+      "format": "PNG",
+      "content":"file://images/deno2.png"
+    },
+    "標籤集": ["影像:標籤:商標"],
+    "可刪除": false
+  },
+  {
+    "id": "影像:影像:hono",
+    "名稱": {"en":"deno 2 logo","zh-tw":"Deno 2 圖示","vi":"Biểu trưng Hono"},
+    "資料": {
+      "format": "JPG",
+      "content":"file://images/hono.jpeg"
+    },
+    "標籤集": ["影像:標籤:商標"],
+    "可刪除": false
+  },
+  {
+    "id": "影像:影像:surrealDB",
+    "名稱": {"en":"surrealDB logo","zh-tw":"surrealDB 圖示","vi":"Biểu trưng surrealDB"},
+    "資料": {
+      "format": "JPG",
+      "content":"file://images/surrealDB.jpg"
+    },
+    "標籤集": ["影像:標籤:商標"],
+    "可刪除": false
+  }
+]

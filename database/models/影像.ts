@@ -1,7 +1,7 @@
 import { 資料 } from "../index.ts";
 import { MultilingualString, SmartContent, SupportedFormat } from "@dui/smartmultilingual";
 
-export default class 圖示 extends 資料 {
+export default class 影像 extends 資料 {
   public 名稱: MultilingualString;
   public 資料: SmartContent;
 

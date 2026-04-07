@@ -1,5 +1,5 @@
 import { jsx } from "hono/jsx/jsx-runtime";
-import { InnerAPI } from "../services";
+import { InnerAPI } from "../services/index.ts";
 
 /**
  * 創建動態 variant 元件
@@ -7,7 +7,7 @@ import { InnerAPI } from "../services";
  * @param defaultVariant 預設 variant
  * @returns 動態載入 variant 的元件函數
  */
-export default function createVariantComponent(componentName: string,variant: string = "solid") {
+export default function createVariantComponent(componentName: string, defaultVariant: string = "solid") {
   return async function VariantComponent({ variant = defaultVariant, ...props }: any) {
     try {
       // 如果有 context 則去骨架讀取覆蓋      

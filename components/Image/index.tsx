@@ -17,10 +17,12 @@ export interface ImageProps {
   fallback?: string;
   /** Hono context for API calls */
   context?: any;
+  /** Object-fit behavior for image sizing */
+  objectFit?: "fill" | "contain" | "cover" | "none" | "scale-down" | "auto";
 }
 
 // Async component to load image from database
-async function ImageWithDatabase({ id, alt, width, height, className, loading, fallback, context }: { id: string; alt?: string; width?: string | number; height?: string | number; className?: string; loading?: "lazy" | "eager"; fallback?: string; context?: any }) {
+async function ImageWithDatabase({ id, alt, width, height, className, loading, fallback, context, objectFit }: { id: string; alt?: string; width?: string | number; height?: string | number; className?: string; loading?: "lazy" | "eager"; fallback?: string; context?: any; objectFit?: "fill" | "contain" | "cover" | "none" | "scale-down" | "auto" }) {
   try {
     if (context) {
       // 使用 InnerAPI 從資料庫載入圖片
@@ -45,9 +47,10 @@ async function ImageWithDatabase({ id, alt, width, height, className, loading, f
             loading={loading}
             onError={handleError}
             style={{ 
-              maxWidth: "100%",
+              width: width || "auto",
               height: height || "auto",
-              objectFit: "cover"
+              maxWidth: "100%",
+              objectFit: objectFit || "cover"
             }}
           />
         );
@@ -74,9 +77,10 @@ async function ImageWithDatabase({ id, alt, width, height, className, loading, f
       loading={loading}
       onError={handleError}
       style={{ 
-        maxWidth: "100%",
+        width: width || "auto",
         height: height || "auto",
-        objectFit: "cover"
+        maxWidth: "100%",
+        objectFit: objectFit || "cover"
       }}
     />
   );
@@ -92,6 +96,7 @@ export default async function Image({
   loading = "lazy",
   fallback,
   context,
+  objectFit = "contain",
 }: ImageProps) {
   const handleError = (e: any) => {
     if (fallback) {
@@ -111,9 +116,10 @@ export default async function Image({
         loading={loading}
         onError={handleError}
         style={{ 
-          maxWidth: "100%",
+          width: width || "auto",
           height: height || "auto",
-          objectFit: "cover"
+          maxWidth: "100%",
+          objectFit: objectFit || "cover"
         }}
       />
     );
@@ -123,7 +129,7 @@ export default async function Image({
   if (id) {
     // 如果有 context，使用 InnerAPI 載入
     if (context) {
-      return await ImageWithDatabase({ id, alt, width, height, className, loading, fallback, context });
+      return await ImageWithDatabase({ id, alt, width, height, className, loading, fallback, context, objectFit });
     } else {
       // 沒有 context 時，回退到原來的 img 方式
       return (
@@ -136,9 +142,10 @@ export default async function Image({
           loading={loading}
           onError={handleError}
           style={{ 
-            maxWidth: "100%",
+            width: width || "auto",
             height: height || "auto",
-            objectFit: "cover"
+            maxWidth: "100%",
+            objectFit: objectFit || "cover"
           }}
         />
       );

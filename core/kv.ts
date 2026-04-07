@@ -36,6 +36,7 @@ export class KV資料庫 {
         await this.初始化Model('語言');
         await this.初始化Model('單字');
         await this.初始化Model('圖示');
+        await this.初始化Model('影像');
         await this.初始化Model('骨架');
         await this.初始化Model('配色');
         await this.初始化Model('佈景主題');
