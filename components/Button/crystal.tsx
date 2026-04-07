@@ -1,6 +1,6 @@
 import type { ButtonProps } from "./index.tsx";
 
-export default function DotButton({
+export default function CrystalButton({
   children,
   color = "primary",
   size = "md",
@@ -9,8 +9,6 @@ export default function DotButton({
   onClick,
   className
 }: ButtonProps) {
-  const baseClasses = "btn";
-  
   const sizeClasses = {
     xs: "px-2 py-1 text-xs",
     sm: "px-3 py-1.5 text-sm",
@@ -22,11 +20,10 @@ export default function DotButton({
   };
   
   const finalClasses = [
-    baseClasses,
-    "bg-transparent",
-    "!border !border-dotted",
-    `!border-${color} text-${color}`,
-    `hover:bg-${color} hover:text-${color}-content`,
+    "btn",
+    "border-0",
+    `text-${color}-content`,
+    "hover:opacity-90",
     sizeClasses[size],
     "rounded-sm",
     "font-medium transition-all duration-200"
@@ -40,21 +37,21 @@ export default function DotButton({
     finalClasses.push("opacity-50 cursor-not-allowed");
   }
   
-  const classes = finalClasses.filter(Boolean).join(" ");
-  
   const alpineProps: Record<string, string> = {};
   if (onClick) {
-    alpineProps['@click'] = onClick;
+    alpineProps["x-on:click"] = onClick;
   }
   
   return (
     <button
       type={type}
       disabled={disabled}
-      class={classes}
+      class={`${finalClasses.join(" ")} bg-gradient-to-t from-${color} via-${color}-50 to-${color} relative overflow-hidden`}
       {...alpineProps}
     >
-      {children}
+      <div class={`absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-gray-100 to-gray-100/40`}></div>
+      {/* 內容層 */}
+      <span class="relative z-10 text-${color}-content">{children}</span>
     </button>
   );
 }

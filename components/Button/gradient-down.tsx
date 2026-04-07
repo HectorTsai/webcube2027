@@ -23,6 +23,7 @@ export default function GradientDownButton({
   
   const finalClasses = [
     baseClasses,
+    "border-0",
     `text-${color}-content`,
     "hover:opacity-90",
     sizeClasses[size],
@@ -49,7 +50,7 @@ export default function GradientDownButton({
     <button
       type={type}
       disabled={disabled}
-      class={`${classes} bg-gradient-to-b from-${color}-50 to-${color}`}
+      class={`${classes} bg-gradient-to-b from-${color}-10 to-${color}`}
       {...alpineProps}
     >
       {children}

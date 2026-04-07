@@ -7,8 +7,8 @@ export interface ButtonProps {
   color?: "primary" | "secondary" | "accent" | "info" | "success" | "warning" | "error" | "danger";
   /** Button variant - controls the visual style and appearance */
   variant?: "solid" | "outline" | "ghost" | "dot" | "dashed" | "double" | 
-           "gradient-right" | "gradient-left" | "gradient-up" | "gradient-down" |
-           "gradient-diagonal" | "gradient-circle" | "gradient-cone" | "glow";
+           "gradient-right" | "gradient-left" | "gradient-up" | "gradient-down" | "gradient-middle" |
+           "gradient-diagonal" | "gradient-center" | "gradient-cone" | "crystal" | "diagonal-stripes" | "glow";
   /** Button size - controls the padding and font size */
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
   /** Whether the button is disabled and cannot be clicked */

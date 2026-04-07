@@ -8,9 +8,7 @@ export default function GlowButton({
   type = "button",
   onClick,
   className
-}: ButtonProps) {
-  const baseClasses = "btn";
-  
+}: ButtonProps) {  
   const colorClasses = {
     primary: "bg-primary text-primary-content",
     secondary: "bg-secondary text-secondary-content",
@@ -25,7 +23,7 @@ export default function GlowButton({
   const sizeClasses = {
     xs: "px-2 py-1 text-xs",
     sm: "px-3 py-1.5 text-sm",
-    md: "px-4 py-2 text-base",
+    md: "px-4 py- text-md",
     lg: "px-6 py-3 text-lg",
     xl: "px-8 py-4 text-xl",
     "2xl": "px-10 py-5 text-2xl",
@@ -33,7 +31,8 @@ export default function GlowButton({
   };
   
   const finalClasses = [
-    baseClasses,
+    "btn",
+    "border-0",
     `bg-${color} text-${color}-content`,
     "shadow-lg hover:shadow-xl hover:scale-105 transition-transform",
     `shadow-${color}`,

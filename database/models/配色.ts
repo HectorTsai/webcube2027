@@ -47,7 +47,7 @@ export default class 配色 extends 資料 {
     this.次色 = (data?.次色 as string) ?? DEFAULT_COLORS.次色;
     this.強調色 = (data?.強調色 as string) ?? DEFAULT_COLORS.強調色;
     this.中性色 = (data?.中性色 as string) ?? DEFAULT_COLORS.中性色;
-    this.背景色 = (data?.背景1 as string) ?? DEFAULT_COLORS.背景色;
+    this.背景色 = (data?.背景色 as string) ?? DEFAULT_COLORS.背景色;
     this.資訊色 = (data?.資訊色 as string) ?? DEFAULT_COLORS.資訊色;
     this.成功色 = (data?.成功色 as string) ?? DEFAULT_COLORS.成功色;
     this.警告色 = (data?.警告色 as string) ?? DEFAULT_COLORS.警告色;

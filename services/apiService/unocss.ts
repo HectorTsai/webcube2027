@@ -3,7 +3,10 @@ import { Context } from 'hono';
 import { APIModule, RouteParams } from './index.ts';
 import { info, error } from '../../utils/logger.ts';
 import { 回應成功 } from '../../utils/response.ts';
-import { 清理樣式快取 } from '../../core/unocss.ts';
+import { 快取管理器 } from '../../core/unocss-cache.ts';
+import { UnoCSS生成器 } from '../../core/unocss-generator.ts';
+import 配色 from "../../database/models/配色.ts";
+import 骨架 from "../../database/models/骨架.ts";
 
 /**
  * 取得自訂 UnoCSS classes 列表
@@ -11,108 +14,15 @@ import { 清理樣式快取 } from '../../core/unocss.ts';
  */
 function 處理取得自訂Classes(c: Context) {
   try {
-    const 自訂Classes = {
-      description: "WebCube 自訂 UnoCSS preset 擴展 - 除了標準 TailwindCSS v4 之外的自訂 classes",
-      customColors: {
-        description: "自訂顏色系統 - 基於 oklch 色彩空間的語意化顏色",
-        classes: [
-          "bg-primary", "bg-secondary", "bg-accent", "bg-neutral",
-          "text-primary-content", "text-secondary-content", "text-accent-content", "text-neutral-content",
-          "border-primary", "border-secondary", "border-accent", "border-neutral",
-          "ring-primary", "ring-secondary", "ring-accent"
-        ],
-        notes: [
-          "text-*-content 會根據背景亮度自動調整文字顏色（40%亮度以下用白色，以上用黑色）",
-          "所有顏色使用 oklch 格式，提供更好的感知均勭性",
-          "遵循 DaisyUI 設計理念：bg-primary + text-primary-content"
-        ]
-      },
-      semanticColors: {
-        description: "語意化顏色 - 用於佈局和內容的基礎顏色",
-        classes: [
-          "bg-base-100", "bg-base-200", "bg-base-300",
-          "text-base-content",
-          "border-base-300",
-          "fill-base-content"
-        ],
-        notes: [
-          "base-100: 主背景色",
-          "base-200: 次背景色", 
-          "base-300: 邊框色",
-          "base-content: 主要文字色"
-        ]
-      },
-      statusColors: {
-        description: "狀態顏色 - 用於不同狀態的指示",
-        classes: [
-          "bg-info", "bg-success", "bg-warning", "bg-error",
-          "text-info", "text-success", "text-warning", "text-error",
-          "border-info", "border-success", "border-warning", "border-error"
-        ]
-      },
-      customSpacing: {
-        description: "自訂間距系統 - 語意化的間距命名",
-        classes: [
-          "p-xs", "p-sm", "p-md", "p-lg", "p-xl", "p-2xl",
-          "px-xs", "px-sm", "px-md", "px-lg", "px-xl", "px-2xl",
-          "py-xs", "py-sm", "py-md", "py-lg", "py-xl", "py-2xl",
-          "m-xs", "m-sm", "m-md", "m-lg", "m-xl",
-          "mx-xs", "mx-sm", "mx-md", "mx-lg", "mx-xl",
-          "my-xs", "my-sm", "my-md", "my-lg", "my-xl",
-          "gap-xs", "gap-sm", "gap-md", "gap-lg", "gap-xl"
-        ],
-        mapping: {
-          "xs": "0.5rem (8px)",
-          "sm": "0.75rem (12px)", 
-          "md": "1rem (16px)",
-          "lg": "1.5rem (24px)",
-          "xl": "2rem (32px)",
-          "2xl": "3rem (48px)"
-        }
-      },
-      customComponents: {
-        description: "元件快捷樣式 - 預定義的元件組合樣式",
-        classes: [
-          "btn", "btn-primary", "btn-secondary", "btn-accent",
-          "card", "input", "container",
-          "icon-xs", "icon-sm", "icon-md", "icon-lg", "icon-xl"
-        ],
-        details: {
-          "btn": "基礎按鈕樣式 (px-4 py-2 rounded-lg font-medium transition-colors)",
-          "btn-primary": "主要按鈕 (btn + bg-primary + text-primary-content)",
-          "btn-secondary": "次要按鈕 (btn + bg-secondary + text-secondary-content)",
-          "btn-accent": "強調按鈕 (btn + bg-accent + text-accent-content)",
-          "card": "卡片樣式 (bg-base-100 text-base-content rounded-lg shadow-md p-6)",
-          "input": "輸入框樣式 (px-3 py-2 border border-base-300 rounded-md focus:ring-2 focus:ring-primary)",
-          "container": "容器樣式 (max-w-7xl mx-auto px-4 sm:px-6 lg:px-8)",
-          "icon-xs": "超小圖示 (16px)",
-          "icon-sm": "小圖示 (20px)",
-          "icon-md": "中圖示 (24px)",
-          "icon-lg": "大圖示 (28px)",
-          "icon-xl": "超大圖示 (40px)"
-        }
-      },
-      customRules: {
-        description: "自訂規則 - 動態生成的樣式規則",
-        classes: [
-          "theme-*", "text-*-content"
-        ],
-        notes: [
-          "theme-*: 設定主題變數",
-          "text-*-content: DaisyUI 風格，根據背景自動計算文字顏色（40%亮度以下用白色，以上用黑色）"
-        ]
-      }
-    };
+    // 直接使用 UnoCSS生成器
+    const 生成器 = new UnoCSS生成器(new 骨架(), new 配色());
+    const classes = 生成器.getAllClasses();
 
     return 回應成功(c, {
       message: "WebCube 自訂 UnoCSS classes",
-      data: 自訂Classes,
+      data: classes,
       usage: "在標準 TailwindCSS v4 基礎上使用這些自訂 classes",
-      examples: [
-        "class='btn btn-primary p-md gap-sm'",
-        "class='card bg-base-100 text-base-content'",
-        "class='bg-primary text-primary-content p-lg'"
-      ]
+      total: classes.total || 0
     });
     
   } catch (_error) {
@@ -228,7 +138,7 @@ async function 處理清理快取(c: Context): Promise<Response> {
     // await info('UnoCSS API', '處理清理快取請求');
     
     // 清理 UnoCSS 樣式快取
-    清理樣式快取();
+    快取管理器.清理樣式快取();
     
     return 回應成功(c, {
       message: "UnoCSS 樣式快取已清理",

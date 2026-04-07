@@ -11,24 +11,10 @@ export default function SolidButton({
   className
 }: ButtonProps) {
   // 使用 UnoCSS 自訂 preset 的 classes
-  const baseClasses = "btn";
-  
-  // 顏色類別
-  const colorClasses = {
-    primary: "bg-primary text-primary-content",
-    secondary: "bg-secondary text-secondary-content",
-    accent: "bg-accent text-accent-content",
-    info: "bg-info text-primary-content",
-    success: "bg-success text-primary-content",
-    warning: "bg-warning text-primary-content",
-    error: "bg-error text-primary-content",
-    danger: "bg-error text-primary-content",
-  };
-  
   const sizeClasses = {
     xs: "px-2 py-1 text-xs",
     sm: "px-3 py-1.5 text-sm",
-    md: "px-4 py-2 text-base",
+    md: "px-4 py- text-md",
     lg: "px-6 py-3 text-lg",
     xl: "px-8 py-4 text-xl",
     "2xl": "px-10 py-5 text-2xl",
@@ -37,10 +23,11 @@ export default function SolidButton({
   
   // 組合類別
   const finalClasses = [
-    baseClasses,
+    "btn",
     `bg-${color} text-${color}-content`,
     sizeClasses[size],
     "rounded-sm",
+    "border-0",
     "hover:opacity-90",
     "font-medium transition-all duration-200"
   ];

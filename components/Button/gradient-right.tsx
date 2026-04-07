@@ -14,7 +14,7 @@ export default function GradientRightButton({
   const sizeClasses = {
     xs: "px-2 py-1 text-xs",
     sm: "px-3 py-1.5 text-sm",
-    md: "px-4 py-2 text-base",
+    md: "px-4 py- text-md",
     lg: "px-6 py-3 text-lg",
     xl: "px-8 py-4 text-xl",
     "2xl": "px-10 py-5 text-2xl",
@@ -23,6 +23,7 @@ export default function GradientRightButton({
   
   const finalClasses = [
     baseClasses,
+    "border-0",
     `text-${color}-content`,
     "hover:opacity-90",
     sizeClasses[size],

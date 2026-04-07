@@ -8,13 +8,11 @@ export default function OutlineButton({
   type = "button",
   onClick,
   className
-}: ButtonProps) {
-  const baseClasses = "btn";
-  
+}: ButtonProps) {  
   const sizeClasses = {
     xs: "px-2 py-1 text-xs",
     sm: "px-3 py-1.5 text-sm",
-    md: "px-4 py-2 text-base",
+    md: "px-4 py- text-md",
     lg: "px-6 py-3 text-lg",
     xl: "px-8 py-4 text-xl",
     "2xl": "px-10 py-5 text-2xl",
@@ -22,13 +20,15 @@ export default function OutlineButton({
   };
   
   const finalClasses = [
-    baseClasses,
+    "btn",
     "bg-transparent",
-    "!border !border-solid",
+    "!border !border-dotted",
     `!border-${color} text-${color}`,
     `hover:bg-${color} hover:text-${color}-content`,
     sizeClasses[size],
     "rounded-sm",
+    "border-0",
+    "hover:opacity-90",
     "font-medium transition-all duration-200"
   ];
   

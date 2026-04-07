@@ -1,6 +1,6 @@
 import type { ButtonProps } from "./index.tsx";
 
-export default function DotButton({
+export default function ({
   children,
   color = "primary",
   size = "md",
@@ -23,10 +23,9 @@ export default function DotButton({
   
   const finalClasses = [
     baseClasses,
-    "bg-transparent",
-    "!border !border-dotted",
-    `!border-${color} text-${color}`,
-    `hover:bg-${color} hover:text-${color}-content`,
+    "border-0",
+    `text-${color}-content`,
+    "hover:opacity-90",
     sizeClasses[size],
     "rounded-sm",
     "font-medium transition-all duration-200"
@@ -51,7 +50,7 @@ export default function DotButton({
     <button
       type={type}
       disabled={disabled}
-      class={classes}
+      class={`${classes} bg-diagonal-stripes-${color}`}
       {...alpineProps}
     >
       {children}
