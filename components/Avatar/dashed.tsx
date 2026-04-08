@@ -1,80 +1,66 @@
-import { jsx } from "hono/jsx";
-import type { AvatarProps from "./index.tsx";
+import type { AvatarProps } from "./index.tsx";
 import Icon from "../Icon/index.tsx";
 import Image from "../Image/index.tsx";
+
+// Size classes mapping
+const sizeClasses: Record<string, string> = {
+  xs: "w-8 h-8",
+  sm: "w-10 h-10",
+  md: "w-12 h-12",
+  lg: "w-16 h-16",
+  xl: "w-20 h-20",
+  "2xl": "w-24 h-24",
+  "3xl": "w-32 h-32",
+};
 
 export default async function DashedAvatar({
   icon,
   image,
+  src,
+  svg,
   size = "md",
   color = "primary",
-  className,
+  className = "",
   context
 }: AvatarProps) {
-  const sizeClasses = {
-    xs: "w-8 h-8 text-xs",
-    sm: "w-10 h-10 text-sm",
-    md: "w-12 h-12 text-md",
-    lg: "w-16 h-16 text-lg",
-    xl: "w-20 h-20 text-xl",
-    "2xl": "w-24 h-24 text-2xl",
-    "3xl": "w-32 h-32 text-3xl",
-  };
-
+  const sizeClass = sizeClasses[size] || sizeClasses.md;
+  
+  let content: unknown = null;
+  
+  if (svg) {
+    content = await Icon({ svg, size, className: "w-full h-full" });
+  } else if (icon) {
+    content = await Icon({ id: icon, size, className: "w-full h-full", context });
+  } else if (image) {
+    content = await Image({ id: image, width: "100%", height: "100%", className: "w-full h-full", context });
+  } else if (src) {
+    content = <img src={src} alt="Avatar" className="w-full h-full object-cover" />;
+  } else {
+    content = (
+      <div className="w-full h-full flex items-center justify-center bg-gray-200">
+        <span className="text-gray-500">?</span>
+      </div>
+    );
+  }
+  
   const finalClasses = [
-    sizeClasses[size],
-    `text-${color}-content`,
-    "bg-transparent",
-    "border",
-    "border-dashed",
+    "avatar",
+    sizeClass,
     `border-${color}`,
     "rounded-avatar",
-    "inline-flex",
-    "items-center",
-    "justify-center",
+    "flex items-center justify-center",
     "overflow-hidden",
-    "transition-all",
-    "duration-200",
-    `hover:bg-${color}`,
-    `hover:text-${color}-content`,
+    "border-2",
+    "border-dashed",
+    "bg-transparent",
+    className
   ];
-
-  if (className) {
-    finalClasses.push(className);
-  }
-
+  
   const classes = finalClasses.filter(Boolean).join(" ");
-
-  // 如果有 image，使用 Image 組件
-  if (image) {
-    return (
-      <div class={classes}>
-        {typeof image === "object" ? (
-          image
-        ) : (
-          <Image src={image} alt="Avatar" className="w-full h-full object-cover" />
-        )}
-      </div>
-    );
-  }
-
-  // 如果有 icon，使用 Icon 組件
-  if (icon) {
-    return (
-      <div class={classes}>
-        {typeof icon === "object" ? (
-          icon
-        ) : (
-          <Icon id={icon} size={size} context={context} />
-        )}
-      </div>
-    );
-  }
-
-  // Fallback: 使用預設的 user icon
+  
   return (
     <div class={classes}>
-      <Icon id="圖示:圖示:user" size={size} context={context} />
+      {content as any}
     </div>
   );
 }

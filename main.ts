@@ -62,15 +62,15 @@ app.all('*', async (c) => {
     
     // 路由分發邏輯
     switch (true) {
-      case path.startsWith('/test/'):
+      case path.startsWith('/test'):
         // 測試服務
         // await info('路由分發器', `分發到測試服務: ${path}`);
         return await 處理測試請求(c);
-      case path.startsWith('/api/'):
+      case path.startsWith('/api'):
         // API 服務
         // await info('路由分發器', `分發到 API 服務: ${path}`);
         return await 處理API請求(c);
-      case path.startsWith('/media/'):
+      case path.startsWith('/media'):
         // Media 服務 (包含 /media/v1/, /media/script/, /medias/)
         // await info('路由分發器', `分發到 Media 服務: ${path}`);
         return await 處理Media請求(c);

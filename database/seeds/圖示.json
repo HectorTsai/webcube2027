@@ -82,6 +82,16 @@
     "可刪除": false
   },
   {
+    "id": "圖示:圖示:users",
+    "名稱": {"en":"users","zh-tw": "用戶群","vi": "Các người dùng"},
+    "資料": {
+      "format": "SVG",
+      "content":"file://icons/users.svg"
+    },
+    "標籤集": ["圖示:標籤:頭像","圖示:標籤:外框"],
+    "可刪除": false
+  },
+  {
     "id":"圖示:圖示:home",
     "名稱":{"en":"home", "zh-tw":"首頁", "zh-cn":"首页", "vi":"trang chủ"},
     "資料":{
