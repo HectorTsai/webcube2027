@@ -26,7 +26,7 @@ async function ImageWithDatabase({ id, alt, width, height, className, loading, f
   try {
     if (context) {
       // 使用 InnerAPI 從資料庫載入圖片
-      const { InnerAPI } = await import('../services/index.ts');
+      const { InnerAPI } = await import('./services/index.ts');
       const response = await InnerAPI(context, `/media/v1/image/${id}`);
       
       if (response.ok) {

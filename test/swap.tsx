@@ -17,7 +17,7 @@ export default async function TestPage() {
       },
       {
         title: "SVG 來源 + spin 互換",
-        props: { fromSvg: svgSet.play, toSvg: svgSet.pause, animateIn: "spin-in fade-in", animateOut: "spin-out fade-out" },
+        props: { fromSvg: svgSet.play, toSvg: svgSet.pause, animateIn: "spin-in", animateOut: "spin-out" },
       },
       {
         title: "Icon ID 互換",

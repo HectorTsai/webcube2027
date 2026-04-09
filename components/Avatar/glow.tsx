@@ -1,6 +1,6 @@
 import type { AvatarProps } from "./index.tsx";
-import Icon from "../Icon/index.tsx";
-import Image from "../Image/index.tsx";
+import Icon from "../Icon.tsx";
+import Image from "../Image.tsx";
 
 // Size classes mapping
 const sizeClasses: Record<string, string> = {

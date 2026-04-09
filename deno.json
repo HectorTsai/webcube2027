@@ -9,6 +9,7 @@
     "hono": "jsr:@hono/hono@^4.6.3",
     "hono/jsx": "jsr:@hono/hono@^4.6.3/jsx",
     "hono/jsx/dom": "jsr:@hono/hono@^4.6.3/jsx/dom",
+    "hono/utils/html": "jsr:@hono/hono@^4.6.3/utils/html",
     "nanoid": "npm:nanoid@^5.1.7",
     "@dui/smartmultilingual": "jsr:@dui/smartmultilingual@0.2.3",
     "deno-dom": "jsr:@b-fuze/deno-dom@^0.1.47",

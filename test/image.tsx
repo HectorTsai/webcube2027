@@ -1,5 +1,5 @@
 import { jsx } from "hono/jsx";
-import Image from "../components/Image/index.tsx";
+import Image from "../components/Image.tsx";
 
 export default async function TestPage() {
   try {

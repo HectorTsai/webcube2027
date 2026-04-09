@@ -1,5 +1,5 @@
 import { jsx } from "hono/jsx";
-import Icon from "../components/Icon/index.tsx";
+import Icon from "../components/Icon.tsx";
 
 export default async function TestPage() {
   // 測試 Icon 組件

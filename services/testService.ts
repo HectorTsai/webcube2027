@@ -82,6 +82,7 @@ async function 渲染測試頁面(c: Context, 測試名稱: string): Promise<Res
   <style>
     ${css}
   </style>
+  <script defer src="/media/v1/script/alpine.min.js"></script>
 </head>
 <body>
   ${htmlContent}

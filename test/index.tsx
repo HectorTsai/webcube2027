@@ -2,6 +2,7 @@ import { jsx } from "hono/jsx";
 
 export default function TestIndex() {
   const testPages = [
+    { name: "Swap 測試", path: "/test/swap" },
     { name: "Avatar 測試", path: "/test/avatar" },
     { name: "Button 測試", path: "/test/button" },
     { name: "Container 測試", path: "/test/container" },
