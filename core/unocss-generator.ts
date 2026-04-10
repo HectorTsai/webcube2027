@@ -28,7 +28,8 @@ export class UnoCSS生成器 {
     const 色彩欄位 = ['主色', '次色', '強調色', '中性色', '背景色', '資訊色', '成功色', '警告色', '錯誤色'];
     
     色彩欄位.forEach(欄位 => {
-      if (配色模型[欄位]) {
+      const 顏色值 = (配色模型 as any)[欄位];
+      if (顏色值) {
         let cssKey = '';
         switch (欄位) {
           case '主色': cssKey = 'primary'; break;
@@ -42,7 +43,7 @@ export class UnoCSS生成器 {
           case '錯誤色': cssKey = 'error'; break;
         }
         if (cssKey) {
-          自訂配色[cssKey] = 配色模型[欄位];
+          自訂配色[cssKey] = 顏色值;
         }
       }
     });
@@ -433,8 +434,8 @@ export class UnoCSS生成器 {
    * 提取顏色相關 classes
    */
   private 提取顏色Classes() {
-    const colors = [];
-    const theme = this.getTheme().colors;
+    const colors: string[] = [];
+    const theme = this.getTheme().colors as any;
     
     for (const [colorName, colorConfig] of Object.entries(theme)) {
       if (typeof colorConfig === 'string') {
@@ -442,7 +443,7 @@ export class UnoCSS生成器 {
         colors.push(`bg-${colorName}`, `text-${colorName}`, `border-${colorName}`);
         
         // content 顏色 - 檢查 theme 中是否有對應的 content 變數
-        if (theme[`${colorName}-content`]) {
+        if (theme[`${colorName}-content` as string]) {
           colors.push(`text-${colorName}-content`);
         }
         
@@ -509,10 +510,10 @@ export class UnoCSS生成器 {
    * 提取動畫相關 classes
    */
   private 提取動畫Classes() {
-    const animations = [];
+    const animations: string[] = [];
     
     // 從動畫規則提取
-    所有動畫規則.forEach(rule => {
+    (所有動畫規則 as any[]).forEach(rule => {
       if (Array.isArray(rule) && rule[0] instanceof RegExp) {
         const pattern = rule[0].toString();
         // 解析 animate-xxx 模式
