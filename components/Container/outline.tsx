@@ -11,7 +11,8 @@ export default function OutlineContainer({
   justify = "start",
   gap = "none",
   className
-}: ContainerProps) {
+,
+  ...restProps}: ContainerProps) {
   const widthClasses = {
     xs: "max-w-xs",
     sm: "max-w-sm",
@@ -84,8 +85,6 @@ export default function OutlineContainer({
     "bg-transparent",
     `border border-solid border-${color}`,
     `text-${color}`,
-    `hover:bg-${color}`,
-    `hover:text-${color}-content`,
     "rounded-lg",
     "shadow-sm"
   ];
@@ -96,5 +95,5 @@ export default function OutlineContainer({
 
   const classes = finalClasses.filter(Boolean).join(" ");
 
-  return <div class={classes}>{children}</div>;
+  return <div class={classes} {...restProps}>{children}</div>;
 }

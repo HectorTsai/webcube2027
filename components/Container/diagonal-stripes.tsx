@@ -11,7 +11,8 @@ export default function DiagonalStripesContainer({
   justify = "start",
   gap = "none",
   className
-}: ContainerProps) {
+,
+  ...restProps}: ContainerProps) {
   const widthClasses = {
     xs: "max-w-xs",
     sm: "max-w-sm",
@@ -93,5 +94,15 @@ export default function DiagonalStripesContainer({
 
   const classes = finalClasses.filter(Boolean).join(" ");
 
-  return <div class={`${classes} bg-diagonal-stripes-${color}`}>{children}</div>;
+  const gradient = `repeating-linear-gradient(45deg, oklch(var(--color-${color})/1) 0px, oklch(var(--color-${color})/1) 10px, oklch(var(--color-${color}-light-70)/1) 10px, oklch(var(--color-${color}-light-70)/1) 20px)`;
+
+  return (
+    <div
+      class={classes}
+      style={{ backgroundImage: gradient }}
+      {...restProps}
+    >
+      {children}
+    </div>
+  );
 }

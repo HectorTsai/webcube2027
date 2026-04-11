@@ -11,7 +11,8 @@ export default function SolidContainer({
   justify = "start",
   gap = "none",
   className
-}: ContainerProps) {
+,
+  ...restProps}: ContainerProps) {
   const widthClasses = {
     xs: "max-w-xs",
     sm: "max-w-sm",
@@ -82,7 +83,6 @@ export default function SolidContainer({
     justifyClasses[justify],
     gapClasses[gap],
     `bg-${color}/90`,
-    `hover:bg-${color}`,
     `text-${color}-content`,
     "rounded-lg",
     "shadow-sm"
@@ -94,5 +94,5 @@ export default function SolidContainer({
 
   const classes = finalClasses.filter(Boolean).join(" ");
 
-  return <div class={classes}>{children}</div>;
+  return <div class={classes} {...restProps}>{children}</div>;
 }

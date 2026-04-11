@@ -11,7 +11,8 @@ export default function CrystalContainer({
   justify = "start",
   gap = "none",
   className
-}: ContainerProps) {
+,
+  ...restProps}: ContainerProps) {
   const widthClasses = {
     xs: "max-w-xs",
     sm: "max-w-sm",
@@ -96,7 +97,7 @@ export default function CrystalContainer({
   return (
     <div class={`${classes} bg-gradient-to-t from-${color} via-${color}-50 to-${color} relative overflow-hidden`}>
       <div class="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-gray-100/80 to-gray-100/10"></div>
-      <div class="relative z-10">{children}</div>
+      <div class="relative z-10 w-full">{children}</div>
     </div>
   );
 }

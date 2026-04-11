@@ -21,6 +21,8 @@ export interface SwapProps {
   disabled?: boolean;
   label?: string;
   durationClass?: string;
+  /** Any additional props (including Alpine.js x- attributes and event handlers) */
+  [key: string]: any;
 }
 
 const cx = (...parts: Array<string | undefined | null | false>) => parts.filter(Boolean).join(' ');
@@ -44,6 +46,7 @@ export default async function Swap({
   disabled,
   label,
   durationClass = 'duration-700',
+  ...restProps
 }: SwapProps) {
   const isChecked = typeof checked === 'boolean' ? checked : (defaultChecked ?? false);
   
@@ -58,6 +61,7 @@ export default async function Swap({
     <label 
       class={cx('swap-root inline-flex items-center justify-center cursor-pointer', disabled && 'opacity-60 cursor-not-allowed', wrapperClassName)}
       x-data={`{ checked: ${isChecked}, toggle() { this.checked = !this.checked; $el.querySelector('input').checked = this.checked; } }`}
+      {...restProps}
     >
       <input 
         type="checkbox" 
@@ -72,32 +76,36 @@ export default async function Swap({
       />
       
       {/* from: checked 時播放退場動畫，然後隱藏 */}
-      <span
-        class={cx(baseClasses, durationClass)}
-        x-show="!checked"
-        x-transition:enter={`animate-in ${animateIn}`}
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        x-transition:leave={`animate-out ${animateOut}`}
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
-      >
-        {await Icon({ id: fromId, svg: fromSvg, src: fromSrc, size })}
-      </span>
+      {await Icon({ 
+        id: fromId, 
+        svg: fromSvg, 
+        src: fromSrc, 
+        size,
+        className: cx(baseClasses, durationClass),
+        'x-show': '!checked',
+        'x-transition:enter': `animate-in ${animateIn}`,
+        'x-transition:enter-start': 'opacity-0',
+        'x-transition:enter-end': 'opacity-100',
+        'x-transition:leave': `animate-out ${animateOut}`,
+        'x-transition:leave-start': 'opacity-100',
+        'x-transition:leave-end': 'opacity-0',
+      })}
 
       {/* to: checked 時顯示並播放入場動畫 */}
-      <span
-        class={cx(baseClasses, durationClass)}
-        x-show="checked"
-        x-transition:enter={`animate-in ${animateIn}`}
-        x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100"
-        x-transition:leave={`animate-out ${animateOut}`}
-        x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0"
-      >
-        {await Icon({ id: toId, svg: toSvg, src: toSrc, size })}
-      </span>
+      {await Icon({ 
+        id: toId, 
+        svg: toSvg, 
+        src: toSrc, 
+        size,
+        className: cx(baseClasses, durationClass),
+        'x-show': 'checked',
+        'x-transition:enter': `animate-in ${animateIn}`,
+        'x-transition:enter-start': 'opacity-0',
+        'x-transition:enter-end': 'opacity-100',
+        'x-transition:leave': `animate-out ${animateOut}`,
+        'x-transition:leave-start': 'opacity-100',
+        'x-transition:leave-end': 'opacity-0',
+      })}
     </label>
   );
 }

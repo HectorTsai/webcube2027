@@ -1,3 +1,4 @@
+import { InnerAPI } from '../services/index.ts';
 export interface ImageProps {
   /** Database image ID */
   id?: string;
@@ -19,14 +20,15 @@ export interface ImageProps {
   context?: any;
   /** Object-fit behavior for image sizing */
   objectFit?: "fill" | "contain" | "cover" | "none" | "scale-down" | "auto";
+  /** Any additional props (including Alpine.js x- attributes) */
+  [key: string]: any;
 }
 
 // Async component to load image from database
-async function ImageWithDatabase({ id, alt, width, height, className, loading, fallback, context, objectFit }: { id: string; alt?: string; width?: string | number; height?: string | number; className?: string; loading?: "lazy" | "eager"; fallback?: string; context?: any; objectFit?: "fill" | "contain" | "cover" | "none" | "scale-down" | "auto" }) {
+async function ImageWithDatabase({ id, alt, width, height, className, loading, fallback, context, objectFit, restProps }: { id: string; alt?: string; width?: string | number; height?: string | number; className?: string; loading?: "lazy" | "eager"; fallback?: string; context?: any; objectFit?: "fill" | "contain" | "cover" | "none" | "scale-down" | "auto"; restProps?: any }) {
   try {
     if (context) {
       // 使用 InnerAPI 從資料庫載入圖片
-      const { InnerAPI } = await import('./services/index.ts');
       const response = await InnerAPI(context, `/media/v1/image/${id}`);
       
       if (response.ok) {
@@ -52,6 +54,7 @@ async function ImageWithDatabase({ id, alt, width, height, className, loading, f
               maxWidth: "100%",
               objectFit: objectFit || "cover"
             }}
+            {...restProps}
           />
         );
       }
@@ -82,6 +85,7 @@ async function ImageWithDatabase({ id, alt, width, height, className, loading, f
         maxWidth: "100%",
         objectFit: objectFit || "cover"
       }}
+      {...restProps}
     />
   );
 }
@@ -97,6 +101,7 @@ export default async function Image({
   fallback,
   context,
   objectFit = "contain",
+  ...restProps
 }: ImageProps) {
   const handleError = (e: any) => {
     if (fallback) {
@@ -121,6 +126,7 @@ export default async function Image({
           maxWidth: "100%",
           objectFit: objectFit || "cover"
         }}
+        {...restProps}
       />
     );
   }
@@ -129,7 +135,7 @@ export default async function Image({
   if (id) {
     // 如果有 context，使用 InnerAPI 載入
     if (context) {
-      return await ImageWithDatabase({ id, alt, width, height, className, loading, fallback, context, objectFit });
+      return await ImageWithDatabase({ id, alt, width, height, className, loading, fallback, context, objectFit, restProps });
     } else {
       // 沒有 context 時，回退到原來的 img 方式
       return (
@@ -147,6 +153,7 @@ export default async function Image({
             maxWidth: "100%",
             objectFit: objectFit || "cover"
           }}
+          {...restProps}
         />
       );
     }
@@ -166,6 +173,7 @@ export default async function Image({
         height: height || "auto",
         width: width || "auto"
       }}
+      {...restProps}
     >
       <span>!</span>
     </div>

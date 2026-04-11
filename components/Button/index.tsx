@@ -1,5 +1,3 @@
-import createVariantComponent from "../index.ts";
-
 export interface ButtonProps {
   /** Child elements to render inside the button */
   children: unknown;
@@ -19,6 +17,8 @@ export interface ButtonProps {
   onClick?: string;
   /** Additional CSS classes to apply to the button - can override or extend default styles */
   className?: string;
+  /** Any additional props (including Alpine.js x- attributes and event handlers) */
+  [key: string]: any;
 }
 
-export default createVariantComponent("Button", "solid");
+export { default as default } from "./Button.tsx";

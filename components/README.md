@@ -25,6 +25,14 @@ components/
 │   ├── crystal.tsx         # crystal variant
 │   ├── diagonal-stripes.tsx # diagonal-stripes variant
 │   └── minimalist.tsx      # minimalist variant
+├── Avatar/                 # 大頭貼組件（20 個 variants）
+├── Container/              # 容器組件（20 個 variants）
+├── Card/                   # 卡片組件（20 個 variants）
+├── List/                   # 列表組件（List + ListRow）
+├── Icon/                   # 圖示組件
+├── Image/                  # 圖片組件
+├── Swap/                   # 交換組件
+└── Toggle/                 # 切換組件
 
 ## 🏗️ 組件架構
 
@@ -193,9 +201,12 @@ const { classes, colors, components, themeVariables } = data;
 
 注意：具體可用的 Alpine.js 指令取決於專案中載入的 Alpine.js 版本和配置。
 
-## 📋 Button 組件範例
+## 📋 組件介紹
 
-### Props 介面
+### Button 組件
+按鈕組件，支援 20 個 variants。
+
+#### Props 介面
 ```typescript
 export interface ButtonProps {
   children: unknown;
@@ -206,12 +217,13 @@ export interface ButtonProps {
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
   disabled?: boolean;
   type?: "button" | "submit" | "reset";
-  onClick?: string;
+  icon?: string;
   className?: string;
+  [key: string]: any;
 }
 ```
 
-### 使用範例
+#### 使用範例
 ```tsx
 import Button from "../components/Button/index.tsx";
 
@@ -229,6 +241,257 @@ import Button from "../components/Button/index.tsx";
 
 // 禁用狀態
 <Button disabled>禁用按鈕</Button>
+```
+
+### Avatar 組件
+大頭貼組件，支援 20 個 variants。
+
+#### Props 介面
+```typescript
+export interface AvatarProps {
+  icon?: string;
+  image?: string;
+  src?: string;
+  svg?: string;
+  color?: "primary" | "secondary" | "accent" | "info" | "success" | "warning" | "error" | "danger";
+  variant?: "solid" | "outline" | "ghost" | "dot" | "dashed" | "double" | 
+           "gradient-right" | "gradient-left" | "gradient-up" | "gradient-down" | "gradient-middle" |
+           "gradient-diagonal" | "gradient-center" | "gradient-cone" | "crystal" | "diagonal-stripes" | "glow" | "minimalist";
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
+  className?: string;
+  context?: any;
+  [key: string]: any;
+}
+```
+
+#### 使用範例
+```tsx
+import Avatar from "../components/Avatar/index.tsx";
+
+// 使用 SVG
+<Avatar svg="<svg>...</svg>" color="primary" />
+
+// 使用 Icon ID
+<Avatar icon="圖示:圖示:user" color="secondary" />
+
+// 使用 Image ID
+<Avatar image="影像:影像:hono" variant="outline" />
+
+// 使用 src
+<Avatar src="https://example.com/avatar.jpg" size="lg" />
+```
+
+### Container 組件
+容器組件，支援 20 個 variants。
+
+#### Props 介面
+```typescript
+export interface ContainerProps {
+  children: unknown;
+  direction?: "row" | "column";
+  variant?: "solid" | "outline" | "ghost" | "dot" | "dashed" | "double" | 
+           "gradient-right" | "gradient-left" | "gradient-up" | "gradient-down" | "gradient-middle" |
+           "gradient-diagonal" | "gradient-center" | "gradient-cone" | "crystal" | "diagonal-stripes" | "glow" | "minimalist";
+  color?: "primary" | "secondary" | "accent" | "info" | "success" | "warning" | "error";
+  width?: "xs" | "sm" | "md" | "lg" | "xl" | "full" | "auto";
+  padding?: "none" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
+  margin?: "none" | "xs" | "sm" | "md" | "lg" | "xl" | "auto";
+  align?: "start" | "center" | "end" | "stretch";
+  justify?: "start" | "center" | "end" | "between" | "around" | "evenly";
+  gap?: "none" | "xs" | "sm" | "md" | "lg" | "xl";
+  className?: string;
+  [key: string]: any;
+}
+```
+
+#### 使用範例
+```tsx
+import Container from "../components/Container/index.tsx";
+
+// 基礎使用
+<Container>內容</Container>
+
+// 指定 variant 和 color
+<Container variant="solid" color="primary">內容</Container>
+
+// 指定方向
+<Container direction="row" gap="md">
+  <div>項目 1</div>
+  <div>項目 2</div>
+</Container>
+```
+
+### Card 組件
+卡片組件，類似 Container 但有圓角和陰影，支援 20 個 variants。
+
+#### 使用範例
+```tsx
+import Card from "../components/Card/index.tsx";
+
+<Card variant="solid" color="primary" padding="md">
+  <h2>卡片標題</h2>
+  <p>卡片內容</p>
+</Card>
+```
+
+### List 組件
+列表組件，類似 daisyUI 的 List。使用 Container 包裹，因此自動支援所有 variants 和 colors！
+
+#### Props 介面
+```typescript
+export interface ListProps {
+  children: unknown;
+  variant?: "solid" | "outline" | "ghost" | "dot" | "dashed" | "double" | 
+           "gradient-right" | "gradient-left" | "gradient-up" | "gradient-down" | "gradient-middle" |
+           "gradient-diagonal" | "gradient-center" | "gradient-cone" | "crystal" | "diagonal-stripes" | "glow" | "minimalist";
+  color?: "primary" | "secondary" | "accent" | "info" | "success" | "warning" | "error" | "danger";
+  divider?: boolean;
+  compact?: boolean;
+  className?: string;
+  [key: string]: any;
+}
+
+export interface ListRowProps {
+  children: unknown;
+  className?: string;
+  [key: string]: any;
+}
+
+export interface ListTitleProps {
+  children: unknown;
+  className?: string;
+  [key: string]: any;
+}
+```
+
+#### 使用範例
+```tsx
+import { List, ListRow, ListTitle } from "../components/List/index.tsx";
+import { Divider } from "../components/Divider/index.tsx";
+
+// 基本使用
+<List variant="solid" color="primary">
+  <ListTitle>列表標題</ListTitle>
+  <ListRow>
+    <Avatar size="md" icon="圖示:圖示:user" />
+    <div class="flex-1">
+      <div>使用者名稱</div>
+      <div>使用者資訊</div>
+    </div>
+    <Button variant="ghost">操作</Button>
+  </ListRow>
+</List>
+
+// 使用 Divider 分隔
+<List variant="outline" color="secondary">
+  <ListTitle>聯絡人</ListTitle>
+  <ListRow>聯絡人 1</ListRow>
+  <Divider />
+  <ListRow>聯絡人 2</ListRow>
+  <Divider />
+  <ListRow>聯絡人 3</ListRow>
+</List>
+```
+
+### Divider 組件
+分隔線組件，類似 daisyUI 的 Divider，用於垂直或水平分隔內容。
+
+#### Props 介面
+```typescript
+export interface DividerProps {
+  children?: unknown;
+  horizontal?: boolean;
+  color?: "primary" | "secondary" | "accent" | "info" | "success" | "warning" | "error" | "danger";
+  position?: "start" | "center" | "end";
+  className?: string;
+  [key: string]: any;
+}
+```
+
+#### 使用範例
+```tsx
+import { Divider } from "../components/Divider/index.tsx";
+
+// 基本使用
+<div>
+  <div>Content 1</div>
+  <Divider />
+  <div>Content 2</div>
+</div>
+
+// 有文字的 Divider
+<div>
+  <div>Content 1</div>
+  <Divider>OR</Divider>
+  <div>Content 2</div>
+</div>
+
+// 水平 Divider
+<div class="flex flex-row">
+  <div>Content 1</div>
+  <Divider horizontal>OR</Divider>
+  <div>Content 2</div>
+</div>
+
+// 有顏色的 Divider
+<Divider color="primary">Primary</Divider>
+<Divider color="secondary">Secondary</Divider>
+
+// 不同位置的 Divider
+<Divider position="start">Start</Divider>
+<Divider position="center">Center</Divider>
+<Divider position="end">End</Divider>
+```
+
+### Icon 組件
+圖示組件，支援從資料庫載入圖示或使用 SVG。
+
+#### 使用範例
+```tsx
+import Icon from "../components/Icon/index.tsx";
+
+// 使用 SVG
+<Icon svg="<svg>...</svg>" size="md" color="primary" />
+
+// 使用 Icon ID
+<Icon id="圖示:圖示:user" size="lg" />
+```
+
+### Image 組件
+圖片組件，支援從資料庫載入圖片或使用 src。
+
+#### 使用範例
+```tsx
+import Image from "../components/Image/index.tsx";
+
+// 使用 Image ID
+<Image id="影像:影像:hono" width="100%" height="100%" />
+
+// 使用 src
+<Image src="https://example.com/image.jpg" />
+```
+
+### Swap 組件
+交換組件，支援切換顯示兩個狀態。
+
+#### 使用範例
+```tsx
+import Swap from "../components/Swap/index.tsx";
+
+<Swap>
+  <div slot="on">開啟狀態</div>
+  <div slot="off">關閉狀態</div>
+</Swap>
+```
+
+### Toggle 組件
+切換組件，支援切換開關。
+
+#### 使用範例
+```tsx
+import Toggle from "../components/Toggle/index.tsx";
+
+<Toggle label="切換開關" />
 ```
 
 ## 🔄 匯入規則

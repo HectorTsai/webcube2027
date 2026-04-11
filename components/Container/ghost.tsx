@@ -11,7 +11,8 @@ export default function GhostContainer({
   justify = "start",
   gap = "none",
   className
-}: ContainerProps) {
+,
+  ...restProps}: ContainerProps) {
   const widthClasses = {
     xs: "max-w-xs",
     sm: "max-w-sm",
@@ -85,7 +86,6 @@ export default function GhostContainer({
     "border-0",
     `text-${color}`,
     `hover:bg-${color}/70`,
-    `hover:text-${color}-content`,
     "rounded-lg"
   ];
 
@@ -95,5 +95,5 @@ export default function GhostContainer({
 
   const classes = finalClasses.filter(Boolean).join(" ");
 
-  return <div class={classes}>{children}</div>;
+  return <div class={classes} {...restProps}>{children}</div>;
 }

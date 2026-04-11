@@ -25,6 +25,8 @@ export interface ContainerProps {
   gap?: "none" | "xs" | "sm" | "md" | "lg" | "xl";
   /** 額外 CSS 類別 */
   className?: string;
+  /** Any additional props (including Alpine.js x- attributes and event handlers) */
+  [key: string]: any;
 }
 
 export default createVariantComponent("Container", "default");

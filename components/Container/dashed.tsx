@@ -11,7 +11,8 @@ export default function DashedContainer({
   justify = "start",
   gap = "none",
   className
-}: ContainerProps) {
+,
+  ...restProps}: ContainerProps) {
   const widthClasses = {
     xs: "max-w-xs",
     sm: "max-w-sm",
@@ -83,8 +84,7 @@ export default function DashedContainer({
     gapClasses[gap],
     "bg-transparent",
     `!border !border-dashed !border-${color}`,
-    `hover:bg-${color}`,
-    `hover:text-${color}-content`,
+    `text-${color}`,
     "rounded-lg",
     "shadow-sm"
   ];
@@ -95,5 +95,5 @@ export default function DashedContainer({
 
   const classes = finalClasses.filter(Boolean).join(" ");
 
-  return <div class={classes}>{children}</div>;
+  return <div class={classes} {...restProps}>{children}</div>;
 }

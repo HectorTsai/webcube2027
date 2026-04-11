@@ -11,7 +11,8 @@ export default function MinimalistContainer({
   justify = "start",
   gap = "none",
   className
-}: ContainerProps) {
+,
+  ...restProps}: ContainerProps) {
   const widthClasses = {
     xs: "max-w-xs",
     sm: "max-w-sm",
@@ -84,10 +85,8 @@ export default function MinimalistContainer({
     "bg-white",
     `text-${color}`,
     "border border-solid border-gray-200",
-    "hover:bg-gray-50",
     `shadow-sm shadow-${color}`,
-    "rounded-lg",
-    "transition-all duration-200"
+    "rounded-lg"
   ];
 
   if (className) {
@@ -96,5 +95,5 @@ export default function MinimalistContainer({
 
   const classes = finalClasses.filter(Boolean).join(" ");
 
-  return <div class={classes}>{children}</div>;
+  return <div class={classes} {...restProps}>{children}</div>;
 }

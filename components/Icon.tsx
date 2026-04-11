@@ -1,4 +1,5 @@
 import { raw } from 'hono/utils/html';
+import { InnerAPI } from '../services/index.ts';
 
 export interface IconProps {
   /** Database icon ID */
@@ -13,6 +14,8 @@ export interface IconProps {
   className?: string;
   /** Hono context for API calls */
   context?: any;
+  /** Any additional props (including Alpine.js x- attributes) */
+  [key: string]: any;
 }
 
 // Size classes mapping
@@ -68,11 +71,10 @@ function parseSvgString(svgString: string, className: string): { innerHtml: stri
 const fallbackSvgContent = () => `<path d="M2,3L5,3L8,3M2,5L8,5M2,7L5,7L8,7"></path>`;
 
 // Async component to load SVG from database
-async function IconWithCurrentColor({ id, className, context }: { id: string; className: string; context?: any }) {
+async function IconWithCurrentColor({ id, className, context, restProps }: { id: string; className: string; context?: any; restProps?: any }) {
   try {
     if (context) {
       // 使用 InnerAPI 從資料庫載入 SVG
-      const { InnerAPI } = await import('./services/index.ts');
       const response = await InnerAPI(context, `/media/v1/icon/${id}`);
       
       if (response.ok) {
@@ -82,7 +84,7 @@ async function IconWithCurrentColor({ id, className, context }: { id: string; cl
           // Parse SVG and render directly as <svg> element
           const { innerHtml, svgProps } = parseSvgString(svgContent, className);
           const svgContentRaw = raw(innerHtml);
-          return <svg {...svgProps}>{svgContentRaw}</svg>;
+          return <svg {...svgProps} {...restProps}>{svgContentRaw}</svg>;
         }
       }
     }
@@ -102,6 +104,7 @@ async function IconWithCurrentColor({ id, className, context }: { id: string; cl
       fill="rgba(0,0,0,0)" 
       stroke-linecap="round" 
       class={className}
+      {...restProps}
     >
       {raw(fallbackSvgContent())}
     </svg>
@@ -115,6 +118,7 @@ export default async function Icon({
   size = "md",
   className = "",
   context,
+  ...restProps
 }: IconProps) {
   // Combine size class with custom className
   const sizeClass = sizeClasses[size] || sizeClasses.md;
@@ -125,14 +129,14 @@ export default async function Icon({
     // 解析 SVG 並直接輸出為 <svg> 元素（無外層包裹）
     const { innerHtml, svgProps } = parseSvgString(svg, finalClassName);
     const svgContentRaw = raw(innerHtml);
-    return <svg {...svgProps}>{svgContentRaw}</svg>;
+    return <svg {...svgProps} {...restProps}>{svgContentRaw}</svg>;
   }
 
   // If database ID is provided, load from Media service
   if (id) {
     // 如果有 context，使用 InnerAPI 載入
     if (context) {
-      return await IconWithCurrentColor({ id, className: finalClassName, context });
+      return await IconWithCurrentColor({ id, className: finalClassName, context, restProps });
     } else {
       // 沒有 context 時，回退到原來的 img 方式
       return (
@@ -141,6 +145,7 @@ export default async function Icon({
           alt={`Icon ${id}`}
           className={finalClassName}
           style={{ objectFit: "contain" }}
+          {...restProps}
         />
       );
     }
@@ -154,6 +159,7 @@ export default async function Icon({
         alt="Icon"
         className={finalClassName}
         style={{ objectFit: "contain" }}
+        {...restProps}
       />
     );
   }
@@ -170,6 +176,7 @@ export default async function Icon({
       fill="rgba(0,0,0,0)" 
       stroke-linecap="round" 
       class={finalClassName}
+      {...restProps}
     >
       {raw(fallbackSvgContent())}
     </svg>

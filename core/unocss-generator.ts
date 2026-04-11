@@ -324,20 +324,13 @@ export class UnoCSS生成器 {
    */
   getRules() {
     const 基礎規則 = [
-      // 漸層相關規則 - 暫時移除測試 UnoCSS 內建支援
-      [/^bg-diagonal-stripes-(.+)$/, ([, color1]: [string, string]) => {
-        return {
-          'background-image': `repeating-linear-gradient(45deg, oklch(var(--color-${color1})/1) 0px, oklch(var(--color-${color1})/1) 10px, oklch(var(--color-${color1}-light-70)/1) 10px, oklch(var(--color-${color1}-light-70)/1) 20px)`
-        };
-      }] as any,
-      [/^bg-gradient-radial from-(.+?) via-(.+?) to-transparent$/, ([, from, via]: [string, string, string]) => {
-        return {
-          'background-image': `radial-gradient(circle, oklch(var(--color-${from})/1) 0%, oklch(var(--color-${via})/1) 50%, transparent 100%)`
-        };
-      }] as any,
       [/^theme-(.+)$/, ([, theme]: [string, string]) => ({
         '--theme': theme
-      })] as any
+      })] as any,
+      ['shadow-sm', { 'box-shadow': 'var(--shadow-sm)' }] as any,
+      ['shadow-md', { 'box-shadow': 'var(--shadow-md)' }] as any,
+      ['shadow-lg', { 'box-shadow': 'var(--shadow-lg)' }] as any,
+      ['shadow-none', { 'box-shadow': 'var(--shadow-none)' }] as any
     ];
     
     return [...基礎規則, ...所有動畫規則 as any];
@@ -379,12 +372,6 @@ export class UnoCSS生成器 {
       
       // 滾動條
       'scrollbar-themed': '[&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-base-70 [&::-webkit-scrollbar-thumb]:rounded',
-      
-      // 陰影
-      'shadow-sm': 'shadow: var(--shadow-sm)',
-      'shadow-md': 'shadow: var(--shadow-md)',
-      'shadow-lg': 'shadow: var(--shadow-lg)',
-      'shadow-none': 'shadow: var(--shadow-none)',
       
       // 圖示尺寸
       'icon-xs': 'inline-block align-middle',
