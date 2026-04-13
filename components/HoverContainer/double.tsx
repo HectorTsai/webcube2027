@@ -10,8 +10,9 @@ export default function DoubleHoverContainer({
   align = "start",
   justify = "start",
   gap = "none",
-  className
-,
+  rounded = "sm",
+  shadow = "none",
+  className,
   ...restProps}: HoverContainerProps) {
   const widthClasses = {
     xs: "max-w-xs",
@@ -68,6 +69,20 @@ export default function DoubleHoverContainer({
     xl: "gap-xl",
   };
 
+  const roundedClasses = {
+    none: "rounded-none",
+    sm: "rounded-sm",
+    md: "rounded-md",
+    lg: "rounded-lg",
+  };
+
+  const shadowClasses = {
+    none: "shadow-none",
+    sm: "shadow-sm",
+    md: "shadow-md",
+    lg: "shadow-lg",
+  };
+
   const directionClasses = {
     row: "flex-row",
     column: "flex-col",
@@ -86,7 +101,7 @@ export default function DoubleHoverContainer({
     `border-4 border-double border-${color}`,
     `text-${color}`,
     `hover:bg-${color} hover:text-${color}-content`,
-    "rounded-sm",
+    roundedClasses[rounded],
     "transition-all duration-200"
   ];
 

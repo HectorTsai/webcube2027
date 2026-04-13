@@ -10,8 +10,9 @@ export default function SolidHoverContainer({
   align = "start",
   justify = "start",
   gap = "none",
-  className
-,
+  rounded = "sm",
+  shadow = "none",
+  className,
   ...restProps}: HoverContainerProps) {
   const widthClasses = {
     xs: "max-w-xs",
@@ -68,6 +69,20 @@ export default function SolidHoverContainer({
     xl: "gap-xl",
   };
 
+  const roundedClasses = {
+    none: "rounded-none",
+    sm: "rounded-sm",
+    md: "rounded-md",
+    lg: "rounded-lg",
+  };
+
+  const shadowClasses = {
+    none: "shadow-none",
+    sm: "shadow-sm",
+    md: "shadow-md",
+    lg: "shadow-lg",
+  };
+
   const directionClasses = {
     row: "flex-row",
     column: "flex-col",
@@ -84,7 +99,7 @@ export default function SolidHoverContainer({
     gapClasses[gap],
     `bg-${color}`,
     `text-${color}-content`,
-    "rounded-sm",
+    roundedClasses[rounded],
     `hover:bg-${color}-70`,
     "transition-all duration-200"
   ];

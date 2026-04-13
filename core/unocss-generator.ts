@@ -142,6 +142,19 @@ export class UnoCSS生成器 {
           variables.push(`  --shadow-${key}: ${value};`);
         });
       }
+      
+      // 動畫
+      if (骨架配置.動畫) {
+        const 動畫鍵對照: Record<string, string> = {
+          '抽屜': 'drawer', '視窗': 'modal', '下拉選單': 'dropdown',
+          '左': 'left', '右': 'right', '上': 'top', '下': 'bottom',
+          '開': 'open', '關': 'close',
+        };
+        Object.entries(骨架配置.動畫).forEach(([key, value]) => {
+          const cssKey = key.split('.').map(k => 動畫鍵對照[k] || k).join('-');
+          variables.push(`  --animation-${cssKey}: ${value};`);
+        });
+      }
     }
     
     variables.push('}');

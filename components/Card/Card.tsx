@@ -16,8 +16,6 @@ export default function Card({
   ...restProps
 }: CardProps) {
   const finalClasses = [
-    "!rounded-xl",
-    "!shadow-md",
     className
   ];
   
@@ -33,6 +31,8 @@ export default function Card({
     align={align}
     justify={justify}
     gap={gap}
+    rounded="lg"
+    shadow="md"
     className={classes}
     {...restProps}
   >

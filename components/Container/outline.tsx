@@ -10,8 +10,9 @@ export default function OutlineContainer({
   align = "start",
   justify = "start",
   gap = "none",
-  className
-,
+  rounded = "lg",
+  shadow = "none",
+  className,
   ...restProps}: ContainerProps) {
   const widthClasses = {
     xs: "max-w-xs",
@@ -68,6 +69,20 @@ export default function OutlineContainer({
     xl: "gap-xl",
   };
 
+  const roundedClasses = {
+    none: "rounded-none",
+    sm: "rounded-sm",
+    md: "rounded-md",
+    lg: "rounded-lg",
+  };
+
+  const shadowClasses = {
+    none: "shadow-none",
+    sm: "shadow-sm",
+    md: "shadow-md",
+    lg: "shadow-lg",
+  };
+
   const directionClasses = {
     row: "flex-row",
     column: "flex-col",
@@ -82,11 +97,11 @@ export default function OutlineContainer({
     alignClasses[align],
     justifyClasses[justify],
     gapClasses[gap],
-    "bg-transparent",
+    "bg-base",
     `border border-solid border-${color}`,
     `text-${color}`,
-    "rounded-lg",
-    "shadow-sm"
+    roundedClasses[rounded],
+    shadowClasses[shadow]
   ];
 
   if (className) {

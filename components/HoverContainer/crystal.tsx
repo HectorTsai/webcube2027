@@ -10,8 +10,9 @@ export default function CrystalHoverContainer({
   align = "start",
   justify = "start",
   gap = "none",
-  className
-,
+  rounded = "sm",
+  shadow = "none",
+  className,
   ...restProps}: HoverContainerProps) {
   const widthClasses = {
     xs: "max-w-xs",
@@ -68,6 +69,20 @@ export default function CrystalHoverContainer({
     xl: "gap-xl",
   };
 
+  const roundedClasses = {
+    none: "rounded-none",
+    sm: "rounded-sm",
+    md: "rounded-md",
+    lg: "rounded-lg",
+  };
+
+  const shadowClasses = {
+    none: "shadow-none",
+    sm: "shadow-sm",
+    md: "shadow-md",
+    lg: "shadow-lg",
+  };
+
   const directionClasses = {
     row: "flex-row",
     column: "flex-col",
@@ -84,8 +99,8 @@ export default function CrystalHoverContainer({
     gapClasses[gap],
     `text-${color}-content`,
     "border-0",
-    "rounded-sm",
-    "shadow-sm",
+    roundedClasses[rounded],
+    shadowClasses[shadow],
     "transition-all duration-200",
     `hover:shadow-md hover:shadow-${color}/30 hover:scale-102`
   ];

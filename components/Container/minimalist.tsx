@@ -10,8 +10,9 @@ export default function MinimalistContainer({
   align = "start",
   justify = "start",
   gap = "none",
-  className
-,
+  rounded = "lg",
+  shadow = "none",
+  className,
   ...restProps}: ContainerProps) {
   const widthClasses = {
     xs: "max-w-xs",
@@ -68,6 +69,20 @@ export default function MinimalistContainer({
     xl: "gap-xl",
   };
 
+  const roundedClasses = {
+    none: "rounded-none",
+    sm: "rounded-sm",
+    md: "rounded-md",
+    lg: "rounded-lg",
+  };
+
+  const shadowClasses = {
+    none: "shadow-none",
+    sm: "shadow-sm",
+    md: "shadow-md",
+    lg: "shadow-lg",
+  };
+
   const directionClasses = {
     row: "flex-row",
     column: "flex-col",
@@ -82,11 +97,11 @@ export default function MinimalistContainer({
     alignClasses[align],
     justifyClasses[justify],
     gapClasses[gap],
-    "bg-white",
+    "bg-gray-100",
     `text-${color}`,
     "border border-solid border-gray-200",
     `shadow-sm shadow-${color}`,
-    "rounded-lg"
+    roundedClasses[rounded]
   ];
 
   if (className) {

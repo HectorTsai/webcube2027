@@ -11,6 +11,8 @@ export default function TestIndex() {
     { name: "Divider 測試", path: "/test/divider" },
     { name: "Icon 測試", path: "/test/icon" },
     { name: "Image 測試", path: "/test/image" },
+    { name: "Modal 測試", path: "/test/modal" },
+    { name: "Drawer 測試", path: "/test/drawer" },
   ];
 
   return (

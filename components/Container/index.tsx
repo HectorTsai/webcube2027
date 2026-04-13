@@ -23,10 +23,14 @@ export interface ContainerProps {
   justify?: "start" | "center" | "end" | "between" | "around" | "evenly";
   /** 間距 */
   gap?: "none" | "xs" | "sm" | "md" | "lg" | "xl";
+  /** 圓角 */
+  rounded?: "none" | "sm" | "md" | "lg";
+  /** 陰影 */
+  shadow?: "none" | "sm" | "md" | "lg";
   /** 額外 CSS 類別 */
   className?: string;
   /** Any additional props (including Alpine.js x- attributes and event handlers) */
   [key: string]: any;
 }
 
-export default createVariantComponent("Container", "default");
+export default createVariantComponent("Container", "solid");
