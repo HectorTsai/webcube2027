@@ -1,3 +1,5 @@
+import Card from "../components/Card/index.tsx";
+
 export default function TestIndex() {
   const testPages = [
     { name: "Swap 測試", path: "/test/swap" },
@@ -17,24 +19,69 @@ export default function TestIndex() {
     { name: "MenuBar 測試", path: "/test/menu-bar" },
     { name: "Steps 測試", path: "/test/steps" },
     { name: "Timeline 測試", path: "/test/timeline" },
+    { name: "Calendar 測試", path: "/test/calendar" },
   ];
 
+  const uiComponents = testPages.filter(p => 
+    ["Avatar", "Button", "Container", "HoverContainer", "Card", "List", "Divider", "Icon", "Image"].some(c => p.name.includes(c))
+  );
+  
+  const layoutComponents = testPages.filter(p =>
+    ["Modal", "Drawer", "Footer", "MenuBar"].some(c => p.name.includes(c))
+  );
+  
+  const interactiveComponents = testPages.filter(p =>
+    ["Swap", "Toggle", "Steps", "Timeline", "Calendar"].some(c => p.name.includes(c))
+  );
+
   return (
-    <div class="container mx-auto p-8">
-      <h1 class="text-3xl font-bold mb-8">測試頁面列表</h1>
-      
-      <ul class="space-y-4">
-        {testPages.map(page => (
-          <li>
+    <div class="p-8 max-w-6xl mx-auto">
+      <h1 class="text-3xl font-bold mb-8 text-center">測試頁面列表</h1>
+
+      <Card className="mb-6" padding="lg" variant="outline">
+        <h2 class="text-xl font-semibold mb-4">UI 組件</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {uiComponents.map(page => (
             <a 
+              key={page.path}
               href={page.path}
-              class="text-blue-600 hover:text-blue-800 hover:underline text-lg"
+              class="btn btn-primary text-primary-content text-center"
             >
               {page.name}
             </a>
-          </li>
-        ))}
-      </ul>
+          ))}
+        </div>
+      </Card>
+
+      <Card className="mb-6" padding="lg" variant="outline" color="accent">
+        <h2 class="text-xl font-semibold mb-4">佈局組件</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {layoutComponents.map(page => (
+            <a 
+              key={page.path}
+              href={page.path}
+              class="btn btn-accent text-accent-content text-center"
+            >
+                {page.name}
+            </a>
+          ))}
+        </div>
+      </Card>
+
+      <Card className="mb-6" padding="lg" variant="outline" color="warning">
+        <h2 class="text-xl font-semibold mb-4">互動組件</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {interactiveComponents.map(page => (
+            <a 
+              key={page.path}
+              href={page.path}
+              class="btn btn-warning text-warning-content text-center"
+            >
+                {page.name}
+            </a>
+          ))}
+        </div>
+      </Card>
     </div>
   );
 }

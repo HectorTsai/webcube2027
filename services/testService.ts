@@ -101,6 +101,7 @@ async function 渲染測試頁面(c: Context, 測試名稱: string): Promise<Res
     ${css}
   </style>
   <script defer src="/media/v1/script/alpine.min.js"></script>
+  <script type="module" src="https://esm.sh/cally"></script>
 </head>
 <body>
   ${htmlContent}
@@ -141,6 +142,7 @@ async function 渲染測試404頁面(c: Context, path: string): Promise<Response
   <style>
     ${css}
   </style>
+  <script type="module" src="https://esm.sh/cally"></script>
 </head>
 <body>
   ${htmlContent}
@@ -182,6 +184,7 @@ async function 渲染測試錯誤頁面(c: Context, 錯誤: unknown): Promise<Re
   <style>
     ${css}
   </style>
+  <script type="module" src="https://esm.sh/cally"></script>
 </head>
 <body>
   ${htmlContent}

@@ -15,7 +15,7 @@ export interface StepsProps {
 }
 
 export interface StepProps {
-  id?:string;
+  icon?:string;
   children: unknown;
   active?: boolean;
   completed?: boolean;

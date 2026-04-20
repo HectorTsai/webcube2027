@@ -3,55 +3,47 @@ import Container from "../Container/index.tsx";
 import Icon from "../Icon.tsx";
 
 export default async function TimelineItem({
-  children,
-  start,
-  end,
   icon,
+  src,
+  svg,
   color = "primary",
   variant = "solid",
   className,
+  children,
+  start,
+  end,
 }: TimelineItemProps) {
-  // 处理图标内容
+  // 处理图标内容 - 支持 id/src/svg 三种方式
   let iconContent = null;
-  if (icon) {
-    if (typeof icon === "string") {
-      iconContent = await Icon({ id: icon, className: "h-5 w-5" });
-    } else {
-      iconContent = icon;
-    }
+  if (svg) {
+    // 直接使用 SVG 字符串
+    iconContent = <span dangerouslySetInnerHTML={{ __html: svg }} class="h-3 w-3 flex items-center justify-center" />;
+  } else if (src) {
+    // 使用图片路径
+    iconContent = <img src={src} class="h-3 w-3" alt="" />;
+  } else if (icon) {
+    // 使用 Icon 组件（数据库 ID）
+    iconContent = await Icon({ id: icon, className: "h-3 w-3" });
   }
 
   return (
-    <li class={`flex flex-col items-center flex-1 ${className || ""}`}>
-      <div class="flex items-center w-full">
-        {/* 左侧内容 */}
-        {start && (
-          <div class="flex-1 text-right pr-4">
-            {start}
-          </div>
+    <div class={`${className || ""}`}>
+      {/* 只显示图标，内容由Timeline组件根据布局类型显示 */}
+      <Container
+        variant={variant}
+        color={color}
+        width="1.5rem"
+        height="1.5rem"
+        padding="none"
+        align="center"
+        justify="center"
+        rounded="sm"
+        className="shrink-0"
+      >
+        {iconContent || (
+          <div class="w-full h-full rounded-sm"></div>
         )}
-        
-        {/* 中间图标 */}
-        <Container
-          variant={variant}
-          color={color}
-          width="1.5rem"
-          height="1.5rem"
-          align="center"
-          justify="center"
-          rounded="full"
-          className="shrink-0"
-        >
-          {iconContent || (
-            <div class="w-2 h-2 rounded-full bg-current"></div>
-          )}
-        </Container>
-        
-        {/* 右侧内容 */}
-        <div class="flex-1 pl-4">
-          {end || children}
-        </div>
-      </div>
-    </li>
+      </Container>
+    </div>
   );
 }

@@ -23,7 +23,7 @@ async function getCircleContent(child:any,index:number){
   if(child && child.props){
     if(child.props.completed) return "✓";
     if(child.props.text) return child.props.text;
-    if(child.props.id || child.props.src) return await Icon({id: child.props.id, src: child.props.src, svg: child.props.svg});
+    if(child.props.icon || child.props.src) return await Icon({id: child.props.icon, src: child.props.src, svg: child.props.svg});
   }
   return String(index+1);
 }
