@@ -1,50 +1,48 @@
 import Steps, { Step } from "../components/Steps/index.tsx";
 
-export default async function StepsTestPage() {
+export default function StepsTestPage() {
   const horizontalSteps = (
-    <Steps>
-      <Step active index={0}>Register</Step>
-      <Step active index={1}>Choose plan</Step>
-      <Step index={2}>Purchase</Step>
-      <Step index={3}>Receive Product</Step>
+    <Steps variant="crystal">
+      <Step active>Register</Step>
+      <Step active>Choose plan</Step>
+      <Step>Purchase</Step>
+      <Step>Receive Product</Step>
     </Steps>
   );
 
   const verticalSteps = (
-    <Steps vertical>
-      <Step active index={0}>Register</Step>
-      <Step active index={1}>Choose plan</Step>
-      <Step index={2}>Purchase</Step>
-      <Step index={3}>Receive Product</Step>
+    <Steps vertical variant="outline">
+      <Step active>Register</Step>
+      <Step active>Choose plan</Step>
+      <Step>Purchase</Step>
+      <Step>Receive Product</Step>
     </Steps>
   );
 
-
-
   const stepsWithIcons = (
     <Steps>
-      <Step active icon="😕" index={0}>Step 1</Step>
-      <Step active icon="😃" index={1}>Step 2</Step>
-      <Step icon="😍" index={2}>Step 3</Step>
+      <Step active text="😕">Step 1</Step>
+      <Step active text="😃">Step 2</Step>
+      <Step text="😍">Step 3</Step>
     </Steps>
   );
 
   const stepsWithDataContent = (
     <Steps>
-      <Step dataContent="?" index={0}>Step 1</Step>
-      <Step dataContent="!" index={1}>Step 2</Step>
-      <Step dataContent="✓" index={2}>Step 3</Step>
-      <Step dataContent="✕" index={3}>Step 4</Step>
-      <Step dataContent="★" index={4}>Step 5</Step>
+      <Step text="?">Step 1</Step>
+      <Step text="!">Step 2</Step>
+      <Step text="✓">Step 3</Step>
+      <Step text="✕">Step 4</Step>
+      <Step text="★">Step 5</Step>
     </Steps>
   );
 
   const stepsWithColors = (
     <Steps>
-      <Step active color="info" index={0}>Fly to moon</Step>
-      <Step active color="info" index={1}>Shrink the moon</Step>
-      <Step active color="info" index={2}>Grab the moon</Step>
-      <Step active color="error" dataContent="?" index={3}>Sit on toilet</Step>
+      <Step active color="info">Fly to moon</Step>
+      <Step active color="info">Shrink the moon</Step>
+      <Step active color="info">Grab the moon</Step>
+      <Step active color="error" text="?">Sit on toilet</Step>
     </Steps>
   );
 
@@ -81,19 +79,19 @@ export default async function StepsTestPage() {
 
   const stepsWithMixedStates = (
     <Steps>
-      <Step active color="success" index={0}>Completed Step</Step>
-      <Step active color="primary" index={1}>Current Step</Step>
-      <Step index={2}>Next Step</Step>
-      <Step disabled index={3}>Disabled Step</Step>
+      <Step active color="success">Completed Step</Step>
+      <Step active color="primary">Current Step</Step>
+      <Step>Next Step</Step>
+      <Step disabled>Disabled Step</Step>
     </Steps>
   );
 
-  const stepsWithoutActive = (
+  const stepsWithComplete = (
     <Steps>
-      <Step active color="success" index={0}>Completed Step</Step>
-      <Step color="primary" index={1}>No Active Step</Step>
-      <Step index={2}>Next Step</Step>
-      <Step disabled index={3}>Disabled Step</Step>
+      <Step completed color="success">Completed Step</Step>
+      <Step completed>No Active Step</Step>
+      <Step>Next Step</Step>
+      <Step disabled>Disabled Step</Step>
     </Steps>
   );
 
@@ -102,49 +100,49 @@ export default async function StepsTestPage() {
       <div>
         <h3 class="text-lg font-semibold mb-2">Solid Variant</h3>
         <Steps variant="solid">
-          <Step active index={0}>Step 1</Step>
-          <Step active index={1}>Step 2</Step>
-          <Step index={2}>Step 3</Step>
+          <Step active>Step 1</Step>
+          <Step active>Step 2</Step>
+          <Step>Step 3</Step>
         </Steps>
       </div>
       <div>
         <h3 class="text-lg font-semibold mb-2">Outline Variant</h3>
         <Steps variant="outline">
-          <Step active index={0}>Step 1</Step>
-          <Step active index={1}>Step 2</Step>
-          <Step index={2}>Step 3</Step>
+          <Step active>Step 1</Step>
+          <Step active>Step 2</Step>
+          <Step>Step 3</Step>
         </Steps>
       </div>
       <div>
-        <h3 class="text-lg font-semibold mb-2">Ghost Variant</h3>
+        <h3 class="text-lg font-semibold mb-2">Crystal Variant</h3>
         <Steps variant="crystal">
-          <Step active index={0}>Step 1</Step>
-          <Step active index={1}>Step 2</Step>
-          <Step index={2}>Step 3</Step>
+          <Step active>Step 1</Step>
+          <Step active>Step 2</Step>
+          <Step>Step 3</Step>
         </Steps>
       </div>
       <div>
         <h3 class="text-lg font-semibold mb-2">Dot Variant</h3>
         <Steps variant="dot">
-          <Step active index={0}>Step 1</Step>
-          <Step active index={1}>Step 2</Step>
-          <Step index={2}>Step 3</Step>
+          <Step active>Step 1</Step>
+          <Step active>Step 2</Step>
+          <Step>Step 3</Step>
         </Steps>
       </div>
       <div>
         <h3 class="text-lg font-semibold mb-2">Dashed Variant</h3>
         <Steps variant="dashed">
-          <Step active index={0}>Step 1</Step>
-          <Step active index={1}>Step 2</Step>
-          <Step index={2}>Step 3</Step>
+          <Step active>Step 1</Step>
+          <Step active>Step 2</Step>
+          <Step>Step 3</Step>
         </Steps>
       </div>
       <div>
         <h3 class="text-lg font-semibold mb-2">Double Variant</h3>
         <Steps variant="double">
-          <Step active index={0}>Step 1</Step>
-          <Step active index={1}>Step 2</Step>
-          <Step index={2}>Step 3</Step>
+          <Step active>Step 1</Step>
+          <Step active>Step 2</Step>
+          <Step>Step 3</Step>
         </Steps>
       </div>
     </div>
@@ -170,8 +168,6 @@ export default async function StepsTestPage() {
           {verticalSteps}
         </div>
       </section>
-
-
 
       <section>
         <h2 class="text-2xl font-semibold mb-4">帶自定義圖標的步驟</h2>
@@ -209,9 +205,9 @@ export default async function StepsTestPage() {
       </section>
 
       <section>
-        <h2 class="text-2xl font-semibold mb-4">無 Active 狀態步驟</h2>
+        <h2 class="text-2xl font-semibold mb-4">Completed 狀態步驟</h2>
         <div class="p-4 bg-base-200 rounded-lg">
-          {stepsWithoutActive}
+          {stepsWithComplete}
         </div>
       </section>
 

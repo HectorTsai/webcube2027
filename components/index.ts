@@ -38,6 +38,7 @@ export default function createVariantComponent(componentName: string, defaultVar
       }
       // 嘗試載入指定的 variant
       try {
+        // 使用正确的相对路径来加载变体模块
         const variantModule = await import(`./${componentName}/${variant}.tsx`);
         const Component = variantModule.default;
         
@@ -46,38 +47,25 @@ export default function createVariantComponent(componentName: string, defaultVar
         }
         
         // 調用組件並等待結果
-        const result = await Component(props);
+        const result = await Component({ variant, ...props });
         return result;
       } catch (_e) {
-        // 如果 variant 載入失敗，嘗試載入主組件（例如 Button/index.tsx）
+        // 如果 variant 載入失敗，直接嘗試載入預設 variant
         try {
-          const mainModule = await import(`./${componentName}/index.tsx`);
-          const MainComponent = mainModule.default;
+          // 使用正确的相对路径来加载默认变体模块
+          const defaultModule = await import(`./${componentName}/${defaultVariant}.tsx`);
+          const DefaultComponent = defaultModule.default;
           
-          if (!MainComponent) {
-            throw new Error(`Component ${componentName}/index has no default export`);
+          if (!DefaultComponent) {
+            throw new Error(`Component ${componentName}/${defaultVariant} has no default export`);
           }
           
           // 調用組件並等待結果
-          const result = await MainComponent({ variant, ...props });
+          const result = await DefaultComponent({ variant, ...props });
           return result;
         } catch (_err) {
-          // 如果主組件也載入失敗，嘗試載入預設 variant
-          try {
-            const defaultModule = await import(`./${componentName}/${defaultVariant}.tsx`);
-            const DefaultComponent = defaultModule.default;
-            
-            if (!DefaultComponent) {
-              throw new Error(`Component ${componentName}/${defaultVariant} has no default export`);
-            }
-            
-            // 調用組件並等待結果
-            const result = await DefaultComponent(props);
-            return result;
-          } catch (_err2) {
-            // 最終退回：顯示清楚的錯誤訊息
-            return jsx("div", {}, `${componentName}:${variant}`);
-          }
+          // 最終退回：顯示清楚的錯誤訊息
+          return jsx("div", {}, `${componentName}:${variant}`);
         }
       }
     } catch (_e) {

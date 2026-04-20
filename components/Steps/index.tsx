@@ -14,13 +14,14 @@ export interface StepsProps {
 }
 
 export interface StepProps {
+  id?:string;
   children: unknown;
   active?: boolean;
   completed?: boolean;
   disabled?: boolean;
   color?: "primary" | "secondary" | "accent" | "info" | "success" | "warning" | "error" | "neutral";
-  icon?: unknown;
-  dataContent?: string;
+  text?: string;
+  src?: string;
+  svg?: string;
   className?: string;
-  index?: number;
 }
