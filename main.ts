@@ -38,6 +38,20 @@ app.use('*', 語言解析器);
 
 // API 路由由動態路由分發器處理
 
+// 全局错误处理中间件
+app.use('*', async (c, next) => {
+  try {
+    await next();
+  } catch (error) {
+    await error('全局错误处理', `未捕获的错误: ${error}`);
+    return c.json({
+      success: false,
+      message: '服务器内部错误',
+      error: (error as Error).toString()
+    }, 500);
+  }
+});
+
 // 全域請求攔截器
 app.all('*', (c, next) => {
   return next();

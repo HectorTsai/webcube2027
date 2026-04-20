@@ -9,8 +9,6 @@ export interface CardProps {
            "gradient-diagonal" | "gradient-center" | "gradient-cone" | "crystal" | "diagonal-stripes" | "glow" | "minimalist";
   /** 顏色主題 */
   color?: "primary" | "secondary" | "accent" | "info" | "success" | "warning" | "error";
-  /** 寬度設定 */
-  width?: "xs" | "sm" | "md" | "lg" | "xl" | "full" | "auto";
   /** 內距 */
   padding?: "none" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
   /** 外距 */

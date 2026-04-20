@@ -18,8 +18,18 @@ export default function createVariantComponent(componentName: string, defaultVar
           if(res.ok){
             const data = await res.json();
             const skeleton = data.skeleton;
-            if(skeleton && skeleton.風格){
-              variant = skeleton.風格[componentName] ?? skeleton.風格["default"] ?? variant;
+            if(skeleton){
+              // 讀取風格設定
+              if(skeleton.風格){
+                variant = skeleton.風格[componentName] ?? skeleton.風格["default"] ?? variant;
+              }
+              // 讀取動畫設定
+              if(skeleton.動畫){
+                props = {
+                  ...props,
+                  skeleton: skeleton
+                };
+              }
             }
           }
         } catch (_e) {

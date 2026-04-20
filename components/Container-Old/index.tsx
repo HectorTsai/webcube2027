@@ -1,18 +1,20 @@
 import createVariantComponent from "../index.ts";
 
-export interface HoverContainerProps {
+export interface ContainerProps {
   /** 子元素 */
   children: unknown;
   /** 佈局方向 */
   direction?: "row" | "column";
   /** 佈局變體 */
-  variant?: "solid" | "outline" | "ghost" | "dot" | "dashed" | "double" | 
+  variant?: "solid" | "outline" | "ghost" | "dot" | "dashed" | "double" |
            "gradient-right" | "gradient-left" | "gradient-up" | "gradient-down" | "gradient-middle" |
            "gradient-diagonal" | "gradient-center" | "gradient-cone" | "crystal" | "diagonal-stripes" | "glow" | "minimalist";
   /** 顏色主題 */
   color?: "primary" | "secondary" | "accent" | "info" | "success" | "warning" | "error";
-  /** 寬度設定 */
-  width?: "xs" | "sm" | "md" | "lg" | "xl" | "full" | "auto";
+  /** 寬度設定 (CSS 值，如 "100px", "50vw", "10rem", "full", "auto") */
+  width?: string;
+  /** 高度設定 (CSS 值，如 "100px", "50vh", "10rem", "full", "auto") */
+  height?: string;
   /** 內距 */
   padding?: "none" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
   /** 外距 */
@@ -27,10 +29,12 @@ export interface HoverContainerProps {
   rounded?: "none" | "sm" | "md" | "lg";
   /** 陰影 */
   shadow?: "none" | "sm" | "md" | "lg";
+  /** 激活狀態 */
+  active?: boolean;
   /** 額外 CSS 類別 */
   className?: string;
   /** Any additional props (including Alpine.js x- attributes and event handlers) */
   [key: string]: any;
 }
 
-export default createVariantComponent("HoverContainer", "solid");
+export default createVariantComponent("Container", "solid");

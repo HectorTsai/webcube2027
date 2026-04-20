@@ -78,7 +78,7 @@ export default async function ButtonTestPage() {
   });
 
   return (
-    <div class="container mx-auto p-6 space-y-8">
+    <div class="container mx-auto p-6 space-y-8 bg-blue-200">
       <section>
         <h1 class="text-3xl font-bold mb-2">Button 組件測試</h1>
         <p class="text-base-content/70">以下展示各種 Button 配置，點擊查看效果</p>
@@ -89,10 +89,7 @@ export default async function ButtonTestPage() {
           <h2 class="text-2xl font-semibold mb-4">{variant.charAt(0).toUpperCase() + variant.slice(1)} 按鈕</h2>
           <div class="flex flex-wrap gap-4">
             {colorButtons.map(({ color, button }) => (
-              <div class="flex flex-col items-center gap-2">
-                <div class="p-4 bg-base-200 rounded-lg">{button}</div>
-                <span class="text-sm text-base-content/70">{color}</span>
-              </div>
+              <div class="p-4 bg-base-200 rounded-lg">{button}</div>
             ))}
           </div>
         </section>

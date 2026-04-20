@@ -1,14 +1,16 @@
 import type { ButtonProps } from "./index.tsx";
-import HoverContainer from "../HoverContainer/index.tsx";
+import Container from "../Container/index.tsx";
 
-export default function Button({
+export default async function Button({
   children,
   color = "primary",
   variant = "solid",
   size = "md",
   disabled = false,
+  active = true,
   type = "button",
   onClick,
+  rounded = "sm",
   className,
   ...restProps
 }: ButtonProps) {
@@ -23,9 +25,10 @@ export default function Button({
   };
 
   const finalButtonClasses = [
-    "btn",
     "p-0",
     "border-0",
+    "bg-transparent",
+    "cursor-pointer",
     sizeClasses[size].text,
     disabled && "opacity-50 cursor-not-allowed",
     className
@@ -34,7 +37,7 @@ export default function Button({
   const buttonClasses = finalButtonClasses.filter(Boolean).join(" ");
 
   const finalContainerClasses = [
-    sizeClasses[size].padding
+    sizeClasses[size].padding,
   ];
 
   const containerClasses = finalContainerClasses.filter(Boolean).join(" ");
@@ -44,6 +47,20 @@ export default function Button({
     alpineProps['@click'] = onClick;
   }
 
+  const container = await Container({
+    variant,
+    color,
+    padding: "none",
+    direction: "row",
+    align: "center",
+    justify: "center",
+    rounded: rounded,
+    hover: true,
+    active: active,
+    className: containerClasses,
+    children
+  });
+
   return (
     <button
       type={type}
@@ -52,17 +69,7 @@ export default function Button({
       {...alpineProps}
       {...restProps}
     >
-      <HoverContainer
-        variant={variant}
-        color={color}
-        padding="none"
-        direction="row"
-        align="center"
-        justify="center"
-        className={containerClasses}
-      >
-        {children}
-      </HoverContainer>
+      {container}
     </button>
   );
 }

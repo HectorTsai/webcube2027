@@ -67,16 +67,17 @@ export default async function CardTestPage() {
     return { color, card };
   }));
 
-  const widths: CardProps['width'][] = ["xs", "sm", "md", "lg", "xl", "full"];
-  const widthCards = await Promise.all(widths.map(async (width) => {
+  const widthClasses = ["w-32", "w-48", "w-64", "w-80", "w-96", "w-full"];
+  const widthLabels = ["w-32", "w-48", "w-64", "w-80", "w-96", "w-full"];
+  const widthCards = await Promise.all(widthClasses.map(async (widthClass, index) => {
     const card = await Card({
       variant: "solid",
       color: "primary",
-      width,
       padding: "md",
-      children: <div>寬度: {width}</div>
+      className: widthClass,
+      children: <div>寬度: {widthLabels[index]}</div>
     });
-    return { width, card };
+    return { width: widthLabels[index], card };
   }));
 
   return (
@@ -119,9 +120,9 @@ export default async function CardTestPage() {
           <ul class="list-disc list-inside space-y-1 text-sm text-base-content/80">
             <li><strong>variant</strong>: 卡片樣式變體</li>
             <li><strong>color</strong>: 顏色主題</li>
-            <li><strong>width</strong>: 寬度設定</li>
             <li><strong>padding</strong>: 內距大小</li>
             <li><strong>direction</strong>: 佈局方向（row, column）</li>
+            <li><strong>className</strong>: 額外 CSS 類別，可用於設定寬度等樣式</li>
             <li>支援任意 Alpine.js x- 屬性</li>
           </ul>
         </div>

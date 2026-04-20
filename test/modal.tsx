@@ -123,7 +123,7 @@ export default async function ModalTestPage() {
     state: "widthModal",
     variant: "solid",
     color: "primary",
-    width: "lg",
+    width: "640px",
     children: (
       <>
         <ModalTitle>寬版 Modal</ModalTitle>
@@ -154,7 +154,7 @@ export default async function ModalTestPage() {
     state: "longContentModal",
     variant: "solid",
     color: "primary",
-    width: "xl",
+    width: "768px",
     children: (
       <>
         <ModalTitle>極限測試：超長內容</ModalTitle>
@@ -296,7 +296,7 @@ export default async function ModalTestPage() {
             <li><strong>closeOnEsc</strong>: 按 ESC 是否關閉，預設 true</li>
             <li><strong>variant</strong>: Container 樣式變體</li>
             <li><strong>color</strong>: 顏色主題</li>
-            <li><strong>width</strong>: 寬度設定，預設 "md"</li>
+            <li><strong>width</strong>: 寬度設定，預設 "480px"</li>
             <li><strong>rounded</strong>: 圓角，預設 "lg"</li>
             <li><strong>shadow</strong>: 陰影，預設 "lg"</li>
             <li><strong>ModalTitle</strong>: 標題子組件</li>

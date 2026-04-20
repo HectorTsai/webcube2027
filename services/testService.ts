@@ -63,13 +63,31 @@ async function 渲染測試頁面(c: Context, 測試名稱: string): Promise<Res
     const TestPage = 測試模組.default;
     
     // 執行測試頁面函數
-    const jsxContent = await TestPage();
+    let jsxContent;
+    try {
+      jsxContent = await TestPage();
+    } catch (执行错误) {
+      await error('Test Service', `測試頁面執行失敗: ${測試名稱} - ${执行错误}`);
+      return await 渲染測試錯誤頁面(c, 执行错误);
+    }
     
     // 轉換為字串
-    const htmlContent = String(jsxContent);
+    let htmlContent;
+    try {
+      htmlContent = String(jsxContent);
+    } catch (转换错误) {
+      await error('Test Service', `測試頁面轉換失敗: ${測試名稱} - ${转换错误}`);
+      return await 渲染測試錯誤頁面(c, 转换错误);
+    }
     
     // 產生 UnoCSS 樣式
-    const css = await 產生樣式(htmlContent);
+    let css;
+    try {
+      css = await 產生樣式(htmlContent);
+    } catch (样式错误) {
+      await error('Test Service', `樣式產生失敗: ${測試名稱} - ${样式错误}`);
+      return await 渲染測試錯誤頁面(c, 样式错误);
+    }
     
     // 建構完整 HTML
     const 完整HTML = `

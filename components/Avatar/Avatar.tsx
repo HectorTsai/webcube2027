@@ -2,16 +2,7 @@ import type { AvatarProps } from "./index.tsx";
 import Icon from "../Icon.tsx";
 import Image from "../Image.tsx";
 import Container from "../Container/index.tsx";
-
-const sizeDimensions: Record<string, string> = {
-  xs: "w-8 h-8",
-  sm: "w-10 h-10",
-  md: "w-12 h-12",
-  lg: "w-16 h-16",
-  xl: "w-20 h-20",
-  "2xl": "w-24 h-24",
-  "3xl": "w-32 h-32",
-};
+import { sizeMap } from "../classes.ts";
 
 export default async function Avatar({
   icon,
@@ -25,7 +16,7 @@ export default async function Avatar({
   context,
   ...restProps
 }: AvatarProps) {
-  const sizeDimension = sizeDimensions[size] || sizeDimensions.md;
+  const sizeValue = sizeMap[size] || sizeMap.md;
 
   let content: unknown = null;
 
@@ -46,7 +37,6 @@ export default async function Avatar({
   }
 
   const finalClasses = [
-    sizeDimension,
     "!rounded-full",
     "p-2",
     className
@@ -57,7 +47,8 @@ export default async function Avatar({
       direction="column"
       color={color}
       variant={variant}
-      width="full"
+      width={sizeValue}
+      height={sizeValue}
       padding="none"
       margin="none"
       align="center"

@@ -1,6 +1,6 @@
 // UnoCSS 統一生成器
 // 根據骨架和配色動態生成 UnoCSS 配置和所有 classes
-
+import { parseCssColor, colorToString } from '@unocss/rule-utils'
 import 配色 from "../database/models/配色.ts";
 import 骨架 from "../database/models/骨架.ts";
 import { 快取管理器 } from './unocss-cache.ts';
@@ -70,7 +70,7 @@ export class UnoCSS生成器 {
       }
       
       // 為所有顏色添加亮度變數（用於漸層）
-      if (['primary', 'secondary', 'accent', 'info', 'success', 'warning', 'error'].includes(key)) {
+      if (['primary', 'secondary', 'accent', 'neutral', 'base', 'info', 'success', 'warning', 'error'].includes(key)) {
         // 生成亮度變數 - 用於漸層效果
         if (value.includes(' ')) {
           const [l, c, h] = value.split(' ');
@@ -140,19 +140,6 @@ export class UnoCSS生成器 {
       if (骨架配置.陰影) {
         Object.entries(骨架配置.陰影).forEach(([key, value]) => {
           variables.push(`  --shadow-${key}: ${value};`);
-        });
-      }
-      
-      // 動畫
-      if (骨架配置.動畫) {
-        const 動畫鍵對照: Record<string, string> = {
-          '抽屜': 'drawer', '視窗': 'modal', '下拉選單': 'dropdown',
-          '左': 'left', '右': 'right', '上': 'top', '下': 'bottom',
-          '開': 'open', '關': 'close',
-        };
-        Object.entries(骨架配置.動畫).forEach(([key, value]) => {
-          const cssKey = key.split('.').map(k => 動畫鍵對照[k] || k).join('-');
-          variables.push(`  --animation-${cssKey}: ${value};`);
         });
       }
     }
@@ -312,10 +299,6 @@ export class UnoCSS生成器 {
         70: 'oklch(var(--color-error-light-70) / %alpha)',
         90: 'oklch(var(--color-error-light-90) / %alpha)',
       },
-      // 基礎顏色
-      white: 'oklch(var(--color-white) / %alpha)',
-      black: 'oklch(var(--color-black) / %alpha)',
-      transparent: 'transparent'
     };
   }
   
@@ -340,6 +323,54 @@ export class UnoCSS生成器 {
       [/^theme-(.+)$/, ([, theme]: [string, string]) => ({
         '--theme': theme
       })] as any,
+      [/^bg-crystal-(.+)$/, ([, color]: [string, string]) => ({
+        'background-image': `
+          linear-gradient(to bottom, rgba(255,255,255,0.8), rgba(255,255,255,0.1) 50%, transparent 50%),
+          linear-gradient(to top, oklch(var(--color-${color})), oklch(var(--color-${color}-light-50)), oklch(var(--color-${color})))
+        `.replace(/\s+/g, ' ').trim(),
+        'backdrop-filter': 'blur(12px)',
+        '-webkit-backdrop-filter': 'blur(12px)',
+      })],
+      [/^bg-crystal-hover-(.+)$/, ([, color]: [string, string]) => ({
+        'background-image': `
+          linear-gradient(to bottom, rgba(255,255,255,0.8), rgba(255,255,255,0.1) 50%, transparent 50%),
+          linear-gradient(to top, oklch(var(--color-${color})), oklch(var(--color-${color}-light-30)), oklch(var(--color-${color})))
+        `.replace(/\s+/g, ' ').trim(),
+        'backdrop-filter': 'blur(12px)',
+        '-webkit-backdrop-filter': 'blur(12px)',
+      })],
+      [/^bg-conic-\[(.+)\]$/, ([, contents]: [string, string], { theme }) => {
+          // 1. 處理底線轉空格，並用逗號分割
+          const parts = contents.replace(/_/g, ' ').split(',')
+          const resolvedParts = parts.map(part => {
+            const name = part.trim()
+            const baseColors = ['primary', 'secondary', 'accent', 'info', 'success', 'warning', 'error', 'base', "neutral"]
+            
+            // 1. 處理帶數字的層級，例如 primary-50 -> --color-primary-light-50
+            if (/^([a-z]+)-(\d+)$/.test(name)) {
+              const [base] = name.split('-')
+              if (baseColors.includes(base)) return `oklch(var(--color-${name.replace('-', '-light-')}) / 1)`
+            }
+            if (baseColors.includes(name) || name.endsWith('-content')) {
+              return `oklch(var(--color-${name}) / 1)`
+            }
+            // 2. 使用 parseCssColor 處理 gray-300, black 等
+            const colorPath = name.split('-')
+            let obj = theme.colors
+            for (const key of colorPath) {
+              obj = obj?.[key]
+              if (typeof obj === 'string') break 
+            }
+            if (typeof obj === 'string') return obj
+            if (obj && typeof obj === 'object' && obj.DEFAULT) return obj.DEFAULT
+
+            return name
+          })
+
+          return { 
+            'background-image': `conic-gradient(${resolvedParts.join(', ')})` 
+          }
+      }],
       ['shadow-sm', { 'box-shadow': 'var(--shadow-sm)' }] as any,
       ['shadow-md', { 'box-shadow': 'var(--shadow-md)' }] as any,
       ['shadow-lg', { 'box-shadow': 'var(--shadow-lg)' }] as any,
@@ -355,14 +386,14 @@ export class UnoCSS生成器 {
   getShortcuts() {
     return {
       // 按鈕
-      'btn': 'px-4 py-2 rounded-sm transition-colors duration-200',
-      'btn-primary': 'btn bg-primary text-primary-content hover:opacity-90',
-      'btn-secondary': 'btn bg-secondary text-secondary-content hover:opacity-90',
-      'btn-accent': 'btn bg-accent text-accent-content hover:opacity-90',
-      'btn-info': 'btn bg-info text-primary-content hover:opacity-90',
-      'btn-success': 'btn bg-success text-primary-content hover:opacity-90',
-      'btn-warning': 'btn bg-warning text-primary-content hover:opacity-90',
-      'btn-error': 'btn bg-error text-primary-content hover:opacity-90',
+      'btn': 'px-4 py-2 rounded-sm transition-colors duration-200 no-underline',
+      'btn-primary': 'btn bg-primary text-primary-content hover:bg-primary-70',
+      'btn-secondary': 'btn bg-secondary text-secondary-content hover:bg-secondary-70',
+      'btn-accent': 'btn bg-accent text-accent-content hover:bg-accent-70',
+      'btn-info': 'btn bg-info text-primary-content hover:bg-info-70',
+      'btn-success': 'btn bg-success text-primary-content hover:bg-success-70',
+      'btn-warning': 'btn bg-warning text-primary-content hover:bg-warning-70',
+      'btn-error': 'btn bg-error text-primary-content hover:bg-error-70',
       
       // 按鈕尺寸
       'btn-xs': 'px-2 py-1 text-xs',
@@ -391,7 +422,12 @@ export class UnoCSS生成器 {
       'icon-sm': 'inline-block align-middle', 
       'icon-md': 'inline-block align-middle',
       'icon-lg': 'inline-block align-middle',
-      'icon-xl': 'inline-block align-middle'
+      'icon-xl': 'inline-block align-middle',
+      
+      // 步驟組件
+      'steps': 'flex list-none p-0 m-0',
+      'steps:first-child .step:first-child .step-left-line': 'hidden',
+      'steps:last-child .step:last-child .step-right-line': 'hidden'
     };
   }
   

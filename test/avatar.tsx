@@ -28,7 +28,7 @@ export default async function AvatarTestPage() {
     'gradient-cone',
     'minimalist'
   ];
-  
+
   const colors: AvatarProps['color'][] = [
     'primary',
     'secondary',
@@ -38,7 +38,7 @@ export default async function AvatarTestPage() {
     'warning',
     'error',
   ];
-  
+
   const sizes: AvatarProps['size'][] = [
     'xs',
     'sm',
@@ -49,7 +49,6 @@ export default async function AvatarTestPage() {
     '3xl'
   ];
 
-  // 渲染所有 variant
   const variantAvatars = await Promise.all(variants.map(async (variant) => {
     const avatars = await Promise.all(colors.map((color) => {
       return Avatar({ variant, color, svg: testSvgs.user });
@@ -57,104 +56,123 @@ export default async function AvatarTestPage() {
     return { variant, avatars };
   }));
 
-  // 渲染 SVG 來源測試
   const svgAvatars = await Promise.all([
     Avatar({ svg: testSvgs.star, size: "md", variant: "solid", color: "primary" }),
     Avatar({ svg: testSvgs.heart, size: "md", variant: "solid", color: "secondary" }),
     Avatar({ svg: testSvgs.check, size: "md", variant: "solid", color: "accent" }),
+    Avatar({ svg: testSvgs.user, size: "md", variant: "solid", color: "info" }),
+    Avatar({ svg: testSvgs.user, size: "md", variant: "solid", color: "success" }),
+    Avatar({ svg: testSvgs.user, size: "md", variant: "solid", color: "warning" }),
+    Avatar({ svg: testSvgs.user, size: "md", variant: "solid", color: "error" }),
   ]);
 
-  // 渲染 Image 來源測試
   const imageAvatars = await Promise.all([
     Avatar({ image: "影像:影像:hono", size: "md", variant: "solid", color: "primary" }),
     Avatar({ image: "影像:影像:surrealDB", size: "md", variant: "solid", color: "secondary" }),
     Avatar({ image: "影像:影像:deno2", size: "md", variant: "solid", color: "accent" }),
+    Avatar({ image: "影像:影像:hono", size: "md", variant: "solid", color: "info" }),
+    Avatar({ image: "影像:影像:surrealDB", size: "md", variant: "solid", color: "success" }),
+    Avatar({ image: "影像:影像:deno2", size: "md", variant: "solid", color: "warning" }),
+    Avatar({ image: "影像:影像:hono", size: "md", variant: "solid", color: "error" }),
   ]);
 
-  // 渲染不同尺寸測試
-  const sizeAvatars = await Promise.all(sizes.map(size => 
+  const sizeAvatars = await Promise.all(sizes.map(size =>
     Avatar({ svg: testSvgs.user, variant: "solid", size, color: "primary" })
   ));
 
   return (
-    <div class="container mx-auto p-6 space-y-8">
-      <section>
-        <h1 class="text-3xl font-bold mb-2">Avatar 組件測試</h1>
-        <p class="text-base-content/70">以下展示各種 Avatar 配置</p>
+    <div class="p-4 max-w-full mx-auto bg-gray-50">
+      <h1 class="text-2xl font-bold mb-6 text-center">Avatar 測試</h1>
+
+      <section class="mb-8 p-4 bg-white rounded-lg shadow">
+        <h2 class="text-lg font-bold mb-4">SVG / Image 來源</h2>
+        <table class="border-collapse">
+          <thead>
+            <tr>
+              <th class="p-2 text-right"></th>
+              {colors.map((color) => (
+                <th key={color} class="p-2 text-center text-xs font-semibold">
+                  {color.charAt(0).toUpperCase() + color.slice(1)}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="p-2 font-semibold text-right">SVG</td>
+              {svgAvatars.map((avatar, i) => (
+                <td key={i} class="p-2 text-center">
+                  <div class="flex justify-center">{avatar}</div>
+                </td>
+              ))}
+            </tr>
+            <tr>
+              <td class="p-2 font-semibold text-right">Image</td>
+              {imageAvatars.map((avatar, i) => (
+                <td key={i} class="p-2 text-center">
+                  <div class="flex justify-center">{avatar}</div>
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="mb-8 p-4 bg-white rounded-lg shadow">
+        <h2 class="text-lg font-bold mb-4">尺寸變化</h2>
+        <table class="border-collapse">
+          <thead>
+            <tr>
+              <th class="p-2 text-right"></th>
+              {sizes.map((size) => (
+                <th key={size} class="p-2 text-center text-xs font-semibold">
+                  {size}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="p-2 font-semibold text-right">Solid</td>
+              {sizeAvatars.map((avatar, i) => (
+                <td key={i} class="p-2 text-center">
+                  <div class="flex justify-center">{avatar}</div>
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
       </section>
 
       {variantAvatars.map(({ variant, avatars }) => (
-        <section>
-          <h2 class="text-2xl font-semibold mb-4">{variant.charAt(0).toUpperCase() + variant.slice(1)} Avatar</h2>
-          <div class="flex flex-wrap gap-4">
-            {avatars.map((avatar, i) => (
-              <div class="flex flex-col items-center gap-2">
-                <div class="p-4 bg-base-200 rounded-lg">
-                  {avatar}
-                </div>
-                <span class="text-sm">{colors[i]}</span>
-              </div>
-            ))}
-          </div>
+        <section class="mb-6 p-4 bg-white rounded-lg shadow">
+          <h2 class="text-lg font-bold mb-3 pb-2 border-b border-gray-300">
+            {variant.charAt(0).toUpperCase() + variant.slice(1)}
+          </h2>
+          <table class="border-collapse">
+            <thead>
+              <tr>
+                <th class="p-2 text-right"></th>
+                {colors.map((color) => (
+                  <th key={color} class="p-2 text-center text-xs font-semibold">
+                    {color.charAt(0).toUpperCase() + color.slice(1)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="p-2 font-semibold text-right"></td>
+                {avatars.map((avatar, i) => (
+                  <td key={i} class="p-2 text-center">
+                    <div class="flex justify-center">{avatar}</div>
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
         </section>
       ))}
-
-      <section>
-        <h2 class="text-2xl font-semibold mb-4">SVG 來源</h2>
-        <div class="flex flex-wrap gap-4">
-          {svgAvatars.map((avatar, i) => (
-            <div class="flex flex-col items-center gap-2">
-              <div class="p-4 bg-base-200 rounded-lg">
-                {avatar}
-              </div>
-              <span class="text-sm text-base-content/70">{['star', 'heart', 'check'][i]}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2 class="text-2xl font-semibold mb-4">Image 來源</h2>
-        <div class="flex flex-wrap gap-4">
-          {imageAvatars.map((avatar, i) => (
-            <div class="flex flex-col items-center gap-2">
-              <div class="p-4 bg-base-200 rounded-lg">
-                {avatar}
-              </div>
-              <span class="text-sm text-base-content/70">{['hono', 'surrealDB', 'deno2'][i]}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2 class="text-2xl font-semibold mb-4">尺寸變化測試</h2>
-        <div class="flex flex-wrap gap-4 items-end">
-          {sizeAvatars.map((avatar, i) => (
-            <div class="flex flex-col items-center gap-2">
-              <div class="p-4 bg-base-200 rounded-lg">
-                {avatar}
-              </div>
-              <span class="text-sm text-base-content/70">{sizes[i]}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <div class="mt-8 p-4 bg-base-200 rounded-lg">
-        <h3 class="text-lg font-semibold mb-2">使用說明</h3>
-        <ul class="list-disc list-inside space-y-1 text-sm text-base-content/80">
-          <li><strong>variant</strong>: Avatar 樣式變體（solid、outline、ghost 等）</li>
-          <li><strong>color</strong>: Avatar 顏色主題</li>
-          <li><strong>size</strong>: Avatar 尺寸</li>
-          <li><strong>src</strong>: 直接圖片來源 URL</li>
-          <li><strong>icon</strong>: 圖示 ID 從資料庫（如 "圖示:圖示:user"）</li>
-          <li><strong>image</strong>: 圖片 ID 從資料庫（如 "影像:影像:hono"）</li>
-          <li><strong>svg</strong>: SVG 字串內容</li>
-          <li><strong>className</strong>: 額外的 CSS 類名</li>
-          <li>支援任意屬性（包括 Alpine.js x- 屬性和事件處理器）</li>
-        </ul>
-      </div>
     </div>
   );
 }

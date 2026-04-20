@@ -5,7 +5,6 @@ export default function Card({
   variant = "solid",
   color = "primary",
   direction = "column",
-  width = "full",
   padding = "md",
   margin = "none",
   align = "start",
@@ -25,7 +24,8 @@ export default function Card({
     variant={variant} 
     color={color}
     direction={direction}
-    width={width}
+    width="auto"
+    height="auto"
     padding={padding}
     margin={margin}
     align={align}

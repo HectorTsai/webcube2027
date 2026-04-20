@@ -2,20 +2,20 @@ import type { DrawerProps } from "./index.tsx";
 import Container from "../Container/index.tsx";
 
 const defaultAnimateInMap: Record<string, string> = {
-  left: "slide-in-from-left",
-  right: "slide-in-from-right",
-  top: "slide-in-from-top",
-  bottom: "slide-in-from-bottom",
+  left: "animate-in slide-in-from-left",
+  right: "animate-in slide-in-from-right",
+  top: "animate-in slide-in-from-top",
+  bottom: "animate-in slide-in-from-bottom",
 };
 
 const defaultAnimateOutMap: Record<string, string> = {
-  left: "slide-out-to-left",
-  right: "slide-out-to-right",
-  top: "slide-out-to-top",
-  bottom: "slide-out-to-bottom",
+  left: "animate-out slide-out-to-left",
+  right: "animate-out slide-out-to-right",
+  top: "animate-out slide-out-to-top",
+  bottom: "animate-out slide-out-to-bottom",
 };
 
-export default function Drawer({
+export default async function Drawer({
   children,
   state = "drawerOpen",
   store = "drawers",
@@ -26,22 +26,36 @@ export default function Drawer({
   animateOut,
   variant = "solid",
   color = "primary",
-  width = "sm",
+  width = "320px",
   padding = "lg",
   rounded = "none",
   shadow = "lg",
   className,
+  skeleton,
   ...restProps
 }: DrawerProps) {
   const ref = `$store.${store}.${state}`;
 
-  const inClass = animateIn || defaultAnimateInMap[position];
-  const outClass = animateOut || defaultAnimateOutMap[position];
+  // 優先使用傳入的動畫，其次使用骨架設定，最後使用預設值
+  const positionMap: Record<string, string> = {
+    left: '左',
+    right: '右',
+    top: '上',
+    bottom: '下'
+  };
+  
+  const inClass = animateIn || 
+    (skeleton?.動畫 && skeleton.動畫[`抽屜.${positionMap[position]}.開`]) ||
+    defaultAnimateInMap[position];
+  
+  const outClass = animateOut ||
+    (skeleton?.動畫 && skeleton.動畫[`抽屜.${positionMap[position]}.關`]) ||
+    defaultAnimateOutMap[position];
 
   const backdropClasses = [
     "fixed",
     "inset-0",
-    "z-40",
+    "z-50",
     "bg-gray-900/50",
   ].join(" ");
 
@@ -74,18 +88,37 @@ export default function Drawer({
 
   const drawerAlpine: Record<string, string> = {
     'x-show': ref,
-    'x-transition:enter': `animate-in ${inClass}`,
-    'x-transition:leave': `animate-out ${outClass}`,
+    'x-transition:enter': `${inClass}`,
+    'x-transition:leave': `${outClass}`,
     'x-on:click.stop': '',
   };
 
   const drawerClasses = [
     "fixed",
     positionClassesMap[position],
-    "z-50",
+    "z-51",
+    "!m-0",
     overflowClasses,
     className,
   ].filter(Boolean).join(" ");
+
+  // 渲染 Container 组件作为 Drawer 的内容
+  const container = await Container({
+    variant,
+    color,
+    width: isHorizontal ? width : "full",
+    padding,
+    rounded,
+    shadow,
+    direction: "column",
+    align: "start",
+    justify: "start",
+    gap: "md",
+    className: drawerClasses,
+    ...drawerAlpine,
+    ...restProps,
+    children
+  });
 
   return (
     <>
@@ -93,23 +126,7 @@ export default function Drawer({
         class={backdropClasses}
         {...backdropAlpine}
       />
-      <Container
-        variant={variant}
-        color={color}
-        width={isHorizontal ? width : "full"}
-        padding={padding}
-        rounded={rounded}
-        shadow={shadow}
-        direction="column"
-        align="start"
-        justify="start"
-        gap="md"
-        className={drawerClasses}
-        {...drawerAlpine}
-        {...restProps}
-      >
-        {children}
-      </Container>
+      {container}
     </>
   );
 }

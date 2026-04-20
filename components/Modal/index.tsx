@@ -20,7 +20,7 @@ export interface ModalProps {
   /** 顏色主題 */
   color?: "primary" | "secondary" | "accent" | "info" | "success" | "warning" | "error";
   /** 寬度設定 */
-  width?: "xs" | "sm" | "md" | "lg" | "xl" | "full" | "auto";
+  width?: string;
   /** 內距 */
   padding?: "none" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
   /** 圓角 */
@@ -29,6 +29,10 @@ export interface ModalProps {
   shadow?: "none" | "sm" | "md" | "lg";
   /** 額外 CSS 類別 */
   className?: string;
+  /** 骨架設定（自動注入） */
+  skeleton?: {
+    動畫?: Record<string, string>;
+  };
   /** Any additional props (including Alpine.js x- attributes and event handlers) */
   [key: string]: any;
 }

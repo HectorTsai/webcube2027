@@ -7,18 +7,27 @@ export default function Modal({
   store = "modals",
   closeOnBackdrop = true,
   closeOnEsc = true,
-  animateIn = "fade-in zoom-in",
-  animateOut = "fade-out zoom-out",
+  animateIn,
+  animateOut,
   variant = "solid",
   color = "primary",
-  width = "md",
+  width = "480px",
   padding = "lg",
   rounded = "lg",
   shadow = "lg",
   className,
+  skeleton,
   ...restProps
 }: ModalProps) {
   const ref = `$store.${store}.${state}`;
+
+  const inClass = animateIn || 
+    (skeleton?.動畫 && skeleton.動畫['視窗.開']) ||
+    "animate-in fade-in zoom-in";
+  
+  const outClass = animateOut ||
+    (skeleton?.動畫 && skeleton.動畫['視窗.關']) ||
+    "animate-out fade-out zoom-out";
 
   const backdropClasses = [
     "fixed",
@@ -46,8 +55,8 @@ export default function Modal({
 
   const modalAlpine: Record<string, string> = {
     'x-show': ref,
-    'x-transition:enter': `animate-in ${animateIn}`,
-    'x-transition:leave': `animate-out ${animateOut}`,
+    'x-transition:enter': animateIn,
+    'x-transition:leave': animateOut,
     'x-on:click.stop': '',
   };
 

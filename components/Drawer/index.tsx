@@ -1,3 +1,5 @@
+import 骨架 from "../../database/models/骨架.ts";
+
 export interface DrawerProps {
   children: unknown;
   /** Alpine.js Store 中的狀態鍵名 */
@@ -15,11 +17,13 @@ export interface DrawerProps {
            "gradient-right" | "gradient-left" | "gradient-up" | "gradient-down" | "gradient-middle" |
            "gradient-diagonal" | "gradient-center" | "gradient-cone" | "crystal" | "diagonal-stripes" | "glow" | "minimalist";
   color?: "primary" | "secondary" | "accent" | "info" | "success" | "warning" | "error";
-  width?: "xs" | "sm" | "md" | "lg" | "xl" | "full" | "auto";
+  width?: string;
   padding?: "none" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
   rounded?: "none" | "sm" | "md" | "lg";
   shadow?: "none" | "sm" | "md" | "lg";
   className?: string;
+  /** 骨架設定（自動注入） */
+  skeleton?: 骨架;
   [key: string]: any;
 }
 

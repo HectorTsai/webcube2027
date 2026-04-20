@@ -11,6 +11,9 @@ export interface ButtonProps {
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
   /** Whether the button is disabled and cannot be clicked */
   disabled?: boolean;
+  /** Whether the button is in active state */
+  active?: boolean;
+  rounded?:"sm";
   /** Button type for form submission behavior */
   type?: "button" | "submit" | "reset";
   /** Alpine.js click event handler - JavaScript expression to execute when clicked */

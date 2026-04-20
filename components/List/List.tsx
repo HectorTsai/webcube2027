@@ -15,6 +15,7 @@ export default function List({
     "w-full",
     "flex",
     "flex-col",
+    "box-border",
     divider && "divide-y divide-base-200",
     compact && "p-0" || "p-1",
     className

@@ -33,12 +33,12 @@ export default async function DrawerTestPage() {
     "error"
   ];
 
-  const leftVariantItems = await Promise.all(variants.slice(0, 6).map(async (v, index) => {
+  const leftVariantItems = await Promise.all(variants.map(async (v, index) => {
     const drawer = await Drawer({
       state: `leftDrawer${index}`,
       position: "left",
-      variant: v,
       color: "primary",
+      variant: v,
       children: (
         <>
           <DrawerTitle>{v!.charAt(0).toUpperCase() + v!.slice(1)} Drawer</DrawerTitle>
@@ -53,12 +53,12 @@ export default async function DrawerTestPage() {
     return { variant: v, drawer, index };
   }));
 
-  const rightVariantItems = await Promise.all(variants.slice(0, 6).map(async (v, index) => {
+  const rightVariantItems = await Promise.all(variants.map(async (v, index) => {
     const drawer = await Drawer({
       state: `rightDrawer${index}`,
       position: "right",
+      color: "warning",
       variant: v,
-      color: "secondary",
       children: (
         <>
           <DrawerTitle>{v!.charAt(0).toUpperCase() + v!.slice(1)} Drawer</DrawerTitle>
@@ -77,7 +77,6 @@ export default async function DrawerTestPage() {
     const drawer = await Drawer({
       state: `colorDrawer${index}`,
       position: "left",
-      variant: "solid",
       color: c,
       children: (
         <>
@@ -95,7 +94,6 @@ export default async function DrawerTestPage() {
   const backdropOffDrawer = await Drawer({
     state: "backdropOffDrawer",
     position: "left",
-    variant: "solid",
     color: "primary",
     closeOnBackdrop: false,
     children: (
@@ -112,7 +110,6 @@ export default async function DrawerTestPage() {
   const escOffDrawer = await Drawer({
     state: "escOffDrawer",
     position: "right",
-    variant: "solid",
     color: "secondary",
     closeOnEsc: false,
     children: (
@@ -129,7 +126,6 @@ export default async function DrawerTestPage() {
   const bothOffDrawer = await Drawer({
     state: "bothOffDrawer",
     position: "left",
-    variant: "outline",
     color: "accent",
     closeOnBackdrop: false,
     closeOnEsc: false,
@@ -147,7 +143,6 @@ export default async function DrawerTestPage() {
   const longContentDrawer = await Drawer({
     state: "longContentDrawer",
     position: "left",
-    variant: "solid",
     color: "primary",
     width: "md",
     children: (
@@ -188,7 +183,6 @@ export default async function DrawerTestPage() {
   const rightDrawer = await Drawer({
     state: "rightDrawer",
     position: "right",
-    variant: "solid",
     color: "info",
     width: "md",
     children: (
@@ -205,7 +199,6 @@ export default async function DrawerTestPage() {
   const topDrawer = await Drawer({
     state: "topDrawer",
     position: "top",
-    variant: "solid",
     color: "success",
     children: (
       <>
@@ -221,7 +214,6 @@ export default async function DrawerTestPage() {
   const bottomDrawer = await Drawer({
     state: "bottomDrawer",
     position: "bottom",
-    variant: "solid",
     color: "warning",
     children: (
       <>
@@ -235,8 +227,8 @@ export default async function DrawerTestPage() {
   });
 
   const storeData = `{${[
-    ...variants.slice(0, 6).map((_, i) => `leftDrawer${i}: false`),
-    ...variants.slice(0, 6).map((_, i) => `rightDrawer${i}: false`),
+    ...variants.map((_, i) => `leftDrawer${i}: false`),
+    ...variants.map((_, i) => `rightDrawer${i}: false`),
     ...colors.map((_, i) => `colorDrawer${i}: false`),
     'backdropOffDrawer: false',
     'escOffDrawer: false',
@@ -273,7 +265,7 @@ export default async function DrawerTestPage() {
         <h2 class="text-2xl font-semibold mb-4">右側 Drawer（Variants）</h2>
         <div class="flex flex-wrap gap-3">
           {rightVariantItems.map(({ variant, index }) => (
-            <Button variant={variant!} color="secondary" x-on:click={`$store.drawers.rightDrawer${index} = true`}>
+            <Button variant={variant!} color="warning" x-on:click={`$store.drawers.rightDrawer${index} = true`}>
               {variant!.charAt(0).toUpperCase() + variant!.slice(1)} →
             </Button>
           ))}

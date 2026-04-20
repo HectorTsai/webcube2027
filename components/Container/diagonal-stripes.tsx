@@ -1,10 +1,12 @@
 import type { ContainerProps } from "./index.tsx";
+import { paddingClasses, marginClasses, alignClasses, justifyClasses, gapClasses, roundedClasses, shadowClasses, directionClasses } from "../classes.ts";
 
 export default function DiagonalStripesContainer({
   children,
   direction = "column",
   color = "primary",
-  width = "full",
+  width = "auto",
+  height = "auto",
   padding = "md",
   margin = "none",
   align = "start",
@@ -12,95 +14,35 @@ export default function DiagonalStripesContainer({
   gap = "none",
   rounded = "lg",
   shadow = "none",
+  active = true,
+  hover = false,
   className,
   ...restProps}: ContainerProps) {
-  const widthClasses = {
-    xs: "max-w-xs",
-    sm: "max-w-sm",
-    md: "max-w-md",
-    lg: "max-w-lg",
-    xl: "max-w-xl",
-    full: "max-w-full",
-    auto: "w-auto",
-  };
 
-  const paddingClasses = {
-    none: "p-0",
-    xs: "p-xs",
-    sm: "p-sm",
-    md: "p-md",
-    lg: "p-lg",
-    xl: "p-xl",
-    "2xl": "p-2xl",
-  };
+  const colorPrefix = active ? color : `base`;
+  const textColor = active ? `${color}-content` : `base-content`;
 
-  const marginClasses = {
-    none: "m-0",
-    xs: "m-xs",
-    sm: "m-sm",
-    md: "m-md",
-    lg: "m-lg",
-    xl: "m-xl",
-    auto: "mx-auto",
-  };
-
-  const alignClasses = {
-    start: "items-start",
-    center: "items-center",
-    end: "items-end",
-    stretch: "items-stretch",
-  };
-
-  const justifyClasses = {
-    start: "justify-start",
-    center: "justify-center",
-    end: "justify-end",
-    between: "justify-between",
-    around: "justify-around",
-    evenly: "justify-evenly",
-  };
-
-  const gapClasses = {
-    none: "gap-0",
-    xs: "gap-xs",
-    sm: "gap-sm",
-    md: "gap-md",
-    lg: "gap-lg",
-    xl: "gap-xl",
-  };
-
-  const roundedClasses = {
-    none: "rounded-none",
-    sm: "rounded-sm",
-    md: "rounded-md",
-    lg: "rounded-lg",
-  };
-
-  const shadowClasses = {
-    none: "shadow-none",
-    sm: "shadow-sm",
-    md: "shadow-md",
-    lg: "shadow-lg",
-  };
-
-  const directionClasses = {
-    row: "flex-row",
-    column: "flex-col",
-  };
+  const widthStyle = (width === "full" || width === "auto") ? undefined : width;
+  const heightStyle = (height === "full" || height === "auto") ? undefined : height;
+  const widthClass = (width === "full" || width === "auto") ? `w-${width}` : undefined;
+  const heightClass = (height === "full" || height === "auto") ? `h-${height}` : undefined;
 
   const finalClasses = [
     "flex",
     directionClasses[direction],
-    widthClasses[width],
+    widthClass,
+    heightClass,
     paddingClasses[padding],
     marginClasses[margin],
     alignClasses[align],
     justifyClasses[justify],
     gapClasses[gap],
-    `text-${color}-content`,
+    `text-${textColor}`,
     "border-0",
     roundedClasses[rounded],
-    shadowClasses[shadow]
+    shadowClasses[shadow],
+    hover ? "transition-all duration-200" : undefined,
+    hover ? `hover:shadow-md hover:shadow-${colorPrefix}/30` : undefined
   ];
 
   if (className) {
@@ -109,12 +51,23 @@ export default function DiagonalStripesContainer({
 
   const classes = finalClasses.filter(Boolean).join(" ");
 
-  const gradient = `repeating-linear-gradient(45deg, oklch(var(--color-${color})/1) 0px, oklch(var(--color-${color})/1) 10px, oklch(var(--color-${color}-light-70)/1) 10px, oklch(var(--color-${color}-light-70)/1) 20px)`;
+  const gradient = `repeating-linear-gradient(45deg, oklch(var(--color-${colorPrefix})/1) 0px, oklch(var(--color-${colorPrefix})/1) 10px, oklch(var(--color-${colorPrefix}-light-70)/1) 10px, oklch(var(--color-${colorPrefix}-light-70)/1) 20px)`;
+  const hoverGradient = `repeating-linear-gradient(-45deg, oklch(var(--color-${colorPrefix})/1) 0px, oklch(var(--color-${colorPrefix})/1) 10px, oklch(var(--color-${colorPrefix}-light-70)/1) 10px, oklch(var(--color-${colorPrefix}-light-70)/1) 20px)`;
 
   return (
     <div
+      {...(hover && {
+        'x-data': '{ hover: false }',
+        'x-on:mouseenter': 'hover = true',
+        'x-on:mouseleave': 'hover = false',
+        'x-bind:style': `{ backgroundImage: hover ? '${hoverGradient}' : '${gradient}' }`
+      })}
       class={classes}
-      style={{ backgroundImage: gradient }}
+      style={{ 
+        width: widthStyle, 
+        height: heightStyle,
+        ...(!hover && { backgroundImage: gradient })
+      }}
       {...restProps}
     >
       {children}

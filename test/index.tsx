@@ -13,6 +13,9 @@ export default function TestIndex() {
     { name: "Image 測試", path: "/test/image" },
     { name: "Modal 測試", path: "/test/modal" },
     { name: "Drawer 測試", path: "/test/drawer" },
+    { name: "Footer 測試", path: "/test/footer" },
+    { name: "MenuBar 測試", path: "/test/menu-bar" },
+    { name: "Steps 測試", path: "/test/steps" },
   ];
 
   return (
