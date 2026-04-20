@@ -89,9 +89,9 @@ export default function StepsTestPage() {
   const stepsWithComplete = (
     <Steps>
       <Step completed color="success">Completed Step</Step>
-      <Step completed>No Active Step</Step>
+      <Step completed>Completed Step</Step>
       <Step>Next Step</Step>
-      <Step disabled>Disabled Step</Step>
+      <Step>Next Step</Step>
     </Steps>
   );
 
@@ -99,7 +99,7 @@ export default function StepsTestPage() {
     <div class="space-y-4">
       <div>
         <h3 class="text-lg font-semibold mb-2">Solid Variant</h3>
-        <Steps variant="solid">
+        <Steps variant="solid" color="info">
           <Step active>Step 1</Step>
           <Step active>Step 2</Step>
           <Step>Step 3</Step>
@@ -115,7 +115,7 @@ export default function StepsTestPage() {
       </div>
       <div>
         <h3 class="text-lg font-semibold mb-2">Crystal Variant</h3>
-        <Steps variant="crystal">
+        <Steps variant="crystal" color="error">
           <Step active>Step 1</Step>
           <Step active>Step 2</Step>
           <Step>Step 3</Step>

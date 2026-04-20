@@ -8,6 +8,7 @@ export interface StepsProps {
   children: unknown;
   vertical?: boolean;
   className?: string;
+  color?: "primary" | "secondary" | "accent" | "info" | "success" | "warning" | "error" | "neutral";
   variant?: "solid" | "outline" | "ghost" | "dot" | "dashed" | "double" | 
            "gradient-right" | "gradient-left" | "gradient-up" | "gradient-down" | "gradient-middle" |
            "gradient-diagonal" | "gradient-center" | "gradient-cone" | "crystal" | "diagonal-stripes" | "glow" | "minimalist";

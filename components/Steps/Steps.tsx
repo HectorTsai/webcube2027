@@ -1,7 +1,6 @@
 import type { StepsProps } from "./index.tsx";
 import Container from "../Container/index.tsx";
 import Icon from "../Icon.tsx";
-import icon from "../../services/mediaService/icon.ts";
 
 const colorLineMap: Record<string, string> = {
   primary: "bg-primary",
@@ -33,6 +32,7 @@ export default async function Steps({
   children,
   vertical = false,
   className,
+  color = "primary",
   variant = "solid",
 }: StepsProps) {
   const childArray = Array.isArray(children) ? children : children ? [children] : [];
@@ -42,8 +42,8 @@ export default async function Steps({
       const isActive = childProps.active || false;
       const isCompleted = childProps.completed || false;
       const isDisabled = childProps.disabled || false;
-      const childColor = childProps.color || "primary";
-      const prevActive = index > 0 ? ((childArray[index - 1] as any).props?.active || false) : false;
+      const childColor = childProps.color || color;
+      const prevActive = index > 0 ? ((childArray[index - 1] as any).props?.active || (childArray[index - 1] as any).props?.completed || false) : false;
 
       // 使用 Container 函數
       const ContainerComponent = await Container({
@@ -77,8 +77,8 @@ export default async function Steps({
                 (childArray[index + 1] as any).props?.active || false,
                 (childArray[index + 1] as any).props?.completed || false,
                 (childArray[index + 1] as any).props?.disabled || false,
-                (childArray[index + 1] as any).props?.color || "primary",
-                isActive
+                (childArray[index + 1] as any).props?.color || color,
+                isActive || isCompleted
               )}`}></div>
             )}
           </div>
@@ -101,7 +101,7 @@ export default async function Steps({
     const isActive = childProps.active || false;
     const isCompleted = childProps.completed || false;
     const isDisabled = childProps.disabled || false;
-    const childColor = childProps.color || "primary";
+    const childColor = childProps.color || color;
     const prevActive = index > 0 ? ((childArray[index - 1] as any).props?.active || (childArray[index - 1] as any).props?.completed || false) : false;
 
     // 使用 Container 函數
@@ -133,8 +133,8 @@ export default async function Steps({
             (childArray[index + 1] as any).props?.active || false,
             (childArray[index + 1] as any).props?.completed || false,
             (childArray[index + 1] as any).props?.disabled || false,
-            (childArray[index + 1] as any).props?.color || "primary",
-            isActive
+            (childArray[index + 1] as any).props?.color || color,
+            isActive || isCompleted
           ) : ""}`}></div>
         </div>
         <div class={`mt-2 text-sm text-center ${isDisabled ? "text-gray-400" : (isActive || isCompleted) ? "font-semibold" : ""}`}>
