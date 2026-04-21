@@ -20,6 +20,7 @@ export default function TestIndex() {
     { name: "Steps 測試", path: "/test/steps" },
     { name: "Timeline 測試", path: "/test/timeline" },
     { name: "Calendar 測試", path: "/test/calendar" },
+    { name: "Input 測試", path: "/test/input" },
   ];
 
   const uiComponents = testPages.filter(p => 
@@ -31,7 +32,7 @@ export default function TestIndex() {
   );
   
   const interactiveComponents = testPages.filter(p =>
-    ["Swap", "Toggle", "Steps", "Timeline", "Calendar"].some(c => p.name.includes(c))
+    ["Swap", "Toggle", "Steps", "Timeline", "Calendar", "Input"].some(c => p.name.includes(c))
   );
 
   return (
