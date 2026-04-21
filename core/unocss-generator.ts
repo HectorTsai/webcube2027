@@ -408,7 +408,14 @@ export class UnoCSS生成器 {
       'card': 'bg-base text-base-content rounded-md p-md shadow-md',
       'input': 'px-3 py-2 border border-base-70 rounded-md focus:outline-none focus:ring-2 focus:ring-primary',
       'container': 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8',
-      
+
+      // InputField 子元素
+      'fieldLabel': 'px-3 py-2 text-sm shrink-0 border-r border-base-content/20',
+      'fieldLabelEnd': 'px-3 py-2 text-sm shrink-0 border-l border-base-content/20',
+      'fieldInput': 'flex-1 min-w-0 px-3 py-2 border-0 outline-none bg-transparent',
+      'fieldButton': 'px-3 py-2 shrink-0 hover:bg-base-content/10 cursor-pointer transition-colors',
+      'fieldSelect': 'flex-1 min-w-0 px-3 py-2 border-0 outline-none bg-transparent appearance-none cursor-pointer',
+
       // 圖示
       'icon-current': '[&>img]:filter [&>img]:brightness-0 [&>img]:invert [&>img]:transition-filter [&>img]:duration-200',
       'icon-primary': '[&>img]:filter [&>img]:brightness-0 [&>img]:invert',
