@@ -36,7 +36,7 @@ export default function Input({
       >
         <div class="flex items-center w-full">
           {frontLabel && (
-            <div class={`px-3 py-2 text-sm text-${color}-content border-r border-gray-300`}>
+            <div class={`px-3 py-2 text-sm border-r border-gray-300`}>
               {frontLabel}
             </div>
           )}
@@ -46,19 +46,19 @@ export default function Input({
               placeholder=" "
               value={value}
               onChange={onChange}
-              class="w-full px-3 py-2 border-0 text-sm text-current outline-none bg-transparent"
+              class="w-full px-3 py-2 border-0 text-sm outline-none bg-transparent box-border"
               {...inputAlpine}
               {...restProps}
             />
             <label
-              class="absolute top-2 left-3 text-sm text-base-70 transition-all duration-200 pointer-events-none"
+              class="absolute top-2 left-3 text-sm transition-all duration-200 pointer-events-none"
               {...labelAlpine}
             >
               {floatLabel}
             </label>
           </div>
           {endLabel && (
-            <div class={`px-3 py-2 text-sm text-${color}-content border-l border-gray-300`}>
+            <div class={`px-3 py-2 text-sm border-l border-gray-300`}>
               {endLabel}
             </div>
           )}
@@ -93,19 +93,19 @@ export default function Input({
               placeholder=" "
               value={value}
               onChange={onChange}
-              class="w-full px-3 py-2 border-0 text-sm text-current outline-none bg-transparent"
+              class="w-full px-3 py-2 border-0 text-sm outline-none bg-transparent box-border"
               {...inputAlpine}
               {...restProps}
             />
             <label
-              class="absolute top-2 left-3 text-sm text-base-50 pointer-events-none"
+              class="absolute top-2 left-3 text-sm opacity-50 pointer-events-none"
               {...labelAlpine}
             >
               {placeholder}
             </label>
           </div>
           {endLabel && (
-            <div class={`px-3 py-2 text-sm text-${color}-content border-l border-gray-300`}>
+            <div class={`px-3 py-2 text-sm border-l border-gray-300`}>
               {endLabel}
             </div>
           )}
@@ -124,7 +124,7 @@ export default function Input({
     >
       <div class="flex items-center w-full">
         {frontLabel && (
-          <div class={`px-3 py-2 text-sm text-${color}-content border-r border-gray-300`}>
+          <div class={`px-3 py-2 text-sm border-r border-gray-300`}>
             {frontLabel}
           </div>
         )}
@@ -133,11 +133,11 @@ export default function Input({
           placeholder={placeholder}
           value={value}
           onChange={onChange}
-          class="flex-1 px-3 py-2 border-0 text-sm text-current outline-none bg-transparent"
+          class="flex-1 px-3 py-2 border-0 text-sm outline-none bg-transparent box-border"
           {...restProps}
         />
         {endLabel && (
-          <div class={`px-3 py-2 text-sm text-${color}-content border-l border-gray-300`}>
+          <div class={`px-3 py-2 text-sm border-l border-gray-300`}>
             {endLabel}
           </div>
         )}
