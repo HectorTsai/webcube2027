@@ -101,9 +101,10 @@ async function 渲染測試頁面(c: Context, 測試名稱: string): Promise<Res
     ${css}
   </style>
   <script defer src="/media/v1/script/alpine.min.js"></script>
+  <script defer src="/media/v1/script/page-flip.browser.min.js"></script>
   <script type="module" src="https://esm.sh/cally"></script>
 </head>
-<body>
+<body style="margin: 0;">
   ${htmlContent}
 </body>
 </html>`;

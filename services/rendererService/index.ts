@@ -109,6 +109,8 @@ async function 生成完整HTML(c: Context, 頁面實例: any, 頁面內容: str
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${標題}</title>
   <style>${css}</style>
+  <script defer src="/media/v1/script/alpine.min.js"></script>
+  <script defer src="/media/v1/script/page-flip.browser.min.js"></script>
 </head>
 <body>
   <div class="min-h-screen bg-base-100 text-base-content">
