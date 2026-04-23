@@ -41,7 +41,7 @@ export interface BookProps {
   [key: string]: any;
 }
 
-export { default as default } from "./solid.tsx";
+export { default as default } from "./Book.tsx";
 export { default as Cover } from "./Cover.tsx";
 export { default as Page } from "./Page.tsx";
 export { default as Foot } from "./Foot.tsx";

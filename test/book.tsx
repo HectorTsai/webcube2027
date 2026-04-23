@@ -12,7 +12,7 @@ const sampleSVG = `
 
 export default function BookTest() {
   return (
-    <Book color="primary" variant="solid" >
+    <Book color="primary" variant="solid" width="full" height="full">
       <Cover title="網站申請書" svg={sampleSVG}>
         <p class="text-lg mt-4">WebCube 2027 專案申請書</p>
       </Cover>

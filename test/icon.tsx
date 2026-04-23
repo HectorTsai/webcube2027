@@ -34,31 +34,31 @@ export default function IconTestPage() {
         <div class="flex flex-wrap gap-6">
           <div class="flex flex-col items-center gap-2 p-4 bg-base-200 rounded-lg">
             <div class="flex justify-center items-center min-h-16 p-4">
-              {Icon({ svg: svgSet.star, size: 'md' })}
+              <Icon svg={svgSet.star} size="md" />
             </div>
             <span class="text-sm text-base-content/70">星星</span>
           </div>
           <div class="flex flex-col items-center gap-2 p-4 bg-base-200 rounded-lg">
             <div class="flex justify-center items-center min-h-16 p-4">
-              {Icon({ svg: svgSet.heart, size: 'md' })}
+              <Icon svg={svgSet.heart} size="md" />
             </div>
             <span class="text-sm text-base-content/70">愛心</span>
           </div>
           <div class="flex flex-col items-center gap-2 p-4 bg-base-200 rounded-lg">
             <div class="flex justify-center items-center min-h-16 p-4">
-              {Icon({ svg: svgSet.check, size: 'md' })}
+              <Icon svg={svgSet.check} size="md" />
             </div>
             <span class="text-sm text-base-content/70">勾勾</span>
           </div>
           <div class="flex flex-col items-center gap-2 p-4 bg-base-200 rounded-lg">
             <div class="flex justify-center items-center min-h-16 p-4">
-              {Icon({ svg: svgSet.sun, size: 'md' })}
+              <Icon svg={svgSet.sun} size="md" />
             </div>
             <span class="text-sm text-base-content/70">太陽</span>
           </div>
           <div class="flex flex-col items-center gap-2 p-4 bg-base-200 rounded-lg">
             <div class="flex justify-center items-center min-h-16 p-4">
-              {Icon({ svg: svgSet.moon, size: 'md' })}
+              <Icon svg={svgSet.moon} size="md" />
             </div>
             <span class="text-sm text-base-content/70">月亮</span>
           </div>
@@ -71,7 +71,7 @@ export default function IconTestPage() {
           {testIds.map((id) => (
             <div class="flex flex-col items-center gap-2 p-4 bg-base-100 shadow-md rounded-lg">
               <div class="flex justify-center items-center min-h-16 p-4 bg-base-200 rounded-lg">
-                {Icon({ id, size: 'md' })}
+                <Icon id={id} size="md" />
               </div>
               <span class="text-sm text-base-content/70 text-center">{id}</span>
             </div>
@@ -86,7 +86,7 @@ export default function IconTestPage() {
             <div class="flex flex-col items-center gap-2 p-4 bg-base-100 shadow-md rounded-lg">
               <h3 class="text-sm font-medium">{colorClass}</h3>
               <div class="flex justify-center items-center min-h-16 p-4 bg-base-200 rounded-lg">
-                {Icon({ svg: svgSet.star, size: 'md', className: colorClass })}
+                <Icon svg={svgSet.star} size="md" className={colorClass} />
               </div>
             </div>
           ))}
@@ -101,7 +101,7 @@ export default function IconTestPage() {
             <div class="flex flex-col items-center gap-2 p-4 bg-base-100 shadow-md rounded-lg">
               <h3 class="text-sm font-medium">{colorClass}</h3>
               <div class="flex justify-center items-center min-h-16 p-4 bg-base-200 rounded-lg">
-                {Icon({ id: "圖示:圖示:user", size: 'md', className: colorClass })}
+                <Icon id="圖示:圖示:user" size="md" className={colorClass} />
               </div>
             </div>
           ))}
@@ -115,7 +115,7 @@ export default function IconTestPage() {
             <div class="flex flex-col items-center gap-2 p-4 bg-base-100 shadow-md rounded-lg">
               <h3 class="text-sm font-medium">{variant.toUpperCase()}</h3>
               <div class="flex justify-center items-center min-h-20 p-4 bg-base-200 rounded-lg">
-                {Icon({ svg: svgSet.star, size: variant })}
+                <Icon svg={svgSet.star} size={variant} />
               </div>
             </div>
           ))}
@@ -129,7 +129,7 @@ export default function IconTestPage() {
             <div class="flex flex-col items-center gap-2 p-4 bg-base-100 shadow-md rounded-lg">
               <h3 class="text-sm font-medium">{variant.toUpperCase()}</h3>
               <div class="flex justify-center items-center min-h-20 p-4 bg-base-200 rounded-lg">
-                {Icon({ id: "圖示:圖示:中華民國", size: variant })}
+                <Icon id="圖示:圖示:中華民國" size={variant} />
               </div>
             </div>
           ))}

@@ -14,7 +14,7 @@ export default function Book({
   color = "primary",
   width = "800px",
   height = "600px",
-  padding = "none",
+  padding = "sm",
   margin = "none",
   align = "center",
   justify = "center",
@@ -28,30 +28,12 @@ export default function Book({
   className = "",
   ...props
 }: BookProps) {
-  
-  // 生成 CSS 類別 - 使用 classes.ts 中定義的正確類別
-  const baseClasses = [
-    "book-container",
-    "box-border",
-    `variant-${variant}`,
-    `color-${color}`,
-    paddingClasses[padding],
-    marginClasses[margin],
-    alignClasses[align],
-    justifyClasses[justify],
-    gapClasses[gap],
-    roundedClasses[rounded],
-    shadow === "none" ? "" : `shadow-${shadow}`,
-    active ? "active" : "",
-    hover ? "hover" : "",
-    className,
-  ].filter(Boolean).join(" ");
-
   // 簡單直接的 page-flip 實現
   const xDataScript = `{
     pageFlip: null,
     init() {
-      var bookElement = this.$el;
+      var observeElement = document.querySelector(".book-container");
+      const bookElement = this.$el;
       if (!bookElement) return;
       // 防止重複初始化
       if (this.initialized) return;
@@ -67,11 +49,11 @@ export default function Book({
         const h = entry.contentBoxSize[0].blockSize;
         if(this.pageFlip && this.handleResize){
           console.log('窗口大小變化，更新 PageFlip',w,h);
-          //this.handleResize(w, h);
+          this.handleResize(w, h);
         }
       });
 
-      ro.observe(bookElement);
+      ro.observe(observeElement);
       
       // 初始化 page-flip
       if (${flipAnimation}) {
@@ -111,16 +93,16 @@ export default function Book({
         this.pageFlip = new globalThis.St.PageFlip(bookElement, {
           width: singleMode ? width : width / 2,
           height: height,
-//          minWidth: singleMode ? width - 10 : 100,
-//          minHeight: singleMode ? height - 10 : 100,
-//          maxWidth: width,
-//          maxHeight: "800px",
+          minWidth: singleMode ? width - 10 : 100,
+          minHeight: singleMode ? height - 10 : 100,
+          maxWidth: singleMode ? width : width / 2,
+          maxHeight: height,
           maxShadowOpacity: 0.5,
           swipeGap: singleMode ? 10 : 20,
-          size: "fixed",
+          size: "stretch",
           showCover: true,
+          clickEventForward: true,
           disableFlipByClick: true,
-          usePortrait: singleMode,
           autoSize:false,
         });
         console.log('Resize handled:', { 
@@ -143,12 +125,13 @@ export default function Book({
         const settings = this.pageFlip.getSettings();
         
         settings.width = singleMode ? width : width / 2;
-        settings.height = "800px";
-//        settings.minWidth = singleMode ? width - 10 : 100;
-//        settings.minHeight = singleMode ? height - 10 : 100;
-//        settings.maxWidth = width;
-//        settings.maxHeight = height;
-        
+        settings.height = height;
+        settings.minWidth = singleMode ? width - 10 : 100;
+        settings.minHeight = singleMode ? height - 10 : 100;
+        settings.maxWidth = singleMode ? width : width / 2;
+        settings.maxHeight = height;
+        settings.mode = singleMode ? "portrait" : "landscape";
+
         this.pageFlip.update();
         this.pageFlip.updateOrientation(singleMode ? "portrait" : "landscape");
         
@@ -162,23 +145,38 @@ export default function Book({
       }
     }
   }`;
-
+  // 生成 CSS 類別 - 使用 classes.ts 中定義的正確類別
+  const bookClasses = [
+    "book-container",
+    "box-border",
+    "overflow-hidden",
+    paddingClasses[padding],
+    marginClasses[margin],
+    alignClasses[align],
+    justifyClasses[justify],
+    gapClasses[gap],
+    roundedClasses[rounded],
+    shadow === "none" ? "" : `shadow-${shadow}`,
+    active ? "active" : "",
+    hover ? "hover" : "",
+    className,
+  ].filter(Boolean).join(" ");
+  
+  // 直接使用 children，不进行处理，避免 Promise 转换错误
+  // 子组件的 variant 和 color 应该由用户在使用时直接指定
+  const processedChildren = children;
+  
   return (
-    <div class="p-4">
-    <div
-      class={`${baseClasses} relative overflow-hidden`}
-      style={{
+    <div class={bookClasses} style={{
         width: width === "full" ? "100%" : width,
         height: height === "full" ? "100vh" : height,
-      }}
-      x-data={xDataScript}
-      {...props}
-    >
-      {/* 書本內容容器 - 用於 page-flip 初始化 */}
-      <div class="book-content" x-init="init()">
-        {children}
+    }} {...props}>
+      <div class="w-full h-full" x-data={xDataScript}>
+        {/* 書本內容容器 - 用於 page-flip 初始化 */}
+        <div class="book-content hidden" x-init="init()">
+          {processedChildren}
+        </div>
       </div>
-    </div>
     </div>
   );
 }

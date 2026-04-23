@@ -1,10 +1,17 @@
+import Icon from "../Icon.tsx";
 export interface CoverProps {
   /** 封面標題 */
   title: string;
   /** SVG 圖示或裝飾 */
+  icon?:string;
   svg?: string;
+  src?:string;
   /** 子元素 */
   children?: unknown;
+  /** 佈局變體 */
+  variant?: "solid" | "outline" | "ghost" | "dot" | "dashed" | 
+           "gradient-right" | "gradient-left" | "gradient-up" | "gradient-down" | "gradient-middle" |
+           "gradient-diagonal" | "gradient-center" | "gradient-cone" | "crystal" | "diagonal-stripes" | "glow" | "minimalist";
   /** 顏色主題 */
   color?: "primary" | "secondary" | "accent" | "info" | "success" | "warning" | "error";
   /** 額外 CSS 類別 */
@@ -15,8 +22,12 @@ export interface CoverProps {
 
 export default function Cover({
   title,
+  icon,
   svg,
+  src,
   children,
+  variant,
+  /** 顏色主題 */
   color = "primary",
   className = "",
   ...props
@@ -36,13 +47,14 @@ export default function Cover({
     className
   ].filter(Boolean).join(" ");
 
+
+
   return (
     <div class={baseClasses} {...props}>
-      {svg && (
-        <div 
-          class="mb-6 w-32 h-32" 
-          dangerouslySetInnerHTML={{ __html: svg }}
-        />
+      {(icon || svg || src) && (
+        <div class="mb-4">
+          xxx
+        </div>
       )}
       
       <h1 class="text-4xl font-bold text-base-content mb-4">
