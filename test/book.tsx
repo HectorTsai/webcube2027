@@ -1,23 +1,13 @@
 import Book, { Cover, Page, Foot } from "../components/Book/index.tsx";
 
-// 簡單的 SVG 圖示
-const sampleSVG = `
-<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="24" y="24" width="80" height="80" rx="8" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="2"/>
-  <path d="M48 48H80V80H48V48Z" fill="currentColor" fill-opacity="0.4"/>
-  <path d="M56 56H72V72H56V56Z" fill="currentColor" fill-opacity="0.6"/>
-  <circle cx="64" cy="64" r="16" fill="currentColor" fill-opacity="0.8"/>
-</svg>
-`;
-
 export default function BookTest() {
   return (
-    <Book color="primary" variant="solid" width="full" height="full">
-      <Cover title="網站申請書" svg={sampleSVG}>
-        <p class="text-lg mt-4">WebCube 2027 專案申請書</p>
+    <Book color="primary" variant="crystal" width="full" height="full">
+      <Cover title="網站申請書" icon="圖示:圖示:web_cube">
+        <p class="text-lg">WebCube 2027 專案申請書</p>
       </Cover>
       
-      <Page pageNumber={1} odd={true}>
+      <Page>
         <div class="space-y-4">
           <h2 class="text-2xl font-bold">第一章：專案概述</h2>
           <p class="text-lg">
@@ -29,7 +19,7 @@ export default function BookTest() {
         </div>
       </Page>
       
-      <Page pageNumber={2} odd={false}>
+      <Page>
         <div class="space-y-4">
           <h2 class="text-2xl font-bold">第二章：技術架構</h2>
           <ul class="list-disc list-inside space-y-2">
@@ -42,7 +32,7 @@ export default function BookTest() {
         </div>
       </Page>
       
-      <Page pageNumber={3} odd={true}>
+      <Page>
         <div class="space-y-4">
           <h2 class="text-2xl font-bold">第三章：功能特色</h2>
           <div class="grid grid-cols-2 gap-4">
@@ -66,7 +56,7 @@ export default function BookTest() {
         </div>
       </Page>
       
-      <Page pageNumber={4} odd={false}>
+      <Page>
         <div class="space-y-4">
           <h2 class="text-2xl font-bold">第三章：功能特色</h2>
           <div class="grid grid-cols-2 gap-4">
@@ -90,7 +80,7 @@ export default function BookTest() {
         </div>
       </Page>
       <Foot copyright="DUI co., Ltd." publisher="WebCube 2027">
-        <p class="text-lg mb-4 pt-24">感謝您閱讀本申請書</p>
+        <p class="text-lg">感謝您閱讀本申請書</p>
         <p class="text-sm">如有任何問題，請聯繫我們</p>
       </Foot>
     </Book>

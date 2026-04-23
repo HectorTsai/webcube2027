@@ -49,37 +49,6 @@ export default async function AvatarTestPage() {
     '3xl'
   ];
 
-  const variantAvatars = await Promise.all(variants.map(async (variant) => {
-    const avatars = await Promise.all(colors.map((color) => {
-      return Avatar({ variant, color, svg: testSvgs.user });
-    }));
-    return { variant, avatars };
-  }));
-
-  const svgAvatars = await Promise.all([
-    Avatar({ svg: testSvgs.star, size: "md", variant: "solid", color: "primary" }),
-    Avatar({ svg: testSvgs.heart, size: "md", variant: "solid", color: "secondary" }),
-    Avatar({ svg: testSvgs.check, size: "md", variant: "solid", color: "accent" }),
-    Avatar({ svg: testSvgs.user, size: "md", variant: "solid", color: "info" }),
-    Avatar({ svg: testSvgs.user, size: "md", variant: "solid", color: "success" }),
-    Avatar({ svg: testSvgs.user, size: "md", variant: "solid", color: "warning" }),
-    Avatar({ svg: testSvgs.user, size: "md", variant: "solid", color: "error" }),
-  ]);
-
-  const imageAvatars = await Promise.all([
-    Avatar({ image: "影像:影像:hono", size: "md", variant: "solid", color: "primary" }),
-    Avatar({ image: "影像:影像:surrealDB", size: "md", variant: "solid", color: "secondary" }),
-    Avatar({ image: "影像:影像:deno2", size: "md", variant: "solid", color: "accent" }),
-    Avatar({ image: "影像:影像:hono", size: "md", variant: "solid", color: "info" }),
-    Avatar({ image: "影像:影像:surrealDB", size: "md", variant: "solid", color: "success" }),
-    Avatar({ image: "影像:影像:deno2", size: "md", variant: "solid", color: "warning" }),
-    Avatar({ image: "影像:影像:hono", size: "md", variant: "solid", color: "error" }),
-  ]);
-
-  const sizeAvatars = await Promise.all(sizes.map(size =>
-    Avatar({ svg: testSvgs.user, variant: "solid", size, color: "primary" })
-  ));
-
   return (
     <div class="p-4 max-w-full mx-auto bg-gray-50">
       <h1 class="text-2xl font-bold mb-6 text-center">Avatar 測試</h1>
@@ -100,19 +69,23 @@ export default async function AvatarTestPage() {
           <tbody>
             <tr>
               <td class="p-2 font-semibold text-right">SVG</td>
-              {svgAvatars.map((avatar, i) => (
-                <td key={i} class="p-2 text-center">
-                  <div class="flex justify-center">{avatar}</div>
-                </td>
-              ))}
+              <td class="p-2 text-center"><Avatar svg={testSvgs.star} size="md" variant="solid" color="primary" /></td>
+              <td class="p-2 text-center"><Avatar svg={testSvgs.heart} size="md" variant="solid" color="secondary" /></td>
+              <td class="p-2 text-center"><Avatar svg={testSvgs.check} size="md" variant="solid" color="accent" /></td>
+              <td class="p-2 text-center"><Avatar svg={testSvgs.user} size="md" variant="solid" color="info" /></td>  
+              <td class="p-2 text-center"><Avatar svg={testSvgs.user} size="md" variant="solid" color="success" /></td>
+              <td class="p-2 text-center"><Avatar svg={testSvgs.user} size="md" variant="solid" color="warning" /></td>
+              <td class="p-2 text-center"><Avatar svg={testSvgs.user} size="md" variant="solid" color="error" /></td>
             </tr>
             <tr>
               <td class="p-2 font-semibold text-right">Image</td>
-              {imageAvatars.map((avatar, i) => (
-                <td key={i} class="p-2 text-center">
-                  <div class="flex justify-center">{avatar}</div>
-                </td>
-              ))}
+                <td class="p-2 text-center"><Avatar image="影像:影像:hono" size="md" variant="solid" color="primary" /></td>
+                <td class="p-2 text-center"><Avatar image="影像:影像:surrealDB" size="md" variant="solid" color="secondary" /></td>
+                <td class="p-2 text-center"><Avatar image="影像:影像:deno2" size="md" variant="solid" color="accent" /></td>
+                <td class="p-2 text-center"><Avatar image="影像:影像:hono" size="md" variant="solid" color="info" /></td>
+                <td class="p-2 text-center"><Avatar image="影像:影像:surrealDB" size="md" variant="solid" color="success" /></td>
+                <td class="p-2 text-center"><Avatar image="影像:影像:deno2" size="md" variant="solid" color="warning" /></td>
+                <td class="p-2 text-center"><Avatar image="影像:影像:hono" size="md" variant="solid" color="error" /></td>
             </tr>
           </tbody>
         </table>
@@ -134,9 +107,9 @@ export default async function AvatarTestPage() {
           <tbody>
             <tr>
               <td class="p-2 font-semibold text-right">Solid</td>
-              {sizeAvatars.map((avatar, i) => (
-                <td key={i} class="p-2 text-center">
-                  <div class="flex justify-center">{avatar}</div>
+              {sizes.map((size)=>(
+                <td key={size} class="p-2 text-center">
+                  <div class="flex justify-center"><Avatar svg={testSvgs.user} variant="solid" size={size} color="primary" /></div>
                 </td>
               ))}
             </tr>
@@ -144,7 +117,7 @@ export default async function AvatarTestPage() {
         </table>
       </section>
 
-      {variantAvatars.map(({ variant, avatars }) => (
+      {variants.map((variant)=>(
         <section class="mb-6 p-4 bg-white rounded-lg shadow">
           <h2 class="text-lg font-bold mb-3 pb-2 border-b border-gray-300">
             {variant.charAt(0).toUpperCase() + variant.slice(1)}
@@ -163,9 +136,9 @@ export default async function AvatarTestPage() {
             <tbody>
               <tr>
                 <td class="p-2 font-semibold text-right"></td>
-                {avatars.map((avatar, i) => (
-                  <td key={i} class="p-2 text-center">
-                    <div class="flex justify-center">{avatar}</div>
+                {colors.map((color) => (
+                  <td key={color} class="p-2 text-center">
+                    <div class="flex justify-center"><Avatar svg={testSvgs.user} variant={variant} color={color} /></div>
                   </td>
                 ))}
               </tr>

@@ -1,7 +1,9 @@
 // Test Service - 測試頁面路由服務
 import { Context } from 'hono';
+import { renderToReadableStream } from 'hono/jsx/streaming';
 import { 產生樣式 } from '../core/unocss.ts';
 import { error } from '../utils/logger.ts';
+import jsx from "hono/jsx";
 
 /**
  * 處理測試頁面請求
@@ -74,7 +76,9 @@ async function 渲染測試頁面(c: Context, 測試名稱: string): Promise<Res
     // 轉換為字串
     let htmlContent;
     try {
-      htmlContent = String(jsxContent);
+      const stream = renderToReadableStream(jsxContent);
+      const response = new Response(stream);
+      htmlContent = await response.text();
     } catch (转换错误) {
       await error('Test Service', `測試頁面轉換失敗: ${測試名稱} - ${转换错误}`);
       return await 渲染測試錯誤頁面(c, 转换错误);

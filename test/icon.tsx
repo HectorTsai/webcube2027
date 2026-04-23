@@ -8,7 +8,7 @@ const svgSet = {
   moon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
 };
 
-const testIds = ["圖示:圖示:user", "圖示:圖示:home", "圖示:圖示:phone", "圖示:圖示:中華民國"];
+const testIds = ["圖示:圖示:web_cube","圖示:圖示:user", "圖示:圖示:home", "圖示:圖示:phone", "圖示:圖示:中華民國"];
 
 export default function IconTestPage() {
   const sizeVariants: IconProps['size'][] = ['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl'];

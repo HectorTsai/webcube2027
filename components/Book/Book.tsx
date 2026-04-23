@@ -1,4 +1,8 @@
+import { Children, cloneElement } from 'hono/jsx';
 import type { BookProps } from "./index.tsx";
+import Page from "./Page.tsx";
+import Cover from "./Cover.tsx";
+import Foot from "./Foot.tsx";
 import { 
   paddingClasses, 
   marginClasses, 
@@ -8,7 +12,7 @@ import {
   roundedClasses 
 } from "../classes.ts";
 
-export default function Book({
+export default async function Book({
   children,
   variant = "solid",
   color = "primary",
@@ -26,6 +30,7 @@ export default function Book({
   flipAnimation = true,
   flipSpeed = 1000,
   className = "",
+  context,
   ...props
 }: BookProps) {
   // 簡單直接的 page-flip 實現
@@ -88,7 +93,7 @@ export default function Book({
       if (!bookElement) return;
 
       try {
-        const singleMode = width < 600;
+        const singleMode = width < 700;
 
         this.pageFlip = new globalThis.St.PageFlip(bookElement, {
           width: singleMode ? width : width / 2,
@@ -119,7 +124,7 @@ export default function Book({
     handleResize(width, height) {
       if (!this.pageFlip) return;
 
-      const singleMode = width < 600;
+      const singleMode = width < 700;
       
       try {
         const settings = this.pageFlip.getSettings();
@@ -164,7 +169,8 @@ export default function Book({
   
   // 直接使用 children，不进行处理，避免 Promise 转换错误
   // 子组件的 variant 和 color 应该由用户在使用时直接指定
-  const processedChildren = children;
+  const arrayChildren = Children.toArray(children as any);
+  let pageCounter = 0;
   
   return (
     <div class={bookClasses} style={{
@@ -174,7 +180,18 @@ export default function Book({
       <div class="w-full h-full" x-data={xDataScript}>
         {/* 書本內容容器 - 用於 page-flip 初始化 */}
         <div class="book-content hidden" x-init="init()">
-          {processedChildren}
+        { arrayChildren.map((child: any) => {
+          const isBookComponent = child?.type === Page || child?.type === Cover || child?.type === Foot;
+          if (isBookComponent) {
+            const props: Record<string,any> = { color: color, variant: variant, context: context };
+            if(child.type === Page) {
+              props.pageNumber = ++pageCounter;
+              props.odd = pageCounter % 2 !== 0;
+            }
+            return cloneElement(child, props);
+          }
+          return child;
+        })}
         </div>
       </div>
     </div>

@@ -9,7 +9,7 @@ export interface IconProps {
   /** SVG string content */
   svg?: string;
   /** Size setting */
-  size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl";
   /** Additional CSS classes */
   className?: string;
   /** Hono context for API calls */
@@ -27,6 +27,7 @@ const sizeClasses: Record<string, string> = {
   xl: "w-10 h-10",
   "2xl": "w-12 h-12",
   "3xl": "w-16 h-16",
+  "4xl": "w-24 h-24",
 };
 
 // Parse SVG string to extract attributes and inner content for direct SVG rendering

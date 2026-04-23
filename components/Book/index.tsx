@@ -37,6 +37,7 @@ export interface BookProps {
   flipSpeed?: number;
   /** 額外 CSS 類別 */
   className?: string;
+  context:any;
   /** Any additional props (including Alpine.js x- attributes and event handlers) */
   [key: string]: any;
 }

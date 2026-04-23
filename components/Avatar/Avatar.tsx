@@ -21,11 +21,11 @@ export default async function Avatar({
   let content: unknown = null;
 
   if (svg) {
-    content = await Icon({ svg, size, className: `w-full h-full`, context });
+    content = <Icon svg={svg} size={size} className={`w-full h-full`} context={context} />;
   } else if (icon) {
-    content = await Icon({ id: icon, size, className: `w-full h-full`, context });
+    content = <Icon id={icon} size={size} className={`w-full h-full`} context={context} />;
   } else if (image) {
-    content = await Image({ id: image, width: "100%", height: "100%", className: `w-full h-full`, context });
+    content = <Image id={image} width="100%" height="100%" className={`w-full h-full`} context={context} />;
   } else if (src) {
     content = <img src={src} alt="Avatar" class={`w-full h-full object-cover`} />;
   } else {

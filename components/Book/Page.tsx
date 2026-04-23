@@ -5,6 +5,8 @@ export interface PageProps {
   pageNumber?: number;
   /** 是否為奇數頁 (影響頁面佈局) */
   odd?: boolean;
+  color?:string;
+  variant?:string;
   /** 額外 CSS 類別 */
   className?: string;
   /** Any additional props (including Alpine.js x- attributes and event handlers) */
@@ -16,6 +18,8 @@ export default function Page({
   pageNumber,
   odd = false,
   className = "",
+  color = "base",
+  variant = "solid",
   ...props
 }: PageProps) {
   
@@ -24,7 +28,7 @@ export default function Page({
     "book-page",
     "box-border",
     "flex flex-col",
-    "bg-base",
+    `bg-${color}`,
     "border border-base-70",
     "shadow-sm",
     "p-6",
@@ -46,8 +50,8 @@ export default function Page({
       )}
       
       {/* 書頁邊緣效果 */}
-      <div class="absolute top-0 left-0 w-2 h-full bg-gradient-to-r from-base-30/20 to-transparent"></div>
-      <div class="absolute top-0 right-0 w-2 h-full bg-gradient-to-l from-base-30/20 to-transparent"></div>
+      <div class={`absolute top-0 left-0 w-2 h-full bg-gradient-to-r from-${color}-50/50 to-transparent`}></div>
+      <div class={`absolute top-0 right-0 w-2 h-full bg-gradient-to-l from-${color}-50/50 to-transparent`}></div>
     </div>
   );
 }
