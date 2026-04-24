@@ -29,7 +29,8 @@ export default async function Cover({
   src,
   children,
   /** 顏色主題 */
-  color = "base-70",
+  color,
+  variant,
   className = "",
   context,
   ...props
@@ -37,35 +38,24 @@ export default async function Cover({
   
   // 生成 CSS 類別
   const baseClasses = [
-    "book-cover",
-    "book-page",
-    "box-border",
+    "flex-col items-center justify-center",
     className
   ].filter(Boolean).join(" ");
 
-
-
   return (
-    <div class={baseClasses} >
-      <Container color={color} width="full" height="full" {...props}>
+    <div class="book-cover book-page box-border" >
+      <Container color={color} variant={variant} width="full" height="full" className={baseClasses} {...props}>
         {(icon || svg || src) && (
-          <div class="mb-4 mt-30vh">
+          <div class="mb-4">
             <Icon id={icon} svg={svg} src={src} size="4xl" context={context} />
           </div>
         )}
         
-        <h1 class="text-4xl font-bold mb-4">
-          {title}
-        </h1>
-        
-        {children && (
-          <div class="text-lg">
-            {children}
-          </div>
-        )}
+        <div class="text-4xl font-bold mt-4">{title}</div>
+        {children && (<div class="text-lg">{children}</div>)}
         
         {/* 書脊效果 */}
-        <div class={`absolute right-1 top-0 rounded-sm h-full w-2 bg-gradient-to-l from-${color}-50/50 to-transparent`}></div>
+        <div class={`absolute right-0 top-0 bottom-0 rounded-lg w-8 bg-gradient-to-l from-${color}-50/50 via-transparent to-transparent`}></div>
       </Container>
     </div>
   );

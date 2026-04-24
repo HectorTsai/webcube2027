@@ -6,29 +6,16 @@ import Foot from "./Foot.tsx";
 import { 
   paddingClasses, 
   marginClasses, 
-  alignClasses, 
-  justifyClasses, 
-  gapClasses, 
-  roundedClasses 
 } from "../classes.ts";
 
 export default async function Book({
   children,
   variant = "solid",
-  color = "primary",
-  width = "800px",
-  height = "600px",
+  color = "base",
+  width = "full",
+  height = "full",
   padding = "sm",
   margin = "none",
-  align = "center",
-  justify = "center",
-  gap = "md",
-  rounded = "md",
-  shadow = "md",
-  active = false,
-  hover = false,
-  flipAnimation = true,
-  flipSpeed = 1000,
   className = "",
   context,
   ...props
@@ -61,39 +48,36 @@ export default async function Book({
       ro.observe(observeElement);
       
       // 初始化 page-flip
-      if (${flipAnimation}) {
-        // 等待 page-flip 庫加載
-        const waitForLibrary = (retryCount = 0) => {
-          if (retryCount >= 10) {
-            console.warn('PageFlip library not found after 10 attempts');
-            return;
-          }
-          
-          if (globalThis.St && globalThis.St.PageFlip) {
-            console.log('PageFlip library loaded, initializing...');
-            setTimeout(() => {
-              const style = window.getComputedStyle(bookElement);
-              const initW = parseFloat(style.width) - (parseFloat(style.paddingLeft) + parseFloat(style.paddingRight));
-              const initH = parseFloat(style.height) - (parseFloat(style.paddingTop) + parseFloat(style.paddingBottom));
-              this.initPageFlip(initW, initH);
-            }, 100);
-          } else {
-            console.log('Waiting for PageFlip library... attempt', retryCount + 1);
-            setTimeout(() => {
-              waitForLibrary(retryCount + 1);
-            }, 200);
-          }
-        };
+      const waitForLibrary = (retryCount = 0) => {
+        if (retryCount >= 10) {
+          console.warn('PageFlip library not found after 10 attempts');
+          return;
+        }
         
-        waitForLibrary();
-      }
+        if (globalThis.St && globalThis.St.PageFlip) {
+          console.log('PageFlip library loaded, initializing...');
+          setTimeout(() => {
+            const style = window.getComputedStyle(bookElement);
+            const initW = parseFloat(style.width) - (parseFloat(style.paddingLeft) + parseFloat(style.paddingRight));
+            const initH = parseFloat(style.height) - (parseFloat(style.paddingTop) + parseFloat(style.paddingBottom));
+            this.initPageFlip(initW, initH);
+          }, 100);
+        } else {
+          console.log('Waiting for PageFlip library... attempt', retryCount + 1);
+          setTimeout(() => {
+            waitForLibrary(retryCount + 1);
+          }, 200);
+        }
+      };
+      
+      waitForLibrary();
     },
     initPageFlip(width, height) {
       const bookElement = this.$el;
       if (!bookElement) return;
 
       try {
-        const singleMode = width < 700;
+        const singleMode = height>width;
 
         this.pageFlip = new globalThis.St.PageFlip(bookElement, {
           width: singleMode ? width : width / 2,
@@ -103,7 +87,7 @@ export default async function Book({
           maxWidth: singleMode ? width : width / 2,
           maxHeight: height,
           maxShadowOpacity: 0.5,
-          swipeGap: singleMode ? 10 : 20,
+          swipeGap: singleMode ? 10 : 30,
           size: "stretch",
           showCover: true,
           clickEventForward: true,
@@ -124,7 +108,7 @@ export default async function Book({
     handleResize(width, height) {
       if (!this.pageFlip) return;
 
-      const singleMode = width < 700;
+        const singleMode = height>width;
       
       try {
         const settings = this.pageFlip.getSettings();
@@ -157,13 +141,6 @@ export default async function Book({
     "overflow-hidden",
     paddingClasses[padding],
     marginClasses[margin],
-    alignClasses[align],
-    justifyClasses[justify],
-    gapClasses[gap],
-    roundedClasses[rounded],
-    shadow === "none" ? "" : `shadow-${shadow}`,
-    active ? "active" : "",
-    hover ? "hover" : "",
     className,
   ].filter(Boolean).join(" ");
   
@@ -183,7 +160,7 @@ export default async function Book({
         { arrayChildren.map((child: any) => {
           const isBookComponent = child?.type === Page || child?.type === Cover || child?.type === Foot;
           if (isBookComponent) {
-            const props: Record<string,any> = { color: color, variant: variant, context: context };
+            const props: Record<string,any> = { color: child.props.color??color, variant: child.props.variant??variant, context: context };
             if(child.type === Page) {
               props.pageNumber = ++pageCounter;
               props.odd = pageCounter % 2 !== 0;

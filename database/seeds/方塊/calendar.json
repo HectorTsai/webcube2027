@@ -1,0 +1,59 @@
+{
+  "id": "方塊:方塊:calendar",
+  "名稱": {
+    "en": "Calendar",
+    "zh-tw": "日曆",
+    "zh-cn": "日历",
+    "vi": "Lịch"
+  },
+  "描述": {
+    "en": "A calendar component for date selection and display",
+    "zh-tw": "用於日期選擇和顯示的日曆元件",
+    "zh-cn": "用于日期选择和显示的日历元件",
+    "vi": "Thành phần lịch để chọn và hiển thị ngày"
+  },
+  "售價": 0,
+  "標籤集": ["方塊:標籤:日期", "方塊:標籤:互動"],
+  "模式": "內建",
+  "元件路徑": "Calendar",
+  "屬性定義": {
+    "value": {
+      "type": "string",
+      "description": "Selected date",
+      "required": false,
+      "default": ""
+    },
+    "minDate": {
+      "type": "string",
+      "description": "Minimum selectable date",
+      "required": false,
+      "default": ""
+    },
+    "maxDate": {
+      "type": "string",
+      "description": "Maximum selectable date",
+      "required": false,
+      "default": ""
+    },
+    "locale": {
+      "type": "string",
+      "description": "Calendar locale",
+      "required": false,
+      "default": "en-US",
+      "options": ["en-US", "zh-TW", "zh-CN", "vi-VN"]
+    },
+    "variant": {
+      "type": "string",
+      "description": "Calendar style variant",
+      "required": false,
+      "default": "solid",
+      "options": ["solid", "outline", "ghost"]
+    }
+  },
+  "子方塊": [],
+  "對外參數": {},
+  "程式碼": "",
+  "審核狀態": "approved",
+  "上架狀態": true,
+  "可刪除": false
+}

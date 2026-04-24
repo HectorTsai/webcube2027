@@ -1,0 +1,65 @@
+{
+  "id": "方塊:方塊:input",
+  "名稱": {
+    "en": "Input",
+    "zh-tw": "輸入框",
+    "zh-cn": "输入框",
+    "vi": "Ô nhập liệu"
+  },
+  "描述": {
+    "en": "A form input component for user data entry",
+    "zh-tw": "用於用戶數據輸入的表單輸入框元件",
+    "zh-cn": "用于用户数据输入的表单输入框元件",
+    "vi": "Thành phần nhập liệu biểu mẫu để nhập dữ liệu người dùng"
+  },
+  "售價": 0,
+  "標籤集": ["方塊:標籤:表單", "方塊:標籤:互動"],
+  "模式": "內建",
+  "元件路徑": "Input",
+  "屬性定義": {
+    "type": {
+      "type": "string",
+      "description": "Input type",
+      "required": false,
+      "default": "text",
+      "options": ["text", "password", "email", "number", "tel", "url", "search"]
+    },
+    "placeholder": {
+      "type": "string",
+      "description": "Placeholder text",
+      "required": false,
+      "default": ""
+    },
+    "value": {
+      "type": "string",
+      "description": "Input value",
+      "required": false,
+      "default": ""
+    },
+    "disabled": {
+      "type": "boolean",
+      "description": "Disabled state",
+      "required": false,
+      "default": false
+    },
+    "required": {
+      "type": "boolean",
+      "description": "Required field",
+      "required": false,
+      "default": false
+    },
+    "size": {
+      "type": "string",
+      "description": "Input size",
+      "required": false,
+      "default": "md",
+      "options": ["xs", "sm", "md", "lg", "xl", "2xl", "3xl"]
+    }
+  },
+  "子方塊": [],
+  "對外參數": {},
+  "程式碼": "",
+  "審核狀態": "approved",
+  "上架狀態": true,
+  "可刪除": false
+}

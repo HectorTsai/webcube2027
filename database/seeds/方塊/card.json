@@ -1,0 +1,83 @@
+{
+  "id": "方塊:方塊:card",
+  "名稱": {
+    "en": "Card",
+    "zh-tw": "卡片",
+    "zh-cn": "卡片",
+    "vi": "Thẻ"
+  },
+  "描述": {
+    "en": "A card component for displaying content in a structured layout",
+    "zh-tw": "用於在結構化佈局中顯示內容的卡片元件",
+    "zh-cn": "用于在结构化布局中显示内容的卡片元件",
+    "vi": "Thành phần thẻ để hiển thị nội dung trong bố cục có cấu trúc"
+  },
+  "售價": 0,
+  "標籤集": ["方塊:標籤:佈局", "方塊:標籤:內容"],
+  "模式": "內建",
+  "元件路徑": "Card",
+  "屬性定義": {
+    "variant": {
+      "type": "string",
+      "description": "Card variant style",
+      "required": false,
+      "default": "solid",
+      "options": ["solid", "outline", "ghost", "dot", "dashed", "double", "gradient-right", "gradient-left", "gradient-up", "gradient-down", "gradient-middle", "gradient-diagonal", "gradient-center", "gradient-cone", "crystal", "diagonal-stripes", "glow", "minimalist"]
+    },
+    "color": {
+      "type": "string",
+      "description": "Card color theme",
+      "required": false,
+      "default": "primary",
+      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error"]
+    },
+    "direction": {
+      "type": "string",
+      "description": "Content direction",
+      "required": false,
+      "default": "column",
+      "options": ["row", "column"]
+    },
+    "padding": {
+      "type": "string",
+      "description": "Padding size",
+      "required": false,
+      "default": "md",
+      "options": ["none", "xs", "sm", "md", "lg", "xl", "2xl"]
+    },
+    "margin": {
+      "type": "string",
+      "description": "Margin size",
+      "required": false,
+      "default": "none",
+      "options": ["none", "xs", "sm", "md", "lg", "xl", "auto"]
+    },
+    "align": {
+      "type": "string",
+      "description": "Alignment",
+      "required": false,
+      "default": "start",
+      "options": ["start", "center", "end", "stretch"]
+    },
+    "justify": {
+      "type": "string",
+      "description": "Justification",
+      "required": false,
+      "default": "start",
+      "options": ["start", "center", "end", "between", "around", "evenly"]
+    },
+    "gap": {
+      "type": "string",
+      "description": "Gap size",
+      "required": false,
+      "default": "none",
+      "options": ["none", "xs", "sm", "md", "lg", "xl"]
+    }
+  },
+  "子方塊": [],
+  "對外參數": {},
+  "程式碼": "",
+  "審核狀態": "approved",
+  "上架狀態": true,
+  "可刪除": false
+}

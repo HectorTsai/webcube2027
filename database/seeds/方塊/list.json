@@ -1,0 +1,60 @@
+{
+  "id": "方塊:方塊:list",
+  "名稱": {
+    "en": "List",
+    "zh-tw": "列表",
+    "zh-cn": "列表",
+    "vi": "Danh sách"
+  },
+  "描述": {
+    "en": "A list component for displaying items in a structured way",
+    "zh-tw": "用於以結構化方式顯示項目的列表元件",
+    "zh-cn": "用于以结构化方式显示项目的列表元件",
+    "vi": "Thành phần danh sách để hiển thị các mục theo cách có cấu trúc"
+  },
+  "售價": 0,
+  "標籤集": ["方塊:標籤:佈局", "方塊:標籤:內容"],
+  "模式": "內建",
+  "元件路徑": "List",
+  "屬性定義": {
+    "items": {
+      "type": "array",
+      "description": "List items array",
+      "required": false,
+      "default": []
+    },
+    "variant": {
+      "type": "string",
+      "description": "List style variant",
+      "required": false,
+      "default": "solid",
+      "options": ["solid", "outline", "ghost"]
+    },
+    "size": {
+      "type": "string",
+      "description": "List item size",
+      "required": false,
+      "default": "md",
+      "options": ["xs", "sm", "md", "lg", "xl"]
+    },
+    "gap": {
+      "type": "string",
+      "description": "Gap between items",
+      "required": false,
+      "default": "sm",
+      "options": ["none", "xs", "sm", "md", "lg", "xl"]
+    },
+    "dividers": {
+      "type": "boolean",
+      "description": "Show dividers between items",
+      "required": false,
+      "default": false
+    }
+  },
+  "子方塊": [],
+  "對外參數": {},
+  "程式碼": "",
+  "審核狀態": "approved",
+  "上架狀態": true,
+  "可刪除": false
+}

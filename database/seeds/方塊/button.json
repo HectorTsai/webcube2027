@@ -1,0 +1,74 @@
+{
+  "id": "方塊:方塊:button",
+  "名稱": {
+    "en": "Button",
+    "zh-tw": "按鈕",
+    "zh-cn": "按钮",
+    "vi": "Nút"
+  },
+  "描述": {
+    "en": "A versatile button component with multiple styles and sizes",
+    "zh-tw": "具有多種樣式和尺寸的多功能按鈕元件",
+    "zh-cn": "具有多种样式和尺寸的多功能按钮元件",
+    "vi": "Thành phần nút đa năng với nhiều kiểu dáng và kích thước"
+  },
+  "售價": 0,
+  "標籤集": ["方塊:標籤:互動", "方塊:標籤:基礎"],
+  "模式": "內建",
+  "元件路徑": "Button",
+  "屬性定義": {
+    "color": {
+      "type": "string",
+      "description": "Button color theme",
+      "required": false,
+      "default": "primary",
+      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error"]
+    },
+    "variant": {
+      "type": "string",
+      "description": "Button style variant",
+      "required": false,
+      "default": "solid",
+      "options": ["solid", "outline", "ghost", "dot", "dashed", "double", "gradient-right", "gradient-left", "gradient-up", "gradient-down", "gradient-middle", "gradient-diagonal", "gradient-center", "gradient-cone", "crystal", "diagonal-stripes", "glow", "minimalist"]
+    },
+    "size": {
+      "type": "string",
+      "description": "Button size",
+      "required": false,
+      "default": "md",
+      "options": ["xs", "sm", "md", "lg", "xl", "2xl", "3xl"]
+    },
+    "disabled": {
+      "type": "boolean",
+      "description": "Disabled state",
+      "required": false,
+      "default": false
+    },
+    "active": {
+      "type": "boolean",
+      "description": "Active state",
+      "required": false,
+      "default": true
+    },
+    "type": {
+      "type": "string",
+      "description": "Button type attribute",
+      "required": false,
+      "default": "button",
+      "options": ["button", "submit", "reset"]
+    },
+    "rounded": {
+      "type": "string",
+      "description": "Border radius",
+      "required": false,
+      "default": "sm",
+      "options": ["none", "sm", "md", "lg"]
+    }
+  },
+  "子方塊": [],
+  "對外參數": {},
+  "程式碼": "",
+  "審核狀態": "approved",
+  "上架狀態": true,
+  "可刪除": false
+}

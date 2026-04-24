@@ -1,0 +1,55 @@
+{
+  "id": "方塊:方塊:divider",
+  "名稱": {
+    "en": "Divider",
+    "zh-tw": "分隔線",
+    "zh-cn": "分隔线",
+    "vi": "Đường phân cách"
+  },
+  "描述": {
+    "en": "A divider component for separating content sections",
+    "zh-tw": "用於分隔內容區域的分隔線元件",
+    "zh-cn": "用于分隔内容区域的分隔线元件",
+    "vi": "Thành phần đường phân cách để tách các phần nội dung"
+  },
+  "售價": 0,
+  "標籤集": ["方塊:標籤:佈局", "方塊:標籤:視覺"],
+  "模式": "內建",
+  "元件路徑": "Divider",
+  "屬性定義": {
+    "variant": {
+      "type": "string",
+      "description": "Divider style variant",
+      "required": false,
+      "default": "solid",
+      "options": ["solid", "dashed", "dotted", "double"]
+    },
+    "color": {
+      "type": "string",
+      "description": "Divider color",
+      "required": false,
+      "default": "base-200",
+      "options": ["base-200", "primary", "secondary", "accent", "info", "success", "warning", "error"]
+    },
+    "thickness": {
+      "type": "string",
+      "description": "Divider thickness",
+      "required": false,
+      "default": "1px",
+      "options": ["1px", "2px", "3px", "4px"]
+    },
+    "orientation": {
+      "type": "string",
+      "description": "Divider orientation",
+      "required": false,
+      "default": "horizontal",
+      "options": ["horizontal", "vertical"]
+    }
+  },
+  "子方塊": [],
+  "對外參數": {},
+  "程式碼": "",
+  "審核狀態": "approved",
+  "上架狀態": true,
+  "可刪除": false
+}
