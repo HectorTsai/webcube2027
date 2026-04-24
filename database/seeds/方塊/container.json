@@ -1,0 +1,121 @@
+{
+  "id": "方塊:方塊:container",
+  "名稱": {
+    "en": "Container",
+    "zh-tw": "容器",
+    "zh-cn": "容器",
+    "vi": "Bộ chứa"
+  },
+  "描述": {
+    "en": "A flexible container component with multiple variants and styling options",
+    "zh-tw": "具有多種變體和樣式選項的靈活容器元件",
+    "zh-cn": "具有多种变体和样式选项的灵活容器元件",
+    "vi": "Thành phần chứa linh hoạt với nhiều biến thể và tùy chọn kiểu dáng"
+  },
+  "售價": 0,
+  "標籤集": ["方塊:標籤:佈局", "方塊:標籤:基礎"],
+  "模式": "內建",
+  "元件路徑": "Container",
+  "屬性定義": {
+    "variant": {
+      "type": "string",
+      "description": "Container variant style",
+      "required": false,
+      "default": "solid",
+      "options": ["solid", "outline", "ghost", "dot", "dashed", "double", "gradient-right", "gradient-left", "gradient-up", "gradient-down", "gradient-middle", "gradient-diagonal", "gradient-center", "gradient-cone", "crystal", "diagonal-stripes", "glow", "minimalist"]
+    },
+    "color": {
+      "type": "string",
+      "description": "Color theme",
+      "required": false,
+      "default": "primary",
+      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "base", "neutral"]
+    },
+    "direction": {
+      "type": "string",
+      "description": "Layout direction",
+      "required": false,
+      "default": "column",
+      "options": ["row", "column"]
+    },
+    "width": {
+      "type": "string",
+      "description": "css width setting, example:'50vw', '50%','20px'",
+      "required": false,
+      "default": "auto"
+    },
+    "height": {
+      "type": "string",
+      "description": "css height setting, example:'50vh', '50%','20px'",
+      "required": false,
+      "default": "auto"
+    },
+    "padding": {
+      "type": "string",
+      "description": "Padding size",
+      "required": false,
+      "default": "md",
+      "options": ["none", "xs", "sm", "md", "lg", "xl", "2xl"]
+    },
+    "margin": {
+      "type": "string",
+      "description": "Margin size",
+      "required": false,
+      "default": "none",
+      "options": ["none", "xs", "sm", "md", "lg", "xl", "auto"]
+    },
+    "align": {
+      "type": "string",
+      "description": "Alignment",
+      "required": false,
+      "default": "start",
+      "options": ["start", "center", "end", "stretch"]
+    },
+    "justify": {
+      "type": "string",
+      "description": "Justification",
+      "required": false,
+      "default": "start",
+      "options": ["start", "center", "end", "between", "around", "evenly"]
+    },
+    "gap": {
+      "type": "string",
+      "description": "Gap size",
+      "required": false,
+      "default": "none",
+      "options": ["none", "xs", "sm", "md", "lg", "xl"]
+    },
+    "rounded": {
+      "type": "string",
+      "description": "Border radius，依照元件大小使用，小元件用 sm，大元件用 lg。",
+      "required": false,
+      "default": "lg",
+      "options": ["none", "sm", "md", "lg"]
+    },
+    "shadow": {
+      "type": "string",
+      "description": "Shadow size",
+      "required": false,
+      "default": "none",
+      "options": ["none", "sm", "md", "lg"]
+    },
+    "active": {
+      "type": "boolean",
+      "description": "Active state",
+      "required": false,
+      "default": true
+    },
+    "hover": {
+      "type": "boolean",
+      "description": "Hover effect，有 hover 效果。",
+      "required": false,
+      "default": false
+    }
+  },
+  "子方塊": [],
+  "對外參數": {},
+  "程式碼": "",
+  "審核狀態": "approved",
+  "上架狀態": true,
+  "可刪除": false
+}
