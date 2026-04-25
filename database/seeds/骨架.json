@@ -30,7 +30,9 @@
       "抽屜.下.開":"animate-in slide-in-from-down",
       "抽屜.下.關":"animate-out slide-out-to-down",
       "視窗.開":"animate-bounce-in",
-      "視窗.關":"animate-bounce-out"
+      "視窗.關":"animate-bounce-out",
+      "彈出.開":"animate-bounce-in",
+      "彈出.關":"animate-bounce-out"
     },
     "標籤集":["骨架:標籤:經典"],
     "售價":0,

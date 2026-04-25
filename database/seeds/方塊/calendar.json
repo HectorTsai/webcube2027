@@ -23,25 +23,6 @@
       "required": false,
       "default": ""
     },
-    "minDate": {
-      "type": "string",
-      "description": "Minimum selectable date",
-      "required": false,
-      "default": ""
-    },
-    "maxDate": {
-      "type": "string",
-      "description": "Maximum selectable date",
-      "required": false,
-      "default": ""
-    },
-    "locale": {
-      "type": "string",
-      "description": "Calendar locale",
-      "required": false,
-      "default": "en-US",
-      "options": ["en-US", "zh-TW", "zh-CN", "vi-VN"]
-    },
     "variant": {
       "type": "string",
       "description": "Calendar style variant",

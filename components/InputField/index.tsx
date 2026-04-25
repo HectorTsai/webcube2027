@@ -7,8 +7,6 @@ export interface InputFieldProps {
   variant?: string;
   /** 颜色 */
   color?: string;
-  /** 圆角 */
-  rounded?: "none" | "sm" | "md" | "lg";
 }
 
 export { default } from "./InputField.tsx";

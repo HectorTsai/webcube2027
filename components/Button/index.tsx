@@ -13,7 +13,6 @@ export interface ButtonProps {
   disabled?: boolean;
   /** Whether the button is in active state */
   active?: boolean;
-  rounded?:"sm";
   /** Button type for form submission behavior */
   type?: "button" | "submit" | "reset";
   /** Alpine.js click event handler - JavaScript expression to execute when clicked */

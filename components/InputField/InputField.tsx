@@ -5,7 +5,6 @@ export default function InputField({
   className,
   variant,
   color,
-  rounded,
   children,
 }: InputFieldProps) {
   return (
@@ -13,7 +12,7 @@ export default function InputField({
       variant={variant}
       color={color}
       padding="none"
-      rounded={rounded || "sm"}
+      rounded="sm"
       className={className}
     >
       <div class="flex items-center w-full">

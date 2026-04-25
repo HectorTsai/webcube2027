@@ -22,7 +22,7 @@
       "description": "Button color theme",
       "required": false,
       "default": "primary",
-      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error"]
+      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "base", "neutral"]
     },
     "variant": {
       "type": "string",
@@ -56,13 +56,6 @@
       "required": false,
       "default": "button",
       "options": ["button", "submit", "reset"]
-    },
-    "rounded": {
-      "type": "string",
-      "description": "Border radius",
-      "required": false,
-      "default": "sm",
-      "options": ["none", "sm", "md", "lg"]
     }
   },
   "子方塊": [],

@@ -10,7 +10,6 @@ export default async function Button({
   active = true,
   type = "button",
   onClick,
-  rounded = "sm",
   className,
   ...restProps
 }: ButtonProps) {
@@ -54,7 +53,7 @@ export default async function Button({
     direction: "row",
     align: "center",
     justify: "center",
-    rounded: rounded,
+    rounded: "sm",
     hover: true,
     active: active,
     className: containerClasses,

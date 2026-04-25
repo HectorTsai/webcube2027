@@ -5,8 +5,40 @@ export default function Calendar({
   className,
   variant,
   color,
+  targetInputId,
+  popupState,
+  popupStore = "popups",
   ...restProps
 }: CalendarProps) {
+  // 生成 Alpine.js 事件處理屬性
+  const generateAlpineAttributes = () => {
+    const attributes: Record<string, string> = {};
+    
+    if (targetInputId || popupState) {
+      // 簡單的 Alpine.js 事件處理，直接更新目標元素和關閉 Popup
+      const popupRef = popupState ? `$store.${popupStore}.${popupState}` : null;
+      
+      attributes["x-data"] = `{
+        selectedDate: '',
+        handleDateChange(event) {
+          this.selectedDate = event.detail?.value || event.target?.value || '';
+          const target = document.getElementById('${targetInputId}');
+          if (target) {
+            target.value = this.selectedDate;
+            target.innerText = this.selectedDate;
+          }
+          ${popupRef ? `${popupRef} = false;` : ''}
+        }
+      }`;
+      
+      attributes["x-on:change"] = "handleDateChange($event)";
+    }
+    
+    return attributes;
+  };
+
+  const alpineAttributes = generateAlpineAttributes();
+
   return (
     <Container
       variant={variant}
@@ -16,7 +48,11 @@ export default function Calendar({
       align="center"
       justify="center"
     >
-      <calendar-date class="cally" {...restProps}>
+      <calendar-date 
+        class="cally" 
+        {...restProps}
+        {...alpineAttributes}
+      >
         <svg 
           aria-label="Previous" 
           class="fill-current size-4" 
