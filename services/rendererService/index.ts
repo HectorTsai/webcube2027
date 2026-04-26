@@ -112,7 +112,7 @@ async function 生成完整HTML(c: Context, 頁面實例: any, 頁面內容: str
   <script defer src="/media/v1/script/alpine.min.js"></script>
   <script defer src="/media/v1/script/page-flip.browser.min.js"></script>
 </head>
-<body>
+<body x-data>
   <div class="min-h-screen bg-base-100 text-base-content">
     ${頁面內容}
   </div>
