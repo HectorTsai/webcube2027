@@ -4,16 +4,9 @@ import Icon from "../components/Icon.tsx";
 import Popup from "../components/Popup/index.tsx";
 import Button from "../components/Button/Button.tsx";
 
-// 初始化 Alpine.js Store 狀態
-  const storeData = `{
-    basicPopup: false,
-    variantPopup: false,
-    fullPopup: false
-  }`;
-
 export default function CalendarTestPage() {
   return (
-    <div x-data x-init={`Alpine.store('calendarPopups', ${storeData})`} class="p-8 max-w-4xl mx-auto">
+    <div class="p-8 max-w-4xl mx-auto">
       <h1 class="text-2xl font-bold mb-8">Calendar 組件測試</h1>
 
       <div class="mb-8">
@@ -31,8 +24,8 @@ export default function CalendarTestPage() {
                    開啟日曆 Popup
                  </Button>
                  
-                 <Popup autoClose={false} state="basicPopup" store="calendarPopups">
-                   <Calendar />
+                 <Popup state="basicPopup" store="calendarPopups">
+                   <Calendar popupState="basicPopup" popupStore="calendarPopups" />
                  </Popup>
                </div>
              </div>
@@ -55,8 +48,8 @@ export default function CalendarTestPage() {
                    開啟 Outline 日曆
                  </Button>
                  
-                 <Popup autoClose={false} state="variantPopup" store="calendarPopups">
-                   <Calendar variant="outline" color="success" />
+                 <Popup state="variantPopup" store="calendarPopups">
+                   <Calendar variant="outline" color="success" popupState="variantPopup" popupStore="calendarPopups" />
                  </Popup>
                </div>
              </div>
@@ -129,7 +122,7 @@ export default function CalendarTestPage() {
                    </button>
                  </InputField>
                  
-                 <Popup autoClose={false} state="fullPopup" store="calendarPopups">
+                 <Popup state="fullPopup" store="calendarPopups">
                    <Calendar targetInputId="fullDateInput" popupState="fullPopup" popupStore="calendarPopups" />
                  </Popup>
                </div>
@@ -144,7 +137,7 @@ export default function CalendarTestPage() {
           <ul class="list-disc list-inside space-y-1 text-sm text-base-content/80">
             <li><strong>Popup 狀態管理</strong>：使用 Alpine.js Store 管理 Popup 顯示狀態</li>
             <li><strong>autoClose=false</strong>：Calendar 需要禁用內部點擊關閉，以便切換月份</li>
-            <li><strong>選擇日期自動關閉</strong>：Calendar 組件在選擇日期後會主動關閉 Popup</li>
+            <li><strong>選擇日期自動關閉</strong>：Calendar 組件在選擇日期後會主動關閉 Popup，需提供 popupState/popupStore。</li>
             <li><strong>外部點擊關閉</strong>：點擊 Popup 外部背景會關閉 Popup</li>
             <li><strong>月份切換</strong>：點擊「上一個月/下一個月」按鈕不會關閉 Popup</li>
           </ul>

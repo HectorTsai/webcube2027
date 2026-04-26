@@ -108,7 +108,7 @@ async function 渲染測試頁面(c: Context, 測試名稱: string): Promise<Res
   <script defer src="/media/v1/script/page-flip.browser.min.js"></script>
   <script type="module" src="https://esm.sh/cally"></script>
 </head>
-<body style="margin: 0;">
+<body x-data style="margin: 0;">
   ${htmlContent}
 </body>
 </html>`;
@@ -149,7 +149,7 @@ async function 渲染測試404頁面(c: Context, path: string): Promise<Response
   </style>
   <script type="module" src="https://esm.sh/cally"></script>
 </head>
-<body>
+<body x-data>
   ${htmlContent}
 </body>
 </html>`;
@@ -191,7 +191,7 @@ async function 渲染測試錯誤頁面(c: Context, 錯誤: unknown): Promise<Re
   </style>
   <script type="module" src="https://esm.sh/cally"></script>
 </head>
-<body>
+<body x-data>
   ${htmlContent}
 </body>
 </html>`;

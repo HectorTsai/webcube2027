@@ -7,7 +7,7 @@ export default function Popup({
   color,
   state = "popupOpen",
   store = "popups",
-  autoClose = true,
+  autoClose = false,
   position = "absolute",
   offset,
   animateIn,
@@ -19,7 +19,15 @@ export default function Popup({
 }: PopupProps) {
   // 使用狀態管理，類似 Modal 組件
   const ref = `$store.${store}.${state}`;
+  
+  // 自動初始化 Alpine.js Store 狀態
+  const initScript = `
+    if(!Alpine.store('${store}')){Alpine.store('${store}',{})}
+    if(Alpine.store('${store}').${state}===undefined){Alpine.store('${store}').${state}=false}
+  `.replace(/\s+/g, ' ').trim();
+  
 
+  
   // 動畫效果，參考 Modal 組件
   const inClass = animateIn || 
     (skeleton?.動畫 && skeleton.動畫['彈出.開']) ||
@@ -65,7 +73,7 @@ export default function Popup({
   }
 
   return (
-    <>
+    <div x-data x-init={initScript}>
       {/* 全屏透明背景層，用於點擊外部關閉 */}
       <div
         class="fixed inset-0 z-30 bg-transparent"
@@ -88,6 +96,6 @@ export default function Popup({
           {children}
         </Container>
       </div>
-    </>
+    </div>
   );
 }

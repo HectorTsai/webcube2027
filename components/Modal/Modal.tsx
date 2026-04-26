@@ -20,6 +20,12 @@ export default function Modal({
   ...restProps
 }: ModalProps) {
   const ref = `$store.${store}.${state}`;
+  
+  // 自動初始化 Alpine.js Store 狀態
+  const initScript = `
+    if(!Alpine.store('${store}')){Alpine.store('${store}',{})}
+    if(Alpine.store('${store}').${state}===undefined){Alpine.store('${store}').${state}=false}
+  `.replace(/\s+/g, ' ').trim();
 
   const inClass = animateIn || 
     (skeleton?.動畫 && skeleton.動畫['視窗.開']) ||
@@ -68,7 +74,7 @@ export default function Modal({
   ].filter(Boolean).join(" ");
 
   return (
-    <div
+    <div x-data x-init={initScript}
       class={backdropClasses}
       {...backdropAlpine}
       {...restProps}

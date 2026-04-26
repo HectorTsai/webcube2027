@@ -205,7 +205,7 @@ export default async function ModalTestPage() {
   ].join(', ')}}`;
 
   return (
-    <div x-data x-init={`Alpine.store('modals', ${storeData})`} class="container mx-auto p-6 space-y-8">
+    <div class="container mx-auto p-6 space-y-8">
 
       <section>
         <h1 class="text-3xl font-bold mb-2">Modal 組件測試</h1>

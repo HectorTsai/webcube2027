@@ -5,19 +5,8 @@ import Calendar from "../components/Calendar/index.tsx";
 import Button from "../components/Button/Button.tsx";
 
 export default function PopupTestPage() {
-  // 初始化 Alpine.js Store 狀態
-  const storeData = `{
-    customPopup: false,
-    solidPopup: false,
-    outlinePopup: false,
-    warningPopup: false,
-    errorPopup: false,
-    calendarPopup: false,
-    multiPopup: false
-  }`;
-
   return (
-    <div x-data x-init={`Alpine.store('popups', ${storeData})`} class="p-8 max-w-4xl mx-auto">
+    <div class="p-8 max-w-4xl mx-auto">
       
       <h1 class="text-2xl font-bold mb-8">Popup 元件測試</h1>
 
@@ -50,7 +39,7 @@ export default function PopupTestPage() {
                   </Button>
                 </InputField>
                 
-                <Popup autoClose={false} state="calendarPopup">
+                <Popup state="calendarPopup">
                   <Calendar targetInputId="popupDateInput" popupState="calendarPopup" />
                 </Popup>
               </div>
@@ -140,7 +129,7 @@ export default function PopupTestPage() {
                   </button>
                 </InputField>
                 
-                <Popup color="accent" state="multiPopup" autoClose={false}>
+                <Popup color="accent" state="multiPopup">
                   <div class="p-4 min-w-48">
                     <h4 class="font-semibold mb-3">選擇多個項目</h4>
                     <div class="space-y-2" x-data="{ selected: [] }">
@@ -187,7 +176,7 @@ export default function PopupTestPage() {
                     <Icon name="settings" size="sm" />
                   </button>
                 </InputField>
-                <Popup variant="solid" color="primary" state="solidPopup">
+                <Popup autoClose variant="solid" color="primary" state="solidPopup">
                   <div class="p-4">
                     <div class="font-semibold">Solid 樣式 Popup</div>
                     <div class="text-sm opacity-80 mt-1">點擊 Popup 內部或外部關閉</div>
@@ -203,7 +192,7 @@ export default function PopupTestPage() {
                     <Icon name="settings" size="sm" />
                   </button>
                 </InputField>
-                <Popup variant="outline" color="success" state="outlinePopup">
+                <Popup autoClose variant="outline" color="success" state="outlinePopup">
                   <div class="p-4">
                     <div class="font-semibold">Outline 樣式 Popup</div>
                     <div class="text-sm opacity-80 mt-1">點擊 Popup 內部或外部關閉</div>
@@ -224,7 +213,7 @@ export default function PopupTestPage() {
                     <Icon name="alert" size="sm" />
                   </button>
                 </InputField>
-                <Popup variant="crystal" color="warning" state="warningPopup">
+                <Popup autoClose variant="crystal" color="warning" state="warningPopup">
                   <div class="p-4">
                     <div class="font-semibold">Warning 主題 Popup</div>
                     <div class="text-sm opacity-80 mt-1">點擊 Popup 內部或外部關閉</div>
@@ -240,7 +229,7 @@ export default function PopupTestPage() {
                     <Icon name="error" size="sm" />
                   </button>
                 </InputField>
-                <Popup variant="dot" color="error" state="errorPopup">
+                <Popup autoClose variant="dot" color="error" state="errorPopup">
                   <div class="p-4">
                     <div class="font-semibold">Error 主題 Popup</div>
                     <div class="text-sm opacity-80 mt-1">點擊 Popup 內部或外部關閉</div>
