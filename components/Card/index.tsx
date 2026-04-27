@@ -1,14 +1,8 @@
-export interface CardProps {
-  /** 子元素 */
-  children: unknown;
+import {ComponentProps} from "../classes.ts";
+
+export interface CardProps extends ComponentProps {
   /** 佈局方向 */
   direction?: "row" | "column";
-  /** 佈局變體 */
-  variant?: "solid" | "outline" | "ghost" | "dot" | "dashed" | "double" | 
-           "gradient-right" | "gradient-left" | "gradient-up" | "gradient-down" | "gradient-middle" |
-           "gradient-diagonal" | "gradient-center" | "gradient-cone" | "crystal" | "diagonal-stripes" | "glow" | "minimalist";
-  /** 顏色主題 */
-  color?: "primary" | "secondary" | "accent" | "info" | "success" | "warning" | "error";
   /** 內距 */
   padding?: "none" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
   /** 外距 */
@@ -19,8 +13,6 @@ export interface CardProps {
   justify?: "start" | "center" | "end" | "between" | "around" | "evenly";
   /** 間距 */
   gap?: "none" | "xs" | "sm" | "md" | "lg" | "xl";
-  /** 額外 CSS 類別 */
-  className?: string;
   /** Any additional props (including Alpine.js x- attributes and event handlers) */
   [key: string]: any;
 }

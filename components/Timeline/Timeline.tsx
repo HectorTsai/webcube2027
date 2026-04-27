@@ -12,6 +12,8 @@ export default async function Timeline({
   className,
   color = "primary",
   variant = "solid",
+  context,
+  skeleton,
 }: TimelineProps) {
   const childArray = Array.isArray(children) ? children : children ? [children] : [];
 

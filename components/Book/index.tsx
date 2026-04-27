@@ -1,14 +1,6 @@
-import createVariantComponent from "../index.ts";
+import {ComponentProps} from "../classes.ts";
 
-export interface BookProps {
-  /** 子元素 */
-  children: unknown;
-  /** 佈局變體 */
-  variant?: "solid" | "outline" | "ghost" | "dot" | "dashed" | "double" | 
-           "gradient-right" | "gradient-left" | "gradient-up" | "gradient-down" | "gradient-middle" |
-           "gradient-diagonal" | "gradient-center" | "gradient-cone" | "crystal" | "diagonal-stripes" | "glow" | "minimalist";
-  /** 顏色主題 */
-  color?: "primary" | "secondary" | "accent" | "info" | "success" | "warning" | "error";
+export interface BookProps extends ComponentProps {
   /** 寬度設定 (CSS 值，如 "100px", "50vw", "10rem", "full", "auto") */
   width?: string;
   /** 高度設定 (CSS 值，如 "100px", "50vh", "10rem", "full", "auto") */
@@ -35,9 +27,6 @@ export interface BookProps {
   flipAnimation?: boolean;
   /** 翻頁速度 (毫秒) */
   flipSpeed?: number;
-  /** 額外 CSS 類別 */
-  className?: string;
-  context:any;
   /** Any additional props (including Alpine.js x- attributes and event handlers) */
   [key: string]: any;
 }

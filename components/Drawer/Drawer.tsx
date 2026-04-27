@@ -32,6 +32,7 @@ export default async function Drawer({
   shadow = "lg",
   className,
   skeleton,
+  context,
   ...restProps
 }: DrawerProps) {
   const ref = `$store.${store}.${state}`;
@@ -115,6 +116,8 @@ export default async function Drawer({
     justify: "start",
     gap: "md",
     className: drawerClasses,
+    context,
+    skeleton,
     ...drawerAlpine,
     ...restProps,
     children

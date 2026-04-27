@@ -1,23 +1,13 @@
 import Icon from "../Icon.tsx";
 import Container from "../Container/index.tsx";
-export interface CoverProps {
+import {ComponentProps} from "../classes.ts";
+export interface CoverProps extends ComponentProps {
   /** 封面標題 */
   title: string;
   /** SVG 圖示或裝飾 */
   icon?:string;
   svg?: string;
   src?:string;
-  /** 子元素 */
-  children?: unknown;
-  /** 佈局變體 */
-  variant?: "solid" | "outline" | "ghost" | "dot" | "dashed" | 
-           "gradient-right" | "gradient-left" | "gradient-up" | "gradient-down" | "gradient-middle" |
-           "gradient-diagonal" | "gradient-center" | "gradient-cone" | "crystal" | "diagonal-stripes" | "glow" | "minimalist";
-  /** 顏色主題 */
-  color?: string;
-  /** 額外 CSS 類別 */
-  className?: string;
-  context:any;
   /** Any additional props (including Alpine.js x- attributes and event handlers) */
   [key: string]: any;
 }
@@ -33,6 +23,7 @@ export default async function Cover({
   variant,
   className = "",
   context,
+  skeleton,
   ...props
 }: CoverProps) {
   
@@ -44,10 +35,10 @@ export default async function Cover({
 
   return (
     <div class="book-cover book-page box-border" >
-      <Container color={color} variant={variant} width="full" height="full" className={baseClasses} {...props}>
+      <Container color={color} variant={variant} width="full" height="full" className={baseClasses} context={context} {...skeleton} {...props}>
         {(icon || svg || src) && (
           <div class="mb-4">
-            <Icon id={icon} svg={svg} src={src} size="4xl" context={context} />
+            <Icon id={icon} svg={svg} src={src} size="4xl" context={context} skeleton={skeleton} />
           </div>
         )}
         

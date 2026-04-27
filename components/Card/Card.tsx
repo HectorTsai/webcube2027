@@ -12,6 +12,8 @@ export default function Card({
   gap = "none",
   children,
   className,
+  context,
+  skeleton,
   ...restProps
 }: CardProps) {
   const finalClasses = [
@@ -33,6 +35,8 @@ export default function Card({
     gap={gap}
     rounded="lg"
     shadow="md"
+    context={context}
+    skeleton={skeleton}
     className={classes}
     {...restProps}
   >

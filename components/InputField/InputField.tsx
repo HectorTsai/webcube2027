@@ -5,6 +5,8 @@ export default function InputField({
   className,
   variant,
   color,
+  context,
+  skeleton,
   children,
 }: InputFieldProps) {
   return (
@@ -13,6 +15,8 @@ export default function InputField({
       color={color}
       padding="none"
       rounded="sm"
+      context={context}
+      skeleton={skeleton}
       className={className}
     >
       <div class="flex items-center w-full">

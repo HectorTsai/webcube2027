@@ -9,7 +9,9 @@ export default async function TimelineItem({
   color = "primary",
   variant = "solid",
   className,
-  children,
+  context,
+  skeleton,
+  children, 
   start,
   end,
 }: TimelineItemProps) {
@@ -38,6 +40,8 @@ export default async function TimelineItem({
         align="center"
         justify="center"
         rounded="sm"
+        context={context}
+        skeleton={skeleton}
         className="shrink-0"
       >
         {iconContent || (

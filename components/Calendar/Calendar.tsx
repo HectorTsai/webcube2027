@@ -8,6 +8,8 @@ export default function Calendar({
   targetInputId,
   popupState,
   popupStore = "popups",
+  context,
+  skeleton,
   ...restProps
 }: CalendarProps) {
   // 生成 Alpine.js 事件處理屬性
@@ -47,6 +49,8 @@ export default function Calendar({
       padding="sm"
       align="center"
       justify="center"
+      context={context}
+      skeleton={skeleton}
     >
       <calendar-date 
         class="cally" 

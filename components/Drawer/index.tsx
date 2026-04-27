@@ -1,8 +1,6 @@
-import 骨架 from "../../database/models/骨架.ts";
+import {ComponentProps} from "../classes.ts";
 
-export interface DrawerProps {
-  children: unknown;
-  /** Alpine.js Store 中的狀態鍵名 */
+export interface DrawerProps extends ComponentProps {
   state?: string;
   /** Alpine.js Store 名稱，預設 "drawers" */
   store?: string;
@@ -13,17 +11,10 @@ export interface DrawerProps {
   animateIn?: string;
   /** 退場動畫 class，預設根據 position 自動選擇 slide-out-to-* */
   animateOut?: string;
-  variant?: "solid" | "outline" | "ghost" | "dot" | "dashed" | "double" |
-           "gradient-right" | "gradient-left" | "gradient-up" | "gradient-down" | "gradient-middle" |
-           "gradient-diagonal" | "gradient-center" | "gradient-cone" | "crystal" | "diagonal-stripes" | "glow" | "minimalist";
-  color?: "primary" | "secondary" | "accent" | "info" | "success" | "warning" | "error";
   width?: string;
   padding?: "none" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
   rounded?: "none" | "sm" | "md" | "lg";
   shadow?: "none" | "sm" | "md" | "lg";
-  className?: string;
-  /** 骨架設定（自動注入） */
-  skeleton?: 骨架;
   [key: string]: any;
 }
 

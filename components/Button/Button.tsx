@@ -11,6 +11,9 @@ export default async function Button({
   type = "button",
   onClick,
   className,
+  context,
+  skeleton,
+  /** Any additional props (including Alpine.js x- attributes and event handlers) */
   ...restProps
 }: ButtonProps) {
   const sizeClasses = {
@@ -57,6 +60,8 @@ export default async function Button({
     hover: true,
     active: active,
     className: containerClasses,
+    context,
+    skeleton,
     children
   });
 

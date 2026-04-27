@@ -1,5 +1,6 @@
 import { jsx } from "hono/jsx/jsx-runtime";
 import { InnerAPI } from "../services/index.ts";
+import 骨架 from "../database/models/骨架.ts";
 
 /**
  * 創建動態 variant 元件
@@ -17,7 +18,7 @@ export default function createVariantComponent(componentName: string, defaultVar
           const res = await InnerAPI(context, `/api/v1/skeleton`);
           if(res.ok){
             const data = await res.json();
-            const skeleton = data.skeleton;
+            const skeleton = new 骨架(data.skeleton);
             if(skeleton){
               // 讀取風格設定
               if(skeleton.風格){

@@ -3,10 +3,7 @@ import type { BookProps } from "./index.tsx";
 import Page from "./Page.tsx";
 import Cover from "./Cover.tsx";
 import Foot from "./Foot.tsx";
-import { 
-  paddingClasses, 
-  marginClasses, 
-} from "../classes.ts";
+import { paddingClasses, marginClasses, } from "../classes.ts";
 
 export default async function Book({
   children,
@@ -18,6 +15,7 @@ export default async function Book({
   margin = "none",
   className = "",
   context,
+  skeleton,
   ...props
 }: BookProps) {
   // 簡單直接的 page-flip 實現
@@ -160,7 +158,7 @@ export default async function Book({
         { arrayChildren.map((child: any) => {
           const isBookComponent = child?.type === Page || child?.type === Cover || child?.type === Foot;
           if (isBookComponent) {
-            const props: Record<string,any> = { color: child.props.color??color, variant: child.props.variant??variant, context: context };
+            const props: Record<string,any> = { color: child.props.color??color, variant: child.props.variant??variant, context: context, skeleton: skeleton };
             if(child.type === Page) {
               props.pageNumber = ++pageCounter;
               props.odd = pageCounter % 2 !== 0;

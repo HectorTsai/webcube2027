@@ -1,3 +1,20 @@
+import 骨架 from "../database/models/骨架.ts";
+
+export type Color = "primary" | "secondary" | "accent" | "info" | "success" | "warning" | "error" | "danger" | "base" | "neutral";
+
+export type Variant = "solid" | "outline" | "ghost" | "dot" | "dashed" | "double" | 
+           "gradient-right" | "gradient-left" | "gradient-up" | "gradient-down" | "gradient-middle" |
+           "gradient-diagonal" | "gradient-center" | "gradient-cone" | "crystal" | "diagonal-stripes" | "glow" | "minimalist";
+
+export interface ComponentProps {
+  children?: unknown;
+  color?: Color;
+  variant?: Variant;
+  className?: string;
+  context?: any;
+  skeleton?: 骨架;
+} 
+
 export const paddingClasses = {
   none: "p-0",
   xs: "p-xs",

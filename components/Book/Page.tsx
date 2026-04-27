@@ -1,19 +1,10 @@
 import Container from "../Container/index.tsx";
-export interface PageProps {
-  /** 子元素 */
-  children: unknown;
+import {ComponentProps} from "../classes.ts";
+export interface PageProps extends ComponentProps {
   /** 頁碼 */
   pageNumber?: number;
   /** 是否為奇數頁 (影響頁面佈局) */
   odd?: boolean;
-  /** 顏色主題 */
-  color?:string;
-  /** 佈局變體 */
-  variant?: "solid" | "outline" | "ghost" | "dot" | "dashed" | 
-           "gradient-right" | "gradient-left" | "gradient-up" | "gradient-down" | "gradient-middle" |
-           "gradient-diagonal" | "gradient-center" | "gradient-cone" | "crystal" | "diagonal-stripes" | "glow" | "minimalist";
-  /** 額外 CSS 類別 */
-  className?: string;
   /** Any additional props (including Alpine.js x- attributes and event handlers) */
   [key: string]: any;
 }
@@ -25,6 +16,8 @@ export default function Page({
   className = "",
   color,
   variant,
+  context,
+  skeleton,
   ...props
 }: PageProps) {
   
@@ -67,7 +60,7 @@ export default function Page({
 
   return (
     <div class="book-page box-border">
-      <Container color={color} variant={variant} width="full" height="full" className={baseClasses} {...props}>
+      <Container color={color} variant={variant} width="full" height="full" className={baseClasses} context={context} {...skeleton} {...props}>
         <div class="flex-1">{children}</div>
         {pageNumber && ( <div class={pageNumberClasses}>{pageNumber}</div>)}
       </Container>

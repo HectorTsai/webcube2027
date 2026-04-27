@@ -12,6 +12,8 @@ export default function Input({
   placeholder,
   value,
   onChange,
+  context,
+  skeleton,
   ...restProps
 }: InputProps) {
   const inputAlpine: Record<string, string> = {
@@ -31,6 +33,8 @@ export default function Input({
         color={color}
         padding="none"
         rounded="sm"
+        context={context}
+        skeleton={skeleton}
         className={className}
         x-data={`{ focused: false, hasValue: ${value ? 'true' : 'false'} }`}
       >
@@ -78,6 +82,8 @@ export default function Input({
         color={color}
         padding="none"
         rounded="sm"
+        context={context}
+        skeleton={skeleton}
         className={className}
         x-data={`{ focused: false, hasValue: ${value ? 'true' : 'false'} }`}
       >
@@ -120,6 +126,8 @@ export default function Input({
       color={color}
       padding="none"
       rounded="sm"
+      context={context}
+      skeleton={skeleton}
       className={className}
     >
       <div class="flex items-center w-full">

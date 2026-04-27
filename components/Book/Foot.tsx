@@ -1,19 +1,11 @@
 import Container from "../Container/index.tsx";
-export interface FootProps {
-  /** 子元素 */
-  children?: unknown;
+import {ComponentProps} from "../classes.ts";
+
+export interface FootProps extends ComponentProps {
   /** 版權資訊 */
   copyright?: string;
   /** 出版資訊 */
   publisher?: string;
-  /** 額外 CSS 類別 */
-  className?: string;
-  /** 佈局變體 */
-  variant?: "solid" | "outline" | "ghost" | "dot" | "dashed" | 
-           "gradient-right" | "gradient-left" | "gradient-up" | "gradient-down" | "gradient-middle" |
-           "gradient-diagonal" | "gradient-center" | "gradient-cone" | "crystal" | "diagonal-stripes" | "glow" | "minimalist";
-  /** 顏色主題 */
-  color?: string;
   /** Any additional props (including Alpine.js x- attributes and event handlers) */
   [key: string]: any;
 }
@@ -25,6 +17,8 @@ export default function Foot({
   className = "",
   color,
   variant,
+  context,
+  skeleton,
   ...props
 }: FootProps) {
   
@@ -36,7 +30,7 @@ export default function Foot({
 
   return (
     <div class="book-foot book-page box-border">
-      <Container variant={variant} color={color} width="full" height="full" className={baseClasses} {...props}>
+      <Container variant={variant} color={color} width="full" height="full" className={baseClasses} context={context} {...skeleton} {...props}>
         {children && (<div class="text-lg">{children}</div>)}
       
         {/* 出版資訊 */}
