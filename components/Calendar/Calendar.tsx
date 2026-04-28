@@ -12,27 +12,50 @@ export default function Calendar({
   skeleton,
   ...restProps
 }: CalendarProps) {
-  // 生成 Alpine.js 事件處理屬性
   const generateAlpineAttributes = () => {
     const attributes: Record<string, string> = {};
     
     if (targetInputId || popupState) {
-      // 簡單的 Alpine.js 事件處理，直接更新目標元素和關閉 Popup
       const popupRef = popupState ? `$store.${popupStore}.${popupState}` : null;
       
       attributes["x-data"] = `{
         selectedDate: '',
+        init() {
+          const target = document.getElementById('${targetInputId}');
+          let val = '';
+          if (target) val = target.value || target.innerText;
+          this.selectedDate = val || new Date().toISOString().split('T')[0];
+          
+          if (${popupRef !== null}) {
+            this.$watch('${popupRef}', (isOpen) => {
+              if (isOpen) {
+                setTimeout(() => {
+                  const c = this.$el;
+                  if (this.selectedDate) {
+                    c.value = this.selectedDate;
+                    c.focusedDate = this.selectedDate;
+                  }
+                }, 50);
+              }
+            });
+          }
+        },
         handleDateChange(event) {
-          this.selectedDate = event.detail?.value || event.target?.value || '';
+          const val = event.detail?.value || event.target?.value || '';
+          this.selectedDate = val;
           const target = document.getElementById('${targetInputId}');
           if (target) {
-            target.value = this.selectedDate;
-            target.innerText = this.selectedDate;
+            if ('value' in target) target.value = val;
+            target.innerText = val;
           }
-          ${popupRef ? `${popupRef} = false;` : ''}
+          if (${popupRef !== null}) {
+            ${popupRef} = false;
+          }
         }
-      }`;
-      
+      }`.replace(/\s+/g, ' ');
+
+      /* 核心修改：改用 x-model 以獲得更好的 Web Component 相容性，避免與 manual property 設定衝突 */
+      attributes[":value"] = "selectedDate";
       attributes["x-on:change"] = "handleDateChange($event)";
     }
     

@@ -45,7 +45,7 @@
     },
     "className": {
       "type": "string",
-      "description": "Footer class name",
+      "description": "額外的類名，用於自訂頁腳樣式",
       "required": false,
       "default": ""
     }

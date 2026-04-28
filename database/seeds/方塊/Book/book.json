@@ -61,7 +61,7 @@
     },
     "className": {
       "type": "string",
-      "description": "Book class name",
+      "description": "額外的類名，用於自訂書籍樣式",
       "required": false,
       "default": ""
     }

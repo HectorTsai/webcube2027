@@ -7,10 +7,10 @@
     "vi": "Lịch"
   },
   "描述": {
-    "en": "A calendar component for date selection and display",
-    "zh-tw": "用於日期選擇和顯示的日曆元件",
-    "zh-cn": "用于日期选择和显示的日历元件",
-    "vi": "Thành phần lịch để chọn và hiển thị ngày"
+    "en": "A calendar component for date selection and display, with optional combination with Popup component",
+    "zh-tw": "用於日期選擇和顯示的日曆元件，可以結合Popup元件來顯示日期選擇器",
+    "zh-cn": "用于日期选择和显示的日历元件，可以结合Popup组件来显示日期选择器",
+    "vi": "Thành phần lịch để chọn và hiển thị ngày, có thể kết hợp với thành phần Popup để hiển thị ngày chọn"
   },
   "售價": 0,
   "標籤集": ["方塊:標籤:日期", "方塊:標籤:互動"],
@@ -23,12 +23,37 @@
       "required": false,
       "default": ""
     },
+    "color": {
+      "type": "string",
+      "description": "Button color theme",
+      "required": false,
+      "default": "primary",
+      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "base", "neutral"]
+    },
     "variant": {
       "type": "string",
       "description": "Calendar style variant",
       "required": false,
       "default": "solid",
-      "options": ["solid", "outline", "ghost"]
+      "options": ["solid", "outline", "ghost", "dot", "dashed", "double", "gradient-right", "gradient-left", "gradient-up", "gradient-down", "gradient-middle", "gradient-diagonal", "gradient-center", "gradient-cone", "crystal", "diagonal-stripes", "glow", "minimalist"]
+    },
+    "targetInputId": {
+      "type": "string",
+      "description": "ID of the target input element",
+      "required": false,
+      "default": ""
+    },
+    "popupStore":{
+      "type": "string",
+      "description": "Popup store name",
+      "required": false,
+      "default": "popups"
+    },
+    "popupState":{
+      "type": "string",
+      "description": "Popup state name",
+      "required": false,
+      "default": ""
     }
   },
   "子方塊": [],

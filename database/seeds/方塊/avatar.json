@@ -64,7 +64,7 @@
     },
     "className": {
       "type": "string",
-      "description": "Additional class name",
+      "description": "額外的類名，用於自訂頭像樣式",
       "required": false,
       "default": ""
     }

@@ -33,7 +33,7 @@
     },
     "className": {
       "type": "string",
-      "description": "Page class name",
+      "description": "額外的類名，用於自訂頁面樣式",
       "required": false,
       "default": ""
     }

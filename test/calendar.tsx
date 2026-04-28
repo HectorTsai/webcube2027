@@ -112,7 +112,7 @@ export default function CalendarTestPage() {
                      type="text" 
                      placeholder="請選擇日期" 
                      class="flex-1 px-3 py-2 border-0 text-sm outline-none bg-transparent box-border"
-                     readonly
+                     value="2024-01-01"
                    />
                    <button 
                      class="px-3 py-2 text-sm border-l border-gray-300 hover:bg-gray-100 transition-colors"

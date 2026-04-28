@@ -6,6 +6,7 @@
     {"id": "方塊:標籤:導航","名稱":{"en":"navigation","zh-tw":"導航","vi":"navigation"},"標籤集":[],"可刪除": false},
     {"id": "方塊:標籤:個人化","名稱":{"en":"personalization","zh-tw":"個人化","vi":"personalization"},"標籤集":[],"可刪除": false},
     {"id": "方塊:標籤:內容","名稱":{"en":"content","zh-tw":"內容","vi":"content"},"標籤集":[],"可刪除": false},
-    {"id":"方塊:標籤:組合","名稱":{"en":"combination","zh-tw":"組合","vi":"combination"},"標籤集":[],"可刪除": false}
+    {"id":"方塊:標籤:組合","名稱":{"en":"combination","zh-tw":"組合","vi":"combination"},"標籤集":[],"可刪除": false},
+    {"id":"方塊:標籤:日期","名稱":{"en":"date","zh-tw":"日期","vi":"date"},"標籤集":[],"可刪除": false}
 ]
   

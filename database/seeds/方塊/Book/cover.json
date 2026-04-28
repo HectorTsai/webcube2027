@@ -25,19 +25,19 @@
     },
     "icon": {
       "type": "string",
-      "description": "Cover icon",
+      "description": "使用資料庫裡的圖示id來顯示封面圖示",
       "required": false,
       "default": ""
     },
     "svg": {
       "type": "string",
-      "description": "Cover SVG content",
+      "description": "直接輸入封面SVG內容",
       "required": false,
       "default": ""
     },
     "src": {
       "type": "string",
-      "description": "Cover image source",
+      "description": "使用網路資源來顯示封面圖片",
       "required": false,
       "default": ""
     },
@@ -57,7 +57,7 @@
     },
     "className": {
       "type": "string",
-      "description": "Cover class name",
+      "description": "額外的類名，用於自訂封面樣式",
       "required": false,
       "default": ""
     }

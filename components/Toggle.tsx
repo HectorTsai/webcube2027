@@ -1,4 +1,5 @@
 import Icon, { IconProps } from './Icon.tsx';
+import {Color} from "./classes.ts";
 
 const sizeMap: Record<string, { width: number; height: number; thumb: number }> = {
   xs: { width: 48, height: 24, thumb: 18 },
@@ -18,7 +19,7 @@ const iconSizeMap: Record<keyof typeof sizeMap, IconProps['size']> = {
 
 export interface ToggleProps {
   name?: string;
-  color?: 'primary' | 'secondary' | 'accent' | 'info' | 'success' | 'warning' | 'error';
+  color?: Color;
   size?: keyof typeof sizeMap;
   value?: string;
   checked?: boolean;
