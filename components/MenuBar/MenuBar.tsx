@@ -12,14 +12,13 @@ export default async function MenuBar({
   color = "primary",
   width = "full",
   padding = "sm",
-  rounded = "none",
-  shadow = "none",
   sticky = false,
   responsive = false,
   drawerState = "menuOpen",
   drawerStore = "drawers",
   className,
   skeleton,
+  context,
   ...restProps
 }: MenuBarProps) {
   const stickyClasses = sticky ? "fixed top-0 left-0 right-0 z-50" : "";
@@ -30,8 +29,8 @@ export default async function MenuBar({
     color,
     width,
     padding,
-    rounded,
-    shadow,
+    rounded:"none",
+    shadow:"none",
     direction: "row",
     align: "center",
     justify: "space-between",

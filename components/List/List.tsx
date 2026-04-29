@@ -2,7 +2,7 @@ import type { ListProps } from "./index.tsx";
 import Container from "../Container/index.tsx";
 
 export default function List({
-  color = "ghost",
+  color = "base",
   variant = "solid",
   children,
   divider = false,

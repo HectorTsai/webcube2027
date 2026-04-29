@@ -1,0 +1,39 @@
+{
+  "id": "方塊:方塊:list-row",
+  "名稱": {
+    "en": "List Row",
+    "zh-tw": "列表列",
+    "zh-cn": "列表行",
+    "vi": "Hàng danh sách"
+  },
+  "描述": {
+    "en": "A list row component for displaying individual list items. IMPORTANT FOR AI: This component must be used as a child of List component and cannot be used alone. Usage example: <List><ListTitle>...</ListTitle><ListRow>item 1</ListRow><ListRow>item 2</ListRow></List>",
+    "zh-tw": "用於顯示個別列表項目的列表列元件。AI注意：此元件必須作為List元件的子元件使用，無法單獨使用。使用範例：<List><ListTitle>...</ListTitle><ListRow>項目1</ListRow><ListRow>項目2</ListRow></List>",
+    "zh-cn": "用于显示个别列表项目的列表行元件。AI注意：此元件必须作为List元件的子元件使用，无法单独使用。使用示例：<List><ListTitle>...</ListTitle><ListRow>项目1</ListRow><ListRow>项目2</ListRow></List>",
+    "vi": "Thành phần hàng danh sách để hiển thị các mục danh sách riêng lẻ. LƯU Ý CHO AI: Thành phần này phải được sử dụng làm con của thành phần List và không thể sử dụng một mình. Ví dụ sử dụng: <List><ListTitle>...</ListTitle><ListRow>mục 1</ListRow><ListRow>mục 2</ListRow></List>"
+  },
+  "售價": 0,
+  "標籤集": ["方塊:標籤:佈局", "方塊:標籤:內容"],
+  "模式": "內建",
+  "元件路徑": "List/ListRow",
+  "屬性定義": {
+    "children": {
+      "type": "any",
+      "description": "Row content",
+      "required": false,
+      "default": ""
+    },
+    "className": {
+      "type": "string",
+      "description": "Row class name",
+      "required": false,
+      "default": ""
+    }
+  },
+  "子方塊": [],
+  "對外參數": {},
+  "程式碼": "",
+  "審核狀態": "approved",
+  "上架狀態": true,
+  "可刪除": false
+}

@@ -1,6 +1,6 @@
-export interface ModalProps {
-  /** 子元素 */
-  children: unknown;
+import { ComponentProps } from "../classes.ts";
+
+export interface ModalProps extends ComponentProps {
   /** Alpine.js Store 中的狀態鍵名 */
   state?: string;
   /** Alpine.js Store 名稱，預設 "modals" */
@@ -13,26 +13,10 @@ export interface ModalProps {
   animateIn?: string;
   /** 退場動畫 class，預設 "fade-out zoom-out" */
   animateOut?: string;
-  /** Container 佈局變體 */
-  variant?: "solid" | "outline" | "ghost" | "dot" | "dashed" | "double" |
-           "gradient-right" | "gradient-left" | "gradient-up" | "gradient-down" | "gradient-middle" |
-           "gradient-diagonal" | "gradient-center" | "gradient-cone" | "crystal" | "diagonal-stripes" | "glow" | "minimalist";
-  /** 顏色主題 */
-  color?: "primary" | "secondary" | "accent" | "info" | "success" | "warning" | "error";
   /** 寬度設定 */
   width?: string;
   /** 內距 */
   padding?: "none" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
-  /** 圓角 */
-  rounded?: "none" | "sm" | "md" | "lg";
-  /** 陰影 */
-  shadow?: "none" | "sm" | "md" | "lg";
-  /** 額外 CSS 類別 */
-  className?: string;
-  /** 骨架設定（自動注入） */
-  skeleton?: {
-    動畫?: Record<string, string>;
-  };
   /** Any additional props (including Alpine.js x- attributes and event handlers) */
   [key: string]: any;
 }

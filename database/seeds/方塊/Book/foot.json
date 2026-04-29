@@ -13,7 +13,7 @@
     "vi": "Thành phần chân trang sách để hiển thị thông tin bản quyền và nhà xuất bản. LƯU Ý CHO AI: Thành phần này phải được sử dụng làm con của thành phần Book và không thể sử dụng một mình. Ví dụ sử dụng: <Book><Cover>...</Cover><Page>...</Page><Foot>...</Foot></Book>"
   },
   "售價": 0,
-  "標籤集": ["方塊:標籤:媒體", "方塊:標籤:內容"],
+  "標籤集": ["方塊:標籤:媒體", "方塊:標籤:內容", "方塊:標籤:容器"],
   "模式": "內建",
   "元件路徑": "Book/Foot",
   "屬性定義": {
@@ -31,7 +31,7 @@
     },
     "variant": {
       "type": "string",
-      "description": "Footer style variant",
+      "description": "Footer style variant, 預設會依據骨架設定變化，非必要不需設定。",
       "required": false,
       "default": "solid",
       "options": ["solid", "outline", "ghost", "dot", "dashed", "double", "gradient-right", "gradient-left", "gradient-up", "gradient-down", "gradient-middle", "gradient-diagonal", "gradient-center", "gradient-cone", "crystal", "diagonal-stripes", "glow", "minimalist"]

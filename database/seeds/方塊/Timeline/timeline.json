@@ -1,0 +1,59 @@
+{
+  "id": "方塊:方塊:timeline",
+  "名稱": {
+    "en": "Timeline",
+    "zh-tw": "時間軸",
+    "zh-cn": "时间轴",
+    "vi": "Dòng thời gian"
+  },
+  "描述": {
+    "en": "A timeline component for displaying chronological events. IMPORTANT FOR AI: This component accepts TimelineItem sub-components as children. Usage example: <Timeline><TimelineItem>Event 1</TimelineItem><TimelineItem>Event 2</TimelineItem></Timeline>",
+    "zh-tw": "用於顯示時間順序事件的時間軸元件。AI注意：此元件接受TimelineItem子元件作為子元素。使用範例：<Timeline><TimelineItem>事件1</TimelineItem><TimelineItem>事件2</TimelineItem></Timeline>",
+    "zh-cn": "用于显示时间顺序事件的时间轴元件。AI注意：此元件接受TimelineItem子元件作为子元素。使用示例：<Timeline><TimelineItem>事件1</TimelineItem><TimelineItem>事件2</TimelineItem></Timeline>",
+    "vi": "Thành phần dòng thời gian để hiển thị các sự kiện theo thứ tự thời gian. LƯU Ý CHO AI: Thành phần này chấp nhận các thành phần con TimelineItem làm con. Ví dụ sử dụng: <Timeline><TimelineItem>Sự kiện 1</TimelineItem><TimelineItem>Sự kiện 2</TimelineItem></Timeline>"
+  },
+  "售價": 0,
+  "標籤集": ["方塊:標籤:時間", "方塊:標籤:內容"],
+  "模式": "內建",
+  "元件路徑": "Timeline",
+  "屬性定義": {
+    "vertical": {
+      "type": "boolean",
+      "description": "是否為垂直時間軸",
+      "required": false,
+      "default": true
+    },
+    "animate": {
+      "type": "string",
+      "description": "動畫類名",
+      "required": false,
+      "default": ""
+    },
+    "variant": {
+      "type": "string",
+      "description": "時間軸樣式變體",
+      "required": false,
+      "default": "solid",
+      "options": ["solid", "outline", "ghost", "dot", "dashed", "double", "gradient-right", "gradient-left", "gradient-up", "gradient-down", "gradient-middle", "gradient-diagonal", "gradient-center", "gradient-cone", "crystal", "diagonal-stripes", "glow", "minimalist"]
+    },
+    "color": {
+      "type": "string",
+      "description": "時間軸顏色",
+      "required": false,
+      "default": "primary",
+      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "base", "neutral"]
+    },
+    "className": {
+      "type": "string",
+      "description": "時間軸額外 CSS 類別",
+      "required": false,
+      "default": ""
+    }
+  },
+  "子方塊": [],
+  "對外參數": {},
+  "程式碼": "",
+  "審核狀態": "approved",
+  "上架狀態": true,
+  "可刪除": false
+}

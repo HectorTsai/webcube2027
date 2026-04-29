@@ -1,8 +1,5 @@
-export interface PopupProps {
-  /** 子元素 */
-  children?: unknown;
-  /** 自定義類名 */
-  className?: string;
+import { ComponentProps } from "../classes.ts";
+export interface PopupProps extends ComponentProps {
   /** Alpine.js Store 中的狀態鍵名 */
   state?: string;
   /** Alpine.js Store 名稱，預設 "popups" */
@@ -19,10 +16,6 @@ export interface PopupProps {
   animateIn?: string;
   /** 退場動畫 class，預設 "fade-out zoom-out" */
   animateOut?: string;
-  /** 骨架設定（自動注入） */
-  skeleton?: {
-    動畫?: Record<string, string>;
-  };
   /** 任何額外屬性 */
   [key: string]: any;
 }

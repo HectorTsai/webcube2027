@@ -50,12 +50,29 @@ const DEFAULT_VALUES = {
     "lg": "0 10px 15px -3px rgba(0, 0, 0, 0.1)"
   },
   動畫: {
-    "下拉選單.開": "animate__fadeIn",
-    "下拉選單.關": "animate__fadeOut",
-    "抽屜.開": "animate__fadeIn",
-    "抽屜.關": "animate__fadeOut",
-    "視窗.開": "animate__fadeIn",
-    "視窗.關": "animate__fadeOut",
+    "下拉選單":{
+      "開": "animate_in animate__fadeIn",
+      "關": "animate_in animate__fadeOut"
+    },
+    "抽屜":{
+      "上.開": "animate_in animate__fadeIn",
+      "上.關": "animate_in animate__fadeOut",
+      "下.開": "animate_in animate__fadeIn",
+      "下.關": "animate_in animate__fadeOut",
+      "左.開": "animate_in animate__fadeIn",
+      "左.關": "animate_in animate__fadeOut",
+      "右.開": "animate_in animate__fadeIn",
+      "右.關": "animate_in animate__fadeOut"
+
+    },
+    "視窗":{
+      "開": "animate_in animate__fadeIn",
+      "關": "animate_in animate__fadeOut"
+    },
+    "彈出":{
+      "開": "animate_in animate__fadeIn",
+      "關": "animate_in animate__fadeOut"
+    }
   },
   圖示尺寸: {
     xs: '1rem',

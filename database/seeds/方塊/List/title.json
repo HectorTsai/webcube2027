@@ -1,0 +1,39 @@
+{
+  "id": "方塊:方塊:list-title",
+  "名稱": {
+    "en": "List Title",
+    "zh-tw": "列表標題",
+    "zh-cn": "列表标题",
+    "vi": "Tiêu đề danh sách"
+  },
+  "描述": {
+    "en": "A list title component for displaying list headers. IMPORTANT FOR AI: This component must be used as a child of List component and cannot be used alone. Usage example: <List><ListTitle>...</ListTitle><ListRow>...</ListRow></List>",
+    "zh-tw": "用於顯示列表標題的列表標題元件。AI注意：此元件必須作為List元件的子元件使用，無法單獨使用。使用範例：<List><ListTitle>...</ListTitle><ListRow>...</ListRow></List>",
+    "zh-cn": "用于显示列表标题的列表标题元件。AI注意：此元件必须作为List元件的子元件使用，无法单独使用。使用示例：<List><ListTitle>...</ListTitle><ListRow>...</ListRow></List>",
+    "vi": "Thành phần tiêu đề danh sách để hiển thị tiêu đề danh sách. LƯU Ý CHO AI: Thành phần này phải được sử dụng làm con của thành phần List và không thể sử dụng một mình. Ví dụ sử dụng: <List><ListTitle>...</ListTitle><ListRow>...</ListRow></List>"
+  },
+  "售價": 0,
+  "標籤集": ["方塊:標籤:佈局", "方塊:標籤:內容"],
+  "模式": "內建",
+  "元件路徑": "List/ListTitle",
+  "屬性定義": {
+    "children": {
+      "type": "any",
+      "description": "Title content",
+      "required": true,
+      "default": ""
+    },
+    "className": {
+      "type": "string",
+      "description": "Title class name",
+      "required": false,
+      "default": ""
+    }
+  },
+  "子方塊": [],
+  "對外參數": {},
+  "程式碼": "",
+  "審核狀態": "approved",
+  "上架狀態": true,
+  "可刪除": false
+}

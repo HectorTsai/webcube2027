@@ -44,6 +44,7 @@ const DEFAULT_VALUES = {
   子方塊: [] as 子方塊配置[],
   對外參數: {} as 參數映射,
   程式碼: "",
+  範例:"",
   審核狀態: "pending" as "pending" | "approved" | "rejected",
   上架狀態: false,
 };
@@ -67,13 +68,11 @@ export default class 方塊 extends 資料 {
 
   // AI mode fields
   public 程式碼: string; // AI-generated JSX code
+  public 範例: string; // AI-generated example code
   public 審核狀態: "pending" | "approved" | "rejected"; // Security audit status
   public 上架狀態: boolean; // Public availability
 
-  public constructor(
-    data: Record<string, unknown> = {},
-    可刪除: boolean = true,
-  ) {
+  public constructor(data: Record<string, unknown> = {},可刪除: boolean = true,) {
     super(data, 可刪除);
     
     // Initialize basic fields
@@ -88,6 +87,7 @@ export default class 方塊 extends 資料 {
     this.子方塊 = (data?.子方塊 as 子方塊配置[]) ?? DEFAULT_VALUES.子方塊;
     this.對外參數 = (data?.對外參數 as 參數映射) ?? DEFAULT_VALUES.對外參數;
     this.程式碼 = (data?.程式碼 as string) ?? DEFAULT_VALUES.程式碼;
+    this.範例 = (data?.範例 as string) ?? DEFAULT_VALUES.範例;
     this.審核狀態 = (data?.審核狀態 as "pending" | "approved" | "rejected") ?? DEFAULT_VALUES.審核狀態;
     this.上架狀態 = (data?.上架狀態 as boolean) ?? DEFAULT_VALUES.上架狀態;
   }
@@ -104,6 +104,7 @@ export default class 方塊 extends 資料 {
       子方塊: this.子方塊,
       對外參數: this.對外參數,
       程式碼: this.程式碼,
+      範例: this.範例,
       審核狀態: this.審核狀態,
       上架狀態: this.上架狀態,
     };

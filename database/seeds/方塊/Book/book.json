@@ -13,13 +13,13 @@
     "vi": "Thành phần sách để hiển thị nội dung theo định dạng sách. LƯU Ý CHO AI: Thành phần này chấp nhận nhiều thành phần con Page làm con. Ví dụ sử dụng: <Book><Cover>...</Cover><Page>nội dung trang 1</Page><Page>nội dung trang 2</Page><Foot>...</Foot></Book>"
   },
   "售價": 0,
-  "標籤集": ["方塊:標籤:媒體", "方塊:標籤:內容"],
+  "標籤集": ["方塊:標籤:媒體", "方塊:標籤:內容", "方塊:標籤:容器"],
   "模式": "內建",
   "元件路徑": "Book",
   "屬性定義": {
     "variant": {
       "type": "string",
-      "description": "Book style variant",
+      "description": "Book style variant, 預設會依據骨架設定變化，非必要不需設定。",
       "required": false,
       "default": "solid",
       "options": ["solid", "outline", "ghost", "dot", "dashed", "double", "gradient-right", "gradient-left", "gradient-up", "gradient-down", "gradient-middle", "gradient-diagonal", "gradient-center", "gradient-cone", "crystal", "diagonal-stripes", "glow", "minimalist"]
@@ -36,14 +36,16 @@
       "description": "Book width,使用 css 長度單位",
       "required": false,
       "default": "full",
-      "options": ["full", "800px", "600px"]
+      "options": [],
+      "example": "800px"
     },
     "height": {
       "type": "string",
       "description": "Book height,使用 css 長度單位",
       "required": false,
       "default": "full",
-      "options": ["full", "600px", "400px"]
+      "options": [],
+      "example": "800px"
     },
     "padding": {
       "type": "string",
@@ -69,6 +71,7 @@
   "子方塊": [],
   "對外參數": {},
   "程式碼": "",
+  "範例": "<Book><Cover>...</Cover><Page>第1頁內容</Page><Page>第2頁內容</Page><Foot>...</Foot></Book>",
   "審核狀態": "approved",
   "上架狀態": true,
   "可刪除": false

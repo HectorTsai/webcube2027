@@ -30,11 +30,11 @@ export default function Popup({
   
   // 動畫效果，參考 Modal 組件
   const inClass = animateIn || 
-    (skeleton?.動畫 && skeleton.動畫['彈出.開']) ||
+    (skeleton?.動畫 && skeleton.動畫?.彈出 && skeleton.動畫.彈出?.開) ||
     "animate-in fade-in zoom-in";
-  
+
   const outClass = animateOut ||
-    (skeleton?.動畫 && skeleton.動畫['彈出.關']) ||
+    (skeleton?.動畫 && skeleton.動畫?.彈出 && skeleton.動畫.彈出?.關) ||
     "animate-out fade-out zoom-out";
 
   // 根據定位方式設置樣式

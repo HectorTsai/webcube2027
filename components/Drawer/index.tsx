@@ -13,8 +13,6 @@ export interface DrawerProps extends ComponentProps {
   animateOut?: string;
   width?: string;
   padding?: "none" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
-  rounded?: "none" | "sm" | "md" | "lg";
-  shadow?: "none" | "sm" | "md" | "lg";
   [key: string]: any;
 }
 

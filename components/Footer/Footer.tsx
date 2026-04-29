@@ -7,8 +7,6 @@ export default function Footer({
   color = "primary",
   width = "100%",
   padding = "sm",
-  rounded = "none",
-  shadow = "none",
   sticky = false,
   className,
   context,
@@ -23,8 +21,8 @@ export default function Footer({
       color={color}
       width={width}
       padding={padding}
-      rounded={rounded}
-      shadow={shadow}
+      rounded="none"
+      shadow="none"
       direction="column"
       align="center"
       justify="center"

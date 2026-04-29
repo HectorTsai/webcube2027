@@ -28,8 +28,6 @@ export default async function Drawer({
   color = "primary",
   width = "320px",
   padding = "lg",
-  rounded = "none",
-  shadow = "lg",
   className,
   skeleton,
   context,
@@ -46,11 +44,11 @@ export default async function Drawer({
   };
   
   const inClass = animateIn || 
-    (skeleton?.動畫 && skeleton.動畫[`抽屜.${positionMap[position]}.開`]) ||
+    (skeleton?.動畫 && skeleton.動畫?.抽堤 && skeleton.動畫.抽堤?.[`${positionMap[position]}.開`]) ||
     defaultAnimateInMap[position];
   
   const outClass = animateOut ||
-    (skeleton?.動畫 && skeleton.動畫[`抽屜.${positionMap[position]}.關`]) ||
+    (skeleton?.動畫 && skeleton.動畫?.抽堤 && skeleton.動畫.抽堤?.[`${positionMap[position]}.關`]) ||
     defaultAnimateOutMap[position];
 
   const backdropClasses = [
@@ -109,8 +107,8 @@ export default async function Drawer({
     color,
     width: isHorizontal ? width : "full",
     padding,
-    rounded,
-    shadow,
+    rounded:"lg",
+    shadow:"lg",
     direction: "column",
     align: "start",
     justify: "start",

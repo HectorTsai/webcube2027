@@ -17,33 +17,36 @@
   "模式": "內建",
   "元件路徑": "Divider",
   "屬性定義": {
-    "variant": {
-      "type": "string",
-      "description": "Divider style variant",
-      "required": false,
-      "default": "solid",
-      "options": ["solid", "dashed", "dotted", "double"]
-    },
     "color": {
       "type": "string",
-      "description": "Divider color",
+      "description": "Divider color，支援所有顏色（包涵 -90/-70/-50/-30/-10 意指與原色亮度差異，如 primary是亮色，primary-10 是 primary 色的暗色）",
       "required": false,
-      "default": "base-200",
-      "options": ["base-200", "primary", "secondary", "accent", "info", "success", "warning", "error"]
+      "default": "neutral",
+      "options": [
+        "primary", "primary-90", "primary-70", "primary-50", "primary-30", "primary-10",
+        "secondary", "secondary-90", "secondary-70", "secondary-50", "secondary-30", "secondary-10",
+        "accent", "accent-90", "accent-70", "accent-50", "accent-30", "accent-10",
+        "info", "info-90", "info-70", "info-50", "info-30", "info-10",
+        "success", "success-90", "success-70", "success-50", "success-30", "success-10",
+        "warning", "warning-90", "warning-70", "warning-50", "warning-30", "warning-10",
+        "error", "error-90", "error-70", "error-50", "error-30", "error-10",
+        "base", "base-90", "base-70", "base-50", "base-30", "base-10",
+        "neutral", "neutral-90", "neutral-70", "neutral-50", "neutral-30", "neutral-10"
+      ],
+      "example": "primary"
     },
-    "thickness": {
-      "type": "string",
-      "description": "Divider thickness",
+    "horizontal": {
+      "type": "boolean",
+      "description": "Divider 是否水平方向分隔線",
       "required": false,
-      "default": "1px",
-      "options": ["1px", "2px", "3px", "4px"]
+      "default": false
     },
-    "orientation": {
+    "position": {
       "type": "string",
-      "description": "Divider orientation",
+      "description": "Divider position",
       "required": false,
-      "default": "horizontal",
-      "options": ["horizontal", "vertical"]
+      "default": "center",
+      "options": ["start", "center", "end"]
     }
   },
   "子方塊": [],

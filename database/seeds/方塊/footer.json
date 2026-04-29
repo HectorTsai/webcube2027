@@ -13,23 +13,23 @@
     "vi": "Thành phần chân trang cho nội dung dưới cùng trang"
   },
   "售價": 0,
-  "標籤集": ["方塊:標籤:佈局", "方塊:標籤:結構"],
+  "標籤集": ["方塊:標籤:佈局", "方塊:標籤:容器"],
   "模式": "內建",
   "元件路徑": "Footer",
   "屬性定義": {
     "variant": {
       "type": "string",
-      "description": "Footer style variant",
+      "description": "Footer style variant, 預設會依據骨架設定變化，非必要不需設定。",
       "required": false,
       "default": "solid",
-      "options": ["solid", "outline", "ghost"]
+      "options": ["solid", "outline", "ghost", "dot", "dashed", "double", "gradient-right", "gradient-left", "gradient-up", "gradient-down", "gradient-middle", "gradient-diagonal", "gradient-center", "gradient-cone", "crystal", "diagonal-stripes", "glow", "minimalist"]
     },
     "color": {
       "type": "string",
       "description": "Footer color theme",
       "required": false,
       "default": "primary",
-      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error"]
+      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "base", "neutral"]
     },
     "padding": {
       "type": "string",
@@ -38,9 +38,15 @@
       "default": "lg",
       "options": ["none", "xs", "sm", "md", "lg", "xl", "2xl"]
     },
-    "content": {
+    "sticky": {
+      "type": "boolean",
+      "description": "Sticky footer",
+      "required": false,
+      "default": false
+    },
+    "className": {
       "type": "string",
-      "description": "Footer content",
+      "description": "Custom class name",
       "required": false,
       "default": ""
     }

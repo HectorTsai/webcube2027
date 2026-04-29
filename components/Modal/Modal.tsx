@@ -13,8 +13,6 @@ export default function Modal({
   color = "primary",
   width = "480px",
   padding = "lg",
-  rounded = "lg",
-  shadow = "lg",
   className,
   skeleton,
   ...restProps
@@ -28,11 +26,11 @@ export default function Modal({
   `.replace(/\s+/g, ' ').trim();
 
   const inClass = animateIn || 
-    (skeleton?.動畫 && skeleton.動畫['視窗.開']) ||
+    (skeleton?.動畫 && skeleton.動畫?.視窗 && skeleton.動畫.視窗?.開) ||
     "animate-in fade-in zoom-in";
   
   const outClass = animateOut ||
-    (skeleton?.動畫 && skeleton.動畫['視窗.關']) ||
+    (skeleton?.動畫 && skeleton.動畫?.視窗 && skeleton.動畫.視窗?.關) ||
     "animate-out fade-out zoom-out";
 
   const backdropClasses = [
@@ -61,8 +59,8 @@ export default function Modal({
 
   const modalAlpine: Record<string, string> = {
     'x-show': ref,
-    'x-transition:enter': animateIn,
-    'x-transition:leave': animateOut,
+    'x-transition:enter': inClass,
+    'x-transition:leave': outClass,
     'x-on:click.stop': '',
   };
 
@@ -84,8 +82,8 @@ export default function Modal({
         color={color}
         width={width}
         padding={padding}
-        rounded={rounded}
-        shadow={shadow}
+        rounded="lg"
+        shadow="lg"
         direction="column"
         align="center"
         justify="center"
