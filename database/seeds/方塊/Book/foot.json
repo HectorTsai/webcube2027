@@ -13,7 +13,7 @@
     "vi": "Thành phần chân trang sách để hiển thị thông tin bản quyền và nhà xuất bản. LƯU Ý CHO AI: Thành phần này phải được sử dụng làm con của thành phần Book và không thể sử dụng một mình. Ví dụ sử dụng: <Book><Cover>...</Cover><Page>...</Page><Foot>...</Foot></Book>"
   },
   "售價": 0,
-  "標籤集": ["方塊:標籤:媒體", "方塊:標籤:內容", "方塊:標籤:容器"],
+  "標籤集": ["方塊:標籤:內容", "方塊:標籤:容器", "方塊:標籤:書本"],
   "模式": "內建",
   "元件路徑": "Book/Foot",
   "屬性定義": {
@@ -47,6 +47,12 @@
       "type": "string",
       "description": "額外的類名，用於自訂頁腳樣式",
       "required": false,
+      "default": ""
+    },
+    "children": {
+      "type": "any",
+      "description": "頁腳內容，可以是HTML碼，不可以使用Javascript!",
+      "required": true,
       "default": ""
     }
   },

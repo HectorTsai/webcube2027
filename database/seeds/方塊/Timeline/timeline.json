@@ -13,7 +13,7 @@
     "vi": "Thành phần dòng thời gian để hiển thị các sự kiện theo thứ tự thời gian. LƯU Ý CHO AI: Thành phần này chấp nhận các thành phần con TimelineItem làm con. Ví dụ sử dụng: <Timeline><TimelineItem>Sự kiện 1</TimelineItem><TimelineItem>Sự kiện 2</TimelineItem></Timeline>"
   },
   "售價": 0,
-  "標籤集": ["方塊:標籤:時間", "方塊:標籤:內容"],
+  "標籤集": ["方塊:標籤:內容", "方塊:標籤:組合", "方塊:標籤:進階"],
   "模式": "內建",
   "元件路徑": "Timeline",
   "屬性定義": {

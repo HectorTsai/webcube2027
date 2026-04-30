@@ -13,7 +13,7 @@
     "vi": "Thành phần tiêu đề ngăn kéo để hiển thị tiêu đề ngăn kéo. LƯU Ý CHO AI: Thành phần này phải được sử dụng làm con của thành phần Drawer và không thể sử dụng một mình. Ví dụ sử dụng: <Drawer><DrawerTitle>...</DrawerTitle>...</Drawer>"
   },
   "售價": 0,
-  "標籤集": ["方塊:標籤:導航", "方塊:標籤:互動", "方塊:標籤:容器"],
+  "標籤集": ["方塊:標籤:內容"],
   "模式": "內建",
   "元件路徑": "Drawer/DrawerTitle",
   "屬性定義": {

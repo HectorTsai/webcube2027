@@ -13,7 +13,7 @@
     "vi": "Thành phần ngăn kéo trượt để điều hướng bên. LƯU Ý CHO AI: Thành phần này chấp nhận các thành phần con DrawerTitle và DrawerFooter làm con. Ví dụ sử dụng: <Drawer><DrawerTitle>...</DrawerTitle>nội dung<DrawerFooter>...</DrawerFooter></Drawer>"
   },
   "售價": 0,
-  "標籤集": ["方塊:標籤:導航", "方塊:標籤:互動", "方塊:標籤:容器"],
+  "標籤集": ["方塊:標籤:導航", "方塊:標籤:互動", "方塊:標籤:容器", "方塊:標籤:組合", "方塊:標籤:進階"],
   "模式": "內建",
   "元件路徑": "Drawer",
   "屬性定義": {
@@ -92,6 +92,12 @@
       "required": false,
       "default": "primary",
       "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "base", "neutral"]
+    },
+    "children": {
+      "type": "any",
+      "description": "Drawer 內容，可以是HTML碼，不可以使用Javascript!",
+      "required": true,
+      "default": ""
     },
     "className": {
       "type": "string",

@@ -13,7 +13,7 @@
     "vi": "Thành phần container mạnh mẽ cho các trường nhập liệu có thể kết hợp nhiều phần tử khác nhau. LƯU Ý CHO AI: Thành phần này có thể kết hợp span, input, select, Button+Popup+Calendar, Button+Modal và các thành phần khác để tạo ra nhiều khả năng. Ví dụ sử dụng: <InputField><span>Nhãn</span><input /><Button>Hành động</Button></InputField> hoặc <InputField><Icon svg={searchIcon} /><input /><Popup><Calendar /></Popup></InputField>"
   },
   "售價": 0,
-  "標籤集": ["方塊:標籤:表單", "方塊:標籤:容器"],
+  "標籤集": ["方塊:標籤:互動", "方塊:標籤:表單"],
   "模式": "內建",
   "元件路徑": "InputField",
   "屬性定義": {

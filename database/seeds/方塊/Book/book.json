@@ -13,7 +13,7 @@
     "vi": "Thành phần sách để hiển thị nội dung theo định dạng sách. LƯU Ý CHO AI: Thành phần này chấp nhận nhiều thành phần con Page làm con. Ví dụ sử dụng: <Book><Cover>...</Cover><Page>nội dung trang 1</Page><Page>nội dung trang 2</Page><Foot>...</Foot></Book>"
   },
   "售價": 0,
-  "標籤集": ["方塊:標籤:媒體", "方塊:標籤:內容", "方塊:標籤:容器"],
+  "標籤集": ["方塊:標籤:內容", "方塊:標籤:容器", "方塊:標籤:組合", "方塊:標籤:進階", "方塊:標籤:書本"],
   "模式": "內建",
   "元件路徑": "Book",
   "屬性定義": {
@@ -65,6 +65,12 @@
       "type": "string",
       "description": "額外的類名，用於自訂書籍樣式",
       "required": false,
+      "default": ""
+    },
+    "children": {
+      "type": "any",
+      "description": "書籍內容，可以包含Cover、Page、Foot方塊，或者有'方塊:標籤:書本'標籤的其他方塊",
+      "required": true,
       "default": ""
     }
   },

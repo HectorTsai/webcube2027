@@ -13,7 +13,7 @@
     "vi": "Thành phần hộp bật lên để hiển thị nội dung ngữ cảnh. LƯU Ý CHO AI: Thành phần này có thể được sử dụng để hiển thị chú giải công cụ, menu thả xuống hoặc thông tin ngữ cảnh khác. Ví dụ sử dụng: <Popup state=\"showPopup\">nội dung hộp bật lên</Popup>"
   },
   "售價": 0,
-  "標籤集": ["方塊:標籤:互動", "方塊:標籤:覆蓋"],
+  "標籤集": ["方塊:標籤:互動", "方塊:標籤:容器", "方塊:標籤:進階"],
   "模式": "內建",
   "元件路徑": "Popup",
   "屬性定義": {

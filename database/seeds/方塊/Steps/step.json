@@ -13,13 +13,25 @@
     "vi": "Thành phần bước để hiển thị các bước riêng lẻ. LƯU Ý CHO AI: Thành phần này phải được sử dụng làm con của thành phần Steps và không thể sử dụng một mình. Ví dụ sử dụng: <Steps><Step>Bước 1</Step><Step>Bước 2</Step></Steps>"
   },
   "售價": 0,
-  "標籤集": ["方塊:標籤:進度", "方塊:標籤:導航"],
+  "標籤集": ["方塊:標籤:內容"],
   "模式": "內建",
   "元件路徑": "Steps/Step",
   "屬性定義": {
     "icon": {
       "type": "string",
-      "description": "步驟圖示",
+      "description": "圖示id，圖示資料庫的id，如果要使用圖示，則icon/src/svg三選一即可!",
+      "required": false,
+      "default": ""
+    },
+    "src": {
+      "type": "string",
+      "description": "圖示來源URL，如果要使用圖示，則icon/src/svg三選一即可!",
+      "required": false,
+      "default": ""
+    },
+    "svg": {
+      "type": "string",
+      "description": "SVG 圖示內容，如果要使用圖示，則icon/src/svg三選一即可!",
       "required": false,
       "default": ""
     },
@@ -57,18 +69,6 @@
     "text": {
       "type": "string",
       "description": "步驟文字",
-      "required": false,
-      "default": ""
-    },
-    "src": {
-      "type": "string",
-      "description": "圖示路徑",
-      "required": false,
-      "default": ""
-    },
-    "svg": {
-      "type": "string",
-      "description": "SVG 圖示內容",
       "required": false,
       "default": ""
     },
