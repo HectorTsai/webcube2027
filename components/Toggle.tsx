@@ -26,10 +26,10 @@ export interface ToggleProps {
   defaultChecked?: boolean;
   disabled?: boolean;
   label?: string;
-  onId?: string;
+  onIcon?: string;
+  offIcon?: string;
   onSvg?: string;
   onSrc?: string;
-  offId?: string;
   offSvg?: string;
   offSrc?: string;
   /** Any additional props (including Alpine.js x- attributes and event handlers) */
@@ -45,10 +45,10 @@ export default async function Toggle({
   defaultChecked,
   disabled,
   label,
-  onId,
+  onIcon,
+  offIcon,
   onSvg,
   onSrc,
-  offId,
   offSvg,
   offSrc,
   ...restProps
@@ -61,17 +61,17 @@ export default async function Toggle({
   const onBlockClass = `bg-${color}-content`;
   const offBlockClass = 'bg-gray-400';
   const translateX = config.width - config.thumb - 4;
-  const hasOnIcon = Boolean(onId || onSvg || onSrc);
-  const hasOffIcon = Boolean(offId || offSvg || offSrc);
-  const onIcon = hasOnIcon ? await Icon({
-    id: onId,
+  const hasOnIcon = Boolean(onIcon || onSvg || onSrc);
+  const hasOffIcon = Boolean(offIcon || offSvg || offSrc);
+  const IconOn = hasOnIcon ? await Icon({
+    id: onIcon,
     svg: onSvg,
     src: onSrc,
     size: iconSize,
     className: `text-${color}`,
   }) : null;
-  const offIcon = hasOffIcon ? await Icon({
-    id: offId,
+  const IconOff = hasOffIcon ? await Icon({
+    id: offIcon,
     svg: offSvg,
     src: offSrc,
     size: iconSize,
@@ -108,12 +108,12 @@ export default async function Toggle({
           >
             {hasOnIcon && (
               <span class="absolute inset-0 flex items-center justify-center" x-show="on">
-                {onIcon}
+                {IconOn}
               </span>
             )}
             {hasOffIcon && (
               <span class="absolute inset-0 flex items-center justify-center" x-show="!on">
-                {offIcon}
+                {IconOff}
               </span>
             )}
           </div>

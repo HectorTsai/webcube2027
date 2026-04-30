@@ -8,7 +8,8 @@
     {"id": "方塊:標籤:容器","名稱":{"en":"container","zh-tw":"容器","vi":"container"},"標籤集":[],"可刪除": false},
     {"id": "方塊:標籤:內容","名稱":{"en":"content","zh-tw":"內容","vi":"content"},"標籤集":[],"可刪除": false},
     {"id": "方塊:標籤:書本","名稱":{"en":"book","zh-tw":"書本","vi":"book"},"標籤集":[],"可刪除": false},
-    {"id": "方塊:標籤:導航","名稱":{"en":"navigation","zh-tw":"導航","vi":"navigation"},"標籤集":[],"可刪除": false}
+    {"id": "方塊:標籤:導航","名稱":{"en":"navigation","zh-tw":"導航","vi":"navigation"},"標籤集":[],"可刪除": false},
+    {"id": "方塊:標籤:網頁佈局","名稱":{"en":"website-layout","zh-tw":"網頁佈局","vi":"website-layout"},"標籤集":[],"可刪除": false}
 ]
     
   

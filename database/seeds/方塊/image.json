@@ -1,0 +1,83 @@
+{
+  "id": "方塊:方塊:image",
+  "名稱": {
+    "en": "Image",
+    "zh-tw": "圖片",
+    "zh-cn": "图片",
+    "vi": "Hình ảnh"
+  },
+  "描述": {
+    "en": "An image component for displaying images from database or external sources. IMPORTANT FOR AI: This component supports lazy loading, fallback images, and various sizing options. Usage example: <Image src=\"image.jpg\" alt=\"Description\" width=\"300\" height=\"200\" />",
+    "zh-tw": "用於顯示資料庫或外部來源圖片的圖片元件。AI注意：此元件支援延遲載入、備用圖片和各種尺寸選項。使用範例：<Image src=\"image.jpg\" alt=\"描述\" width=\"300\" height=\"200\" />",
+    "zh-cn": "用于显示数据库或外部来源图片的图片元件。AI注意：此元件支持延迟加载、备用图片和各种尺寸选项。使用示例：<Image src=\"image.jpg\" alt=\"描述\" width=\"300\" height=\"200\" />",
+    "vi": "Thành phần hình ảnh để hiển thị hình ảnh từ cơ sở dữ liệu hoặc các nguồn bên ngoài. LƯU Ý CHO AI: Thành phần này hỗ trợ tải chậm, hình ảnh dự phòng và nhiều tùy chọn kích thước. Ví dụ sử dụng: <Image src=\"image.jpg\" alt=\"Mô tả\" width=\"300\" height=\"200\" />"
+  },
+  "售價": 0,
+  "標籤集": ["方塊:標籤:基礎", "方塊:標籤:內容"],
+  "模式": "內建",
+  "元件路徑": "Image",
+  "屬性定義": {
+    "id": {
+      "type": "string",
+      "description": "資料庫圖片 ID",
+      "required": false,
+      "default": ""
+    },
+    "src": {
+      "type": "string",
+      "description": "圖片來源 URL 或路徑",
+      "required": false,
+      "default": ""
+    },
+    "alt": {
+      "type": "string",
+      "description": "替代文字（無障礙功能）",
+      "required": false,
+      "default": ""
+    },
+    "width": {
+      "type": "string|number",
+      "description": "圖片寬度",
+      "required": false,
+      "default": ""
+    },
+    "height": {
+      "type": "string|number",
+      "description": "圖片高度",
+      "required": false,
+      "default": ""
+    },
+    "loading": {
+      "type": "string",
+      "description": "載入行為",
+      "required": false,
+      "default": "lazy",
+      "options": ["lazy", "eager"]
+    },
+    "fallback": {
+      "type": "string",
+      "description": "備用圖片來源",
+      "required": false,
+      "default": ""
+    },
+    "objectFit": {
+      "type": "string",
+      "description": "圖片適應行為",
+      "required": false,
+      "default": "auto",
+      "options": ["fill", "contain", "cover", "none", "scale-down", "auto"]
+    },
+    "className": {
+      "type": "string",
+      "description": "圖片額外 CSS 類別",
+      "required": false,
+      "default": ""
+    }
+  },
+  "子方塊": [],
+  "對外參數": {},
+  "程式碼": "",
+  "審核狀態": "approved",
+  "上架狀態": true,
+  "可刪除": false
+}

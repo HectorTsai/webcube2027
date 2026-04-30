@@ -3,8 +3,8 @@ import Icon from './Icon.tsx';
 type IconSize = Parameters<typeof Icon>[0]['size'];
 
 export interface SwapProps {
-  fromId?: string;
-  toId?: string;
+  fromIcon?: string;
+  toIcon?: string;
   fromSvg?: string;
   toSvg?: string;
   fromSrc?: string;
@@ -28,8 +28,8 @@ export interface SwapProps {
 const cx = (...parts: Array<string | undefined | null | false>) => parts.filter(Boolean).join(' ');
 
 export default async function Swap({
-  fromId,
-  toId,
+  fromIcon,
+  toIcon,
   fromSvg,
   toSvg,
   fromSrc,
@@ -77,7 +77,7 @@ export default async function Swap({
       
       {/* from: checked 時播放退場動畫，然後隱藏 */}
       {await Icon({ 
-        id: fromId, 
+        id: fromIcon, 
         svg: fromSvg, 
         src: fromSrc, 
         size,
@@ -93,7 +93,7 @@ export default async function Swap({
 
       {/* to: checked 時顯示並播放入場動畫 */}
       {await Icon({ 
-        id: toId, 
+        id: toIcon, 
         svg: toSvg, 
         src: toSrc, 
         size,
