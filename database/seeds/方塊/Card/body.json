@@ -1,0 +1,33 @@
+{
+  "id": "方塊:方塊:card-body",
+  "名稱": {
+    "en": "Card Body",
+    "zh-tw": "卡片內容",
+    "zh-cn": "卡片内容",
+    "vi": "Nội dung thẻ"
+  },
+  "描述": {
+    "en": "Card body content component. IMPORTANT: Cannot be used alone, must be used within a Card component.",
+    "zh-tw": "卡片內容元件。注意：不能單獨使用，必須在卡片元件內使用。",
+    "zh-cn": "卡片内容元件。注意：不能单独使用，必须在卡片元件内使用。",
+    "vi": "Thành phần nội dung thẻ. LƯU Ý: Không thể sử dụng riêng lẻ, phải được sử dụng trong thành phần thẻ."
+  },
+  "售價": 0,
+  "標籤集": ["方塊:標籤:基礎", "方塊:標籤:內容"],
+  "模式": "內建",
+  "元件路徑": "Card/Body",
+  "屬性定義": {
+    "className": {
+      "type": "string",
+      "description": "額外 CSS 類別",
+      "required": false,
+      "default": ""
+    }
+  },
+  "子方塊": [],
+  "對外參數": {},
+  "程式碼": "",
+  "審核狀態": "approved",
+  "上架狀態": true,
+  "可刪除": false
+}

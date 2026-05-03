@@ -26,9 +26,9 @@ export default async function Avatar({
   } else if (icon) {
     content = <Icon id={icon} size={size} className={`w-full h-full`} context={context} />;
   } else if (image) {
-    content = <Image id={image} width="100%" height="100%" className={`w-full h-full`} context={context} />;
+    content = <Image id={image} width="100%" height="100%" objectFit="cover" className="rounded-full" context={context} />;
   } else if (src) {
-    content = <img src={src} alt="Avatar" class={`w-full h-full object-cover`} />;
+    content = <img src={src} alt="Avatar" class={`rounded-full w-full h-full object-cover`} />;
   } else {
     content = (
       <div class="w-full h-full flex items-center justify-center">
@@ -39,7 +39,7 @@ export default async function Avatar({
 
   const finalClasses = [
     "!rounded-full",
-    "p-2",
+    "p-1",
     className
   ];
 

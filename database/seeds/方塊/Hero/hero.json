@@ -1,0 +1,113 @@
+{
+  "id": "方塊:方塊:hero",
+  "名稱": {
+    "en": "Hero",
+    "zh-tw": "英雄區塊",
+    "zh-cn": "英雄区块",
+    "vi": "Khối Hero"
+  },
+  "描述": {
+    "en": "A hero component with background image support and sub-components (Title, Subtitle, Content, Actions). IMPORTANT FOR AI: Supports full-screen mode, background images, and responsive layout. Usage example: <Hero backgroundImage='image-id' fullScreen><HeroTitle>Title</HeroTitle><HeroSubtitle>Subtitle</HeroSubtitle><HeroContent>Content</HeroContent><HeroActions>Actions</HeroActions></Hero>",
+    "zh-tw": "支援背景圖像和子元件（標題、副標題、內容、操作按鈕）的英雄區塊元件。AI注意：支援全螢幕模式、背景圖像和響應式佈局。使用範例：<Hero backgroundImage='圖像ID' fullScreen><HeroTitle>標題</HeroTitle><HeroSubtitle>副標題</HeroSubtitle><HeroContent>內容</HeroContent><HeroActions>操作按鈕</HeroActions></Hero>",
+    "zh-cn": "支持背景图像和子元件（标题、副标题、内容、操作按钮）的英雄区块元件。AI注意：支持全屏模式、背景图像和响应式布局。使用示例：<Hero backgroundImage='图像ID' fullScreen><HeroTitle>标题</HeroTitle><HeroSubtitle>副标题</HeroSubtitle><HeroContent>内容</HeroContent><HeroActions>操作按钮</HeroActions></Hero>",
+    "vi": "Thành phần hero hỗ trợ hình nền và các thành phần con (Tiêu đề, Phụ đề, Nội dung, Hành động). LƯU Ý CHO AI: Hỗ trợ chế độ toàn màn hình, hình nền và bố cục đáp ứng. Ví dụ sử dụng: <Hero backgroundImage='id-hình-ảnh' fullScreen><HeroTitle>Tiêu đề</HeroTitle><HeroSubtitle>Phụ đề</HeroSubtitle><HeroContent>Nội dung</HeroContent><HeroActions>Hành động</HeroActions></Hero>"
+  },
+  "售價": 0,
+  "標籤集": ["方塊:標籤:基礎", "方塊:標籤:內容", "方塊:標籤:容器", "方塊:標籤:英雄區塊"],
+  "模式": "內建",
+  "元件路徑": "Hero",
+  "屬性定義": {
+    "backgroundImage": {
+      "type": "string",
+      "description": "背景圖像資料庫ID",
+      "required": false,
+      "default": ""
+    },
+    "backgroundSrc": {
+      "type": "string",
+      "description": "背景圖像URL",
+      "required": false,
+      "default": ""
+    },
+    "backgroundSvg": {
+      "type": "string",
+      "description": "背景SVG內容",
+      "required": false,
+      "default": ""
+    },
+    "variant": {
+      "type": "string",
+      "description": "Hero variant style, 預設會依據骨架設定變化，非必要不需設定。",
+      "required": false,
+      "default": "solid",
+      "options": ["solid", "outline", "ghost", "dot", "dashed", "double", "gradient-right", "gradient-left", "gradient-up", "gradient-down", "gradient-middle", "gradient-diagonal", "gradient-center", "gradient-cone", "crystal", "diagonal-stripes", "glow", "minimalist"]
+    },
+    "color": {
+      "type": "string",
+      "description": "Hero color theme",
+      "required": false,
+      "default": "primary",
+      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "base", "neutral"]
+    },
+    "direction": {
+      "type": "string",
+      "description": "Content direction",
+      "required": false,
+      "default": "column",
+      "options": ["row", "column"]
+    },
+    "fullScreen": {
+      "type": "boolean",
+      "description": "是否全螢幕顯示",
+      "required": false,
+      "default": false
+    },
+    "minHeight": {
+      "type": "string",
+      "description": "最小高度（CSS值，如 \"24rem\"、\"50vh\"）",
+      "required": false,
+      "default": "24rem"
+    },
+    "padding": {
+      "type": "string",
+      "description": "內距大小",
+      "required": false,
+      "default": "lg",
+      "options": ["none", "xs", "sm", "md", "lg", "xl", "2xl"]
+    },
+    "margin": {
+      "type": "string",
+      "description": "外距大小",
+      "required": false,
+      "default": "none",
+      "options": ["none", "xs", "sm", "md", "lg", "xl", "auto"]
+    },
+    "align": {
+      "type": "string",
+      "description": "對齊方式",
+      "required": false,
+      "default": "center",
+      "options": ["start", "center", "end", "stretch"]
+    },
+    "justify": {
+      "type": "string",
+      "description": "主軸對齊",
+      "required": false,
+      "default": "center",
+      "options": ["start", "center", "end", "between", "around", "evenly"]
+    },
+    "gap": {
+      "type": "string",
+      "description": "間距大小",
+      "required": false,
+      "default": "md",
+      "options": ["none", "xs", "sm", "md", "lg", "xl"]
+    }
+  },
+  "子方塊": [],
+  "對外參數": {},
+  "程式碼": "",
+  "審核狀態": "approved",
+  "上架狀態": true,
+  "可刪除": false
+}

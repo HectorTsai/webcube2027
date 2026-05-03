@@ -23,7 +23,7 @@ export default function List({
 
   const classes = finalClasses.filter(Boolean).join(" ");
 
-  return <Container variant={variant} color={color} padding="none">
+  return <Container variant={variant} color={color} padding="none" width="full">
     <ul class={classes} {...restProps}>{children}</ul>
   </Container>;
 }

@@ -82,10 +82,10 @@ export default async function AvatarTestPage() {
                 <td class="p-2 text-center"><Avatar image="影像:影像:hono" size="md" variant="solid" color="primary" /></td>
                 <td class="p-2 text-center"><Avatar image="影像:影像:surrealDB" size="md" variant="solid" color="secondary" /></td>
                 <td class="p-2 text-center"><Avatar image="影像:影像:deno2" size="md" variant="solid" color="accent" /></td>
-                <td class="p-2 text-center"><Avatar image="影像:影像:hono" size="md" variant="solid" color="info" /></td>
-                <td class="p-2 text-center"><Avatar image="影像:影像:surrealDB" size="md" variant="solid" color="success" /></td>
-                <td class="p-2 text-center"><Avatar image="影像:影像:deno2" size="md" variant="solid" color="warning" /></td>
-                <td class="p-2 text-center"><Avatar image="影像:影像:hono" size="md" variant="solid" color="error" /></td>
+                <td class="p-2 text-center"><Avatar src="https://picsum.photos/200/200" size="md" variant="solid" color="info" /></td>
+                <td class="p-2 text-center"><Avatar src="https://picsum.photos/200/200" size="md" variant="solid" color="success" /></td>
+                <td class="p-2 text-center"><Avatar src="https://picsum.photos/200/200" size="md" variant="solid" color="warning" /></td>
+                <td class="p-2 text-center"><Avatar src="https://picsum.photos/200/200" size="md" variant="solid" color="error" /></td>
             </tr>
           </tbody>
         </table>

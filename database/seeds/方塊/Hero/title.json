@@ -1,0 +1,33 @@
+{
+  "id": "方塊:方塊:hero-title",
+  "名稱": {
+    "en": "Hero Title",
+    "zh-tw": "英雄區塊標題",
+    "zh-cn": "英雄区块标题",
+    "vi": "Tiêu đề hero"
+  },
+  "描述": {
+    "en": "Hero title component. IMPORTANT: Cannot be used alone, must be used within a Hero component.",
+    "zh-tw": "英雄區塊標題元件。注意：不能單獨使用，必須在英雄區塊元件內使用。",
+    "zh-cn": "英雄区块标题元件。注意：不能单独使用，必须在英雄区块元件内使用。",
+    "vi": "Thành phần tiêu đề hero. LƯU Ý: Không thể sử dụng riêng lẻ, phải được sử dụng trong thành phần hero."
+  },
+  "售價": 0,
+  "標籤集": ["方塊:標籤:基礎", "方塊:標籤:內容"],
+  "模式": "內建",
+  "元件路徑": "Hero/Title",
+  "屬性定義": {
+    "className": {
+      "type": "string",
+      "description": "額外 CSS 類別",
+      "required": false,
+      "default": ""
+    }
+  },
+  "子方塊": [],
+  "對外參數": {},
+  "程式碼": "",
+  "審核狀態": "approved",
+  "上架狀態": true,
+  "可刪除": false
+}

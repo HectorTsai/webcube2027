@@ -7,66 +7,16 @@
     "vi": "Bố cục cơ bản"
   },
   "描述": {
-    "en": "A basic webpage layout component with MenuBar, content area, and Footer. IMPORTANT FOR AI: This component provides a standard three-section layout with sticky navigation and footer. Usage example: <BasicLayout menuBar={<MenuBar />} footer={<Footer />}>Page content</BasicLayout>",
-    "zh-tw": "包含選單列、內容區域和頁腳的基本網頁佈局元件。AI注意：此元件提供標準的三區塊佈局，具有固定導航和頁腳。使用範例：<BasicLayout menuBar={<MenuBar />} footer={<Footer />}>頁面內容</BasicLayout>",
-    "zh-cn": "包含菜单栏、内容区域和页脚的基本网页布局元件。AI注意：此元件提供标准的三区块布局，具有固定导航和页脚。使用示例：<BasicLayout menuBar={<MenuBar />} footer={<Footer />}>页面内容</BasicLayout>",
-    "vi": "Thành phần bố cục trang web cơ bản với MenuBar, khu vực nội dung và Footer. LƯU Ý CHO AI: Thành phần này cung cấp bố cục ba phần tiêu chuẩn với điều hướng và chân trang cố định. Ví dụ sử dụng: <BasicLayout menuBar={<MenuBar />} footer={<Footer />}>Nội dung trang</BasicLayout>"
+    "en": "A basic webpage layout component with MenuBar, content area, and Footer. IMPORTANT FOR AI: This component provides a standard layout with sticky navigation and footer. Usage example: <BasicLayout>Page content</BasicLayout>",
+    "zh-tw": "包含選單列、內容區域和頁腳的基本網頁佈局元件。AI注意：此元件提供標準的佈局，具有固定導航和頁腳。使用範例：<BasicLayout>頁面內容</BasicLayout>",
+    "zh-cn": "包含菜单栏、内容区域和页脚的基本网页布局元件。AI注意：此元件提供标准的布局，具有固定导航和页脚。使用示例：<BasicLayout>页面内容</BasicLayout>",
+    "vi": "Thành phần bố cục trang web cơ bản có thanh menu, khu vực nội dung và chân trang. LƯU Ý CHO AI: Thành phần này cung cấp bố cục tiêu chuẩn với điều hướng cố định và chân trang. Ví dụ sử dụng: <BasicLayout>Nội dung trang</BasicLayout>"
   },
   "售價": 0,
-  "標籤集": ["方塊:標籤:網頁佈局", "方塊:標籤:容器"],
+  "標籤集": ["方塊:標籤:網頁佈局"],
   "模式": "內建",
   "元件路徑": "Layouts/Basic",
   "屬性定義": {
-    "menuBar": {
-      "type": "any",
-      "description": "選單列內容",
-      "required": false,
-      "default": ""
-    },
-    "footer": {
-      "type": "any",
-      "description": "頁腳內容",
-      "required": false,
-      "default": ""
-    },
-    "stickyMenuBar": {
-      "type": "boolean",
-      "description": "是否固定選單列",
-      "required": false,
-      "default": true
-    },
-    "stickyFooter": {
-      "type": "boolean",
-      "description": "是否固定頁腳",
-      "required": false,
-      "default": true
-    },
-    "minHeight": {
-      "type": "string",
-      "description": "內容區域最小高度",
-      "required": false,
-      "default": "auto"
-    },
-    "maxHeight": {
-      "type": "string",
-      "description": "內容區域最大高度",
-      "required": false,
-      "default": "none"
-    },
-    "variant": {
-      "type": "string",
-      "description": "佈局樣式變體",
-      "required": false,
-      "default": "solid",
-      "options": ["solid", "outline", "ghost", "dot", "dashed", "double", "gradient-right", "gradient-left", "gradient-up", "gradient-down", "gradient-middle", "gradient-diagonal", "gradient-center", "gradient-cone", "crystal", "diagonal-stripes", "glow", "minimalist"]
-    },
-    "color": {
-      "type": "string",
-      "description": "佈局顏色",
-      "required": false,
-      "default": "primary",
-      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "base", "neutral"]
-    },
     "className": {
       "type": "string",
       "description": "佈局額外 CSS 類別",

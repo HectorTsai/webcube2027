@@ -7,12 +7,13 @@ export default function TestIndex() {
     { name: "Avatar 測試", path: "/test/avatar" },
     { name: "Button 測試", path: "/test/button" },
     { name: "Container 測試", path: "/test/container" },
-    { name: "HoverContainer 測試", path: "/test/hover-container" },
     { name: "Card 測試", path: "/test/card" },
+    { name: "Hero 測試", path: "/test/hero" },
     { name: "List 測試", path: "/test/list" },
     { name: "Divider 測試", path: "/test/divider" },
     { name: "Icon 測試", path: "/test/icon" },
     { name: "Image 測試", path: "/test/image" },
+    { name: "Select 測試", path: "/test/select" },
     { name: "Modal 測試", path: "/test/modal" },
     { name: "Drawer 測試", path: "/test/drawer" },
     { name: "Footer 測試", path: "/test/footer" },
@@ -27,7 +28,7 @@ export default function TestIndex() {
   ];
 
   const uiComponents = testPages.filter(p => 
-    ["Avatar", "Button", "Container", "HoverContainer", "Card", "List", "Divider", "Icon", "Image"].some(c => p.name.includes(c))
+    ["Avatar", "Button", "Container", "Card", "Hero", "List", "Divider", "Icon", "Image"].some(c => p.name.includes(c))
   );
   
   const layoutComponents = testPages.filter(p =>
@@ -35,7 +36,7 @@ export default function TestIndex() {
   );
   
   const interactiveComponents = testPages.filter(p =>
-    ["Swap", "Toggle", "Steps", "Timeline", "Calendar", "Input", "InputField"].some(c => p.name.includes(c))
+    ["Swap", "Toggle", "Steps", "Timeline", "Calendar", "Input", "InputField", "Select"].some(c => p.name.includes(c))
   );
 
   return (

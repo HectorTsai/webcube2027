@@ -1,3 +1,4 @@
+import { MultilingualString } from "@dui/smartmultilingual";
 import 頁面 from "../../database/models/頁面.ts";
 import 方塊 from "../../database/models/方塊.ts";
 import { info, error } from "../../utils/logger.ts";
@@ -173,68 +174,9 @@ export default class PageService {
     }
   }
 
-  /**
-   * 建構佈局內容，將頁面內容注入到佈局中
-   * @deprecated 不再需要，直接將頁面內容作為 children 傳給佈局
-   */
-  /* private static async 建構佈局內容(佈局方塊ID: string, 頁面方塊ID: string, 頁面內容: any, 語言: string): Promise<any> {
-    try {
-      // await info('PageService', `建構佈局內容: ${佈局方塊ID} + ${頁面方塊ID}`);
-      
-      // TODO: 從 API 取得佈局方塊的結構定義
-      // 目前返回預設的經典佈局結構
-      const 佈局結構 = {
-        direction: 'column',
-        gap: 'none',
-        children: [
-          {
-            方塊: '方塊:方塊:MainMenu',
-            內容: {
-              logo: {
-                en: 'WebCube 2027',
-                'zh-tw': 'WebCube 2027',
-                vi: 'WebCube 2027'
-              },
-              menuItems: [
-                { label: { en: 'Home', 'zh-tw': '首頁', vi: 'Trang chủ' }, href: '/' },
-                { label: { en: 'About', 'zh-tw': '關於我們', vi: 'Về chúng tôi' }, href: '/about' },
-                { label: { en: 'Contact', 'zh-tw': '聯絡我們', vi: 'Liên hệ' }, href: '/contact' }
-              ]
-            }
-          },
-          {
-            方塊: 頁面方塊ID,  // 注入頁面方塊
-            內容: 頁面內容   // 注入頁面內容
-          },
-          {
-            方塊: '方塊:方塊:Footer',
-            內容: {
-              companyName: companyName,
-              companyUrl: companyUrl,
-              year: new Date().getFullYear(),
-              logo: logo,
-              language: 語言
-            }
-          }
-        ]
-      };
-      
-      // 處理佈局結構中的多語言
-      return this.處理多語言(佈局結構, 語言);
-    } catch (err) {
-      await error('PageService', `建構佈局內容失敗: ${err.message}`);
-      return {
-   * 將 JSON 內容轉換為 MultilingualString 物件
-   * @description 將 JSON 內容轉換為 MultilingualString 物件，處理多語言字串
-   * @param 內容 JSON 內容
-   * @returns MultilingualString 物件
-   */
   private static async 轉換JSON為MultilingualString(內容: any): Promise<any> {
     if (!內容 || typeof 內容 !== 'object') return 內容;
-    
-    // 導入 MultilingualString
-    const { MultilingualString } = await import("@dui/smartmultilingual");
-    
+        
     const 轉換物件 = (obj: any): any => {
       // 檢查是否已經是 MultilingualString
       if (obj instanceof MultilingualString) {

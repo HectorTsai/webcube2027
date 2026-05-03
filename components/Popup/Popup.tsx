@@ -14,6 +14,8 @@ export default function Popup({
   animateOut,
   skeleton,
   onClose,
+  showBackdrop = true,
+  fullWidth = false,
   children,
   ...restProps
 }: PopupProps) {
@@ -41,9 +43,10 @@ export default function Popup({
   const popupClasses = [
     position === "fixed" ? "fixed" : "absolute",
     "z-40",
-    offset?.top ? `top-${offset.top}` : "top-full",
-    offset?.left ? `left-${offset.left}` : "left-0",
-    offset?.right ? `right-${offset.right}` : "",
+    fullWidth && "left-0 right-0",
+    !fullWidth && offset?.top ? `top-${offset.top}` : "top-full",
+    !fullWidth && offset?.left ? `left-${offset.left}` : "left-0",
+    !fullWidth && offset?.right ? `right-${offset.right}` : "",
     offset?.bottom ? `bottom-${offset.bottom}` : "",
     "mt-1"
   ].filter(Boolean).join(" ");
@@ -88,7 +91,7 @@ export default function Popup({
         <Container
           variant={variant}
           color={color}
-          className={"w-fit "+className}
+          className={className || (fullWidth ? "w-full" : "w-fit")}
           padding="none"
           align="center"
           justify="center"

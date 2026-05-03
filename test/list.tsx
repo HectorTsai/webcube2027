@@ -69,7 +69,7 @@ export default async function ListTestPage() {
         <h2 class="text-2xl font-semibold mb-4">List 各種 Colors</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {colors.map((color) => (
-            <List variant="solid" color={color} divider key={color}>
+            <List variant="solid" color={color}>
               <ListTitle>{color}</ListTitle>
               <ListRow><Icon svg={playIcon} />項目 1</ListRow>
               <ListRow><Icon svg={playIcon} />項目 2</ListRow>

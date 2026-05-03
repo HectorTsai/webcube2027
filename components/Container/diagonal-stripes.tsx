@@ -29,6 +29,7 @@ export default function DiagonalStripesContainer({
 
   const finalClasses = [
     "flex",
+    "box-border",
     directionClasses[direction],
     widthClass,
     heightClass,
