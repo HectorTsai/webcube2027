@@ -12,16 +12,19 @@ export default async function OptionItem({
   autoFill = true,
   name,
   mode = 'single',
-  checked = false
+  checked = false,
+  className = ''
 }: OptionItemProps) {
   const inputType = mode === 'single' ? 'radio' : 'checkbox';
   const inputName = name || `option-${inputType}`;
   const stateName = name ? `${name}_${value}` : `option_${value}`;
 
   // 單選模式：設定所有同組 radio 的 checked 屬性；多選模式：切換 checkbox 並更新 store
-  const clickAction = mode === 'single' && name
-    ? `document.querySelectorAll('input[name="${inputName}"]').forEach(el=>{el.checked=(el.value==='${value}')});$store.Container.${stateName}=true;Object.keys($store.Container).filter(k=>k.startsWith('${name}_')&&k!=='${stateName}').forEach(k=>$store.Container[k]=false);$dispatch('option-change')`
-    : `$el.querySelector('input').checked=!$el.querySelector('input').checked;$store.Container.${stateName}=$el.querySelector('input').checked;$dispatch('option-change')`;
+  const clickAction = disabled
+    ? ''
+    : mode === 'single' && name
+      ? `document.querySelectorAll('input[name="${inputName}"]').forEach(el=>{el.checked=(el.value==='${value}')});$store.Container.${stateName}=true;Object.keys($store.Container).filter(k=>k.startsWith('${name}_')&&k!=='${stateName}').forEach(k=>$store.Container[k]=false);$dispatch('option-change')`
+      : `$el.querySelector('input').checked=!$el.querySelector('input').checked;$store.Container.${stateName}=$el.querySelector('input').checked;$dispatch('option-change')`;
 
   return (
     <div
@@ -29,7 +32,8 @@ export default async function OptionItem({
         disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
         autoFill ? 'flex-1' : '',
         'w-full',
-        'h-full'
+        'h-full',
+        className
       ].filter(Boolean).join(' ')}
       data-value={value}
       data-disabled={disabled}

@@ -45,13 +45,32 @@ export default function SolidContainer({
       justifyClasses[justify],
       gapClasses[gap],
       roundedClasses[rounded],
+      shadowClasses[shadow],
       hover ? "transition-all duration-200" : undefined,
       className
     ].filter(Boolean).join(" ");
 
     // 完整類別（結構 + 顏色）
-    const activeFullClasses = `${baseClasses} bg-${color} text-${color}-content ${hover ? `hover:bg-${color}-70` : ''}`;
-    const inactiveFullClasses = `${baseClasses} bg-base-70 text-base-content ${hover ? `hover:bg-base-50` : ''}`;
+    const activeFullClasses = `${baseClasses} text-${color}-content bg-${color} `;
+    const activeHoverClasses = `${baseClasses} bg-${color}-70 text-${color}-content `;
+    const inactiveFullClasses = `${baseClasses} bg-base-70 text-base-content `;
+    const inactiveHoverClasses = `${baseClasses} bg-base-50 text-base-content `;
+
+    if (hover) {
+      return (
+        <div 
+          x-data={`{ hover: false }`}
+          x-init={initScript}
+          x-on:mouseenter="hover = true"
+          x-on:mouseleave="hover = false"
+          x-bind:class={`$store.Container.${activeStateName} ? (hover ? '${activeHoverClasses}' : '${activeFullClasses}') : (hover ? '${inactiveHoverClasses}' : '${inactiveFullClasses}')`}
+          style={{ width: widthStyle, height: heightStyle }}
+          {...restProps}
+        >
+          {children}
+        </div>
+      );
+    }
 
     return (
       <div 

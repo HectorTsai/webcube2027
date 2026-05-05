@@ -44,8 +44,10 @@ export default function GlowContainer({
   ].filter(Boolean).join(" ");
 
   // 完整類別（結構 + 顏色）
-  const activeFullClasses = `${baseClasses} text-${color}-content bg-${color} shadow-lg shadow-${color} ${hover ? `shadow-lg hover:shadow-xl hover:scale-105 transition-transform` : ''}`;
-  const inactiveFullClasses = `${baseClasses} text-base-content bg-base-70 shadow-lg shadow-base-70 ${hover ? `shadow-lg hover:shadow-xl hover:scale-105 transition-transform` : ''}`;
+  const activeFullClasses = `${baseClasses} text-${color}-content bg-${color} shadow-lg shadow-${color} `;
+  const activeHoverClasses = `${baseClasses} text-${color}-content bg-${color} shadow-xl shadow-${color} scale-105 `;
+  const inactiveFullClasses = `${baseClasses} text-base-content bg-base-70 shadow-lg shadow-base-70 `;
+  const inactiveHoverClasses = `${baseClasses} text-base-content bg-base-70 shadow-xl shadow-base-70 scale-105 `;
 
   // 如果有 activeStateName，使用 Alpine.js store 動態控制 active 狀態
   if (activeStateName) {
@@ -53,6 +55,22 @@ export default function GlowContainer({
       if(!Alpine.store('Container')){Alpine.store('Container',{})}
       if(Alpine.store('Container').${activeStateName}===undefined){Alpine.store('Container').${activeStateName}=${active}}
     `.replace(/\s+/g, ' ').trim();
+
+    if (hover) {
+      return (
+        <div 
+          x-data={`{ hover: false }`}
+          x-init={initScript}
+          x-on:mouseenter="hover = true"
+          x-on:mouseleave="hover = false"
+          x-bind:class={`$store.Container.${activeStateName} ? (hover ? '${activeHoverClasses}' : '${activeFullClasses}') : (hover ? '${inactiveHoverClasses}' : '${inactiveFullClasses}')`}
+          style={{ width: widthStyle, height: heightStyle }}
+          {...restProps}
+        >
+          {children}
+        </div>
+      );
+    }
 
     return (
       <div 

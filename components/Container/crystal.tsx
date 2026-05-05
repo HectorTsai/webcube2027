@@ -45,8 +45,10 @@ export default function CrystalContainer({
   ].filter(Boolean).join(" ");
 
   // 完整類別（結構 + 顏色）
-  const activeFullClasses = `${baseClasses} text-${color}-content bg-crystal-${color} ${hover ? `hover:bg-crystal-hover-${color}` : ''}`;
-  const inactiveFullClasses = `${baseClasses} text-base-content bg-crystal-base ${hover ? `hover:bg-crystal-hover-base` : ''}`;
+  const activeFullClasses = `${baseClasses} text-${color}-content bg-crystal-${color} `;
+  const activeHoverClasses = `${baseClasses} text-${color}-content bg-crystal-hover-${color} `;
+  const inactiveFullClasses = `${baseClasses} text-base-content bg-crystal-base `;
+  const inactiveHoverClasses = `${baseClasses} text-base-content bg-crystal-hover-base `;
 
   // 如果有 activeStateName，使用 Alpine.js store 動態控制 active 狀態
   if (activeStateName) {
@@ -54,6 +56,22 @@ export default function CrystalContainer({
       if(!Alpine.store('Container')){Alpine.store('Container',{})}
       if(Alpine.store('Container').${activeStateName}===undefined){Alpine.store('Container').${activeStateName}=${active}}
     `.replace(/\s+/g, ' ').trim();
+
+    if (hover) {
+      return (
+        <div 
+          x-data={`{ hover: false }`}
+          x-init={initScript}
+          x-on:mouseenter="hover = true"
+          x-on:mouseleave="hover = false"
+          x-bind:class={`$store.Container.${activeStateName} ? (hover ? '${activeHoverClasses}' : '${activeFullClasses}') : (hover ? '${inactiveHoverClasses}' : '${inactiveFullClasses}')`}
+          style={{ width: widthStyle, height: heightStyle }}
+          {...restProps}
+        >
+          {children}
+        </div>
+      );
+    }
 
     return (
       <div 

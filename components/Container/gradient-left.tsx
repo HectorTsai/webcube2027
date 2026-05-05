@@ -45,8 +45,10 @@ export default function GradientLeftContainer({
   ].filter(Boolean).join(" ");
 
   // 完整類別（結構 + 顏色）
-  const activeFullClasses = `${baseClasses} bg-gradient-to-r from-${color} to-${color}-50 text-${color}-content ${hover ? `hover:to-${color}-30` : ''}`;
-  const inactiveFullClasses = `${baseClasses} bg-gradient-to-r from-base-70 to-base-30 text-base-content ${hover ? `hover:to-base-10` : ''}`;
+  const activeFullClasses = `${baseClasses} bg-gradient-to-r from-${color} to-${color}-50 text-${color}-content `;
+  const activeHoverClasses = `${baseClasses} bg-gradient-to-r from-${color} to-${color}-30 text-${color}-content `;
+  const inactiveFullClasses = `${baseClasses} bg-gradient-to-r from-base-70 to-base-30 text-base-content `;
+  const inactiveHoverClasses = `${baseClasses} bg-gradient-to-r from-base-70 to-base-10 text-base-content `;
 
   // 如果有 activeStateName，使用 Alpine.js store 動態控制 active 狀態
   if (activeStateName) {
@@ -54,6 +56,22 @@ export default function GradientLeftContainer({
       if(!Alpine.store('Container')){Alpine.store('Container',{})}
       if(Alpine.store('Container').${activeStateName}===undefined){Alpine.store('Container').${activeStateName}=${active}}
     `.replace(/\s+/g, ' ').trim();
+
+    if (hover) {
+      return (
+        <div 
+          x-data={`{ hover: false }`}
+          x-init={initScript}
+          x-on:mouseenter="hover = true"
+          x-on:mouseleave="hover = false"
+          x-bind:class={`$store.Container.${activeStateName} ? (hover ? '${activeHoverClasses}' : '${activeFullClasses}') : (hover ? '${inactiveHoverClasses}' : '${inactiveFullClasses}')`}
+          style={{ width: widthStyle, height: heightStyle }}
+          {...restProps}
+        >
+          {children}
+        </div>
+      );
+    }
 
     return (
       <div 

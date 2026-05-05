@@ -22,7 +22,7 @@ export default async function OptionPickerTestPage() {
         <h2 class="text-lg font-bold mb-3">單選模式 - 文字選項</h2>
         <div>
           <p class="mb-2">目前選中：<span x-text="(() => { const s = $store.Container || {}; const k = Object.keys(s).filter(k => k.startsWith('size_') && s[k]); return k.length > 0 ? k[0].replace('size_', '') : '無'; })()"></span></p>
-          <OptionPicker mode="single" name="size" variant="solid" color="primary">
+          <OptionPicker mode="single" name="size" gap="none" rounded="none" variant="solid" color="primary">
             <OptionItem value="small">
               <Span>小</Span>
             </OptionItem>
@@ -91,7 +91,7 @@ export default async function OptionPickerTestPage() {
         <h2 class="text-lg font-bold mb-3">單選模式 - 組合內容選項</h2>
         <div>
           <p class="mb-2">目前選中：<span x-text="(() => { const s = $store.Container || {}; const k = Object.keys(s).filter(k => k.startsWith('plan_') && s[k]); return k.length > 0 ? k[0].replace('plan_', '') : '無'; })()"></span></p>
-          <OptionPicker mode="single" name="plan" variant="outline" color="primary" padding="lg">
+          <OptionPicker mode="single" name="plan" variant="outline" color="success" padding="lg">
             <OptionItem value="basic">
               <div class="flex flex-col items-center gap-sm">
                 <Icon svg={svgSet.star} size="lg" />
@@ -119,7 +119,7 @@ export default async function OptionPickerTestPage() {
         <h2 class="text-lg font-bold mb-3">包含禁用選項</h2>
         <div>
           <p class="mb-2">目前選中：<span x-text="(() => { const s = $store.Container || {}; const k = Object.keys(s).filter(k => k.startsWith('opt_') && s[k]); return k.length > 0 ? k[0].replace('opt_', '') : '無'; })()"></span></p>
-          <OptionPicker mode="single" name="opt">
+          <OptionPicker mode="single" name="opt" variant="crystal" color="error">
             <OptionItem value="option1" checked>
               <Span>選項 1</Span>
             </OptionItem>

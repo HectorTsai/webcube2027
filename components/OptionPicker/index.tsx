@@ -25,6 +25,8 @@ export interface OptionItemProps {
   mode?: 'single' | 'multiple';
   /** 是否預設選中 */
   checked?: boolean;
+  /** 自定義類別 */
+  className?: string;
 }
 
 export interface OptionPickerProps extends ComponentProps {

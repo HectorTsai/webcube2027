@@ -45,8 +45,10 @@ export default function GradientConeContainer({
   ].filter(Boolean).join(" ");
 
   // 完整類別（結構 + 顏色）
-  const activeFullClasses = `${baseClasses} bg-conic-[${color},${color}-50] text-${color}-content ${hover ? `hover:bg-conic-[${color},${color}-30]` : ''}`;
-  const inactiveFullClasses = `${baseClasses} bg-conic-[gray-300,gray-500] text-gray-800 ${hover ? `hover:bg-conic-[gray-300,gray-600]` : ''}`;
+  const activeFullClasses = `${baseClasses} bg-conic-[${color},${color}-50] text-${color}-content `;
+  const activeHoverClasses = `${baseClasses} bg-conic-[${color},${color}-30] text-${color}-content `;
+  const inactiveFullClasses = `${baseClasses} bg-conic-[gray-300,gray-500] text-gray-800 `;
+  const inactiveHoverClasses = `${baseClasses} bg-conic-[gray-300,gray-600] text-gray-800 `;
 
   // 如果有 activeStateName，使用 Alpine.js store 動態控制 active 狀態
   if (activeStateName) {
@@ -54,6 +56,22 @@ export default function GradientConeContainer({
       if(!Alpine.store('Container')){Alpine.store('Container',{})}
       if(Alpine.store('Container').${activeStateName}===undefined){Alpine.store('Container').${activeStateName}=${active}}
     `.replace(/\s+/g, ' ').trim();
+
+    if (hover) {
+      return (
+        <div 
+          x-data={`{ hover: false }`}
+          x-init={initScript}
+          x-on:mouseenter="hover = true"
+          x-on:mouseleave="hover = false"
+          x-bind:class={`$store.Container.${activeStateName} ? (hover ? '${activeHoverClasses}' : '${activeFullClasses}') : (hover ? '${inactiveHoverClasses}' : '${inactiveFullClasses}')`}
+          style={{ width: widthStyle, height: heightStyle }}
+          {...restProps}
+        >
+          {children}
+        </div>
+      );
+    }
 
     return (
       <div 

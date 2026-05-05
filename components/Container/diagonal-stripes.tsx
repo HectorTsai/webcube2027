@@ -59,8 +59,8 @@ export default function DiagonalStripesContainer({
       if(Alpine.store('Container').${activeStateName}===undefined){Alpine.store('Container').${activeStateName}=${active}}
     `.replace(/\s+/g, ' ').trim();
 
-    const activeFullClasses = `${baseClasses} text-${activeTextColor}`;
-    const inactiveFullClasses = `${baseClasses} text-${inactiveTextColor}`;
+    const activeFullClasses = `${baseClasses} text-${activeTextColor} `;
+    const inactiveFullClasses = `${baseClasses} text-${inactiveTextColor} `;
 
     if (hover) {
       return (
@@ -70,12 +70,7 @@ export default function DiagonalStripesContainer({
           x-on:mouseenter="hover = true"
           x-on:mouseleave="hover = false"
           x-bind:class={`$store.Container.${activeStateName} ? '${activeFullClasses}' : '${inactiveFullClasses}'`}
-          x-bind:style="() => {
-            const isActive = $store.Container.${activeStateName};
-            const gradient = isActive ? '${activeGradient}' : '${inactiveGradient}';
-            const hoverGradient = isActive ? '${activeHoverGradient}' : '${inactiveHoverGradient}';
-            return { backgroundImage: hover ? hoverGradient : gradient };
-          }"
+          x-bind:style="{ backgroundImage: hover ? ($store.Container.${activeStateName} ? '${activeHoverGradient}' : '${inactiveHoverGradient}') : ($store.Container.${activeStateName} ? '${activeGradient}' : '${inactiveGradient}') }"
           style={{ width: widthStyle, height: heightStyle }}
           {...restProps}
         >

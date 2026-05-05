@@ -45,8 +45,10 @@ export default function GradientCenterContainer({
   ].filter(Boolean).join(" ");
 
   // 完整類別（結構 + 顏色）
-  const activeFullClasses = `${baseClasses} bg-gradient-to-r from-${color} via-${color}-50 to-${color} text-${color}-content ${hover ? `hover:via-${color}-30` : ''}`;
-  const inactiveFullClasses = `${baseClasses} bg-gradient-to-r from-gray-300 via-gray-400 to-gray-300 text-gray-800 ${hover ? `hover:via-gray-500` : ''}`;
+  const activeFullClasses = `${baseClasses} bg-gradient-to-r from-${color} via-${color}-50 to-${color} text-${color}-content `;
+  const activeHoverClasses = `${baseClasses} bg-gradient-to-r from-${color} via-${color}-30 to-${color} text-${color}-content `;
+  const inactiveFullClasses = `${baseClasses} bg-gradient-to-r from-gray-300 via-gray-400 to-gray-300 text-gray-800 `;
+  const inactiveHoverClasses = `${baseClasses} bg-gradient-to-r from-gray-300 via-gray-500 to-gray-300 text-gray-800 `;
 
   // 如果有 activeStateName，使用 Alpine.js store 動態控制 active 狀態
   if (activeStateName) {
@@ -54,6 +56,22 @@ export default function GradientCenterContainer({
       if(!Alpine.store('Container')){Alpine.store('Container',{})}
       if(Alpine.store('Container').${activeStateName}===undefined){Alpine.store('Container').${activeStateName}=${active}}
     `.replace(/\s+/g, ' ').trim();
+
+    if (hover) {
+      return (
+        <div 
+          x-data={`{ hover: false }`}
+          x-init={initScript}
+          x-on:mouseenter="hover = true"
+          x-on:mouseleave="hover = false"
+          x-bind:class={`$store.Container.${activeStateName} ? (hover ? '${activeHoverClasses}' : '${activeFullClasses}') : (hover ? '${inactiveHoverClasses}' : '${inactiveFullClasses}')`}
+          style={{ width: widthStyle, height: heightStyle }}
+          {...restProps}
+        >
+          {children}
+        </div>
+      );
+    }
 
     return (
       <div 
