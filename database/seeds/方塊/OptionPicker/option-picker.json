@@ -1,0 +1,106 @@
+{
+  "id": "方塊:方塊:option-picker",
+  "名稱": {
+    "en": "OptionPicker",
+    "zh-tw": "選項選擇器",
+    "zh-cn": "选项选择器",
+    "vi": "Bộ chọn tùy chọn"
+  },
+  "描述": {
+    "en": "A visual option picker component that replaces traditional Radio/Checkbox. Each option is a Container block with hover effects. IMPORTANT FOR AI: Use this component for visual selection. Supports single (radio-like) and multiple (checkbox-like) modes. Each option can contain text, icons, images, or videos. Usage example: <OptionPicker mode=\"single\" options={[{value: 'a', content: 'Option A'}]} onChange={(values) => console.log(values)} />",
+    "zh-tw": "取代傳統 Radio/Checkbox 的視覺化選項選擇器元件。每個選項都是一個帶有 hover 效果的 Container 方塊。AI注意：此元件用於視覺化選擇，支援單選（類似 Radio）和多選（類似 Checkbox）模式。每個選項可以包含文字、圖示、圖片或影片。使用範例：<OptionPicker mode=\"single\" options={[{value: 'a', content: '選項 A'}]} onChange={(values) => console.log(values)} />",
+    "zh-cn": "取代传统 Radio/Checkbox 的可视化选项选择器元件。每个选项都是一个带有 hover 效果的 Container 方块。AI注意：此元件用于可视化选择，支持单选（类似 Radio）和多选（类似 Checkbox）模式。每个选项可以包含文字、图标、图片或影片。使用示例：<OptionPicker mode=\"single\" options={[{value: 'a', content: '选项 A'}]} onChange={(values) => console.log(values)} />",
+    "vi": "Thành phần bộ chọn tùy chọn trực quan thay thế Radio/Checkbox truyền thống. Mỗi tùy chọn là một khối Container với hiệu ứng hover. LƯU Ý CHO AI: Sử dụng thành phần này để chọn trực quan. Hỗ trợ chế độ đơn (giống Radio) và nhiều (giống Checkbox). Mỗi tùy chọn có thể chứa văn bản, biểu tượng, hình ảnh hoặc video. Ví dụ sử dụng: <OptionPicker mode=\"single\" options={[{value: 'a', content: 'Tùy chọn A'}]} onChange={(values) => console.log(values)} />"
+  },
+  "售價": 0,
+  "標籤集": ["方塊:標籤:表單", "方塊:標籤:輸入"],
+  "模式": "內建",
+  "元件路徑": "OptionPicker",
+  "屬性定義": {
+    "options": {
+      "type": "array",
+      "description": "選項列表，每個選項包含 value、content、selected、disabled 屬性",
+      "required": true,
+      "default": []
+    },
+    "mode": {
+      "type": "string",
+      "description": "選擇模式：single=單選(Radio), multiple=多選(Checkbox)",
+      "required": false,
+      "default": "single",
+      "options": ["single", "multiple"]
+    },
+    "selectedValues": {
+      "type": "array",
+      "description": "已選中的值列表",
+      "required": false,
+      "default": []
+    },
+    "onChange": {
+      "type": "function",
+      "description": "變更事件回調，參數為已選中的值列表",
+      "required": false,
+      "default": ""
+    },
+    "variant": {
+      "type": "string",
+      "description": "容器樣式變體",
+      "required": false,
+      "default": "outline",
+      "options": ["solid", "outline", "ghost", "dot", "dashed", "double", "gradient-right", "gradient-left", "gradient-up", "gradient-down", "gradient-middle", "gradient-diagonal", "gradient-center", "gradient-cone", "crystal", "diagonal-stripes", "glow", "minimalist"]
+    },
+    "color": {
+      "type": "string",
+      "description": "容器顏色",
+      "required": false,
+      "default": "primary",
+      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "base", "neutral"]
+    },
+    "cols": {
+      "type": "string|number",
+      "description": "網格列數",
+      "required": false,
+      "default": 3,
+      "options": [1, 2, 3, 4, 5, 6, "auto"]
+    },
+    "gap": {
+      "type": "string",
+      "description": "選項間距",
+      "required": false,
+      "default": "md",
+      "options": ["none", "xs", "sm", "md", "lg", "xl"]
+    },
+    "hover": {
+      "type": "boolean",
+      "description": "是否啟用 hover 效果",
+      "required": false,
+      "default": true
+    },
+    "padding": {
+      "type": "string",
+      "description": "選項內距",
+      "required": false,
+      "default": "md",
+      "options": ["none", "xs", "sm", "md", "lg", "xl", "2xl"]
+    },
+    "rounded": {
+      "type": "string",
+      "description": "選項圓角",
+      "required": false,
+      "default": "lg",
+      "options": ["none", "sm", "md", "lg", "full"]
+    },
+    "className": {
+      "type": "string",
+      "description": "額外 CSS 類別",
+      "required": false,
+      "default": ""
+    }
+  },
+  "子方塊": [],
+  "對外參數": {},
+  "程式碼": "",
+  "審核狀態": "approved",
+  "上架狀態": true,
+  "可刪除": false
+}
