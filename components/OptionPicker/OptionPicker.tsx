@@ -1,11 +1,11 @@
+import { Children, cloneElement } from 'hono/jsx';
 import type { OptionPickerProps } from "./index.tsx";
-import Container from "../Container/index.tsx";
+import OptionItem from "./OptionItem.tsx";
 
 export default async function OptionPicker({
   children,
   mode = 'single',
-  selectedValues = [],
-  onChange,
+  name,
   variant = 'outline',
   color = 'primary',
   autoFill = true,
@@ -16,7 +16,6 @@ export default async function OptionPicker({
   className = '',
   ...restProps
 }: OptionPickerProps) {
-  // 建立間距類別
   const gapClasses = {
     none: 'gap-0',
     xs: 'gap-xs',
@@ -26,48 +25,45 @@ export default async function OptionPicker({
     xl: 'gap-xl'
   };
 
-  // 處理子元件
-  const childArray = Array.isArray(children) ? children : children ? [children] : [];
-
-  // 渲染選項
-  const optionContainers = await Promise.all(childArray.map(async (child, index) => {
-    const childProps = (child as any).props || {};
-    const value = childProps.value || `option-${index}`;
-    const isDisabled = childProps.disabled || false;
-    const isSelected = selectedValues.includes(value);
-
-    // 使用 Container 渲染每個選項
-    return await Container({
-      variant,
-      color,
-      active: isSelected,
-      hover: hover && !isDisabled,
-      padding,
-      rounded,
-      align: 'center',
-      justify: 'center',
-      direction: 'column',
-      className: [
-        isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
-        autoFill ? 'flex-1' : ''
-      ].filter(Boolean).join(' '),
-      onClick: () => {
-        if (isDisabled) return;
-        if (mode === 'single') {
-          onChange?.([value]);
-        } else {
-          const newValues = selectedValues.includes(value)
-            ? selectedValues.filter(v => v !== value)
-            : [...selectedValues, value];
-          onChange?.(newValues);
-        }
-      },
-      children: childProps.children
-    });
+  const arrayChildren = Children.toArray(children as any);
+  const optionContainers = await Promise.all(arrayChildren.map(async (child: any) => {
+    const isOptionItem = child?.type === OptionItem;
+    if (isOptionItem) {
+      const props: Record<string, any> = {
+        color: child.props.color ?? color,
+        variant: child.props.variant ?? variant,
+        mode: child.props.mode ?? mode,
+        name: child.props.name ?? name,
+        hover: child.props.hover !== undefined ? child.props.hover : hover,
+        padding: child.props.padding ?? padding,
+        rounded: child.props.rounded ?? rounded,
+        autoFill: child.props.autoFill !== undefined ? child.props.autoFill : autoFill,
+        checked: child.props.checked ?? false
+      };
+      return await cloneElement(child, props);
+    }
+    return child;
   }));
+
+  const optionValues: Array<{ value: string; checked: boolean }> = [];
+  arrayChildren.forEach((child: any) => {
+    if (child?.type === OptionItem) {
+      optionValues.push({
+        value: child.props?.value,
+        checked: child.props?.checked ?? false
+      });
+    }
+  });
+
+  const initParts = optionValues.map(({ value, checked }) => {
+    const stateName = name ? `${name}_${value}` : `option_${value}`;
+    return `if($store.Container.${stateName}===undefined){$store.Container.${stateName}=${checked}}`;
+  });
+  const xDataValue = `(()=>{if(!Alpine.store('Container')){Alpine.store('Container',{})}${initParts.join('')}return {}})()`;
 
   return (
     <div 
+      x-data={xDataValue}
       class={`flex flex-wrap ${gapClasses[gap]} ${className}`}
       {...restProps}
     >

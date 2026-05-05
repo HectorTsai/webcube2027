@@ -24,6 +24,8 @@ export interface ContainerProps extends ComponentProps {
   shadow?: "none" | "sm" | "md" | "lg";
   /** 激活狀態 */
   active?: boolean;
+  /** Alpine.js store 狀態名稱，用於動態控制 active 狀態 */
+  activeStateName?: string;
   /** 啟用懸停效果 */
   hover?: boolean;
   /** Any additional props (including Alpine.js x- attributes and event handlers) */

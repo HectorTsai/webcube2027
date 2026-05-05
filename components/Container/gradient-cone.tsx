@@ -15,19 +15,64 @@ export default function GradientConeContainer({
   rounded = "lg",
   shadow = "none",
   active = true,
+  activeStateName,
   hover = false,
   className,
   ...restProps}: ContainerProps) {
-
-  const colorFrom = active ? color : `gray-300`;
-  const colorTo = active ? `${color}-50` : `gray-500`;
-  const textColor = active ? `${color}-content` : `gray-800`;
-  const hoverColor = active ? `${color}-30` : `gray-600`;
 
   const widthStyle = (width === "full" || width === "auto") ? undefined : width;
   const heightStyle = (height === "full" || height === "auto") ? undefined : height;
   const widthClass = (width === "full") ? `w-${width}` : undefined;
   const heightClass = (height === "full") ? `h-${height}` : undefined;
+
+  // 結構性類別（不含顏色）
+  const baseClasses = [
+    "flex",
+    "box-border",
+    directionClasses[direction],
+    widthClass,
+    heightClass,
+    paddingClasses[padding],
+    marginClasses[margin],
+    alignClasses[align],
+    justifyClasses[justify],
+    gapClasses[gap],
+    "border-0",
+    roundedClasses[rounded],
+    shadowClasses[shadow],
+    hover ? "transition-all duration-200" : undefined,
+    className
+  ].filter(Boolean).join(" ");
+
+  // 完整類別（結構 + 顏色）
+  const activeFullClasses = `${baseClasses} bg-conic-[${color},${color}-50] text-${color}-content ${hover ? `hover:bg-conic-[${color},${color}-30]` : ''}`;
+  const inactiveFullClasses = `${baseClasses} bg-conic-[gray-300,gray-500] text-gray-800 ${hover ? `hover:bg-conic-[gray-300,gray-600]` : ''}`;
+
+  // 如果有 activeStateName，使用 Alpine.js store 動態控制 active 狀態
+  if (activeStateName) {
+    const initScript = `
+      if(!Alpine.store('Container')){Alpine.store('Container',{})}
+      if(Alpine.store('Container').${activeStateName}===undefined){Alpine.store('Container').${activeStateName}=${active}}
+    `.replace(/\s+/g, ' ').trim();
+
+    return (
+      <div 
+        x-data
+        x-init={initScript}
+        x-bind:class={`$store.Container.${activeStateName} ? '${activeFullClasses}' : '${inactiveFullClasses}'`}
+        style={{ width: widthStyle, height: heightStyle }}
+        {...restProps}
+      >
+        {children}
+      </div>
+    );
+  }
+
+  // 沒有 activeStateName，使用原本的邏輯
+  const colorFrom = active ? color : `gray-300`;
+  const colorTo = active ? `${color}-50` : `gray-500`;
+  const textColor = active ? `${color}-content` : `gray-800`;
+  const hoverColor = active ? `${color}-30` : `gray-600`;
 
   const finalClasses = [
     "flex",

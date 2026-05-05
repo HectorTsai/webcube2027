@@ -15,17 +15,60 @@ export default function GhostContainer({
   rounded = "lg",
   shadow = "none",
   active = true,
+  activeStateName,
   hover = false,
   className,
   ...restProps}: ContainerProps) {
-
-  const textColor = active ? `${color}` : `base-content`;
-  const hoverColor = active ? `${color}-70` : `base-70`;
 
   const widthStyle = (width === "full" || width === "auto") ? undefined : width;
   const heightStyle = (height === "full" || height === "auto") ? undefined : height;
   const widthClass = (width === "full") ? `w-${width}` : undefined;
   const heightClass = (height === "full") ? `h-${height}` : undefined;
+
+  // 結構性類別（不含顏色）
+  const baseClasses = [
+    "flex",
+    "box-border",
+    directionClasses[direction],
+    widthClass,
+    heightClass,
+    paddingClasses[padding],
+    marginClasses[margin],
+    alignClasses[align],
+    justifyClasses[justify],
+    gapClasses[gap],
+    roundedClasses[rounded],
+    hover ? "transition-all duration-200" : undefined,
+    className
+  ].filter(Boolean).join(" ");
+
+  // 完整類別（結構 + 顏色）
+  const activeFullClasses = `${baseClasses} bg-transparent text-${color} ${hover ? `hover:bg-${color}-70 hover:text-${color}-content` : ''}`;
+  const inactiveFullClasses = `${baseClasses} bg-transparent text-base-content ${hover ? `hover:bg-base-70` : ''}`;
+
+  // 如果有 activeStateName，使用 Alpine.js store 動態控制 active 狀態
+  if (activeStateName) {
+    const initScript = `
+      if(!Alpine.store('Container')){Alpine.store('Container',{})}
+      if(Alpine.store('Container').${activeStateName}===undefined){Alpine.store('Container').${activeStateName}=${active}}
+    `.replace(/\s+/g, ' ').trim();
+
+    return (
+      <div 
+        x-data
+        x-init={initScript}
+        x-bind:class={`$store.Container.${activeStateName} ? '${activeFullClasses}' : '${inactiveFullClasses}'`}
+        style={{ width: widthStyle, height: heightStyle }}
+        {...restProps}
+      >
+        {children}
+      </div>
+    );
+  }
+
+  // 沒有 activeStateName，使用原本的邏輯
+  const textColor = active ? `${color}` : `base-content`;
+  const hoverColor = active ? `${color}-70` : `base-70`;
 
   const finalClasses = [
     "flex",

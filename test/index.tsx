@@ -25,6 +25,7 @@ export default function TestIndex() {
     { name: "InputField 測試", path: "/test/input-field" },
     { name: "Book 測試", path: "/test/book" },
     { name: "Popup 測試", path: "/test/popup" },
+    { name: "OptionPicker 測試", path: "/test/option-picker" },
   ];
 
   const uiComponents = testPages.filter(p => 
@@ -36,7 +37,7 @@ export default function TestIndex() {
   );
   
   const interactiveComponents = testPages.filter(p =>
-    ["Swap", "Toggle", "Steps", "Timeline", "Calendar", "Input", "InputField", "Select"].some(c => p.name.includes(c))
+    ["Swap", "Toggle", "Steps", "Timeline", "Calendar", "Input", "InputField", "Select", "OptionPicker"].some(c => p.name.includes(c))
   );
 
   return (
