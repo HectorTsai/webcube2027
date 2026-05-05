@@ -1,5 +1,4 @@
 import OptionPicker from '../components/OptionPicker/OptionPicker.tsx';
-import Container from '../components/Container/index.tsx';
 import Span from '../components/Span.tsx';
 import Icon from '../components/Icon.tsx';
 
@@ -79,7 +78,6 @@ export default async function OptionPickerTestPage() {
           mode="single" 
           options={textOptions}
           selectedValues={['medium']}
-          cols={4}
         />
       </section>
 
@@ -90,7 +88,6 @@ export default async function OptionPickerTestPage() {
           mode="multiple" 
           options={iconOptions}
           selectedValues={['grid', 'card']}
-          cols={4}
           variant="solid"
         />
       </section>
@@ -102,9 +99,8 @@ export default async function OptionPickerTestPage() {
           mode="single" 
           options={colorOptions}
           selectedValues={['blue']}
-          cols={5}
           variant="ghost"
-          rounded="full"
+          rounded="lg"
         />
       </section>
 
@@ -115,7 +111,6 @@ export default async function OptionPickerTestPage() {
           mode="single" 
           options={comboOptions}
           selectedValues={['pro']}
-          cols={3}
           variant="outline"
           color="primary"
           padding="lg"
@@ -129,19 +124,6 @@ export default async function OptionPickerTestPage() {
           mode="single" 
           options={disabledOptions}
           selectedValues={['option1']}
-          cols={4}
-        />
-      </section>
-
-      {/* 自動響應式 */}
-      <section class="mb-8">
-        <h2 class="text-lg font-bold mb-3">自動響應式佈局</h2>
-        <OptionPicker 
-          mode="multiple" 
-          options={textOptions}
-          selectedValues={['small', 'large']}
-          cols="auto"
-          variant="dashed"
         />
       </section>
 
@@ -151,9 +133,9 @@ export default async function OptionPickerTestPage() {
         <ul class="list-disc list-inside space-y-1">
           <li><strong>mode="single"</strong>: 單選模式，類似 Radio</li>
           <li><strong>mode="multiple"</strong>: 多選模式，類似 Checkbox</li>
-          <li><strong>variant</strong>: 容器樣式 (solid, outline, ghost, dot, dashed, etc.)</li>
-          <li><strong>color</strong>: 容器顏色</li>
-          <li><strong>cols</strong>: 網格列數 (1-6 或 "auto")</li>
+          <li><strong>variant</strong>: Container 容器樣式 (solid, outline, ghost, dot, dashed, etc.)</li>
+          <li><strong>color</strong>: Container 容器顏色</li>
+          <li><strong>autoFill</strong>: 是否使用 Flex 自動填滿空間</li>
           <li><strong>disabled</strong>: 選項可以設定為禁用狀態</li>
         </ul>
       </section>
