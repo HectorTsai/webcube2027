@@ -19,39 +19,6 @@
   {"id": "圖示:標籤:面板","名稱":{"en":"panel","zh-tw":"面板","vi":"bảng điều khiển"},"標籤集":[],"可刪除": false},
   
   {
-    "id": "圖示:圖示:spinner",
-    "名稱": {"en":"Spinner Loading","zh-tw":"轉圈載入動畫","vi":"Đang tải xoay tròn"},
-    "資料": {
-      "format": "SVG",
-      "content": "<svg class=\"w-12 h-12 text-cyan-400 animate-spin\" viewBox=\"0 0 24 24\" fill=\"none\"><circle cx=\"12\" cy=\"12\" r=\"10\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-dasharray=\"31.416 31.416\" class=\"opacity-25\"/><path d=\"M12 2a10 10 0 0 1 0 20\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" class=\"opacity-75\"/></svg>"
-    },
-    "標籤集": ["圖示:標籤:載入","圖示:標籤:動畫"],
-    "可刪除": false
-  },
-  
-  {
-    "id": "圖示:圖示:drawer",
-    "名稱": {"en":"Drawer Panel","zh-tw":"抽屜面板","vi":"Bảng kéo"},
-    "資料": {
-      "format": "SVG",
-      "content": "<svg class=\"w-6 h-6\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\" ry=\"2\"/><line x1=\"9\" y1=\"9\" x2=\"15\" y2=\"9\"/><line x1=\"9\" y1=\"15\" x2=\"15\" y2=\"15\"/></svg>"
-    },
-    "標籤集": ["圖示:標籤:面板","圖示:標籤:物件"],
-    "可刪除": false
-  },
-  
-  {
-    "id": "圖示:圖示:dots",
-    "名稱": {"en":"Dots Loading","zh-tw":"點點載入動畫","vi":"Đang tải chấm chấm"},
-    "資料": {
-      "format": "SVG",
-      "content": "<svg class=\"w-12 h-12 text-cyan-400\" viewBox=\"0 0 24 24\" fill=\"currentColor\"><circle cx=\"6\" cy=\"12\" r=\"2\"><animate attributeName=\"cy\" values=\"12;8;12\" dur=\"1s\" repeatCount=\"indefinite\" begin=\"0s\"/></circle><circle cx=\"12\" cy=\"12\" r=\"2\"><animate attributeName=\"cy\" values=\"12;8;12\" dur=\"1s\" repeatCount=\"indefinite\" begin=\"0.15s\"/></circle><circle cx=\"18\" cy=\"12\" r=\"2\"><animate attributeName=\"cy\" values=\"12;8;12\" dur=\"1s\" repeatCount=\"indefinite\" begin=\"0.3s\"/></circle></svg>"
-    },
-    "標籤集": ["圖示:標籤:載入","圖示:標籤:動畫"],
-    "可刪除": false
-  },
-
-  {
     "id": "圖示:圖示:web_cube",
     "名稱": {"en":"cube","zh-tw":"方塊","vi":"hình lập phương"},
     "資料": {
@@ -63,7 +30,7 @@
   },
   {
     "id": "圖示:圖示:web_cube_banner",
-    "名稱": {"en":"cubes","zh-tw": "方塊","vi": "hình lập phương"},
+    "名稱": {"en":"cubes","zh-tw":"方塊","zh-cn":"方塊","vi":"hình lập phương"},
     "資料": {
       "format": "SVG",
       "content":"file://icons/webcube_banner.svg"
@@ -72,8 +39,8 @@
     "可刪除": false
   },
   {
-    "id": "圖示:圖示:user",
-    "名稱": {"en":"user","zh-tw": "使用者","vi": "người sử dụng"},
+    "id": "圖示:圖示:使用者",
+    "名稱": {"en":"user","zh-tw":"使用者","zh-cn":"用户","vi":"người sử dụng"},
     "資料": {
       "format": "SVG",
       "content":"file://icons/user.svg"
@@ -82,8 +49,8 @@
     "可刪除": false
   },
   {
-    "id": "圖示:圖示:users",
-    "名稱": {"en":"users","zh-tw": "用戶群","vi": "Các người dùng"},
+    "id": "圖示:圖示:用戶群",
+    "名稱": {"en":"users","zh-tw": "用戶群","zh-cn":"用户群","vi": "Các người dùng"},
     "資料": {
       "format": "SVG",
       "content":"file://icons/users.svg"
@@ -92,7 +59,7 @@
     "可刪除": false
   },
   {
-    "id":"圖示:圖示:home",
+    "id":"圖示:圖示:首頁",
     "名稱":{"en":"home", "zh-tw":"首頁", "zh-cn":"首页", "vi":"trang chủ"},
     "資料":{
       "format":"SVG",
@@ -102,7 +69,27 @@
     "可刪除": false
   },
   {
-    "id":"圖示:圖示:info",
+    "id":"圖示:圖示:書",
+    "名稱":{"en":"book", "zh-tw":"書", "zh-cn":"書", "vi":"sách"},
+    "資料":{
+      "format":"SVG",
+      "content":"file://icons/book.svg"
+    },
+    "標籤集":[],
+    "可刪除": false
+  },
+  {
+    "id":"圖示:圖示:日誌",
+    "名稱":{"en":"journal", "zh-tw":"日誌", "zh-cn":"日誌", "vi":"bảng ghi"},
+    "資料":{
+      "format":"SVG",
+      "content":"file://icons/journal.svg"
+    },
+    "標籤集":[],
+    "可刪除": false
+  },
+  {
+    "id":"圖示:圖示:資訊",
     "名稱":{"en":"info", "zh-tw":"資訊", "zh-cn":"信息", "vi":"thông tin"},
     "資料":{
       "format":"SVG",
@@ -112,7 +99,117 @@
     "可刪除": false
   },
   {
-    "id":"圖示:圖示:phone",
+    "id":"圖示:圖示:時鐘",
+    "名稱":{"en":"clock", "zh-tw":"時鐘", "zh-cn":"時鐘", "vi":"đồng hồ"},
+    "資料":{
+      "format":"SVG",
+      "content":"file://icons/clock.svg"
+    },
+    "標籤集":[],
+    "可刪除": false
+  },
+  {
+    "id":"圖示:圖示:日曆",
+    "名稱":{"en":"calendar", "zh-tw":"日曆", "zh-cn":"日曆", "vi":"lịch"},
+    "資料":{
+      "format":"SVG",
+      "content":"file://icons/calendar.svg"
+    },
+    "標籤集":[],
+    "可刪除": false
+  },
+  {
+    "id":"圖示:圖示:新增",
+    "名稱":{"en":"add", "zh-tw":"新增", "zh-cn":"新增", "vi":"phép cộng"},
+    "資料":{
+      "format":"SVG",
+      "content":"file://icons/add.svg"
+    },
+    "標籤集":[],
+    "可刪除": false
+  },
+  {
+    "id":"圖示:圖示:減法",
+    "名稱":{"en":"subtraction", "zh-tw":"減法", "zh-cn":"減法", "vi":"phép trừ"},
+    "資料":{
+      "format":"SVG",
+      "content":"file://icons/subtraction.svg"  
+    },
+    "標籤集":[],
+    "可刪除": false
+  },
+  {
+    "id":"圖示:圖示:登入",
+    "名稱":{"en":"login", "zh-tw":"登入", "zh-cn":"登入", "vi":"đăng nhập"},
+    "資料":{
+      "format":"SVG",
+      "content":"file://icons/login.svg"  
+    },
+    "標籤集":[],
+    "可刪除": false
+  },
+  {
+    "id":"圖示:圖示:登出",
+    "名稱":{"en":"logout", "zh-tw":"登出", "zh-cn":"登出", "vi":"đăng xuất"},
+    "資料":{
+      "format":"SVG",
+      "content":"file://icons/logout.svg"  
+    },
+    "標籤集":[],
+    "可刪除": false
+  },
+  {
+    "id":"圖示:圖示:註冊",
+    "名稱":{"en":"signup", "zh-tw":"註冊", "zh-cn":"註冊", "vi":"đăng ký"},
+    "資料":{
+      "format":"SVG",
+      "content":"file://icons/signup.svg"  
+    },
+    "標籤集":[],
+    "可刪除": false
+  },
+  {
+    "id":"圖示:圖示:調色盤",
+    "名稱":{"en":"palette", "zh-tw":"調色盤", "zh-cn":"調色盤", "vi":"thanh màu"},
+    "資料":{
+      "format":"SVG",
+      "content":"file://icons/palette.svg"
+    },
+    "標籤集":[],
+    "可刪除": false
+  },
+  {
+    "id":"圖示:圖示:雲",
+    "名稱":{"en":"cloud", "zh-tw":"雲", "zh-cn":"雲", "vi":"đám mây"},
+    "資料":{
+      "format":"SVG",
+      "content":"file://icons/cloud.svg"
+    },
+    "標籤集":[],
+    "可刪除": false
+  },
+  {
+    "id":"圖示:圖示:資料庫",
+    "名稱":{"en":"database", "zh-tw":"資料庫", "zh-cn":"資料庫", "vi":"cơ sở dữ liệu"},
+    "資料":{
+      "format":"SVG",
+      "content":"file://icons/database.svg"
+    },
+    "標籤集":[],
+    "可刪除": false
+  },
+  {
+    "id":"圖示:圖示:鑰匙",
+    "名稱":{"en":"key", "zh-tw":"鑰匙", "zh-cn":"鑰匙", "vi":"chìa khóa"},
+    "資料":{
+      "format":"SVG",
+      "content":"file://icons/key.svg"
+    },
+    "標籤集":[],
+    "可刪除": false
+  },
+  {
+    "id":"圖示:圖示:電話",
     "名稱":{"en":"phone", "zh-tw":"電話", "zh-cn":"电话", "vi":"điện thoại"},
     "資料":{
       "format":"SVG",
@@ -122,7 +219,7 @@
     "可刪除": false
   },
   {
-    "id": "圖示:圖示:menu",
+    "id": "圖示:圖示:選單",
     "名稱": {"en":"menu","zh-tw": "選單","vi": "thực đơn"},
     "資料": {
       "format": "SVG",
@@ -132,7 +229,7 @@
     "可刪除": false
   },
   {
-    "id": "圖示:圖示:menu2",
+    "id": "圖示:圖示:選單2",
     "名稱": {"en":"menu 2","zh-tw": "選單2","vi": "thực đơn 2"},
     "資料": {
       "format": "SVG",
@@ -142,7 +239,7 @@
     "可刪除": false
   },
   {
-    "id": "圖示:圖示:menu3",
+    "id": "圖示:圖示:選單3",
     "名稱": {"en":"menu 3","zh-tw": "選單3","vi": "thực đơn 3"},
     "資料": {
       "format": "SVG",

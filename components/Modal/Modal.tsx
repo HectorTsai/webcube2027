@@ -87,7 +87,7 @@ export default function Modal({
         direction="column"
         align="center"
         justify="center"
-        gap="md"
+        gap="none"
         className={modalClasses}
         {...modalAlpine}
       >

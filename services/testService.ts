@@ -67,7 +67,7 @@ async function 渲染測試頁面(c: Context, 測試名稱: string): Promise<Res
     // 執行測試頁面函數
     let jsxContent;
     try {
-      jsxContent = await TestPage();
+      jsxContent = await TestPage(c);
     } catch (执行错误) {
       await error('Test Service', `測試頁面執行失敗: ${測試名稱} - ${执行错误}`);
       return await 渲染測試錯誤頁面(c, 执行错误);
@@ -106,7 +106,8 @@ async function 渲染測試頁面(c: Context, 測試名稱: string): Promise<Res
   </style>
   <script defer src="/media/v1/script/alpine.min.js"></script>
   <script defer src="/media/v1/script/page-flip.browser.min.js"></script>
-  <script type="module" src="https://esm.sh/cally"></script>
+  <script defer src="/media/v1/script/embla-carousel.min.js"></script>
+  <script type="module" src="/media/v1/script/cally.js"></script>
 </head>
 <body x-data style="margin: 0;">
   ${htmlContent}

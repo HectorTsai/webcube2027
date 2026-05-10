@@ -1,0 +1,84 @@
+{
+  "id": "方塊:方塊:time-picker",
+  "名稱": {
+    "en": "TimePicker",
+    "zh-tw": "時間選擇器",
+    "zh-cn": "时间选择器",
+    "vi": "Bộ chọn giờ"
+  },
+  "描述": {
+    "en": "A scrolling time picker component similar to iPhone's time picker. Supports hour/minute selection with smooth scrolling. Supports 24-hour and 12-hour formats. Works with Popup/Modal/Drawer. Usage example: <TimePicker name=\"meeting_time\" inputId=\"timeInput\" size=\"md\" title=\"Select Time\" use24Hour={true} />",
+    "zh-tw": "類似 iPhone 的滾動式時間選擇器。支援時/分滾動選擇，支援 24 小時制和 12 小時制。可與 Popup/Modal/Drawer 搭配使用。使用範例：<TimePicker name=\"meeting_time\" inputId=\"timeInput\" size=\"md\" title=\"選擇時間\" use24Hour={true} />",
+    "zh-cn": "类似 iPhone 的滚动式时间选择器。支持时/分滚动选择，支持 24 小时制和 12 小时制。可与 Popup/Modal/Drawer 搭配使用。使用示例：<TimePicker name=\"meeting_time\" inputId=\"timeInput\" size=\"md\" title=\"选择时间\" use24Hour={true} />",
+    "vi": "Thành phần bộ chọn giờ dạng cuộn tương tự iPhone. Hỗ trợ chọn giờ/phút, hỗ trợ định dạng 24 giờ và 12 giờ. Sử dụng với Popup/Modal/Drawer. Ví dụ sử dụng: <TimePicker name=\"meeting_time\" inputId=\"timeInput\" size=\"md\" title=\"Chọn giờ\" use24Hour={true} />"
+  },
+  "售價": 0,
+  "標籤集": ["方塊:標籤:表單", "方塊:標籤:輸入"],
+  "模式": "內建",
+  "元件路徑": "TimePicker",
+  "屬性定義": {
+    "name": {
+      "type": "string",
+      "description": "表單欄位名稱，會生成 hidden input 用於表單提交",
+      "required": false,
+      "default": ""
+    },
+    "inputId": {
+      "type": "string",
+      "description": "外部 input 元素的 ID，用於讀取和更新時間值，可與 Input 或 InputField 搭配使用",
+      "required": false,
+      "default": ""
+    },
+    "title": {
+      "type": "string",
+      "description": "標題，顯示在選擇器上方",
+      "required": false,
+      "default": ""
+    },
+    "size": {
+      "type": "string",
+      "description": "尺寸",
+      "required": false,
+      "default": "md",
+      "options": ["sm", "md", "lg"]
+    },
+    "use24Hour": {
+      "type": "boolean",
+      "description": "是否使用 24 小時制",
+      "required": false,
+      "default": true
+    },
+    "minuteInterval": {
+      "type": "number",
+      "description": "分鐘間隔",
+      "required": false,
+      "default": 1
+    },
+    "variant": {
+      "type": "string",
+      "description": "容器樣式變體, 預設會依據骨架設定變化，非必要不需設定。",
+      "required": false,
+      "default": "solid",
+      "options": ["solid", "outline", "ghost", "dot", "dashed", "double", "gradient-right", "gradient-left", "gradient-up", "gradient-down", "gradient-middle", "gradient-diagonal", "gradient-center", "gradient-cone", "crystal", "diagonal-stripes", "glow", "minimalist"]
+    },
+    "color": {
+      "type": "string",
+      "description": "容器顏色",
+      "required": false,
+      "default": "primary",
+      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "base", "neutral"]
+    },
+    "className": {
+      "type": "string",
+      "description": "額外 CSS 類別",
+      "required": false,
+      "default": ""
+    }
+  },
+  "子方塊": [],
+  "對外參數": {},
+  "程式碼": "",
+  "審核狀態": "approved",
+  "上架狀態": true,
+  "可刪除": false
+}

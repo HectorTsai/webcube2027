@@ -12,7 +12,6 @@ export default function ModalFooter({
     "justify-end",
     "gap-sm",
     "w-full",
-    "pt-sm",
     className
   ];
 

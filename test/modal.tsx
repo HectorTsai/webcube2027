@@ -1,7 +1,12 @@
+import { Context } from "hono";
 import Modal, { ModalTitle, ModalFooter, ModalProps } from '../components/Modal/index.tsx';
 import Button from '../components/Button/index.tsx';
+import InputField from '../components/InputField/index.tsx';
+import Icon from '../components/Icon.tsx';
+import DatePicker from '../components/DatePicker/index.tsx';
+import TimePicker from '../components/TimePicker/index.tsx';
 
-export default async function ModalTestPage() {
+export default async function ModalTestPage(ctx: Context) {
   const variants: ModalProps['variant'][] = [
     "solid",
     "outline",
@@ -193,17 +198,6 @@ export default async function ModalTestPage() {
     )
   });
 
-  const storeData = `{${[
-    ...variants.map((_, i) => `modal${i}: false`),
-    ...colors.map((_, i) => `colorModal${i}: false`),
-    'backdropOffModal: false',
-    'escOffModal: false',
-    'bothOffModal: false',
-    'widthModal: false',
-    'myDialog: false',
-    'longContentModal: false',
-  ].join(', ')}}`;
-
   return (
     <div class="container mx-auto p-6 space-y-8">
 
@@ -287,6 +281,71 @@ export default async function ModalTestPage() {
       </section>
 
       <section>
+        <h2 class="text-2xl font-semibold mb-4">InputField + Modal + DatePicker/TimePicker</h2>
+        <div class="space-y-4 max-w-md">
+          <div>
+            <InputField variant="outline" color="primary" className="w-full">
+              <span class="px-3 py-2 text-sm border-r border-gray-300">選擇日期</span>
+              <input 
+                id="modalDateInput" 
+                type="text" 
+                value="2024-06-20"
+                placeholder="請選擇日期" 
+                class="flex-1 px-3 py-2 border-0 text-sm outline-none bg-transparent box-border"
+                readonly
+              />
+              <Button x-on:click="$store.modals.datePickerModal = true">
+                <Icon id="圖示:圖示:日曆" size="sm" context={ctx} />
+              </Button>
+            </InputField>
+          </div>
+          <div>
+            <InputField variant="outline" color="accent" className="w-full">
+              <span class="px-3 py-2 text-sm border-r border-gray-300">選擇時間</span>
+              <input 
+                id="modalTimeInput" 
+                type="text" 
+                value="14:30"
+                placeholder="請選擇時間" 
+                class="flex-1 px-3 py-2 border-0 text-sm outline-none bg-transparent box-border"
+                readonly
+              />
+              <Button x-on:click="$store.modals.timePickerModal = true">
+                <Icon id="圖示:圖示:時鐘" size="sm" context={ctx} />
+              </Button>
+            </InputField>
+          </div>
+        </div>
+        <div class="mt-4">
+          <Modal state="datePickerModal" variant="solid" color="primary" width="480px">
+            <ModalTitle>選擇日期</ModalTitle>
+            <DatePicker 
+              name="modal_date" 
+              inputId="modalDateInput"
+              size="md"
+              color="primary"
+            />
+            <ModalFooter>
+              <Button variant="solid" color="primary" x-on:click="$store.modals.datePickerModal = false">關閉</Button>
+            </ModalFooter>
+          </Modal>
+          <Modal state="timePickerModal" variant="solid" color="accent" width="480px">
+            <ModalTitle>選擇時間</ModalTitle>
+            <TimePicker 
+              name="modal_time" 
+              inputId="modalTimeInput"
+              size="md"
+              color="accent"
+              use24Hour={true}
+            />
+            <ModalFooter>
+              <Button variant="solid" color="accent" x-on:click="$store.modals.timePickerModal = false">關閉</Button>
+            </ModalFooter>
+          </Modal>
+        </div>
+      </section>
+
+      <section>
         <h2 class="text-2xl font-semibold mb-4">使用說明</h2>
         <div class="p-4 bg-base-200 rounded-lg">
           <ul class="list-disc list-inside space-y-1 text-sm text-base-content/80">
@@ -301,7 +360,6 @@ export default async function ModalTestPage() {
             <li><strong>shadow</strong>: 陰影，預設 "lg"</li>
             <li><strong>ModalTitle</strong>: 標題子組件</li>
             <li><strong>ModalFooter</strong>: 底部按鈕區子組件</li>
-            <li>需先註冊 Store：<code>Alpine.store('modals', {'{'} myModal: false {'}'})</code></li>
             <li>開啟：<code>x-on:click="$store.modals.myModal = true"</code></li>
             <li>關閉：<code>x-on:click="$store.modals.myModal = false"</code></li>
             <li>按鈕與 Modal 不再需要 <code>x-data</code> 包裹，可放在頁面任意位置</li>

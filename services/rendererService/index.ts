@@ -1,4 +1,5 @@
 // Renderer Service 主要入口點
+
 import { Context } from 'hono';
 import { 產生樣式 } from '../../core/unocss.ts';
 import { info, error } from '../../utils/logger.ts';
@@ -111,6 +112,8 @@ async function 生成完整HTML(c: Context, 頁面實例: any, 頁面內容: str
   <style>${css}</style>
   <script defer src="/media/v1/script/alpine.min.js"></script>
   <script defer src="/media/v1/script/page-flip.browser.min.js"></script>
+  <script defer src="/media/v1/script/embla-carousel.min.js"></script>
+  <script type="module" src="/media/v1/script/cally.js"></script>
 </head>
 <body x-data>
   <div class="min-h-screen bg-base-100 text-base-content">

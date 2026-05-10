@@ -1,0 +1,72 @@
+{
+  "id": "方塊:方塊:date-picker",
+  "名稱": {
+    "en": "DatePicker",
+    "zh-tw": "日期選擇器",
+    "zh-cn": "日期选择器",
+    "vi": "Bộ chọn ngày"
+  },
+  "描述": {
+    "en": "A scrolling date picker component similar to iPhone's date picker. Supports Year/month/day selection with smooth scrolling. Works with Popup/Modal/Drawer. Usage example: <DatePicker name=\"birthday\" inputId=\"dateInput\" size=\"md\" title=\"Select Date\" />",
+    "zh-tw": "類似 iPhone 的滾動式日期選擇器。支援年/月/日滾動選擇。可與 Popup/Modal/Drawer 搭配使用。使用範例：<DatePicker name=\"birthday\" inputId=\"dateInput\" size=\"md\" title=\"選擇日期\" />",
+    "zh-cn": "类似 iPhone 的滚动式日期选择器。支持年/月/日滚动选择。可与 Popup/Modal/Drawer 搭配使用。使用示例：<DatePicker name=\"birthday\" inputId=\"dateInput\" size=\"md\" title=\"选择日期\" />",
+    "vi": "Thành phần bộ chọn ngày dạng cuộn tương tự iPhone. Hỗ trợ chọn năm/tháng/ngày. Sử dụng với Popup/Modal/Drawer. Ví dụ sử dụng: <DatePicker name=\"birthday\" inputId=\"dateInput\" size=\"md\" title=\"Chọn ngày\" />"
+  },
+  "售價": 0,
+  "標籤集": ["方塊:標籤:表單", "方塊:標籤:輸入"],
+  "模式": "內建",
+  "元件路徑": "DatePicker",
+  "屬性定義": {
+    "name": {
+      "type": "string",
+      "description": "表單欄位名稱，會生成 hidden input 用於表單提交",
+      "required": false,
+      "default": ""
+    },
+    "inputId": {
+      "type": "string",
+      "description": "外部 input 元素的 ID，用於讀取和更新日期值，可與 Input 或 InputField 搭配使用",
+      "required": false,
+      "default": ""
+    },
+    "title": {
+      "type": "string",
+      "description": "標題，顯示在選擇器上方",
+      "required": false,
+      "default": ""
+    },
+    "size": {
+      "type": "string",
+      "description": "尺寸",
+      "required": false,
+      "default": "md",
+      "options": ["sm", "md", "lg"]
+    },
+    "variant": {
+      "type": "string",
+      "description": "容器樣式變體, 預設會依據骨架設定變化，非必要不需設定。",
+      "required": false,
+      "default": "solid",
+      "options": ["solid", "outline", "ghost", "dot", "dashed", "double", "gradient-right", "gradient-left", "gradient-up", "gradient-down", "gradient-middle", "gradient-diagonal", "gradient-center", "gradient-cone", "crystal", "diagonal-stripes", "glow", "minimalist"]
+    },
+    "color": {
+      "type": "string",
+      "description": "容器顏色",
+      "required": false,
+      "default": "primary",
+      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "base", "neutral"]
+    },
+    "className": {
+      "type": "string",
+      "description": "額外 CSS 類別",
+      "required": false,
+      "default": ""
+    }
+  },
+  "子方塊": [],
+  "對外參數": {},
+  "程式碼": "",
+  "審核狀態": "approved",
+  "上架狀態": true,
+  "可刪除": false
+}

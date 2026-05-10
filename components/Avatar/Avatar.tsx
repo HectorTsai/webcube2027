@@ -2,7 +2,7 @@ import type { AvatarProps } from "./index.tsx";
 import Icon from "../Icon.tsx";
 import Image from "../Image.tsx";
 import Container from "../Container/index.tsx";
-import { sizeMap } from "../classes.ts";
+import { sizeMap, textClasses } from "../classes.ts";
 
 export default async function Avatar({
   icon,
@@ -18,21 +18,31 @@ export default async function Avatar({
   ...restProps
 }: AvatarProps) {
   const sizeValue = sizeMap[size] || sizeMap.md;
-
+  let padding = "p-0";
+  const textSize = textClasses[size];
   let content: unknown = null;
+  switch(size){
+    case "sm": padding="p-0.5";break;
+    case "md": padding="p-1";break;
+    case "lg": padding="p-1.5";break; 
+    case "xl": padding="p-2";break;
+    case "2xl": padding="p-2.5";break;
+    case "3xl": padding="p-3";break;
+    default: padding="p-0";break;
+  }
 
   if (svg) {
-    content = <Icon svg={svg} size={size} className={`w-full h-full`} context={context} />;
+    content = <Icon svg={svg} size={size} className={`w-full h-full ${padding}`} context={context} />;
   } else if (icon) {
-    content = <Icon id={icon} size={size} className={`w-full h-full`} context={context} />;
+    content = <Icon id={icon} size={size} className={`w-full h-full ${padding}`} context={context} />;
   } else if (image) {
-    content = <Image id={image} width="100%" height="100%" objectFit="cover" className="rounded-full" context={context} />;
+    content = <Image id={image} width="100%" height="100%" objectFit="cover" className={`rounded-full ${padding}`} context={context} />;
   } else if (src) {
-    content = <img src={src} alt="Avatar" class={`rounded-full w-full h-full object-cover`} />;
+    content = <img src={src} alt="Avatar" className={`rounded-full w-full h-full object-cover ${padding}`} />;
   } else {
     content = (
-      <div class="w-full h-full flex items-center justify-center">
-        <span>?</span>
+      <div className={`w-full h-full flex items-center justify-center ${padding}`}>
+        <span className={textSize}>?</span>
       </div>
     );
   }

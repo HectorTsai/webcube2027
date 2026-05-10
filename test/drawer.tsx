@@ -1,5 +1,9 @@
 import Drawer, { DrawerTitle, DrawerFooter, DrawerProps } from '../components/Drawer/index.tsx';
 import Button from '../components/Button/index.tsx';
+import InputField from '../components/InputField/index.tsx';
+import Icon from '../components/Icon.tsx';
+import DatePicker from '../components/DatePicker/index.tsx';
+import TimePicker from '../components/TimePicker/index.tsx';
 
 export default async function DrawerTestPage() {
   const variants: DrawerProps['variant'][] = [
@@ -237,6 +241,8 @@ export default async function DrawerTestPage() {
     'rightDrawer: false',
     'topDrawer: false',
     'bottomDrawer: false',
+    'datePickerDrawer: false',
+    'timePickerDrawer: false',
   ].join(', ')}}`;
 
   return (
@@ -342,6 +348,65 @@ export default async function DrawerTestPage() {
       </section>
 
       <section>
+        <h2 class="text-2xl font-semibold mb-4">InputField + Drawer + DatePicker/TimePicker</h2>
+        <div class="space-y-4 max-w-md">
+          <div>
+            <InputField variant="outline" color="primary" className="w-full">
+              <span class="px-3 py-2 text-sm border-r border-gray-300">選擇日期</span>
+              <input 
+                id="drawerDateInput" 
+                type="text" 
+                value="2024-06-20"
+                placeholder="請選擇日期" 
+                class="flex-1 px-3 py-2 border-0 text-sm outline-none bg-transparent box-border"
+                readonly
+              />
+              <Button x-on:click="$store.drawers.datePickerDrawer = true">
+                <Icon name="calendar" size="sm" />
+              </Button>
+            </InputField>
+          </div>
+          <div>
+            <InputField variant="outline" color="accent" className="w-full">
+              <span class="px-3 py-2 text-sm border-r border-gray-300">選擇時間</span>
+              <input 
+                id="drawerTimeInput" 
+                type="text" 
+                value="14:30"
+                placeholder="請選擇時間" 
+                class="flex-1 px-3 py-2 border-0 text-sm outline-none bg-transparent box-border"
+                readonly
+              />
+              <Button x-on:click="$store.drawers.timePickerDrawer = true">
+                <Icon name="clock" size="sm" />
+              </Button>
+            </InputField>
+          </div>
+        </div>
+        <div class="mt-4">
+          <Drawer state="datePickerDrawer" position="bottom" color="primary">
+            <DrawerTitle>選擇日期</DrawerTitle>
+            <DatePicker 
+              name="drawer_date" 
+              inputId="drawerDateInput"
+              size="md"
+              color="primary"
+            />
+          </Drawer>
+          <Drawer state="timePickerDrawer" position="bottom" color="accent">
+            <DrawerTitle>選擇時間</DrawerTitle>
+            <TimePicker 
+              name="drawer_time" 
+              inputId="drawerTimeInput"
+              size="md"
+              color="accent"
+              use24Hour={true}
+            />
+          </Drawer>
+        </div>
+      </section>
+
+      <section>
         <h2 class="text-2xl font-semibold mb-4">使用說明</h2>
         <div class="p-4 bg-base-200 rounded-lg">
           <ul class="list-disc list-inside space-y-1 text-sm text-base-content/80">
@@ -357,7 +422,6 @@ export default async function DrawerTestPage() {
             <li><strong>shadow</strong>: 陰影，預設 "lg"</li>
             <li><strong>DrawerTitle</strong>: 標題子組件</li>
             <li><strong>DrawerFooter</strong>: 底部按鈕區子組件（自動推到底部）</li>
-            <li>需先註冊 Store：<code>Alpine.store('drawers', {'{'} myDrawer: false {'}'})</code></li>
             <li>開啟：<code>x-on:click="$store.drawers.myDrawer = true"</code></li>
             <li>關閉：<code>x-on:click="$store.drawers.myDrawer = false"</code></li>
             <li>按鈕與 Drawer 不再需要 <code>x-data</code> 包裹，可放在頁面任意位置</li>

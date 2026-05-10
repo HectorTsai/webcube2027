@@ -9,6 +9,7 @@ export default function ModalTitle({
     "text-lg",
     "font-bold",
     "w-full",
+    "pb-sm",
     className
   ];
 

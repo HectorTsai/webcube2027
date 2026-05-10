@@ -1,0 +1,85 @@
+{
+  "id": "方塊:方塊:option-item",
+  "名稱": {
+    "en": "OptionItem",
+    "zh-tw": "選項項目",
+    "zh-cn": "选项项目",
+    "vi": "Mục tùy chọn"
+  },
+  "描述": {
+    "en": "A single option item used within OptionPicker. Each option is a selectable Container block that can contain text, icons, images, or videos. IMPORTANT FOR AI: Use OptionItem as a child of OptionPicker. Usage example: <OptionItem value='small'>小</OptionItem>",
+    "zh-tw": "用於 OptionPicker 中的單一選項項目。每個選項都是一個可選擇的 Container 方塊，可以包含文字、圖示、圖片或影片。AI注意：OptionItem 必須作為 OptionPicker 的子元件使用。使用範例：<OptionItem value='small'>小</OptionItem>",
+    "zh-cn": "用于 OptionPicker 中的单一选项项目。每个选项都是一个可选择的 Container 方块，可以包含文字、图标、图片或影片。AI注意：OptionItem 必须作为 OptionPicker 的子元件使用。使用示例：<OptionItem value='small'>小</OptionItem>",
+    "vi": "Một mục tùy chọn đơn được sử dụng trong OptionPicker. Mỗi tùy chọn là một khối Container có thể chọn, có thể chứa văn bản, biểu tượng, hình ảnh hoặc video. LƯU Ý CHO AI: Sử dụng OptionItem làm con của OptionPicker. Ví dụ sử dụng: <OptionItem value='small'>Nhỏ</OptionItem>"
+  },
+  "售價": 0,
+  "標籤集": ["方塊:標籤:表單", "方塊:標籤:輸入"],
+  "模式": "內建",
+  "元件路徑": "OptionPicker/OptionItem",
+  "屬性定義": {
+    "value": {
+      "type": "string",
+      "description": "選項值，用於識別該選項",
+      "required": true,
+      "default": ""
+    },
+    "disabled": {
+      "type": "boolean",
+      "description": "是否禁用該選項",
+      "required": false,
+      "default": false
+    },
+    "checked": {
+      "type": "boolean",
+      "description": "是否預設選中",
+      "required": false,
+      "default": false
+    },
+    "variant": {
+      "type": "string",
+      "description": "容器樣式變體（會覆蓋 OptionPicker 的設定）",
+      "required": false,
+      "default": "",
+      "options": ["solid", "outline", "ghost", "dot", "dashed", "double", "gradient-right", "gradient-left", "gradient-up", "gradient-down", "gradient-middle", "gradient-diagonal", "gradient-center", "gradient-cone", "crystal", "diagonal-stripes", "glow", "minimalist"]
+    },
+    "color": {
+      "type": "string",
+      "description": "容器顏色（會覆蓋 OptionPicker 的設定）",
+      "required": false,
+      "default": "",
+      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "base", "neutral"]
+    },
+    "padding": {
+      "type": "string",
+      "description": "選項內距（會覆蓋 OptionPicker 的設定）",
+      "required": false,
+      "default": "",
+      "options": ["none", "xs", "sm", "md", "lg", "xl", "2xl"]
+    },
+    "rounded": {
+      "type": "string",
+      "description": "選項圓角（會覆蓋 OptionPicker 的設定）",
+      "required": false,
+      "default": "",
+      "options": ["none", "sm", "md", "lg"]
+    },
+    "autoFill": {
+      "type": "boolean",
+      "description": "是否自動填滿空間",
+      "required": false,
+      "default": true
+    },
+    "className": {
+      "type": "string",
+      "description": "額外 CSS 類別",
+      "required": false,
+      "default": ""
+    }
+  },
+  "子方塊": [],
+  "對外參數": {},
+  "程式碼": "",
+  "審核狀態": "approved",
+  "上架狀態": true,
+  "可刪除": false
+}

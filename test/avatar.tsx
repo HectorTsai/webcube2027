@@ -1,6 +1,7 @@
+import { Context } from 'hono';
 import Avatar, { AvatarProps } from '../components/Avatar/index.tsx';
 
-export default async function AvatarTestPage() {
+export default async function AvatarTestPage(ctx: Context) {
   const testSvgs = {
     user: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" /></svg>',
     star: '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>',
@@ -69,13 +70,13 @@ export default async function AvatarTestPage() {
           <tbody>
             <tr>
               <td class="p-2 font-semibold text-right">SVG</td>
-              <td class="p-2 text-center"><Avatar svg={testSvgs.star} size="md" variant="solid" color="primary" /></td>
-              <td class="p-2 text-center"><Avatar svg={testSvgs.heart} size="md" variant="solid" color="secondary" /></td>
-              <td class="p-2 text-center"><Avatar svg={testSvgs.check} size="md" variant="solid" color="accent" /></td>
-              <td class="p-2 text-center"><Avatar svg={testSvgs.user} size="md" variant="solid" color="info" /></td>  
-              <td class="p-2 text-center"><Avatar svg={testSvgs.user} size="md" variant="solid" color="success" /></td>
-              <td class="p-2 text-center"><Avatar svg={testSvgs.user} size="md" variant="solid" color="warning" /></td>
-              <td class="p-2 text-center"><Avatar svg={testSvgs.user} size="md" variant="solid" color="error" /></td>
+              <td class="p-2 text-center"><Avatar icon="圖示:圖示:資料庫" context={ctx}  size="md" variant="solid" color="primary" /></td>
+              <td class="p-2 text-center"><Avatar icon="圖示:圖示:鑰匙" context={ctx}  size="md" variant="solid" color="secondary" /></td>
+              <td class="p-2 text-center"><Avatar icon="圖示:圖示:雲" context={ctx}  size="md" variant="solid" color="accent" /></td>
+              <td class="p-2 text-center"><Avatar icon="圖示:圖示:使用者" context={ctx} size="md" variant="solid" color="info" /></td>  
+              <td class="p-2 text-center"><Avatar icon="圖示:圖示:用戶群" context={ctx} size="md" variant="solid" color="success" /></td>
+              <td class="p-2 text-center"><Avatar icon="圖示:圖示:新增" context={ctx} size="md" variant="solid" color="warning" /></td>
+              <td class="p-2 text-center"><Avatar icon="圖示:圖示:減法" context={ctx} size="md" variant="solid" color="error" /></td>
             </tr>
             <tr>
               <td class="p-2 font-semibold text-right">Image</td>
@@ -109,7 +110,7 @@ export default async function AvatarTestPage() {
               <td class="p-2 font-semibold text-right">Solid</td>
               {sizes.map((size)=>(
                 <td key={size} class="p-2 text-center">
-                  <div class="flex justify-center"><Avatar svg={testSvgs.user} variant="solid" size={size} color="primary" /></div>
+                  <div class="flex justify-center"><Avatar icon="圖示:圖示:雲" context={ctx} variant="solid" size={size} color="primary" /></div>
                 </td>
               ))}
             </tr>
@@ -138,7 +139,7 @@ export default async function AvatarTestPage() {
                 <td class="p-2 font-semibold text-right"></td>
                 {colors.map((color) => (
                   <td key={color} class="p-2 text-center">
-                    <div class="flex justify-center"><Avatar svg={testSvgs.user} variant={variant} color={color} /></div>
+                    <div class="flex justify-center"><Avatar icon="圖示:圖示:首頁" context={ctx} variant={variant} color={color} /></div>
                   </td>
                 ))}
               </tr>

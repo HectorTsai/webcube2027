@@ -26,6 +26,11 @@ export default function Popup({
   const initScript = `
     if(!Alpine.store('${store}')){Alpine.store('${store}',{})}
     if(Alpine.store('${store}').${state}===undefined){Alpine.store('${store}').${state}=false}
+    $watch('$store.${store}.${state}', (val) => {
+      if (val) {
+        window.dispatchEvent(new CustomEvent('popup-opened', { detail: { state: '${state}' } }));
+      }
+    });
   `.replace(/\s+/g, ' ').trim();
   
 

@@ -31,7 +31,7 @@
     },
     "variant": {
       "type": "string",
-      "description": "列表樣式變體",
+      "description": "列表樣式變體, 預設會依據骨架設定變化，非必要不需設定。",
       "required": false,
       "default": "solid",
       "options": ["solid", "outline", "ghost", "dot", "dashed", "double", "gradient-right", "gradient-left", "gradient-up", "gradient-down", "gradient-middle", "gradient-diagonal", "gradient-center", "gradient-cone", "crystal", "diagonal-stripes", "glow", "minimalist"]

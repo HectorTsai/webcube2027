@@ -3,6 +3,8 @@ import InputField from "../components/InputField/index.tsx";
 import Icon from "../components/Icon.tsx";
 import Calendar from "../components/Calendar/index.tsx";
 import Button from "../components/Button/Button.tsx";
+import DatePicker from "../components/DatePicker/index.tsx";
+import TimePicker from "../components/TimePicker/index.tsx";
 
 export default function PopupTestPage() {
   return (
@@ -237,6 +239,142 @@ export default function PopupTestPage() {
                 </Popup>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-8">
+        <h2 class="text-xl font-semibold mb-4">DatePicker 與 Popup 結合</h2>
+        <div class="space-y-6">
+          <div class="relative">
+            <InputField variant="outline" color="secondary" className="w-full">
+              <span class="px-3 py-2 text-sm border-r border-gray-300">
+                選擇日期 (小尺寸)
+              </span>
+              <input 
+                id="popupDatePickerDateInputSm" 
+                type="text" 
+                value="2024-06-20"
+                placeholder="請選擇日期" 
+                class="flex-1 px-3 py-2 border-0 text-sm outline-none bg-transparent box-border"
+                readonly
+              />
+              <Button
+                x-on:click="$store.popups.datePickerPopupSm = true"
+              >
+                <Icon name="calendar" size="sm" />
+              </Button>
+            </InputField>
+            
+            <Popup state="datePickerPopupSm" color="secondary">
+              <DatePicker 
+                name="popup_date_sm" 
+                inputId="popupDatePickerDateInputSm"
+                title="選擇日期" 
+                size="sm"
+                color="secondary"
+              />
+            </Popup>
+          </div>
+                  <div class="relative">
+            <InputField variant="outline" color="primary" className="w-full">
+              <span class="px-3 py-2 text-sm border-r border-gray-300">
+                選擇日期
+              </span>
+              <input 
+                id="popupDatePickerDateInput" 
+                type="text" 
+                value="2024-01-15"
+                placeholder="請選擇日期" 
+                class="flex-1 px-3 py-2 border-0 text-sm outline-none bg-transparent box-border"
+                readonly
+              />
+              <Button
+                x-on:click="$store.popups.datePickerPopup = true"
+              >
+                <Icon name="calendar" size="sm" />
+              </Button>
+            </InputField>
+            
+            <Popup state="datePickerPopup" color="primary">
+              <DatePicker 
+                name="popup_date" 
+                inputId="popupDatePickerDateInput"
+                title="選擇日期" 
+                color="primary"
+                size="md"
+              />
+            </Popup>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="mb-8">
+        <h2 class="text-xl font-semibold mb-4">TimePicker 與 Popup 結合</h2>
+        <div class="space-y-6">
+          <div class="relative">
+            <InputField variant="outline" color="accent" className="w-full">
+              <span class="px-3 py-2 text-sm border-r border-gray-300">
+                選擇時間
+              </span>
+              <input 
+                id="popupTimeInput" 
+                type="text" 
+                value="14:30"
+                placeholder="請選擇時間" 
+                class="flex-1 px-3 py-2 border-0 text-sm outline-none bg-transparent box-border"
+                readonly
+              />
+              <Button
+                x-on:click="$store.popups.timePickerPopup = true"
+              >
+                <Icon name="clock" size="sm" />
+              </Button>
+            </InputField>
+            
+            <Popup state="timePickerPopup" color="accent">
+              <TimePicker 
+                name="popup_time" 
+                inputId="popupTimeInput"
+                title="選擇時間" 
+                size="md"
+                color="accent"
+                use24Hour={true}
+              />
+            </Popup>
+          </div>
+
+          <div class="relative">
+            <InputField variant="outline" color="warning" className="w-full">
+              <span class="px-3 py-2 text-sm border-r border-gray-300">
+                選擇時間 (12小時制)
+              </span>
+              <input 
+                id="popupTimeInput12" 
+                type="text" 
+                value="03:30"
+                placeholder="請選擇時間" 
+                class="flex-1 px-3 py-2 border-0 text-sm outline-none bg-transparent box-border"
+                readonly
+              />
+              <Button
+                x-on:click="$store.popups.timePickerPopup12 = true"
+              >
+                <Icon name="clock" size="sm" />
+              </Button>
+            </InputField>
+            
+            <Popup state="timePickerPopup12" color="warning">
+              <TimePicker 
+                name="popup_time_12" 
+                inputId="popupTimeInput12"
+                title="選擇時間" 
+                size="md"
+                color="warning"
+                use24Hour={false}
+              />
+            </Popup>
           </div>
         </div>
       </div>

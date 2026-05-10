@@ -15,6 +15,19 @@ export interface ComponentProps {
   skeleton?: 骨架;
 } 
 
+export const textClasses = {
+  xs: "text-xs",
+  sm: "text-sm",
+  md: "text-base",
+  lg: "text-lg",
+  xl: "text-xl",
+  "2xl": "text-2xl",
+  "3xl": "text-3xl",
+  "4xl": "text-4xl",
+  "5xl": "text-5xl",
+  "9xl": "text-9xl",
+};
+
 export const paddingClasses = {
   none: "p-0",
   xs: "p-xs",
@@ -23,6 +36,7 @@ export const paddingClasses = {
   lg: "p-lg",
   xl: "p-xl",
   "2xl": "p-2xl",
+  "3xl": "p-3xl",
 };
 
 export const marginClasses = {

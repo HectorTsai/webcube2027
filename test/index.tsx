@@ -1,6 +1,7 @@
+import { Context } from 'hono';
 import Card from "../components/Card/index.tsx";
 
-export default function TestIndex() {
+export default function TestIndex(ctx: Context) {
   const testPages = [
     { name: "Swap 測試", path: "/test/swap" },
     { name: "Toggle 測試", path: "/test/toggle" },
@@ -26,6 +27,7 @@ export default function TestIndex() {
     { name: "Book 測試", path: "/test/book" },
     { name: "Popup 測試", path: "/test/popup" },
     { name: "OptionPicker 測試", path: "/test/option-picker" },
+    { name: "DateTimePicker 測試", path: "/test/date-time-picker" },
   ];
 
   const uiComponents = testPages.filter(p => 
@@ -37,7 +39,7 @@ export default function TestIndex() {
   );
   
   const interactiveComponents = testPages.filter(p =>
-    ["Swap", "Toggle", "Steps", "Timeline", "Calendar", "Input", "InputField", "Select", "OptionPicker"].some(c => p.name.includes(c))
+    ["Swap", "Toggle", "Steps", "Timeline", "Calendar", "Input", "InputField", "Select", "OptionPicker", "DateTimePicker"].some(c => p.name.includes(c))
   );
 
   return (

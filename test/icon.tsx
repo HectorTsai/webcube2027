@@ -1,3 +1,4 @@
+import { Context } from 'hono';
 import Icon, { IconProps } from '../components/Icon.tsx';
 
 const svgSet = {
@@ -8,9 +9,9 @@ const svgSet = {
   moon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
 };
 
-const testIds = ["圖示:圖示:web_cube","圖示:圖示:user", "圖示:圖示:home", "圖示:圖示:phone", "圖示:圖示:中華民國"];
+const testIds = ["圖示:圖示:web_cube","圖示:圖示:使用者", "圖示:圖示:首頁", "圖示:圖示:電話", "圖示:圖示:資料庫", "圖示:圖示:鑰匙"];
 
-export default function IconTestPage() {
+export default function IconTestPage(ctx: Context) {
   const sizeVariants: IconProps['size'][] = ['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl'];
   const colorVariants = [
     'text-primary',
@@ -71,7 +72,7 @@ export default function IconTestPage() {
           {testIds.map((id) => (
             <div class="flex flex-col items-center gap-2 p-4 bg-base-100 shadow-md rounded-lg">
               <div class="flex justify-center items-center min-h-16 p-4 bg-base-200 rounded-lg">
-                <Icon id={id} size="md" />
+                <Icon id={id} size="md" context={ctx} />
               </div>
               <span class="text-sm text-base-content/70 text-center">{id}</span>
             </div>
@@ -144,6 +145,7 @@ export default function IconTestPage() {
           <li><strong>src</strong>: 使用圖片 URL</li>
           <li><strong>size</strong>: 圖示尺寸（xs, sm, md, lg, xl, 2xl, 3xl）</li>
           <li><strong>className</strong>: 額外的 CSS 類名（可用於設定顏色，如 text-primary、text-secondary 等）</li>
+          <li><strong>context</strong>: 網頁上下文，可用於在資料庫中查詢圖示，實際使用不需填寫，系統會自動填入。測試網頁因為不透過系統渲染，所以需要填寫。</li>
           <li>支援任意 Alpine.js x- 屬性</li>
         </ul>
       </div>
