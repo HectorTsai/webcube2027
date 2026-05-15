@@ -12,10 +12,6 @@ export interface PopupProps extends ComponentProps {
   position?: "absolute" | "fixed";
   /** 定位偏移 */
   offset?: { top?: string; left?: string; right?: string; bottom?: string };
-  /** 入場動畫 class，預設 "fade-in zoom-in" */
-  animateIn?: string;
-  /** 退場動畫 class，預設 "fade-out zoom-out" */
-  animateOut?: string;
   /** 任何額外屬性 */
   [key: string]: any;
 }

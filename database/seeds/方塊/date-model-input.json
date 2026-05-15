@@ -1,0 +1,192 @@
+{
+  "id": "方塊:方塊:date-model-input",
+  "名稱": {
+    "en": "Date Model Input",
+    "zh-tw": "日期選擇輸入框",
+    "zh-cn": "日期选择输入框",
+    "vi": "Ô nhập chọn ngày"
+  },
+  "描述": {
+    "en": "A composite component that combines InputField, Button, Icon, Modal, and DatePicker for date selection.",
+    "zh-tw": "組合 InputField、Button、Icon、Modal 和 DatePicker 的日期選擇元件。",
+    "zh-cn": "组合 InputField、Button、Icon、Modal 和 DatePicker 的日期选择元件。",
+    "vi": "Thành phần kết hợp InputField, Button, Icon, Modal và DatePicker để chọn ngày."
+  },
+  "售價": 0,
+  "標籤集": ["方塊:標籤:表單", "方塊:標籤:組合", "方塊:標籤:進階"],
+  "模式": "組合",
+  "屬性定義": {
+    "name": {
+      "type": "string",
+      "description": "表單欄位名稱，用於表單提交和 Modal 狀態管理",
+      "required": true,
+      "default": ""
+    },
+    "label": {
+      "type": "string",
+      "description": "輸入框標籤文字，支援多語言 JSON 物件",
+      "required": false,
+      "default": {"en": "Date", "zh-tw": "日期", "zh-cn": "日期", "vi": "Ngày"}
+    },
+    "modalTitle": {
+      "type": "string",
+      "description": "Modal 標題，支援多語言 JSON 物件",
+      "required": false,
+      "default": {"en": "Select Date", "zh-tw": "選擇日期", "zh-cn": "选择日期", "vi": "Chọn ngày"}
+    },
+    "variant": {
+      "type": "string",
+      "description": "輸入框樣式變體",
+      "required": false,
+      "default": "solid",
+      "options": ["solid", "outline", "ghost", "dot", "dashed", "double", "gradient-right", "gradient-left", "gradient-up", "gradient-down", "gradient-middle", "gradient-diagonal", "gradient-center", "gradient-cone", "crystal", "diagonal-stripes", "glow", "minimalist"]
+    },
+    "color": {
+      "type": "string",
+      "description": "輸入框顏色",
+      "required": false,
+      "default": "primary",
+      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "base", "neutral"]
+    },
+    "size": {
+      "type": "string",
+      "description": "DatePicker 尺寸",
+      "required": false,
+      "default": "md",
+      "options": ["sm", "md", "lg"]
+    },
+    "className": {
+      "type": "string",
+      "description": "額外 CSS 類別",
+      "required": false,
+      "default": ""
+    }
+  },
+  "子方塊": [
+    {
+      "方塊ID": "方塊:方塊:input-field",
+      "參數": {
+        "variant": "${variant}",
+        "color": "${color}",
+        "className": "${className}",
+        "children": [
+          {
+            "方塊ID": "方塊:方塊:span",
+            "參數": {
+              "className": "px-3 py-2 text-sm border-r border-gray-300",
+              "children": "${label}"
+            }
+          },
+          {
+            "type": "input",
+            "attributes": {
+              "id": "${name}Input",
+              "type": "text",
+              "placeholder": "${label}",
+              "className": "flex-1 px-3 py-2 border-0 text-sm outline-none bg-transparent box-border",
+              "readonly": true
+            }
+          },
+          {
+            "方塊ID": "方塊:方塊:button",
+            "參數": {
+              "x-on:click": "$store.modals.${name} = true",
+              "children": [
+                {
+                  "方塊ID": "方塊:方塊:icon",
+                  "參數": {
+                    "id": "圖示:圖示:日曆",
+                    "size": "sm"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "方塊ID": "方塊:方塊:modal",
+      "參數": {
+        "state": "${name}",
+        "variant": "solid",
+        "color": "${color}",
+        "width": "480px",
+        "children": [
+          {
+            "方塊ID": "方塊:方塊:modal-title",
+            "參數": {
+              "children": [
+                {
+                  "方塊ID": "方塊:方塊:span",
+                  "參數": {
+                    "children": "${modalTitle}"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "方塊ID": "方塊:方塊:date-picker",
+            "參數": {
+              "name": "${name}",
+              "inputId": "${name}Input",
+              "size": "${size}"
+            }
+          },
+          {
+            "方塊ID": "方塊:方塊:modal-footer",
+            "參數": {
+              "children": [
+                {
+                  "方塊ID": "方塊:方塊:button",
+                  "參數": {
+                    "variant": "solid",
+                    "color": "${color}",
+                    "x-on:click": "$store.modals.${name} = false",
+                    "children": [
+                      {
+                        "方塊ID": "方塊:方塊:span",
+                        "參數": {
+                          "children": {"en": "Close", "zh-tw": "關閉", "zh-cn": "关闭", "vi": "Đóng"}
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "對外參數": {
+    "name": {
+      "映射到": "子方塊[0].children[1].attributes.id;子方塊[0].children[1].attributes.placeholder;子方塊[0].children[2].參數.x-on:click;子方塊[1].參數.state;子方塊[1].children[1].參數.name;子方塊[1].children[1].參數.inputId;子方塊[1].children[2].參數.children[0].參數.x-on:click"
+    },
+    "label": {
+      "映射到": "子方塊[0].children[0].參數.children;子方塊[0].children[1].attributes.placeholder"
+    },
+    "modalTitle": {
+      "映射到": "子方塊[1].children[0].參數.children[0].參數.children"
+    },
+    "variant": {
+      "映射到": "子方塊[0].參數.variant"
+    },
+    "color": {
+      "映射到": "子方塊[0].參數.color;子方塊[1].參數.color;子方塊[1].children[2].參數.children[0].參數.color"
+    },
+    "size": {
+      "映射到": "子方塊[1].children[1].參數.size"
+    },
+    "className": {
+      "映射到": "子方塊[0].參數.className"
+    }
+  },
+  "程式碼": "",
+  "範例": "<DateModelInput name=\"birth_date\" variant=\"outline\" color=\"primary\" />",
+  "審核狀態": "approved",
+  "上架狀態": true,
+  "可刪除": false
+}

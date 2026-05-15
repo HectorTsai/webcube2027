@@ -13,7 +13,7 @@
     "vi": "Thành phần bộ chọn giờ dạng cuộn tương tự iPhone. Hỗ trợ chọn giờ/phút, hỗ trợ định dạng 24 giờ và 12 giờ. Sử dụng với Popup/Modal/Drawer. Ví dụ sử dụng: <TimePicker name=\"meeting_time\" inputId=\"timeInput\" size=\"md\" title=\"Chọn giờ\" use24Hour={true} />"
   },
   "售價": 0,
-  "標籤集": ["方塊:標籤:表單", "方塊:標籤:輸入"],
+  "標籤集": ["方塊:標籤:表單", "方塊:標籤:互動", "方塊:標籤:進階"],
   "模式": "內建",
   "元件路徑": "TimePicker",
   "屬性定義": {

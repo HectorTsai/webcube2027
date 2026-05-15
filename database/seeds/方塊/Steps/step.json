@@ -13,7 +13,7 @@
     "vi": "Thành phần bước để hiển thị các bước riêng lẻ. LƯU Ý CHO AI: Thành phần này phải được sử dụng làm con của thành phần Steps và không thể sử dụng một mình. Ví dụ sử dụng: <Steps><Step>Bước 1</Step><Step>Bước 2</Step></Steps>"
   },
   "售價": 0,
-  "標籤集": ["方塊:標籤:內容"],
+  "標籤集": ["方塊:標籤:內容", "方塊:標籤:基礎"],
   "模式": "內建",
   "元件路徑": "Steps/Step",
   "屬性定義": {

@@ -47,18 +47,6 @@
       "required": false,
       "default": true
     },
-    "animateIn": {
-      "type": "string",
-      "description": "入場動畫 class，預設根據 position 自動選擇",
-      "required": false,
-      "default": ""
-    },
-    "animateOut": {
-      "type": "string",
-      "description": "退場動畫 class，預設根據 position 自動選擇",
-      "required": false,
-      "default": ""
-    },
     "width": {
       "type": "string",
       "description": "Drawer 寬度，使用 CSS 單位",

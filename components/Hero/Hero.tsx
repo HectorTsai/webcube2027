@@ -17,7 +17,6 @@ export default async function Hero({
   children,
   className,
   context,
-  skeleton,
   ...restProps
 }: HeroProps) {  
   // 生成背景圖像組件
@@ -59,7 +58,6 @@ export default async function Hero({
       rounded="none"
       shadow="none"
       context={context}
-      skeleton={skeleton}
       className={containerClasses}
       style={minHeight && !fullScreen ? { minHeight } : undefined}
       {...restProps}

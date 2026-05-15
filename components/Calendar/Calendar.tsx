@@ -9,7 +9,6 @@ export default function Calendar({
   popupState,
   popupStore = "popups",
   context,
-  skeleton,
   ...restProps
 }: CalendarProps) {
   const generateAlpineAttributes = () => {
@@ -73,7 +72,6 @@ export default function Calendar({
       align="center"
       justify="center"
       context={context}
-      skeleton={skeleton}
     >
       <calendar-date 
         class="cally" 

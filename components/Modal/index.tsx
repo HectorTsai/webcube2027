@@ -9,10 +9,6 @@ export interface ModalProps extends ComponentProps {
   closeOnBackdrop?: boolean;
   /** 是否按 ESC 關閉 */
   closeOnEsc?: boolean;
-  /** 入場動畫 class，預設 "fade-in zoom-in" */
-  animateIn?: string;
-  /** 退場動畫 class，預設 "fade-out zoom-out" */
-  animateOut?: string;
   /** 寬度設定 */
   width?: string;
   /** 內距 */

@@ -18,7 +18,6 @@ export default function TimePicker({
   variant,
   color,
   context,
-  skeleton,
   ...restProps
 }: TimePickerProps) {
   const sizeConfig = {
@@ -259,7 +258,6 @@ export default function TimePicker({
       align="stretch"
       justify="center"
       context={context}
-      skeleton={skeleton}
     >
       <div
         x-data

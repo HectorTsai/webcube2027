@@ -17,7 +17,6 @@ export default function Page({
   color,
   variant,
   context,
-  skeleton,
   ...props
 }: PageProps) {
   
@@ -60,7 +59,7 @@ export default function Page({
 
   return (
     <div class="book-page box-border">
-      <Container color={color} variant={variant} width="full" height="full" className={baseClasses} context={context} {...skeleton} {...props}>
+      <Container color={color} variant={variant} width="full" height="full" className={baseClasses} context={context} {...props}>
         <div class="flex-1">{children}</div>
         {pageNumber && ( <div class={pageNumberClasses}>{pageNumber}</div>)}
       </Container>

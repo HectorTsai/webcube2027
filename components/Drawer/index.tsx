@@ -7,10 +7,6 @@ export interface DrawerProps extends ComponentProps {
   position?: "left" | "right" | "top" | "bottom";
   closeOnBackdrop?: boolean;
   closeOnEsc?: boolean;
-  /** 入場動畫 class，預設根據 position 自動選擇 slide-in-from-* */
-  animateIn?: string;
-  /** 退場動畫 class，預設根據 position 自動選擇 slide-out-to-* */
-  animateOut?: string;
   width?: string;
   padding?: "none" | "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
   [key: string]: any;

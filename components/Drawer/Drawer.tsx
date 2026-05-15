@@ -1,20 +1,6 @@
 import type { DrawerProps } from "./index.tsx";
 import Container from "../Container/index.tsx";
 
-const defaultAnimateInMap: Record<string, string> = {
-  left: "animate-in slide-in-from-left",
-  right: "animate-in slide-in-from-right",
-  top: "animate-in slide-in-from-top",
-  bottom: "animate-in slide-in-from-bottom",
-};
-
-const defaultAnimateOutMap: Record<string, string> = {
-  left: "animate-out slide-out-to-left",
-  right: "animate-out slide-out-to-right",
-  top: "animate-out slide-out-to-top",
-  bottom: "animate-out slide-out-to-bottom",
-};
-
 export default async function Drawer({
   children,
   state = "drawerOpen",
@@ -22,34 +8,15 @@ export default async function Drawer({
   position = "left",
   closeOnBackdrop = true,
   closeOnEsc = true,
-  animateIn,
-  animateOut,
   variant = "solid",
   color = "primary",
   width = "320px",
   padding = "lg",
   className,
-  skeleton,
   context,
   ...restProps
 }: DrawerProps) {
   const ref = `$store.${store}.${state}`;
-
-  // 優先使用傳入的動畫，其次使用骨架設定，最後使用預設值
-  const positionMap: Record<string, string> = {
-    left: '左',
-    right: '右',
-    top: '上',
-    bottom: '下'
-  };
-  
-  const inClass = animateIn || 
-    (skeleton?.動畫 && skeleton.動畫?.抽堤 && skeleton.動畫.抽堤?.[`${positionMap[position]}.開`]) ||
-    defaultAnimateInMap[position];
-  
-  const outClass = animateOut ||
-    (skeleton?.動畫 && skeleton.動畫?.抽堤 && skeleton.動畫.抽堤?.[`${positionMap[position]}.關`]) ||
-    defaultAnimateOutMap[position];
 
   const backdropClasses = [
     "fixed",
@@ -87,8 +54,8 @@ export default async function Drawer({
 
   const drawerAlpine: Record<string, string> = {
     'x-show': ref,
-    'x-transition:enter': `${inClass}`,
-    'x-transition:leave': `${outClass}`,
+    'x-transition:enter': `drawer-${position}-enter`,
+    'x-transition:leave': `drawer-${position}-leave`,
     'x-on:click.stop': '',
   };
 
@@ -115,7 +82,6 @@ export default async function Drawer({
     gap: "md",
     className: drawerClasses,
     context,
-    skeleton,
     ...drawerAlpine,
     ...restProps,
     children

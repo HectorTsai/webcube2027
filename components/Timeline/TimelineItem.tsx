@@ -10,7 +10,6 @@ export default async function TimelineItem({
   variant = "solid",
   className,
   context,
-  skeleton,
   children, 
   start,
   end,
@@ -41,7 +40,6 @@ export default async function TimelineItem({
         justify="center"
         rounded="sm"
         context={context}
-        skeleton={skeleton}
         className="shrink-0"
       >
         {iconContent || (

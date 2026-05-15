@@ -13,7 +13,7 @@
     "vi": "Thành phần hero hỗ trợ hình nền và các thành phần con (Tiêu đề, Phụ đề, Nội dung, Hành động). LƯU Ý CHO AI: Hỗ trợ chế độ toàn màn hình, hình nền và bố cục đáp ứng. Ví dụ sử dụng: <Hero backgroundImage='id-hình-ảnh' fullScreen><HeroTitle>Tiêu đề</HeroTitle><HeroSubtitle>Phụ đề</HeroSubtitle><HeroContent>Nội dung</HeroContent><HeroActions>Hành động</HeroActions></Hero>"
   },
   "售價": 0,
-  "標籤集": ["方塊:標籤:基礎", "方塊:標籤:內容", "方塊:標籤:容器", "方塊:標籤:英雄區塊"],
+  "標籤集": ["方塊:標籤:進階", "方塊:標籤:內容", "方塊:標籤:容器"],
   "模式": "內建",
   "元件路徑": "Hero",
   "屬性定義": {

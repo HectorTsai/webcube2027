@@ -1,4 +1,5 @@
-// Services 主要入口點
+// Services 主要進入點
+
 import { Context } from 'hono';
 import { error } from '../utils/logger.ts';
 
@@ -15,12 +16,28 @@ function encodeUrlParams(url: string): string {
 
 /**
  * InnerAPI 函數用於內部 API 調用
- * 統一所有 Service 的內部 API 呼叫邏輯，自動編碼參數
+ * 修正：安全透傳使用者原始 Cookie (如 Token)，並動態追加/覆蓋語系設定
  */
 export async function InnerAPI(c: Context, apiPath: string): Promise<Response> {
   try {
     // 自動編碼參數
     const encodedPath = encodeUrlParams(apiPath);
+    
+    // 處理 Cookie 安全透傳與語系覆蓋
+    const 原始Cookie = c.req.header('cookie') || '';
+    const 當前語言 = c.get('語言') || 'zh-tw';
+    const 語系Cookie字串 = `lang=${當前語言}`;
+    
+    let 最終Cookie = 原始Cookie;
+    if (!原始Cookie) {
+      最終Cookie = 語系Cookie字串;
+    } else if (!原始Cookie.includes('lang=')) {
+      // 如果原本有其他 Cookie 但沒語系，用分號串接追加
+      最終Cookie = `${原始Cookie}; ${語系Cookie字串}`;
+    } else {
+      // 如果原本就有 lang=xx，用正規表達式精準替換成當前語系
+      最終Cookie = 原始Cookie.replace(/lang=[^;]+/g, 語系Cookie字串);
+    }
     
     const app = c.get('app');
     if (app && typeof app.request === 'function') {
@@ -28,13 +45,13 @@ export async function InnerAPI(c: Context, apiPath: string): Promise<Response> {
         headers: {
           'host': c.req.header('host') || 'localhost:8000',
           'origin': c.req.header('origin') || 'http://localhost:8000',
-          'cookie': `lang=${c.get('語言') || 'zh-tw'}; Path=/; HttpOnly; SameSite=Lax`
+          'cookie': 最終Cookie
         }
       });
       
       return response;
     } else {
-      throw new Error('App instance not available for InnerAPI');
+      throw new Error('App 實例在 Context 中不可用，無法執行 InnerAPI');
     }
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
@@ -44,9 +61,10 @@ export async function InnerAPI(c: Context, apiPath: string): Promise<Response> {
 }
 
 /**
- * 導出所有 Service
+ * 修正導出語法：將內層的 default class 具名導出
+ * 確保外部 import { PageService } from '...' 時能直接拿到類別本身，而非 Module 包裹物件
  */
-export * as PageService from './pageService/index.ts';
+export { default as PageService } from './pageService/index.ts';
+export { default as LanguageService } from './languageService/index.ts';
 export * as RendererService from './rendererService/index.ts';
-export * as LanguageService from './languageService/index.ts';
 export * as TestService from './testService.ts';

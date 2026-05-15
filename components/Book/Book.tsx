@@ -15,7 +15,6 @@ export default async function Book({
   margin = "none",
   className = "",
   context,
-  skeleton,
   ...props
 }: BookProps) {
   // 簡單直接的 page-flip 實現
@@ -158,7 +157,7 @@ export default async function Book({
         { arrayChildren.map((child: any) => {
           const isBookComponent = child?.type === Page || child?.type === Cover || child?.type === Foot;
           if (isBookComponent) {
-            const props: Record<string,any> = { color: child.props.color??color, variant: child.props.variant??variant, context: context, skeleton: skeleton };
+            const props: Record<string,any> = { color: child.props.color??color, variant: child.props.variant??variant, context: context };
             if(child.type === Page) {
               props.pageNumber = ++pageCounter;
               props.odd = pageCounter % 2 !== 0;

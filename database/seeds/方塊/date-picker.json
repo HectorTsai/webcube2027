@@ -13,7 +13,7 @@
     "vi": "Thành phần bộ chọn ngày dạng cuộn tương tự iPhone. Hỗ trợ chọn năm/tháng/ngày. Sử dụng với Popup/Modal/Drawer. Ví dụ sử dụng: <DatePicker name=\"birthday\" inputId=\"dateInput\" size=\"md\" title=\"Chọn ngày\" />"
   },
   "售價": 0,
-  "標籤集": ["方塊:標籤:表單", "方塊:標籤:輸入"],
+  "標籤集": ["方塊:標籤:表單", "方塊:標籤:互動", "方塊:標籤:進階"],
   "模式": "內建",
   "元件路徑": "DatePicker",
   "屬性定義": {

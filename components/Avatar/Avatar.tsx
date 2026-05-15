@@ -13,7 +13,6 @@ export default async function Avatar({
   color = "primary",
   variant = "solid",
   className = "",
-  skeleton,
   context,
   ...restProps
 }: AvatarProps) {
@@ -66,7 +65,6 @@ export default async function Avatar({
       justify="center"
       gap="none"
       context={context}
-      skeleton={skeleton}
       className={finalClasses.filter(Boolean).join(" ")}
       {...restProps}
     >

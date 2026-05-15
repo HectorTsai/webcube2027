@@ -16,7 +16,6 @@ export default function Select({
   children,
   className,
   context,
-  skeleton,
   ...restProps
 }: SelectProps) {
   const ref = `$store.${store}.${state}`;
@@ -60,7 +59,6 @@ export default function Select({
         rounded="md"
         shadow="none"
         context={context}
-        skeleton={skeleton}
         className={containerClasses}
         x-on:click={disabled ? "" : `${ref} = !${ref}`}
       >
@@ -86,8 +84,6 @@ export default function Select({
         store={store}
         position="absolute"
         offset={{ top: "full" }}
-        animateIn="animate-in fade-in zoom-in"
-        animateOut="animate-out fade-out zoom-out"
         fullWidth
         width="full"
       >

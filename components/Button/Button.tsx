@@ -12,7 +12,6 @@ export default async function Button({
   onClick,
   className,
   context,
-  skeleton,
   /** Any additional props (including Alpine.js x- attributes and event handlers) */
   ...restProps
 }: ButtonProps) {
@@ -61,7 +60,6 @@ export default async function Button({
     active: active,
     className: containerClasses,
     context,
-    skeleton,
     children
   });
 

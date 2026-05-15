@@ -1,6 +1,6 @@
 import type { TimelineProps } from "./index.tsx";
-import Container from "../Container/index.tsx";
-import Icon from "../Icon.tsx";
+import { cloneElement } from "hono/jsx";
+import TimelineItem from "./TimelineItem.tsx";
 
 // 线条颜色统一使用 base-50
 const lineColor = "bg-base-50";
@@ -13,14 +13,24 @@ export default async function Timeline({
   color = "primary",
   variant = "solid",
   context,
-  skeleton,
 }: TimelineProps) {
   const childArray = Array.isArray(children) ? children : children ? [children] : [];
+  
+  // 將 variant/color/context 傳遞給 TimelineItem 子元件
+  const processedChildren = childArray.map((child: any) => {
+    if (child?.type === TimelineItem) {
+      return cloneElement(child, {
+        variant: child.props.variant ?? variant,
+        color: child.props.color ?? color,
+        context: child.props.context ?? context,
+      });
+    }
+    return child;
+  });
 
   if (vertical) {
-    const items = await Promise.all(childArray.map(async (child, index) => {
+    const items = await Promise.all(processedChildren.map(async (child, index) => {
       const childProps = (child as any).props || {};
-      const childColor = childProps.color || color;
 
       // 获取内容：优先使用 end，其次是 children
       const content = childProps.end !== undefined ? childProps.end : childProps.children;
@@ -70,9 +80,8 @@ export default async function Timeline({
     );
   }
 
-  const items = await Promise.all(childArray.map(async (child, index) => {
+  const items = await Promise.all(processedChildren.map(async (child, index) => {
     const childProps = (child as any).props || {};
-    const childColor = childProps.color || color;
 
     return (
       <li key={index} class="flex flex-col items-center flex-1">

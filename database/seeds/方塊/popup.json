@@ -70,18 +70,6 @@
         }
       }
     },
-    "animateIn": {
-      "type": "string",
-      "description": "入場動畫 class, 預設會依據骨架設定變化，非必要不需設定。",
-      "required": false,
-      "default": "animate-in fade-in zoom-in"
-    },
-    "animateOut": {
-      "type": "string",
-      "description": "退場動畫 class, 預設會依據骨架設定變化，非必要不需設定。",
-      "required": false,
-      "default": "animate-out fade-out zoom-out"
-    },
     "variant": {
       "type": "string",
       "description": "彈出框樣式變體, 預設會依據骨架設定變化，非必要不需設定。",

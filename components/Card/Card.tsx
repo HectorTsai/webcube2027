@@ -14,7 +14,6 @@ export default async function Card({
   children,
   className,
   context,
-  skeleton,
   ...restProps
 }: CardProps) {  
   // 根据 direction 设置图像布局
@@ -48,7 +47,6 @@ export default async function Card({
       rounded="md"
       shadow="md"
       context={context}
-      skeleton={skeleton}
       className={containerClasses}
       data-direction={direction}
       {...restProps}

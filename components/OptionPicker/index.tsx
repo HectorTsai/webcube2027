@@ -1,16 +1,10 @@
 import { ComponentProps, Variant, Color } from "../classes.ts";
 
-export interface OptionItemProps {
+export interface OptionItemProps extends ComponentProps{
   /** 選項值 */
   value: string;
-  /** 選項內容 */
-  children: any;
   /** 是否禁用 */
   disabled?: boolean;
-  /** 容器變體 */
-  variant?: Variant;
-  /** 容器顏色 */
-  color?: Color;
   /** 是否啟用 hover 效果 */
   hover?: boolean;
   /** 容器內距 */
@@ -25,8 +19,6 @@ export interface OptionItemProps {
   mode?: 'single' | 'multiple';
   /** 是否預設選中 */
   checked?: boolean;
-  /** 自定義類別 */
-  className?: string;
 }
 
 export interface OptionPickerProps extends ComponentProps {

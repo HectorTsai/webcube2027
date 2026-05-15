@@ -32,4 +32,4 @@ export interface ContainerProps extends ComponentProps {
   [key: string]: any;
 }
 
-export default createVariantComponent("Container", "solid");
+export default createVariantComponent("Container");

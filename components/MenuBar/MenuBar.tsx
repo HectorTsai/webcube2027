@@ -17,7 +17,6 @@ export default async function MenuBar({
   drawerState = "menuOpen",
   drawerStore = "drawers",
   className,
-  skeleton,
   context,
   ...restProps
 }: MenuBarProps) {

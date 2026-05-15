@@ -10,7 +10,6 @@ export default function Footer({
   sticky = false,
   className,
   context,
-  skeleton,
   ...restProps
 }: FooterProps) {
   const stickyClasses = sticky ? "fixed bottom-0 left-0 right-0 z-50" : "";
@@ -28,7 +27,6 @@ export default function Footer({
       justify="center"
       gap="md"
       context={context}
-      skeleton={skeleton}
       className={`${stickyClasses} ${className || ''}`.trim()}
       {...restProps}
     >

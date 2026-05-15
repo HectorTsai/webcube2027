@@ -23,7 +23,6 @@ export default async function Cover({
   variant,
   className = "",
   context,
-  skeleton,
   ...props
 }: CoverProps) {
   
@@ -35,10 +34,10 @@ export default async function Cover({
 
   return (
     <div class="book-cover book-page box-border" >
-      <Container color={color} variant={variant} width="full" height="full" className={baseClasses} context={context} {...skeleton} {...props}>
+      <Container color={color} variant={variant} width="full" height="full" className={baseClasses} context={context} {...props}>
         {(icon || svg || src) && (
           <div class="mb-4">
-            <Icon id={icon} svg={svg} src={src} size="4xl" context={context} skeleton={skeleton} />
+            <Icon id={icon} svg={svg} src={src} size="4xl" context={context} />
           </div>
         )}
         

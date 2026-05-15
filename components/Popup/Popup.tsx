@@ -10,9 +10,6 @@ export default function Popup({
   autoClose = false,
   position = "absolute",
   offset,
-  animateIn,
-  animateOut,
-  skeleton,
   onClose,
   showBackdrop = true,
   fullWidth = false,
@@ -32,17 +29,6 @@ export default function Popup({
       }
     });
   `.replace(/\s+/g, ' ').trim();
-  
-
-  
-  // 動畫效果，參考 Modal 組件
-  const inClass = animateIn || 
-    (skeleton?.動畫 && skeleton.動畫?.彈出 && skeleton.動畫.彈出?.開) ||
-    "animate-in fade-in zoom-in";
-
-  const outClass = animateOut ||
-    (skeleton?.動畫 && skeleton.動畫?.彈出 && skeleton.動畫.彈出?.關) ||
-    "animate-out fade-out zoom-out";
 
   // 根據定位方式設置樣式
   const popupClasses = [
@@ -59,8 +45,8 @@ export default function Popup({
   // Popup 的 Alpine.js 屬性
   const popupAlpine: Record<string, string> = {
     'x-show': ref,
-    'x-transition:enter': inClass,
-    'x-transition:leave': outClass,
+    'x-transition:enter': 'popover-enter',
+    'x-transition:leave': 'popover-leave',
     'x-on:click.stop': '',
   };
 

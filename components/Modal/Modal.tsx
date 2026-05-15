@@ -7,14 +7,11 @@ export default function Modal({
   store = "modals",
   closeOnBackdrop = true,
   closeOnEsc = true,
-  animateIn,
-  animateOut,
   variant = "solid",
   color = "primary",
   width = "480px",
   padding = "lg",
   className,
-  skeleton,
   ...restProps
 }: ModalProps) {
   const ref = `$store.${store}.${state}`;
@@ -24,14 +21,6 @@ export default function Modal({
     if(!Alpine.store('${store}')){Alpine.store('${store}',{})}
     if(Alpine.store('${store}').${state}===undefined){Alpine.store('${store}').${state}=false}
   `.replace(/\s+/g, ' ').trim();
-
-  const inClass = animateIn || 
-    (skeleton?.動畫 && skeleton.動畫?.視窗 && skeleton.動畫.視窗?.開) ||
-    "animate-in fade-in zoom-in";
-  
-  const outClass = animateOut ||
-    (skeleton?.動畫 && skeleton.動畫?.視窗 && skeleton.動畫.視窗?.關) ||
-    "animate-out fade-out zoom-out";
 
   const backdropClasses = [
     "fixed",
@@ -59,8 +48,8 @@ export default function Modal({
 
   const modalAlpine: Record<string, string> = {
     'x-show': ref,
-    'x-transition:enter': inClass,
-    'x-transition:leave': outClass,
+    'x-transition:enter': 'modal-enter',
+    'x-transition:leave': 'modal-leave',
     'x-on:click.stop': '',
   };
 

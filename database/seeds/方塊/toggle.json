@@ -13,7 +13,7 @@
     "vi": "Thành phần công tắc để thay đổi trạng thái boolean. LƯU Ý CHO AI: Thành phần này cung cấp công tắc chuyển đổi trực quan với trạng thái bật/tắt và biểu tượng tùy chọn. Ví dụ sử dụng: <Toggle size=\"md\" color=\"primary\" label=\"Bật tính năng\" />"
   },
   "售價": 0,
-  "標籤集": ["方塊:標籤:互動", "方塊:標籤:表單"],
+  "標籤集": ["方塊:標籤:互動", "方塊:標籤:表單", "方塊:標籤:基礎"],
   "模式": "內建",
   "元件路徑": "Toggle",
   "屬性定義": {

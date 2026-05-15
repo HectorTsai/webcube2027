@@ -1,6 +1,6 @@
 // Media Service 主要入口點
 import { Context } from 'hono';
-import { info, error } from '../../utils/logger.ts';
+import { error } from '../../utils/logger.ts';
 
 // Media 模組介面
 export interface MediaModule {
@@ -16,20 +16,19 @@ export interface RouteParams {
   [key: string]: string | undefined;
 }
 
-// Media Service 處理器 - 智能路由機制
+/**
+ * 處理 Media 請求核心進入點
+ */
 export async function 處理Media請求(c: Context): Promise<Response> {
   try {
     const path = c.req.path;
     const method = c.req.method;
-    
-    // await info('Media Service', `處理 ${method} ${path}`);
     
     // 檢查是否為新版 Media v1 路由
     if (path.startsWith('/media/v1/')) {
       return await 處理MediaV1請求(c);
     }
         
-    // 未支援的方法
     return c.json({
       success: false,
       message: '不支援的 Media 操作',
@@ -41,57 +40,45 @@ export async function 處理Media請求(c: Context): Promise<Response> {
     return c.json({
       success: false,
       message: 'Media 請求處理失敗',
-      error: (錯誤 as Error).toString()
+      error: 錯誤 instanceof Error ? 錯誤.message : String(錯誤)
     }, 500);
   }
 }
 
-// 處理 Media v1 請求 - 智能路由機制
+/**
+ * 處理 Media V1 子模組路由
+ */
 async function 處理MediaV1請求(c: Context): Promise<Response> {
+  const path = c.req.path;
+  const method = c.req.method;
+  
   try {
-    const path = c.req.path;
-    const method = c.req.method;
-    
-    // await info('Media v1 Service', `處理 ${method} ${path}`);
-    
-    // 解析路徑 /media/v1/xxx 或 /media/v1/xxx/yyy
     const pathParts = path.replace('/media/v1/', '').split('/');
-    const resourceName = pathParts[0];
+    const moduleName = pathParts[0]; // 提取 'image' | 'icon' | 'script'
+    const resourceId = pathParts.slice(1).join('/'); // 後續所有路徑作為 ID
     
-    // 動態載入模組 - 智能回退機制
-    let mediaModule: MediaModule | null = null;
-    let modulePath: string;
-    let routeParams: RouteParams = {};
-    
-    // 嘗試完整路徑到單一模組的回退
-    const fallbackAttempts = [
-      { path: pathParts.join('/'), params: {} },                    // ./xxx/yyy/zzz.ts
-      { path: pathParts.slice(0, -1).join('/'), params: { id: pathParts[pathParts.length - 1] } }, // ./xxx/yyy.ts + {id: 'zzz'}
-      { path: pathParts.slice(0, -2).join('/'), params: { id: pathParts.slice(-2).join('/') } }, // ./xxx.ts + {id: 'yyy/zzz'}
-    ];
-    
-    for (const attempt of fallbackAttempts) {
-      if (!attempt.path) continue; // 避免空路徑
-      
-      try {
-        modulePath = `./${attempt.path}.ts`;
-        const module = await import(modulePath);
-        mediaModule = module.default;
-        routeParams = attempt.params;
-        
-        //await info('Media v1 Service', `成功載入模組: ${modulePath}, 參數: ${JSON.stringify(routeParams)}`);
-        break; // 成功載入，跳出迴圈
-      } catch (moduleError) {
-        // await info('Media v1 Service', `嘗試載入失敗: ${attempt.path} - ${moduleError}`);
-        // 繼續下一個嘗試
-      }
-    }
-    if (!mediaModule) {
-      await error('Media v1 Service', `所有回退嘗試都失敗: ${pathParts.join('/')}`);
+    if (!moduleName || !resourceId) {
       return await 處理Media404(c);
     }
     
-    // 方法映射
+    const routeParams: RouteParams = { id: resourceId };
+    let mediaModule: MediaModule | undefined;
+    
+    // 動態路由分流映射
+    switch (moduleName) {
+      case 'image':
+        mediaModule = (await import('./image.ts')).default;
+        break;
+      case 'icon':
+        mediaModule = (await import('./icon.ts')).default;
+        break;
+      case 'script':
+        mediaModule = (await import('./script.ts')).default;
+        break;
+      default:
+        return await 處理Media404(c);
+    }
+    
     let handler: ((c: Context, params: RouteParams) => Promise<Response>) | undefined;
     
     if (method === 'GET' && mediaModule.GET) handler = mediaModule.GET;
@@ -111,32 +98,34 @@ async function 處理MediaV1請求(c: Context): Promise<Response> {
   }
 }
 
-// 處理 Media 404
+/**
+ * 處理 Media 404 (修正：改用 Stream 讀取 404 圖片，防止併發 OOM)
+ */
 async function 處理Media404(c: Context): Promise<Response> {
   try {
-    // 嘗試載入 404 圖片
+    const notFoundPath = './services/mediaService/404.png';
+    
     try {
-      const notFoundPath = './services/mediaService/404.png';
-      const notFoundData = await Deno.readFile(notFoundPath);
+      // Deno 2.x 標準防線：檢查是否存在
+      await Deno.stat(notFoundPath);
+      const file = await Deno.open(notFoundPath, { read: true });
       
-      return new Response(notFoundData, {
+      return new Response(file.readable, {
         status: 404,
         headers: {
           'Content-Type': 'image/png',
-          'Cache-Control': 'no-cache'
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
         }
       });
     } catch {
-      // 如果 404 圖片不存在，回傳文字
-      return new Response('Media Not Found', {
+      // 萬一連 404 圖片都弄丟了，純文字兜底
+      return new Response('Resource Not Found', {
         status: 404,
-        headers: {
-          'Content-Type': 'text/plain'
-        }
+        headers: { 'Content-Type': 'text/plain' }
       });
     }
-  } catch (錯誤) {
-    await error('Media Service', `404 處理失敗: ${錯誤}`);
-    return new Response('Media Not Found', { status: 404 });
+  } catch (err) {
+    await error('Media Service', `404 處理發生異常: ${err}`);
+    return new Response('Not Found', { status: 404 });
   }
 }

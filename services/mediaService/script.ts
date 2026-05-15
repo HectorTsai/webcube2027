@@ -3,9 +3,11 @@ import { Context } from 'hono';
 import { error } from '../../utils/logger.ts';
 import { MediaModule, RouteParams } from './index.ts';
 
-// Script Media 模組
 const script: MediaModule = {
-  // GET /media/v1/script/:id
+  /**
+   * GET /media/v1/script/:id
+   * 修正：加入 Path Traversal 攻擊安全防禦，並改用全 Stream 零記憶體讀取
+   */
   GET: async (c: Context, params: RouteParams): Promise<Response> => {
     try {
       const scriptName = params.id;
@@ -17,11 +19,19 @@ const script: MediaModule = {
         });
       }
       
-      // 使用 Deno 2.x 標準方法
+      // 🔥 安全性防禦：過濾惡意路徑探測字元，防範路徑穿越攻擊 (Path Traversal)
+      if (scriptName.includes('..') || scriptName.includes('/') || scriptName.includes('\\')) {
+        await error('Script Service', `攔截潛在惡意路徑請求: ${scriptName}`);
+        return new Response('Forbidden Path Access', { 
+          status: 403, 
+          headers: { 'Content-Type': 'text/plain' }
+        });
+      }
+      
+      // 使用 Deno 2.x 標準路徑拼接
       const scriptPath = `${import.meta.dirname}/../../scripts/${scriptName}`;
       
       try {
-        // 檢查檔案是否存在
         await Deno.stat(scriptPath);
       } catch {
         return new Response('Script Not Found', { 
@@ -31,10 +41,9 @@ const script: MediaModule = {
       }
       
       try {
-        // 讀取腳本檔案
-        const scriptContent = await Deno.readFile(scriptPath);
+        // 🔥 核心修正：改用 Deno.open 的 readable 串流，杜絕大檔案擠爆記憶體
+        const file = await Deno.open(scriptPath, { read: true });
         
-        // 設定適當的 Content-Type 和快取標頭
         const headers = new Headers({
           'Content-Type': 'application/javascript; charset=utf-8',
           'Cache-Control': 'public, max-age=86400', // 1天快取
@@ -43,11 +52,10 @@ const script: MediaModule = {
           'Access-Control-Allow-Headers': 'Content-Type'
         });
         
-        return new Response(scriptContent, { headers });
+        return new Response(file.readable, { headers });
         
       } catch (fileError) {
-        await error('Script Service', `讀取腳本檔案失敗: ${scriptPath} - ${fileError}`);
-        
+        await error('Script Service', `開啟腳本檔案失敗: ${scriptPath} - ${fileError}`);
         return new Response('Script File Read Error', { 
           status: 500,
           headers: { 'Content-Type': 'text/plain' }
@@ -55,11 +63,8 @@ const script: MediaModule = {
       }
       
     } catch (err) {
-      await error('Script Service', `腳本服務處理失敗: ${err}`);
-      return new Response('Internal Server Error', { 
-        status: 500,
-        headers: { 'Content-Type': 'text/plain' }
-      });
+      await error('Script Service', `腳本處理異常: ${err}`);
+      return new Response('Internal Server Error', { status: 500 });
     }
   }
 };

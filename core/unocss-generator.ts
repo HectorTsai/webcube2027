@@ -384,6 +384,9 @@ export class UnoCSS生成器 {
    * 生成 UnoCSS shortcuts 配置
    */
   getShortcuts() {
+    // 從骨架動態產生動畫 shortcuts
+    const 動畫 = this.骨架.動畫 || {};
+    
     return {
       // 按鈕
       'btn': 'px-4 py-2 rounded-sm transition-colors duration-200 no-underline',
@@ -434,7 +437,27 @@ export class UnoCSS生成器 {
       // 步驟組件
       'steps': 'flex list-none p-0 m-0',
       'steps:first-child .step:first-child .step-left-line': 'hidden',
-      'steps:last-child .step:last-child .step-right-line': 'hidden'
+      'steps:last-child .step:last-child .step-right-line': 'hidden',
+
+      // === 動畫 shortcuts（從骨架動態產生） ===
+      // Modal
+      'modal-enter': 動畫?.視窗?.開 || 'animate-in fade-in zoom-in',
+      'modal-leave': 動畫?.視窗?.關 || 'animate-out fade-out zoom-out',
+      // Drawer
+      'drawer-top-enter':    動畫?.抽屜?.['上.開'] || 'animate-in slide-in-from-top',
+      'drawer-top-leave':    動畫?.抽屜?.['上.關'] || 'animate-out slide-out-to-top',
+      'drawer-bottom-enter': 動畫?.抽屜?.['下.開'] || 'animate-in slide-in-from-bottom',
+      'drawer-bottom-leave': 動畫?.抽屜?.['下.關'] || 'animate-out slide-out-to-bottom',
+      'drawer-left-enter':   動畫?.抽屜?.['左.開'] || 'animate-in slide-in-from-left',
+      'drawer-left-leave':   動畫?.抽屜?.['左.關'] || 'animate-out slide-out-to-left',
+      'drawer-right-enter':  動畫?.抽屜?.['右.開'] || 'animate-in slide-in-from-right',
+      'drawer-right-leave':  動畫?.抽屜?.['右.關'] || 'animate-out slide-out-to-right',
+      // Dropdown
+      'dropdown-enter': 動畫?.下拉選單?.開 || 'animate-in fade-in',
+      'dropdown-leave': 動畫?.下拉選單?.關 || 'animate-out fade-out',
+      // Popover
+      'popover-enter': 動畫?.彈出?.開 || 'animate-in fade-in zoom-in',
+      'popover-leave': 動畫?.彈出?.關 || 'animate-out fade-out zoom-out',
     };
   }
   

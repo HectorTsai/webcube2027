@@ -15,7 +15,6 @@ export default async function DatePicker({
   variant,
   color,
   context,
-  skeleton,
   ...restProps
 }: DatePickerProps) {
   const sizeConfig = {
@@ -263,7 +262,6 @@ export default async function DatePicker({
       align="stretch"
       justify="center"
       context={context}
-      skeleton={skeleton}
     >
       <div
         x-data

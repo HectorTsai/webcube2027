@@ -13,6 +13,7 @@ export default async function OptionPicker({
   padding = 'md',
   rounded = 'md',
   className = '',
+  context,
   ...restProps
 }: OptionPickerProps) {
   const gapClasses = {
@@ -36,7 +37,9 @@ export default async function OptionPicker({
         padding: child.props.padding ?? padding,
         rounded: child.props.rounded ?? rounded,
         autoFill: child.props.autoFill !== undefined ? child.props.autoFill : autoFill,
-        checked: child.props.checked ?? false
+        checked: child.props.checked ?? false,
+        className: child.props.className,
+        context,
       };
       return await cloneElement(child, props);
     }

@@ -13,7 +13,7 @@
     "vi": "Thành phần bộ chọn tùy chọn trực quan thay thế Radio/Checkbox truyền thống. Sử dụng OptionPicker với các OptionItem con để chọn trực quan. Hỗ trợ chế độ đơn (giống Radio) và nhiều (giống Checkbox). Mỗi OptionItem có thể chứa văn bản, biểu tượng, hình ảnh hoặc video. Ví dụ sử dụng: <OptionPicker mode=\"single\" name=\"size\" variant=\"solid\" color=\"primary\"><OptionItem value=\"small\">Nhỏ</OptionItem><OptionItem value=\"large\">Lớn</OptionItem></OptionPicker>"
   },
   "售價": 0,
-  "標籤集": ["方塊:標籤:表單", "方塊:標籤:輸入"],
+  "標籤集": ["方塊:標籤:表單", "方塊:標籤:進階"],
   "模式": "內建",
   "元件路徑": "OptionPicker",
   "屬性定義": {

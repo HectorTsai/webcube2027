@@ -13,7 +13,7 @@
     "vi": "Thành phần chọn tùy chỉnh hỗ trợ biểu tượng trong các tùy chọn. LƯU Ý CHO AI: Hỗ trợ biểu tượng trong tùy chọn, tùy chỉnh kiểu dáng và Alpine.js cho chức năng dropdown. Ví dụ sử dụng: <Select><Option value=\"option1\"><Icon id=\"id-biểu-tượng\" />Tùy chọn 1</Option><Option value=\"option2\">Tùy chọn 2</Option></Select>"
   },
   "售價": 0,
-  "標籤集": ["方塊:標籤:基礎", "方塊:標籤:表單", "方塊:標籤:互動"],
+  "標籤集": ["方塊:標籤:進階", "方塊:標籤:表單", "方塊:標籤:互動"],
   "模式": "內建",
   "元件路徑": "Select",
   "屬性定義": {

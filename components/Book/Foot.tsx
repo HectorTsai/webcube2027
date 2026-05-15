@@ -18,7 +18,6 @@ export default function Foot({
   color,
   variant,
   context,
-  skeleton,
   ...props
 }: FootProps) {
   
@@ -30,7 +29,7 @@ export default function Foot({
 
   return (
     <div class="book-foot book-page box-border">
-      <Container variant={variant} color={color} width="full" height="full" className={baseClasses} context={context} {...skeleton} {...props}>
+      <Container variant={variant} color={color} width="full" height="full" className={baseClasses} context={context} {...props}>
         {children && (<div class="text-lg">{children}</div>)}
       
         {/* 出版資訊 */}

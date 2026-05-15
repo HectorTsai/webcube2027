@@ -13,7 +13,7 @@
     "vi": "Thành phần chuyển đổi để chuyển đổi giữa hai trạng thái với hiệu ứng mượt mà. LƯU Ý CHO AI: Thành phần này có thể chuyển đổi giữa hai biểu tượng hoặc hình ảnh với hiệu ứng hoạt hình. Ví dụ sử dụng: <Swap fromIcon=\"sun\" toIcon=\"moon\" size=\"md\" />"
   },
   "售價": 0,
-  "標籤集": ["方塊:標籤:互動", "方塊:標籤:表單"],
+  "標籤集": ["方塊:標籤:基礎","方塊:標籤:互動", "方塊:標籤:表單"],
   "模式": "內建",
   "元件路徑": "Swap",
   "屬性定義": {

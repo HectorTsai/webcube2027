@@ -13,7 +13,7 @@
     "vi": "Thành phần chân trang hộp thoại để hiển thị nội dung chân trang hộp thoại. LƯU Ý CHO AI: Thành phần này phải được sử dụng làm con của thành phần Modal và không thể sử dụng một mình. Ví dụ sử dụng: <Modal><ModalTitle>...</ModalTitle>nội dung<ModalFooter>...</ModalFooter></Modal>"
   },
   "售價": 0,
-  "標籤集": ["方塊:標籤:內容"],
+  "標籤集": ["方塊:標籤:內容", "方塊:標籤:基礎"],
   "模式": "內建",
   "元件路徑": "Modal/ModalFooter",
   "屬性定義": {

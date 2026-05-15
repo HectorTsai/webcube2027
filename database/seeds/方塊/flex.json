@@ -13,7 +13,7 @@
     "vi": "Thành phần bố cục linh hoạt để tạo bố cục container linh hoạt. LƯU Ý CHO AI: Thành phần này sử dụng CSS Flexbox để sắp xếp các phần tử con. Ví dụ sử dụng: <Flex direction=\"row\" gap=\"md\" justify=\"between\"><div>Mục 1</div><div>Mục 2</div></Flex>"
   },
   "售價": 0,
-  "標籤集": ["方塊:標籤:佈局", "方塊:標籤:容器"],
+  "標籤集": ["方塊:標籤:佈局", "方塊:標籤:容器", "方塊:標籤:基礎"],
   "模式": "內建",
   "元件路徑": "Flex",
   "屬性定義": {
