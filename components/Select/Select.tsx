@@ -1,6 +1,6 @@
 import type { SelectProps } from "./index.tsx";
 import Container from "../Container/index.tsx";
-import Popup from "../Popup/index.tsx";
+import Popup from "../Popup.tsx";
 import List from "../List/List.tsx";
 
 export default function Select({
@@ -12,21 +12,20 @@ export default function Select({
   placeholder = "請選擇...",
   showArrow = true,
   state = "selectOpen",
-  store = "selects",
   children,
   className,
   context,
   ...restProps
 }: SelectProps) {
-  const ref = `$store.${store}.${state}`;
-  const selectedLabelRef = `$store.${store}.${state}SelectedLabel`;
+  const ref = `$store.selects.${state}`;
+  const selectedLabelRef = `$store.selects.${state}SelectedLabel`;
   
   // 自動初始化 Alpine.js Store 狀態
   const initScript = `
-    if(!Alpine.store('${store}')){Alpine.store('${store}',{})}
-    if(Alpine.store('${store}').${state}===undefined){Alpine.store('${store}').${state}=false}
-    if(Alpine.store('${store}').${state}SelectedValue===undefined){Alpine.store('${store}').${state}SelectedValue='${value || defaultValue || ''}'}
-    if(Alpine.store('${store}').${state}SelectedLabel===undefined){Alpine.store('${store}').${state}SelectedLabel='${placeholder}'}
+    if(!Alpine.store('selects')){Alpine.store('selects',{})}
+    if(Alpine.store('selects').${state}===undefined){Alpine.store('selects').${state}=false}
+    if(Alpine.store('selects').${state}SelectedValue===undefined){Alpine.store('selects').${state}SelectedValue='${value || defaultValue || ''}'}
+    if(Alpine.store('selects').${state}SelectedLabel===undefined){Alpine.store('selects').${state}SelectedLabel='${placeholder}'}
   `.replace(/\s+/g, ' ').trim();
   
   // 設置容器樣式
@@ -41,7 +40,6 @@ export default function Select({
       x-data 
       x-init={initScript}
       class="relative w-full"
-      data-select-store={store}
       data-select-state={state}
       {...restProps}
     >
@@ -81,7 +79,6 @@ export default function Select({
       {/* 下拉選單 - 使用 Popup + List */}
       <Popup 
         state={state} 
-        store={store}
         position="absolute"
         offset={{ top: "full" }}
         fullWidth

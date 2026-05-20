@@ -23,12 +23,6 @@
       "required": true,
       "default": ""
     },
-    "store": {
-      "type": "string",
-      "description": "Alpine.js Store 名稱",
-      "required": false,
-      "default": "modals"
-    },
     "closeOnBackdrop": {
       "type": "boolean",
       "description": "是否點擊背景關閉",

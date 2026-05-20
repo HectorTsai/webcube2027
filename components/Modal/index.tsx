@@ -3,8 +3,6 @@ import { ComponentProps } from "../classes.ts";
 export interface ModalProps extends ComponentProps {
   /** Alpine.js Store 中的狀態鍵名 */
   state?: string;
-  /** Alpine.js Store 名稱，預設 "modals" */
-  store?: string;
   /** 是否點擊背景關閉 */
   closeOnBackdrop?: boolean;
   /** 是否按 ESC 關閉 */

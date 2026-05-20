@@ -1,3 +1,4 @@
+import { Context } from 'hono';
 import Image, { ImageProps } from '../components/Image.tsx';
 
 const testIds = [
@@ -15,7 +16,7 @@ const sizeVariants = [
 
 const objectFitOptions: Array<"fill" | "contain" | "cover" | "none" | "scale-down"> = ["fill", "contain", "cover", "none", "scale-down"];
 
-export default async function ImageTestPage() {
+export default async function ImageTestPage(ctx: Context) {
   return (
     <div class="container mx-auto p-6 space-y-8">
       <section>
@@ -29,7 +30,7 @@ export default async function ImageTestPage() {
           {testIds.map((id) => (
             <div class="flex flex-col items-center gap-2 p-4 bg-base-100 shadow-md rounded-lg">
               <div class="flex justify-center items-center p-4 bg-base-200 rounded-lg">
-                {Image({ id, alt: `測試圖片 ${id}`, width: "100", height: "100" })}
+                {Image({ id, alt: `測試圖片 ${id}`, width: "100", height: "100", context: ctx })}
               </div>
               <span class="text-sm text-base-content/70 text-center">{id}</span>
             </div>

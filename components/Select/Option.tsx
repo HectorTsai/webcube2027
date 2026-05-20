@@ -32,17 +32,16 @@ export default function Option({
       data-option-value={value}
       className={optionClasses}
       x-on:click={disabled ? "" : `
-        const parent = $el.closest('[data-select-store]');
-        const store = parent?.getAttribute('data-select-store') || 'selects';
+        const parent = $el.closest('[data-select-state]');
         const state = parent?.getAttribute('data-select-state') || 'selectOpen';
         const value = '${value}';
         const label = $el.textContent.trim();
         
         if (window.Alpine && Alpine.store) {
-          if (!Alpine.store(store)) Alpine.store(store, {});
-          Alpine.store(store)[state] = false;
-          Alpine.store(store)[state + 'SelectedValue'] = value;
-          Alpine.store(store)[state + 'SelectedLabel'] = label;
+          if (!Alpine.store('selects')) Alpine.store('selects', {});
+          Alpine.store('selects')[state] = false;
+          Alpine.store('selects')[state + 'SelectedValue'] = value;
+          Alpine.store('selects')[state + 'SelectedLabel'] = label;
           $dispatch('select-change', { value: value });
         }
       `}

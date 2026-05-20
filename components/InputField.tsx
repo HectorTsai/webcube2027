@@ -1,5 +1,8 @@
-import type { InputFieldProps } from "./index.tsx";
-import Container from "../Container/index.tsx";
+import {ComponentProps} from "./classes.ts";
+import Container from "./Container/index.tsx";
+
+export interface InputFieldProps extends ComponentProps {
+}
 
 export default function InputField({
   className,

@@ -1,8 +1,8 @@
-import Calendar from "../components/Calendar/index.tsx";
-import InputField from "../components/InputField/index.tsx";
+import Calendar from "../components/Calendar.tsx";
+import InputField from "../components/InputField.tsx";
 import Icon from "../components/Icon.tsx";
-import Popup from "../components/Popup/index.tsx";
-import Button from "../components/Button/Button.tsx";
+import Popup from "../components/Popup.tsx";
+import Button from "../components/Button.tsx";
 
 export default function CalendarTestPage() {
   return (
@@ -24,8 +24,8 @@ export default function CalendarTestPage() {
                    開啟日曆 Popup
                  </Button>
                  
-                 <Popup state="basicPopup" store="calendarPopups">
-                   <Calendar popupState="basicPopup" popupStore="calendarPopups" />
+                 <Popup state="basicPopup">
+                   <Calendar popupState="basicPopup" />
                  </Popup>
                </div>
              </div>
@@ -48,9 +48,9 @@ export default function CalendarTestPage() {
                    開啟 Outline 日曆
                  </Button>
                  
-                 <Popup state="variantPopup" store="calendarPopups">
-                   <Calendar variant="outline" color="success" popupState="variantPopup" popupStore="calendarPopups" />
-                 </Popup>
+                 <Popup state="variantPopup">
+                  <Calendar variant="outline" color="success" popupState="variantPopup" />
+                </Popup>
                </div>
              </div>
            </div>
@@ -122,9 +122,9 @@ export default function CalendarTestPage() {
                    </button>
                  </InputField>
                  
-                 <Popup state="fullPopup" store="calendarPopups">
-                   <Calendar targetInputId="fullDateInput" popupState="fullPopup" popupStore="calendarPopups" />
-                 </Popup>
+                 <Popup state="fullPopup">
+                  <Calendar targetInputId="fullDateInput" popupState="fullPopup" />
+                </Popup>
                </div>
              </div>
            </div>

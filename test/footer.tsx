@@ -1,4 +1,4 @@
-import Footer from '../components/Footer/index.tsx';
+import Footer from '../components/Footer.tsx';
 
 export default function FooterTest() {
   return (

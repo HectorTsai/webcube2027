@@ -3,7 +3,6 @@ import { Context } from 'hono';
 import { renderToReadableStream } from 'hono/jsx/streaming';
 import { 產生樣式 } from '../core/unocss.ts';
 import { error } from '../utils/logger.ts';
-import jsx from "hono/jsx";
 
 /**
  * 處理測試頁面請求

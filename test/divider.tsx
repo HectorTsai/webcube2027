@@ -1,4 +1,4 @@
-import { Divider } from '../components/Divider/index.tsx';
+import Divider from '../components/Divider.tsx';
 import Card from '../components/Card/index.tsx';
 
 export default async function DividerTestPage() {

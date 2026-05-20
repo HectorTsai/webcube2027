@@ -4,7 +4,6 @@ import Container from "../Container/index.tsx";
 export default function Modal({
   children,
   state = "modalOpen",
-  store = "modals",
   closeOnBackdrop = true,
   closeOnEsc = true,
   variant = "solid",
@@ -14,12 +13,12 @@ export default function Modal({
   className,
   ...restProps
 }: ModalProps) {
-  const ref = `$store.${store}.${state}`;
+  const ref = `$store.modals.${state}`;
   
   // 自動初始化 Alpine.js Store 狀態
   const initScript = `
-    if(!Alpine.store('${store}')){Alpine.store('${store}',{})}
-    if(Alpine.store('${store}').${state}===undefined){Alpine.store('${store}').${state}=false}
+    if(!Alpine.store('modals')){Alpine.store('modals',{})}
+    if(Alpine.store('modals').${state}===undefined){Alpine.store('modals').${state}=false}
   `.replace(/\s+/g, ' ').trim();
 
   const backdropClasses = [

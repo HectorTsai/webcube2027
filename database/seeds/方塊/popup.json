@@ -19,15 +19,9 @@
   "屬性定義": {
     "state": {
       "type": "string",
-      "description": "Alpine.js Store 中的狀態鍵名",
+      "description": "Alpine.js Store 中的狀態鍵名，必填，不可重複",
       "required": true,
       "default": ""
-    },
-    "store": {
-      "type": "string",
-      "description": "Alpine.js Store 名稱",
-      "required": false,
-      "default": "popups"
     },
     "autoClose": {
       "type": "boolean",

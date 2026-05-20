@@ -81,12 +81,6 @@
       "required": true,
       "default": ""
     },
-    "drawerStore": {
-      "type": "string",
-      "description": "Drawer 的 Store 名稱",
-      "required": true,
-      "default": "drawers"
-    },
     "className": {
       "type": "string",
       "description": "選單列額外 CSS 類別",

@@ -1,8 +1,16 @@
-import type { AvatarProps } from "./index.tsx";
-import Icon from "../Icon.tsx";
-import Image from "../Image.tsx";
-import Container from "../Container/index.tsx";
-import { sizeMap, textClasses } from "../classes.ts";
+import {ComponentProps} from "./classes.ts";
+import Icon from "./Icon.tsx";
+import Image from "./Image.tsx";
+import Container from "./Container/index.tsx";
+import { sizeMap, textClasses } from "./classes.ts";
+
+export interface AvatarProps extends ComponentProps {
+  icon?: string;
+  image?: string;
+  src?: string;
+  svg?: string;
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
+}
 
 export default async function Avatar({
   icon,

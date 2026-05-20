@@ -1,5 +1,5 @@
 import MenuBar, { MenuItem } from "../MenuBar/index.tsx";
-import Footer from "../Footer/index.tsx";
+import Footer from "../Footer.tsx";
 import Icon from "../Icon.tsx";
 import { Context } from "hono";
 import 網站資訊 from "../../database/models/網站資訊.ts";

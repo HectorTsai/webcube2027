@@ -2,8 +2,6 @@ import {ComponentProps} from "../classes.ts";
 
 export interface DrawerProps extends ComponentProps {
   state?: string;
-  /** Alpine.js Store 名稱，預設 "drawers" */
-  store?: string;
   position?: "left" | "right" | "top" | "bottom";
   closeOnBackdrop?: boolean;
   closeOnEsc?: boolean;

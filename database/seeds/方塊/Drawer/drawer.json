@@ -22,12 +22,6 @@
       "description": "Alpine.js 狀態變數名稱，必填，且不可重複",
       "required": true
     },
-    "store": {
-      "type": "string",
-      "description": "Alpine.js Store 名稱",
-      "required": true,
-      "default": "drawers"
-    },
     "position": {
       "type": "string",
       "description": "Drawer 位置",

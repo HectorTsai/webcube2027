@@ -1,10 +1,10 @@
-import Popup from "../components/Popup/index.tsx";
-import InputField from "../components/InputField/index.tsx";
+import Popup from "../components/Popup.tsx";
+import InputField from "../components/InputField.tsx";
 import Icon from "../components/Icon.tsx";
-import Calendar from "../components/Calendar/index.tsx";
-import Button from "../components/Button/Button.tsx";
-import DatePicker from "../components/DatePicker/index.tsx";
-import TimePicker from "../components/TimePicker/index.tsx";
+import Calendar from "../components/Calendar.tsx";
+import Button from "../components/Button.tsx";
+import DatePicker from "../components/DatePicker.tsx";
+import TimePicker from "../components/TimePicker.tsx";
 
 export default function PopupTestPage() {
   return (

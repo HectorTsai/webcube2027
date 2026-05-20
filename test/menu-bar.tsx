@@ -1,5 +1,5 @@
 import MenuBar, { MenuItem } from '../components/MenuBar/index.tsx';
-import Button from '../components/Button/index.tsx';
+import Button from '../components/Button.tsx';
 
 export default async function MenuBarTest() {
   return (

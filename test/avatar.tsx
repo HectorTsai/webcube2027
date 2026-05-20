@@ -1,5 +1,5 @@
 import { Context } from 'hono';
-import Avatar, { AvatarProps } from '../components/Avatar/index.tsx';
+import Avatar, { AvatarProps } from '../components/Avatar.tsx';
 
 export default async function AvatarTestPage(ctx: Context) {
   const testSvgs = {

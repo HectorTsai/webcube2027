@@ -96,13 +96,12 @@ export default function IconTestPage(ctx: Context) {
 
       <section>
         <h2 class="text-2xl font-semibold mb-4">ID 來源顏色測試（數據庫圖示）</h2>
-        <p class="text-base-content/70 mb-4">⚠️ 注意：測試頁面沒有 context，使用 id 時會回退到 img 方式，顏色可能不會改變！</p>
         <div class="flex flex-wrap gap-6">
           {colorVariants.map((colorClass) => (
             <div class="flex flex-col items-center gap-2 p-4 bg-base-100 shadow-md rounded-lg">
               <h3 class="text-sm font-medium">{colorClass}</h3>
               <div class="flex justify-center items-center min-h-16 p-4 bg-base-200 rounded-lg">
-                <Icon id="圖示:圖示:user" size="md" className={colorClass} />
+                <Icon id="圖示:圖示:使用者" size="md" className={colorClass} context={ctx} />
               </div>
             </div>
           ))}

@@ -1,10 +1,10 @@
 import { Context } from "hono";
 import Modal, { ModalTitle, ModalFooter, ModalProps } from '../components/Modal/index.tsx';
-import Button from '../components/Button/index.tsx';
-import InputField from '../components/InputField/index.tsx';
+import Button from '../components/Button.tsx';
+import InputField from '../components/InputField.tsx';
 import Icon from '../components/Icon.tsx';
-import DatePicker from '../components/DatePicker/index.tsx';
-import TimePicker from '../components/TimePicker/index.tsx';
+import DatePicker from '../components/DatePicker.tsx';
+import TimePicker from '../components/TimePicker.tsx';
 
 export default async function ModalTestPage(ctx: Context) {
   const variants: ModalProps['variant'][] = [

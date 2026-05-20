@@ -1,5 +1,5 @@
 import Hero, { HeroProps, HeroTitle, HeroSubtitle, HeroContent, HeroActions } from '../components/Hero/index.tsx';
-import Button from '../components/Button/index.tsx';
+import Button from '../components/Button.tsx';
 
 export default async function HeroTestPage() {
   const variants: HeroProps['variant'][] = [

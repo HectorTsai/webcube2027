@@ -44,9 +44,7 @@ async function 渲染頁面(c: Context, path: string): Promise<Response> {
     // 1. 查找頁面（傳遞 Context 進行語言解析）
     const 頁面實例 = await PageService.findPageByPath(path, c);
 
-    if (!頁面實例) {
-      return await 渲染404頁面(c, path);
-    }
+    if (!頁面實例) return await 渲染404頁面(c, path);
     
     // 2. 解析動態路由參數
     const 路由參數 = 頁面實例.路徑模式 
@@ -91,8 +89,7 @@ async function 生成完整HTML(c: Context, 頁面實例: any, 頁面內容: str
   
   if (頁面實例 && 頁面實例.標題) {
     if (typeof 頁面實例.標題.toStringAsync === 'function') {
-      // 如果標題本身是未解構的多語言實例，嘗試安全提取
-      標題 = 頁面實例.標題[語言] || 頁面實例.標題['zh-tw'] || 頁面實例.標題.en || 標題;
+      標題 = await 頁面實例.標題.toStringAsync(語言);
     } else if (typeof 頁面實例.標題 === 'object') {
       標題 = 頁面實例.標題[語言] || 頁面實例.標題['zh-tw'] || 頁面實例.標題.en || 標題;
     } else if (typeof 頁面實例.標題 === 'string') {

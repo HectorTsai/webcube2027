@@ -1,5 +1,5 @@
-import DatePicker from "../components/DatePicker/index.tsx";
-import TimePicker from "../components/TimePicker/index.tsx";
+import DatePicker from "../components/DatePicker.tsx";
+import TimePicker from "../components/TimePicker.tsx";
 import Span from "../components/Span.tsx";
 
 export default async function DateTimePickerTestPage() {

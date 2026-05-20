@@ -1,4 +1,4 @@
-import Input from "../components/Input/index.tsx";
+import Input from "../components/Index.tsx";
 
 export default function InputTestPage() {
   return (

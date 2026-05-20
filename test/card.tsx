@@ -1,5 +1,5 @@
 import Card, { CardProps, CardTitle, CardBody, CardFoot } from '../components/Card/index.tsx';
-import Button from '../components/Button/index.tsx';
+import Button from '../components/Button.tsx';
 
 export default async function CardTestPage() {
   const variants: CardProps['variant'][] = [

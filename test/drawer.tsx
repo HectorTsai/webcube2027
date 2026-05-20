@@ -1,9 +1,9 @@
 import Drawer, { DrawerTitle, DrawerFooter, DrawerProps } from '../components/Drawer/index.tsx';
-import Button from '../components/Button/index.tsx';
-import InputField from '../components/InputField/index.tsx';
+import Button from '../components/Button.tsx';
+import InputField from '../components/InputField.tsx';
 import Icon from '../components/Icon.tsx';
-import DatePicker from '../components/DatePicker/index.tsx';
-import TimePicker from '../components/TimePicker/index.tsx';
+import DatePicker from '../components/DatePicker.tsx';
+import TimePicker from '../components/TimePicker.tsx';
 
 export default async function DrawerTestPage() {
   const variants: DrawerProps['variant'][] = [

@@ -1,29 +1,40 @@
-import type { PopupProps } from "./index.tsx";
-import Container from "../Container/index.tsx";
+import { ComponentProps } from "./classes.ts";
+import Container from "./Container/index.tsx";
+
+export interface PopupProps extends ComponentProps {
+  /** Alpine.js Store 中的狀態鍵名 */
+  state?: string;
+  /** 是否自動關閉 */
+  autoClose?: boolean;
+  /** 定位方式 */
+  position?: "absolute" | "fixed";
+  /** 定位偏移 */
+  offset?: { top?: string; left?: string; right?: string; bottom?: string };
+  /** 任何額外屬性 */
+  [key: string]: any;
+}
 
 export default function Popup({
   className,
   variant,
   color,
   state = "popupOpen",
-  store = "popups",
   autoClose = false,
   position = "absolute",
   offset,
-  onClose,
   showBackdrop = true,
   fullWidth = false,
   children,
   ...restProps
 }: PopupProps) {
   // 使用狀態管理，類似 Modal 組件
-  const ref = `$store.${store}.${state}`;
+  const ref = `$store.popups.${state}`;
   
   // 自動初始化 Alpine.js Store 狀態
   const initScript = `
-    if(!Alpine.store('${store}')){Alpine.store('${store}',{})}
-    if(Alpine.store('${store}').${state}===undefined){Alpine.store('${store}').${state}=false}
-    $watch('$store.${store}.${state}', (val) => {
+    if(!Alpine.store('popups')){Alpine.store('popups',{})}
+    if(Alpine.store('popups').${state}===undefined){Alpine.store('popups').${state}=false}
+    $watch('$store.popups.${state}', (val) => {
       if (val) {
         window.dispatchEvent(new CustomEvent('popup-opened', { detail: { state: '${state}' } }));
       }

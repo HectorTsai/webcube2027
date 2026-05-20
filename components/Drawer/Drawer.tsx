@@ -4,7 +4,6 @@ import Container from "../Container/index.tsx";
 export default async function Drawer({
   children,
   state = "drawerOpen",
-  store = "drawers",
   position = "left",
   closeOnBackdrop = true,
   closeOnEsc = true,
@@ -16,7 +15,7 @@ export default async function Drawer({
   context,
   ...restProps
 }: DrawerProps) {
-  const ref = `$store.${store}.${state}`;
+  const ref = `$store.drawers.${state}`;
 
   const backdropClasses = [
     "fixed",

@@ -1,4 +1,4 @@
-import Button, { ButtonProps } from '../components/Button/index.tsx';
+import Button, { ButtonProps } from '../components/Button.tsx';
 
 export default async function ButtonTestPage() {
   const variants: ButtonProps['variant'][] = [

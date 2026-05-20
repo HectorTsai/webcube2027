@@ -1,7 +1,7 @@
 import type { MenuBarProps } from "./index.tsx";
 import Container from "../Container/index.tsx";
 import Drawer from "../Drawer/index.tsx";
-import Button from "../Button/index.tsx";
+import Button from "../Button.tsx";
 
 export default async function MenuBar({
   children,
@@ -15,7 +15,6 @@ export default async function MenuBar({
   sticky = false,
   responsive = false,
   drawerState = "menuOpen",
-  drawerStore = "drawers",
   className,
   context,
   ...restProps
@@ -61,7 +60,7 @@ export default async function MenuBar({
             variant,
             size: "xs",
             color,
-            onClick: `$store.${drawerStore}.${drawerState} = true`,
+            onClick: `$store.drawers.${drawerState} = true`,
             children: (
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -78,7 +77,6 @@ export default async function MenuBar({
   // 渲染 Drawer 组件
   const drawer = responsive ? await Drawer({
     state: drawerState,
-    store: drawerStore,
     position: "left",
     color,
     variant,
@@ -95,7 +93,7 @@ export default async function MenuBar({
             color,
             size: "xs",
             rounded: "full",
-            onClick: `$store.${drawerStore}.${drawerState} = false`,
+            onClick: `$store.drawers.${drawerState} = false`,
             children: (
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18"></line>

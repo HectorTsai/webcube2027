@@ -1,5 +1,14 @@
-import type { CalendarProps } from "./index.tsx";
-import Container from "../Container/index.tsx";
+import {ComponentProps} from "./classes.ts";
+import Container from "./Container/index.tsx";
+
+export interface CalendarProps extends ComponentProps {
+  /** 目标输入框的 ID */
+  targetInputId?: string;
+  /** Popup 状态名称 */
+  popupState?: string;
+  /** 任何额外属性 */
+  [key: string]: any;
+}
 
 export default function Calendar({
   className,
@@ -7,7 +16,6 @@ export default function Calendar({
   color,
   targetInputId,
   popupState,
-  popupStore = "popups",
   context,
   ...restProps
 }: CalendarProps) {
@@ -15,7 +23,7 @@ export default function Calendar({
     const attributes: Record<string, string> = {};
     
     if (targetInputId || popupState) {
-      const popupRef = popupState ? `$store.${popupStore}.${popupState}` : null;
+      const popupRef = popupState ? `$store.popups.${popupState}` : null;
       
       attributes["x-data"] = `{
         selectedDate: '',

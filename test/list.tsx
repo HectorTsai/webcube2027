@@ -1,7 +1,7 @@
 import { List, ListRow, ListTitle } from '../components/List/index.tsx';
-import { Divider } from '../components/Divider/index.tsx';
-import Avatar from '../components/Avatar/index.tsx';
-import Button from '../components/Button/index.tsx';
+import Divider from '../components/Divider.tsx';
+import Avatar from '../components/Avatar.tsx';
+import Button from '../components/Button.tsx';
 import Icon from '../components/Icon.tsx';
 
 export default async function ListTestPage() {

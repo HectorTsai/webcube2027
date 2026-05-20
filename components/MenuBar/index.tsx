@@ -17,8 +17,6 @@ export interface MenuBarProps extends ComponentProps {
   responsive?: boolean;
   /** Drawer 的狀態鍵名 */
   drawerState?: string;
-  /** Drawer 的 Store 名稱 */
-  drawerStore?: string;
   /** Any additional props */
   [key: string]: any;
 }

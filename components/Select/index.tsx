@@ -7,8 +7,6 @@ export interface SelectProps extends ComponentProps {
   defaultValue?: string;
   /** Alpine.js Store 中的狀態鍵名 */
   state?: string;
-  /** Alpine.js Store 名稱，預設 "selects" */
-  store?: string;
   /** 是否禁用 */
   disabled?: boolean;
   /** 佔位符文字 */

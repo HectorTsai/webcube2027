@@ -46,7 +46,7 @@ export default class 動態方塊JSX解析器 {
   private static async 取得方塊定義(方塊ID: string, c: Context): Promise<any> {
     try {
       const { InnerAPI } = await import("../index.ts");
-      const 方塊回應 = await InnerAPI(c, `/api/v1/cube/${方塊ID}`);
+      const 方塊回應 = await InnerAPI(c, `/api/v1/cubes/${方塊ID}`);
       const 方塊資料 = await 方塊回應.json();
 
       if (方塊資料.success && 方塊資料.data) {
@@ -97,10 +97,13 @@ export default class 動態方塊JSX解析器 {
         解析後的Children.push(子方塊JSX);
       } else if (child.type) {
         // 這是一個原生 HTML 元素
+        console.log('[解析Children] 處理原生元素:', JSON.stringify(child));
         const { type, attributes, children: 子層 } = child;
         const 子層JSX = 子層 ? await this.解析Children(子層, 深度, context) : [];
         const 子層內容 = 子層JSX.length > 0 ? 子層JSX : undefined;
-        解析後的Children.push(jsx(type, { ...attributes, children: 子層內容 }));
+        const jsxElement = jsx(type, { ...attributes, children: 子層內容 });
+        console.log('[解析Children] 創建的 jsxElement:', JSON.stringify(jsxElement));
+        解析後的Children.push(jsxElement);
       } else {
         // 直接是字串或其他值
         解析後的Children.push(child);

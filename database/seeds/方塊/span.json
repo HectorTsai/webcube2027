@@ -29,6 +29,13 @@
       "description": "文字區塊額外 CSS 類別",
       "required": false,
       "default": ""
+    },
+    "size": {
+      "type": "string",
+      "description": "文字大小",
+      "required": false,
+      "default": "md",
+      "options": ["xs", "sm", "md", "lg", "xl", "2xl", "3xl", "4xl", "5xl", "9xl"]
     }
   },
   "子方塊": [],

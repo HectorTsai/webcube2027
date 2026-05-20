@@ -155,17 +155,6 @@ export default function SelectTestPage() {
             <h3 class="text-lg font-medium mb-2">預設值</h3>
             {defaultValueSelect}
           </div>
-          <div>
-            <h3 class="text-lg font-medium mb-2">自定義 Store</h3>
-            <div x-data>
-              <Select state="mySelect" store="mySelects" placeholder="自定義狀態選擇框">
-                <Option value="option1">選項 1</Option>
-                <Option value="option2">選項 2</Option>
-                <Option value="option3">選項 3</Option>
-              </Select>
-              <p class="mt-2 text-sm">當前值：<span x-text="$store.mySelects.mySelectSelectedValue || '未選擇'"></span></p>
-            </div>
-          </div>
         </div>
       </section>
 
