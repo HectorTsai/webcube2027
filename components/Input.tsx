@@ -1,6 +1,17 @@
-import type { InputProps } from "./index.tsx";
-import Container from "../Container/index.tsx";
-import { processChildren } from "../index.ts";
+import { ComponentProps } from "./classes.ts";
+import Container from "./Container/index.tsx";
+import { processChildren } from "./index.ts";
+
+export interface InputProps extends ComponentProps {
+  /** 前端标签 */
+  frontLabel?: string;
+  /** 后端标签 */
+  endLabel?: string;
+  /** 浮动标签 */
+  floatLabel?: string;
+  /** 任何额外属性 */
+  [key: string]: any;
+}
 
 export default function Input({
   className,
@@ -26,6 +37,8 @@ export default function Input({
     const labelAlpine: Record<string, string> = {
       ':class': `{ 'scale-75 -translate-y-4 -translate-x-1 text-base-content bg-base px-1': focused || hasValue }`
     };
+
+    const processedChildren = processChildren(children, { color, variant, context });
 
     return (
       <Container
@@ -64,6 +77,7 @@ export default function Input({
               {endLabel}
             </div>
           )}
+          {processedChildren}
         </div>
       </Container>
     );
@@ -73,6 +87,8 @@ export default function Input({
     const labelAlpine: Record<string, string> = {
       'x-show': '!hasValue'
     };
+
+    const processedChildren = processChildren(children, { color, variant, context });
 
     return (
       <Container
@@ -111,10 +127,13 @@ export default function Input({
               {endLabel}
             </div>
           )}
+          {processedChildren}
         </div>
       </Container>
     );
   }
+
+  const processedChildren = processChildren(children, { color, variant, context });
 
   return (
     <Container
@@ -143,6 +162,7 @@ export default function Input({
             {endLabel}
           </div>
         )}
+        {processedChildren}
       </div>
     </Container>
   );
