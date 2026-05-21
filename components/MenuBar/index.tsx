@@ -21,7 +21,7 @@ export interface MenuBarProps extends ComponentProps {
   [key: string]: any;
 }
 
-export interface MenuItemProps {
+export interface MenuItemProps extends ComponentProps {
   /** 子元素 */
   children: unknown;
   /** 額外 CSS 類別 */

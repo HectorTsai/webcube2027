@@ -2,6 +2,7 @@ import type { SelectProps } from "./index.tsx";
 import Container from "../Container/index.tsx";
 import Popup from "../Popup.tsx";
 import List from "../List/List.tsx";
+import { processChildren } from "../index.ts";
 
 export default function Select({
   variant = "outline",
@@ -34,6 +35,9 @@ export default function Select({
     disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
     className
   ].filter(Boolean).join(" ");
+
+  // 處理 children，自動傳遞 color/variant/context
+  const processedChildren = processChildren(children, { color, variant, context });
 
   return (
     <div 
@@ -84,8 +88,8 @@ export default function Select({
         fullWidth
         width="full"
       >
-        <List color={color} variant={variant}>
-          {children}
+        <List color={color} variant={variant} context={context}>
+          {processedChildren}
         </List>
       </Popup>
     </div>

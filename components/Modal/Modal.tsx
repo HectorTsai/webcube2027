@@ -1,5 +1,6 @@
 import type { ModalProps } from "./index.tsx";
 import Container from "../Container/index.tsx";
+import { processChildren } from "../index.ts";
 
 export default function Modal({
   children,
@@ -11,6 +12,7 @@ export default function Modal({
   width = "480px",
   padding = "lg",
   className,
+  context,
   ...restProps
 }: ModalProps) {
   const ref = `$store.modals.${state}`;
@@ -59,6 +61,9 @@ export default function Modal({
     className,
   ].filter(Boolean).join(" ");
 
+  // 處理 children，自動傳遞 color/variant/context
+  const processedChildren = processChildren(children, { color, variant, context });
+
   return (
     <div x-data x-init={initScript}
       class={backdropClasses}
@@ -77,9 +82,10 @@ export default function Modal({
         justify="center"
         gap="none"
         className={modalClasses}
+        context={context}
         {...modalAlpine}
       >
-        {children}
+        {processedChildren}
       </Container>
     </div>
   );

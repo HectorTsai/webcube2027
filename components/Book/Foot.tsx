@@ -1,5 +1,6 @@
 import Container from "../Container/index.tsx";
 import {ComponentProps} from "../classes.ts";
+import { processChildren } from "../index.ts";
 
 export interface FootProps extends ComponentProps {
   /** 版權資訊 */
@@ -27,10 +28,13 @@ export default function Foot({
     className
   ].filter(Boolean).join(" ");
 
+  // 處理 children，自動傳遞 color/variant/context
+  const processedChildren = processChildren(children, { color, variant, context });
+
   return (
     <div class="book-foot book-page box-border">
       <Container variant={variant} color={color} width="full" height="full" className={baseClasses} context={context} {...props}>
-        {children && (<div class="text-lg">{children}</div>)}
+        {children && (<div class="text-lg">{processedChildren}</div>)}
       
         {/* 出版資訊 */}
         {publisher && (<div class="absolute bottom-15 w-full text-center">{publisher}</div>)}

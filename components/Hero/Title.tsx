@@ -1,8 +1,12 @@
 import type { HeroTitleProps } from "./index.tsx";
+import { processChildren } from "../index.ts";
 
 export default function HeroTitle({
   children,
   className,
+  color,
+  variant,
+  context,
   ...restProps
 }: HeroTitleProps) {
   const finalClasses = [
@@ -10,9 +14,12 @@ export default function HeroTitle({
     className
   ].filter(Boolean).join(" ");
 
+  // 處理 children，自動傳遞 color/variant/context
+  const processedChildren = processChildren(children, { color, variant, context });
+
   return (
     <h1 class={finalClasses} {...restProps}>
-      {children}
+      {processedChildren}
     </h1>
   );
 }

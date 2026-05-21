@@ -1,4 +1,5 @@
 import { ComponentProps, directionClasses, justifyClasses, alignClasses, gapClasses, paddingClasses, marginClasses } from './classes.ts';
+import { processChildren } from './index.ts';
 
 export interface FlexProps extends ComponentProps {
   /** 排列方向 */
@@ -19,6 +20,9 @@ export interface FlexProps extends ComponentProps {
 
 export default function Flex({
   children,
+  color,
+  variant,
+  context,
   direction = 'row',
   wrap = false,
   gap = 'none',
@@ -42,9 +46,12 @@ export default function Flex({
     className
   ].filter(Boolean).join(' ');
 
+  // 處理 children，自動傳遞 color/variant/context
+  const processedChildren = processChildren(children, { color, variant, context });
+
   return (
     <div className={classes} {...restProps}>
-      {children}
+      {processedChildren}
     </div>
   );
 }

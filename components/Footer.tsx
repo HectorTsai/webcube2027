@@ -1,5 +1,6 @@
 import {ComponentProps} from "./classes.ts";
 import Container from "./Container/index.tsx";
+import { processChildren } from "./index.ts";
 
 export interface FooterProps extends ComponentProps {
   /** 寬度設定 */
@@ -29,6 +30,9 @@ export default function Footer({
 }: FooterProps) {
   const stickyClasses = sticky ? "fixed bottom-0 left-0 right-0 z-50" : "";
 
+  // 處理 children，自動傳遞 color/variant/context
+  const processedChildren = processChildren(children, { color, variant, context });
+
   return (
     <Container
       variant={variant}
@@ -45,7 +49,7 @@ export default function Footer({
       className={`${stickyClasses} ${className || ''}`.trim()}
       {...restProps}
     >
-      {children}
+      {processedChildren}
     </Container>
   );
 }

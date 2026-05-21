@@ -4,6 +4,7 @@ import Page from "./Page.tsx";
 import Cover from "./Cover.tsx";
 import Foot from "./Foot.tsx";
 import { paddingClasses, marginClasses, } from "../classes.ts";
+import { processChildren } from "../index.ts";
 
 export default async function Book({
   children,
@@ -141,10 +142,22 @@ export default async function Book({
     className,
   ].filter(Boolean).join(" ");
   
-  // 直接使用 children，不进行处理，避免 Promise 转换错误
-  // 子组件的 variant 和 color 应该由用户在使用时直接指定
-  const arrayChildren = Children.toArray(children as any);
+  // 使用 processChildren 處理子元件，並利用 extraPropsFn 處理 Book 特定的邏輯
   let pageCounter = 0;
+  const processedChildren = processChildren(
+    children,
+    { color, variant, context },
+    (child: any, index: number) => {
+      const extraProps: Record<string, any> = {};
+      // 只有 Page、Cover、Foot 元件需要額外處理
+      const isBookComponent = child?.type === Page || child?.type === Cover || child?.type === Foot;
+      if (isBookComponent && child.type === Page) {
+        extraProps.pageNumber = ++pageCounter;
+        extraProps.odd = pageCounter % 2 !== 0;
+      }
+      return extraProps;
+    }
+  );
   
   return (
     <div class={bookClasses} style={{
@@ -154,18 +167,7 @@ export default async function Book({
       <div class="w-full h-full" x-data={xDataScript}>
         {/* 書本內容容器 - 用於 page-flip 初始化 */}
         <div class="book-content hidden" x-init="init()">
-        { arrayChildren.map((child: any) => {
-          const isBookComponent = child?.type === Page || child?.type === Cover || child?.type === Foot;
-          if (isBookComponent) {
-            const props: Record<string,any> = { color: child.props.color??color, variant: child.props.variant??variant, context: context };
-            if(child.type === Page) {
-              props.pageNumber = ++pageCounter;
-              props.odd = pageCounter % 2 !== 0;
-            }
-            return cloneElement(child, props);
-          }
-          return child;
-        })}
+          {processedChildren}
         </div>
       </div>
     </div>

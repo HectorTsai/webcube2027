@@ -1,5 +1,6 @@
 import type { OptionProps } from "./index.tsx";
 import ListRow from "../List/ListRow.tsx";
+import { processChildren } from "../index.ts";
 
 export default function Option({
   value,
@@ -7,6 +8,9 @@ export default function Option({
   divider = false,
   children,
   className,
+  color,
+  variant,
+  context,
   ...restProps
 }: OptionProps) {
   if (divider) {
@@ -26,6 +30,9 @@ export default function Option({
       : "cursor-pointer hover:bg-base-200 active:bg-base-300",
     className
   ].filter(Boolean).join(" ");
+
+  // 處理 children，自動傳遞 color/variant/context
+  const processedChildren = processChildren(children, { color, variant, context });
 
   return (
     <ListRow
@@ -47,7 +54,7 @@ export default function Option({
       `}
       {...restProps}
     >
-      {children}
+      {processedChildren}
     </ListRow>
   );
 }

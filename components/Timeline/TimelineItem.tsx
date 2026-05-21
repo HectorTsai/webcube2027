@@ -1,6 +1,7 @@
 import type { TimelineItemProps } from "./index.tsx";
 import Container from "../Container/index.tsx";
 import Icon from "../Icon.tsx";
+import { processChildren } from "../index.ts";
 
 export default async function TimelineItem({
   icon,
@@ -26,6 +27,9 @@ export default async function TimelineItem({
     // 使用 Icon 组件（数据库 ID）
     iconContent = await Icon({ id: icon, className: "h-3 w-3" });
   }
+
+  // 處理 children，自動傳遞 color/variant/context
+  const processedChildren = processChildren(children, { color, variant, context });
 
   return (
     <div class={`${className || ""}`}>

@@ -1,5 +1,6 @@
 import type { ListProps } from "./index.tsx";
 import Container from "../Container/index.tsx";
+import { processChildren } from "../index.ts";
 
 export default function List({
   color = "base",
@@ -8,6 +9,7 @@ export default function List({
   divider = false,
   compact = false,
   className,
+  context,
   ...restProps
 }: ListProps) {
   const finalClasses = [
@@ -23,7 +25,10 @@ export default function List({
 
   const classes = finalClasses.filter(Boolean).join(" ");
 
-  return <Container variant={variant} color={color} padding="none" width="full">
-    <ul class={classes} {...restProps}>{children}</ul>
+  // 處理 children，自動傳遞 color/variant/context
+  const processedChildren = processChildren(children, { color, variant, context });
+
+  return <Container variant={variant} color={color} padding="none" width="full" context={context}>
+    <ul class={classes} {...restProps}>{processedChildren}</ul>
   </Container>;
 }

@@ -1,5 +1,6 @@
 import type { OptionItemProps } from "./index.tsx";
 import Container from "../Container/index.tsx";
+import { processChildren } from "../index.ts";
 
 export default async function OptionItem({
   value,
@@ -13,7 +14,8 @@ export default async function OptionItem({
   name,
   mode = 'single',
   checked = false,
-  className = ''
+  className = '',
+  context,
 }: OptionItemProps) {
   const inputType = mode === 'single' ? 'radio' : 'checkbox';
   const inputName = name || `option-${inputType}`;
@@ -25,6 +27,9 @@ export default async function OptionItem({
     : mode === 'single' && name
       ? `document.querySelectorAll('input[name="${inputName}"]').forEach(el=>{el.checked=(el.value==='${value}')});$store.Container.${stateName}=true;Object.keys($store.Container).filter(k=>k.startsWith('${name}_')&&k!=='${stateName}').forEach(k=>$store.Container[k]=false);$dispatch('option-change')`
       : `$el.querySelector('input').checked=!$el.querySelector('input').checked;$store.Container.${stateName}=$el.querySelector('input').checked;$dispatch('option-change')`;
+
+  // 處理 children，自動傳遞 color/variant/context
+  const processedChildren = processChildren(children, { color, variant, context });
 
   return (
     <div
@@ -61,8 +66,9 @@ export default async function OptionItem({
         justify="center"
         direction="column"
         className="w-full h-full"
+        context={context}
       >
-        {children}
+        {processedChildren}
       </Container>
     </div>
   );

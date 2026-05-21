@@ -1,5 +1,6 @@
 import type { DrawerProps } from "./index.tsx";
 import Container from "../Container/index.tsx";
+import { processChildren } from "../index.ts";
 
 export default async function Drawer({
   children,
@@ -67,6 +68,9 @@ export default async function Drawer({
     className,
   ].filter(Boolean).join(" ");
 
+  // 處理 children，自動傳遞 color/variant/context
+  const processedChildren = processChildren(children, { color, variant, context });
+
   // 渲染 Container 组件作为 Drawer 的内容
   const container = await Container({
     variant,
@@ -83,7 +87,7 @@ export default async function Drawer({
     context,
     ...drawerAlpine,
     ...restProps,
-    children
+    children: processedChildren
   });
 
   return (

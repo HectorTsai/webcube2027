@@ -1,5 +1,6 @@
 import type { ContainerProps } from "./index.tsx";
 import { paddingClasses, marginClasses, alignClasses, justifyClasses, gapClasses, roundedClasses, shadowClasses, directionClasses } from "../classes.ts";
+import { processChildren } from "../index.ts";
 
 export default function SolidContainer({
   children,
@@ -18,8 +19,11 @@ export default function SolidContainer({
   activeStateName,
   hover = false,
   className,
+  context,
+  variant,
   ...restProps}: ContainerProps) {
 
+  const processedChildren = processChildren(children, { color, variant, context });
   const widthStyle = (width === "full" || width === "auto") ? undefined : width;
   const heightStyle = (height === "full" || height === "auto") ? undefined : height;
   const widthClass = (width === "full") ? `w-${width}` : undefined;
@@ -67,7 +71,7 @@ export default function SolidContainer({
           style={{ width: widthStyle, height: heightStyle }}
           {...restProps}
         >
-          {children}
+          {processedChildren}
         </div>
       );
     }
@@ -80,7 +84,7 @@ export default function SolidContainer({
         style={{ width: widthStyle, height: heightStyle }}
         {...restProps}
       >
-        {children}
+        {processedChildren}
       </div>
     );
   }
@@ -114,5 +118,5 @@ export default function SolidContainer({
 
   const classes = finalClasses.filter(Boolean).join(" ");
 
-  return <div class={classes} style={{ width: widthStyle, height: heightStyle }} {...restProps}>{children}</div>;
+  return <div class={classes} style={{ width: widthStyle, height: heightStyle }} {...restProps}>{processedChildren}</div>;
 }

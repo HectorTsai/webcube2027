@@ -1,6 +1,7 @@
 import type { HeroProps } from "./index.tsx";
 import Image from "../Image.tsx";
 import Container from "../Container/index.tsx";
+import { processChildren } from "../index.ts";
 
 export default async function Hero({
   variant = "solid",
@@ -43,6 +44,9 @@ export default async function Hero({
     gap === "lg" ? "gap-8" : "gap-12"
   ].filter(Boolean).join(" ");
 
+  // 處理 children，自動傳遞 color/variant/context
+  const processedChildren = processChildren(children, { color, variant, context });
+
   return (
     <Container 
       variant={variant} 
@@ -72,7 +76,7 @@ export default async function Hero({
       
       {/* 內容區域 */}
       <div class={`relative z-10 max-w-4xl mx-auto w-full ${contentClasses}`}>
-        {children}
+        {processedChildren}
       </div>
     </Container>
   );

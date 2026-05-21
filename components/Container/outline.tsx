@@ -1,10 +1,13 @@
 import type { ContainerProps } from "./index.tsx";
 import { paddingClasses, marginClasses, alignClasses, justifyClasses, gapClasses, roundedClasses, shadowClasses, directionClasses } from "../classes.ts";
+import { processChildren } from "../index.ts";
 
 export default function OutlineContainer({
   children,
   direction = "column",
   color = "primary",
+  variant,
+  context,
   width = "auto",
   height = "auto",
   padding = "md",
@@ -24,6 +27,9 @@ export default function OutlineContainer({
   const heightStyle = (height === "full" || height === "auto") ? undefined : height;
   const widthClass = (width === "full") ? `w-${width}` : undefined;
   const heightClass = (height === "full") ? `h-${height}` : undefined;
+
+  // 處理 children，自動傳遞 color/variant/context
+  const processedChildren = processChildren(children, { color, variant, context });
 
   // 結構性類別（不含顏色）
   const baseClasses = [
@@ -66,7 +72,7 @@ export default function OutlineContainer({
           style={{ width: widthStyle, height: heightStyle }}
           {...restProps}
         >
-          {children}
+          {processedChildren}
         </div>
       );
     }
@@ -79,7 +85,7 @@ export default function OutlineContainer({
         style={{ width: widthStyle, height: heightStyle }}
         {...restProps}
       >
-        {children}
+        {processedChildren}
       </div>
     );
   }
@@ -114,5 +120,5 @@ export default function OutlineContainer({
 
   const classes = finalClasses.filter(Boolean).join(" ");
 
-  return <div class={classes} style={{ width: widthStyle, height: heightStyle }} {...restProps}>{children}</div>;
+  return <div class={classes} style={{ width: widthStyle, height: heightStyle }} {...restProps}>{processedChildren}</div>;
 }

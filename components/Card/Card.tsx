@@ -1,6 +1,7 @@
 import type { CardProps } from "./index.tsx";
 import Image from "../Image.tsx";
 import Container from "../Container/index.tsx";
+import { processChildren } from "../index.ts";
 
 export default async function Card({
   variant = "solid",
@@ -32,6 +33,9 @@ export default async function Card({
     direction === "row" ? "flex flex-row" : ""
   ].filter(Boolean).join(" ");
 
+  // 處理 children，自動傳遞 color/variant/context
+  const processedChildren = processChildren(children, { color, variant, context });
+
   return (
     <Container 
       variant={variant} 
@@ -57,7 +61,7 @@ export default async function Card({
         </div>
       )}
       <div class="p-4 flex-1 w-full min-w-0 flex flex-col box-border">
-        {children}
+        {processedChildren}
       </div>
     </Container>
   );

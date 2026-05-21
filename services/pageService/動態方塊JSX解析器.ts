@@ -65,16 +65,18 @@ export default class 動態方塊JSX解析器 {
    */
   private static async 解析內建方塊(方塊定義: any, 內容: any, 深度: number, c: Context): Promise<any> {
     try {
-      內容.context = c;
+      // 先做深拷貝，永遠不修改傳入的物件
+      const 內容拷貝 = JSON.parse(JSON.stringify(內容));
+      內容拷貝.context = c;
 
       // 處理 children（如果有子方塊配置）
-      if (內容.children && Array.isArray(內容.children)) {
-        內容.children = await this.解析Children(內容.children, 深度, c);
+      if (內容拷貝.children && Array.isArray(內容拷貝.children)) {
+        內容拷貝.children = await this.解析Children(內容拷貝.children, 深度, c);
       }
 
       // 使用 createVariantComponent 動態載入元件
       const createComponent = createVariantComponent(方塊定義.元件路徑);
-      const jsxElement = await createComponent(內容);
+      const jsxElement = await createComponent(內容拷貝);
 
       await info('動態方塊JSX解析器', `內建方塊渲染完成: ${方塊定義.元件路徑}`);
       return jsxElement;
@@ -120,11 +122,14 @@ export default class 動態方塊JSX解析器 {
     try {
       await info('動態方塊JSX解析器', `解析組合方塊: ${方塊定義.id}, 子方塊數量: ${方塊定義.子方塊.length}`);
 
+      // 先做深拷貝，永遠不修改傳入的物件
+      const 內容拷貝 = JSON.parse(JSON.stringify(內容));
+
       // 使用 ParameterMapper 處理參數映射
       const { result: 處理後子方塊, errors: 映射錯誤 } = ParameterMapper.mapParameters(
         方塊定義.子方塊,
         方塊定義.對外參數,
-        內容
+        內容拷貝
       );
 
       if (映射錯誤.length > 0) {

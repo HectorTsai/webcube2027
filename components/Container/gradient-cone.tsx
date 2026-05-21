@@ -1,10 +1,13 @@
 import type { ContainerProps } from "./index.tsx";
 import { paddingClasses, marginClasses, alignClasses, justifyClasses, gapClasses, roundedClasses, shadowClasses, directionClasses } from "../classes.ts";
+import { processChildren } from "../index.ts";
 
 export default function GradientConeContainer({
   children,
   direction = "column",
   color = "primary",
+  variant,
+  context,
   width = "auto",
   height = "auto",
   padding = "md",
@@ -24,6 +27,8 @@ export default function GradientConeContainer({
   const heightStyle = (height === "full" || height === "auto") ? undefined : height;
   const widthClass = (width === "full") ? `w-${width}` : undefined;
   const heightClass = (height === "full") ? `h-${height}` : undefined;
+
+  const processedChildren = processChildren(children, { color, variant, context });
 
   // 結構性類別（不含顏色）
   const baseClasses = [
@@ -68,7 +73,7 @@ export default function GradientConeContainer({
           style={{ width: widthStyle, height: heightStyle }}
           {...restProps}
         >
-          {children}
+          {processedChildren}
         </div>
       );
     }
@@ -81,7 +86,7 @@ export default function GradientConeContainer({
         style={{ width: widthStyle, height: heightStyle }}
         {...restProps}
       >
-        {children}
+        {processedChildren}
       </div>
     );
   }
@@ -117,5 +122,5 @@ export default function GradientConeContainer({
 
   const classes = finalClasses.filter(Boolean).join(" ");
 
-  return <div class={`${classes} bg-conic-[${colorFrom},${colorTo}]`} style={{ width: widthStyle, height: heightStyle }} {...restProps}>{children}</div>;
+  return <div class={`${classes} bg-conic-[${colorFrom},${colorTo}]`} style={{ width: widthStyle, height: heightStyle }} {...restProps}>{processedChildren}</div>;
 }

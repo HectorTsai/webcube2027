@@ -9,7 +9,7 @@ export interface ListProps extends ComponentProps {
   [key: string]: any;
 }
 
-export interface ListRowProps {
+export interface ListRowProps extends ComponentProps {
   /** 子元素 */
   children: unknown;
   /** 額外 CSS 類別 */
@@ -18,7 +18,7 @@ export interface ListRowProps {
   [key: string]: any;
 }
 
-export interface ListTitleProps {
+export interface ListTitleProps extends ComponentProps {
   /** 子元素（標題文字） */
   children: unknown;
   /** 額外 CSS 類別 */

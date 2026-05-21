@@ -1,5 +1,6 @@
 import {ComponentProps} from "./classes.ts";
 import Container from "./Container/index.tsx";
+import { processChildren } from "./index.ts";
 
 export interface ButtonProps extends ComponentProps {
   /** Button size - controls the padding and font size */
@@ -62,6 +63,9 @@ export default async function Button({
     alpineProps['@click'] = onClick;
   }
 
+  // 處理 children，自動傳遞 color/variant/context
+  const processedChildren = processChildren(children, { color, variant, context });
+
   const container = await Container({
     variant,
     color,
@@ -74,7 +78,7 @@ export default async function Button({
     active: active,
     className: containerClasses,
     context,
-    children
+    children: processedChildren
   });
 
   return (

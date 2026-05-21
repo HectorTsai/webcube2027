@@ -1,4 +1,5 @@
 import { justifyClasses, alignClasses, gapClasses, paddingClasses, marginClasses } from './classes.ts';
+import { processChildren } from './index.ts';
 
 export interface GridProps {
   /** 網格列數 */
@@ -74,6 +75,9 @@ const gapXClasses = {
 
 export default function Grid({
   children,
+  color,
+  variant,
+  context,
   cols = 1,
   colsSm,
   colsMd,
@@ -110,9 +114,12 @@ export default function Grid({
     className
   ].filter(Boolean).join(' ');
 
+  // 處理 children，自動傳遞 color/variant/context
+  const processedChildren = processChildren(children, { color, variant, context });
+
   return (
     <div className={classes} {...restProps}>
-      {children}
+      {processedChildren}
     </div>
   );
 }

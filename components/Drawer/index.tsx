@@ -10,13 +10,13 @@ export interface DrawerProps extends ComponentProps {
   [key: string]: any;
 }
 
-export interface DrawerTitleProps {
+export interface DrawerTitleProps extends ComponentProps {
   children: unknown;
   className?: string;
   [key: string]: any;
 }
 
-export interface DrawerFooterProps {
+export interface DrawerFooterProps extends ComponentProps {
   children: unknown;
   className?: string;
   [key: string]: any;

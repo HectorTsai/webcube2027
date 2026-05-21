@@ -1,8 +1,12 @@
 import type { HeroActionsProps } from "./index.tsx";
+import { processChildren } from "../index.ts";
 
 export default function HeroActions({
   children,
   className,
+  color,
+  variant,
+  context,
   ...restProps
 }: HeroActionsProps) {
   const finalClasses = [
@@ -10,9 +14,12 @@ export default function HeroActions({
     className
   ].filter(Boolean).join(" ");
 
+  // 處理 children，自動傳遞 color/variant/context
+  const processedChildren = processChildren(children, { color, variant, context });
+
   return (
     <div class={finalClasses} {...restProps}>
-      {children}
+      {processedChildren}
     </div>
   );
 }

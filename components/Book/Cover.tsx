@@ -1,6 +1,7 @@
 import Icon from "../Icon.tsx";
 import Container from "../Container/index.tsx";
 import {ComponentProps} from "../classes.ts";
+import { processChildren } from "../index.ts";
 export interface CoverProps extends ComponentProps {
   /** 封面標題 */
   title: string;
@@ -32,6 +33,9 @@ export default async function Cover({
     className
   ].filter(Boolean).join(" ");
 
+  // 處理 children，自動傳遞 color/variant/context
+  const processedChildren = processChildren(children, { color, variant, context });
+
   return (
     <div class="book-cover book-page box-border" >
       <Container color={color} variant={variant} width="full" height="full" className={baseClasses} context={context} {...props}>
@@ -42,7 +46,7 @@ export default async function Cover({
         )}
         
         <div class="text-4xl font-bold mt-4">{title}</div>
-        {children && (<div class="text-lg">{children}</div>)}
+        {children && (<div class="text-lg">{processedChildren}</div>)}
         
         {/* 書脊效果 */}
         <div class={`absolute right-0 top-0 bottom-0 rounded-lg w-8 bg-gradient-to-l from-${color}-50/50 via-transparent to-transparent`}></div>

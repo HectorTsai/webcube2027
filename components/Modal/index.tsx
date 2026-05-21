@@ -15,7 +15,7 @@ export interface ModalProps extends ComponentProps {
   [key: string]: any;
 }
 
-export interface ModalTitleProps {
+export interface ModalTitleProps extends ComponentProps {
   /** 子元素 */
   children: unknown;
   /** 額外 CSS 類別 */
@@ -24,7 +24,7 @@ export interface ModalTitleProps {
   [key: string]: any;
 }
 
-export interface ModalFooterProps {
+export interface ModalFooterProps extends ComponentProps {
   /** 子元素 */
   children: unknown;
   /** 額外 CSS 類別 */

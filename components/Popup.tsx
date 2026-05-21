@@ -1,5 +1,6 @@
 import { ComponentProps } from "./classes.ts";
 import Container from "./Container/index.tsx";
+import { processChildren } from "./index.ts";
 
 export interface PopupProps extends ComponentProps {
   /** Alpine.js Store 中的狀態鍵名 */
@@ -25,6 +26,7 @@ export default function Popup({
   showBackdrop = true,
   fullWidth = false,
   children,
+  context,
   ...restProps
 }: PopupProps) {
   // 使用狀態管理，類似 Modal 組件
@@ -72,22 +74,25 @@ export default function Popup({
   // 如果啟用自動關閉，點擊內部也關閉
   if (autoClose) {
     // 在 Popup 主體也添加點擊關閉（移除阻止事件冒泡）
-    popupAlpine['x-on:click'] = `${ref} = false`;
-    // 移除 x-on:click.stop，讓點擊內部也能關閉
-    delete popupAlpine['x-on:click.stop'];
+    popupAlpineProps['@click'] = `${ref} = false`;
+    // 移除 @click.stop，讓點擊內部也能關閉
+    delete popupAlpineProps['@click.stop'];
   }
+
+  // 處理 children，自動傳遞 color/variant/context
+  const processedChildren = processChildren(children, { color, variant, context });
 
   return (
     <div x-data x-init={initScript}>
-      {/* 全屏透明背景層，用於點擊外部關閉 */}
+      {/* 全螢幕透明背景層，用於點擊外部關閉 */}
       <div
         class="fixed inset-0 z-30 bg-transparent"
-        {...backdropAlpine}
+        {...backdropAlpineProps}
       />
       {/* Popup 內容 */}
       <div
         class={popupClasses}
-        {...popupAlpine}
+        {...popupAlpineProps}
         {...restProps}
       >
         <Container
@@ -97,8 +102,9 @@ export default function Popup({
           padding="none"
           align="center"
           justify="center"
+          context={context}
         >
-          {children}
+          {processedChildren}
         </Container>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import {ComponentProps} from "./classes.ts";
 import Container from "./Container/index.tsx";
+import { processChildren } from "./index.ts";
 
 export interface InputFieldProps extends ComponentProps {
 }
@@ -11,6 +12,7 @@ export default function InputField({
   context,
   children,
 }: InputFieldProps) {
+  const processedChildren = processChildren(children, { color, variant, context });
   return (
     <Container
       variant={variant}
@@ -21,7 +23,7 @@ export default function InputField({
       className={className}
     >
       <div class="flex items-center w-full">
-        {children}
+        {processedChildren}
       </div>
     </Container>
   );

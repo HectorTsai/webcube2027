@@ -1,10 +1,13 @@
 import type { ContainerProps } from "./index.tsx";
 import { paddingClasses, marginClasses, alignClasses, justifyClasses, gapClasses, roundedClasses, shadowClasses, directionClasses } from "../classes.ts";
+import { processChildren } from "../index.ts";
 
 export default function DotContainer({
   children,
   direction = "column",
   color = "primary",
+  variant,
+  context,
   width = "auto",
   height = "auto",
   padding = "md",
@@ -24,6 +27,9 @@ export default function DotContainer({
   const heightStyle = (height === "full" || height === "auto") ? undefined : height;
   const widthClass = (width === "full") ? `w-${width}` : undefined;
   const heightClass = (height === "full") ? `h-${height}` : undefined;
+
+  // 處理 children，自動傳遞 color/variant/context
+  const processedChildren = processChildren(children, { color, variant, context });
 
   // 結構性類別（不含顏色）
   const baseClasses = [
@@ -49,8 +55,7 @@ export default function DotContainer({
   const inactiveHoverClasses = `${baseClasses} bg-base-70 border-2 border-dotted border-base-50 text-base-content `;
 
   // 如果有 activeStateName，使用 Alpine.js store 動態控制 active 狀態
-  if (activeStateName) {
-    const initScript = `
+  if (activeStateName) {const initScript = `
       if(!Alpine.store('Container')){Alpine.store('Container',{})}
       if(Alpine.store('Container').${activeStateName}===undefined){Alpine.store('Container').${activeStateName}=${active}}
     `.replace(/\s+/g, ' ').trim();
@@ -66,7 +71,7 @@ export default function DotContainer({
           style={{ width: widthStyle, height: heightStyle }}
           {...restProps}
         >
-          {children}
+          {processedChildren}
         </div>
       );
     }
@@ -79,7 +84,7 @@ export default function DotContainer({
         style={{ width: widthStyle, height: heightStyle }}
         {...restProps}
       >
-        {children}
+        {processedChildren}
       </div>
     );
   }
@@ -114,5 +119,5 @@ export default function DotContainer({
 
   const classes = finalClasses.filter(Boolean).join(" ");
 
-  return <div class={classes} style={{ width: widthStyle, height: heightStyle }} {...restProps}>{children}</div>;
+  return <div class={classes} style={{ width: widthStyle, height: heightStyle }} {...restProps}>{processedChildren}</div>;
 }

@@ -1,5 +1,6 @@
 import Container from "../Container/index.tsx";
 import {ComponentProps} from "../classes.ts";
+import { processChildren } from "../index.ts";
 export interface PageProps extends ComponentProps {
   /** 頁碼 */
   pageNumber?: number;
@@ -57,10 +58,13 @@ export default function Page({
     "to-transparent",
   ].filter(Boolean).join(" ");
 
+  // 處理 children，自動傳遞 color/variant/context
+  const processedChildren = processChildren(children, { color, variant, context });
+
   return (
     <div class="book-page box-border">
       <Container color={color} variant={variant} width="full" height="full" className={baseClasses} context={context} {...props}>
-        <div class="flex-1">{children}</div>
+        <div class="flex-1">{processedChildren}</div>
         {pageNumber && ( <div class={pageNumberClasses}>{pageNumber}</div>)}
       </Container>
       {/* 書頁邊緣效果 */}
