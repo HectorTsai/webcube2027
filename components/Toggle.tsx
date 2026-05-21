@@ -1,5 +1,6 @@
 import Icon, { IconProps } from './Icon.tsx';
-import {Color} from "./classes.ts";
+import {Color, ComponentProps} from "./classes.ts";
+import { processChildren } from "./index.ts";
 
 const sizeMap: Record<string, { width: number; height: number; thumb: number }> = {
   xs: { width: 48, height: 24, thumb: 18 },
@@ -17,7 +18,7 @@ const iconSizeMap: Record<keyof typeof sizeMap, IconProps['size']> = {
   xl: 'lg',
 };
 
-export interface ToggleProps {
+export interface ToggleProps extends ComponentProps {
   name?: string;
   color?: Color;
   size?: keyof typeof sizeMap;
@@ -25,7 +26,6 @@ export interface ToggleProps {
   checked?: boolean;
   defaultChecked?: boolean;
   disabled?: boolean;
-  label?: string;
   onIcon?: string;
   offIcon?: string;
   onSvg?: string;
@@ -39,12 +39,14 @@ export interface ToggleProps {
 export default async function Toggle({
   size = 'md',
   color = 'primary',
+  variant,
+  context,
   name,
   value,
   checked,
   defaultChecked,
   disabled,
-  label,
+  children,
   onIcon,
   offIcon,
   onSvg,
@@ -77,6 +79,8 @@ export default async function Toggle({
     size: iconSize,
     className: 'text-white',
   }) : null;
+
+  const processedChildren = processChildren(children, { color, variant, context });
 
   return (
     <div class={`max-w-full ${disabled ? 'opacity-60' : ''}`} {...restProps}>
@@ -119,11 +123,7 @@ export default async function Toggle({
           </div>
         </div>
 
-        {label && (
-          <span class="min-w-0 break-words text-sm leading-tight font-medium text-gray-900 cursor-pointer select-none">
-            {label}
-          </span>
-        )}
+        {processedChildren}
       </label>
     </div>
   );
