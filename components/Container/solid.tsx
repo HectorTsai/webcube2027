@@ -92,7 +92,7 @@ export default function SolidContainer({
   // 沒有 activeStateName，使用原本的邏輯
   const colorPrefix = active ? color : "base-70";
   const textColor = color2TextColor(active ? color : "base");
-  const hoverColor = adjustColorLightOrOpacity(active ? color : "base-70", 20, 0);
+  const hoverColor = adjustColorLightOrOpacity(colorPrefix, 20, 0);
 
   const finalClasses = [
     "flex",

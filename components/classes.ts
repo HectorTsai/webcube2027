@@ -104,25 +104,35 @@ export const sizeMap = {
 };
 
 export function color2TextColor(color: string): string {
-  const base = color.split("/")[0].split("-")[0];
+  const [basePart] = color.split("/");
+  const parts = basePart.split("-");
+  
+  if (parts.length > 1 && /^\d+$/.test(parts[parts.length - 1])) {
+    const base = parts.slice(0, -1).join("-");
+    const shade = parts[parts.length - 1];
+    return `${base}-${shade}-content`;
+  }
+  
+  const base = parts[0];
   return `${base}-content`;
 }
 
-export function getContrastColor(color: string): string {
-  let shade = 500;
-  if (color.includes("/")) {
-    const base = color.split("/")[0];
-    const shadeMatch = base.match(/-(\d+)$/i);
-    if (shadeMatch) shade = parseInt(shadeMatch[1], 10);
-  } else {
-    const shadeMatch = color.match(/-(\d+)$/i);
-    if (shadeMatch) shade = parseInt(shadeMatch[1], 10);
+const 支援的Shade = [10, 30, 50, 70, 90];
+
+function 四捨五入到最近(value: number, steps: number[]): number {
+  let nearest = steps[0];
+  let minDiff = Math.abs(value - nearest);
+  for (const step of steps) {
+    const diff = Math.abs(value - step);
+    if (diff < minDiff) {
+      minDiff = diff;
+      nearest = step;
+    }
   }
-  return shade >= 500 ? "base-50" : "base";
+  return nearest;
 }
 
 export function adjustColorLightOrOpacity(color: string, light: number, opacity: number): string {
-  const clampLight = (v: number) => Math.min(100, Math.max(0, v));
   const clampOpacity = (v: number) => Math.min(100, Math.max(0, v));
 
   let base: string, currentLight: number, currentOpacity: number;
@@ -149,7 +159,7 @@ export function adjustColorLightOrOpacity(color: string, light: number, opacity:
     currentOpacity = 100;
   }
 
-  const newLight = clampLight(currentLight - light);
+  const newLight = 四捨五入到最近(currentLight - light, 支援的Shade);
   const newOpacity = clampOpacity(currentOpacity - opacity);
 
   if (newOpacity === 100) {

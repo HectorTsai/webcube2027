@@ -64,48 +64,43 @@ export class UnoCSS生成器 {
           
           // 根據 LCH 亮度決定文字顏色
           // 亮度 > 70% 用黑色文字，否則用白色文字
-          const contentColor = lNum > 70 ? '0% 0 0' : '100% 0 0';
+          const contentColor = lNum > 70 ? 'oklch(0% 0 0)' : 'oklch(100% 0 0)';
           variables.push(`  --color-${key}-content: ${contentColor};`);
         }
       }
       
       // 為所有顏色添加亮度變數（用於漸層）
       if (['primary', 'secondary', 'accent', 'neutral', 'base', 'info', 'success', 'warning', 'error'].includes(key)) {
-        // 生成亮度變數 - 用於漸層效果
         if (value.includes(' ')) {
           const [l, c, h] = value.split(' ');
-          variables.push(`  --${key}-l: ${l};`);
-
-          // 在 TypeScript 中判斷亮色系還是暗色系
           const lNum = parseFloat(l);
-          const isLightColor = lNum > 50;
 
-          if (isLightColor) {
-            // 亮色系：變暗
-            variables.push(`  --color-${key}-light-90: calc(var(--${key}-l)) ${c} ${h};`);                    // 接近原色
-            variables.push(`  --color-${key}-light-70: calc(max(20%, var(--${key}-l) - 10%)) ${c} ${h};`);    // 稍暗
-            variables.push(`  --color-${key}-light-50: calc(max(20%, var(--${key}-l) - 20%)) ${c} ${h};`);    // 中等暗
-            variables.push(`  --color-${key}-light-30: calc(max(20%, var(--${key}-l) - 30%)) ${c} ${h};`);    // 明暗
-            variables.push(`  --color-${key}-light-10: calc(max(20%, var(--${key}-l) - 40%)) ${c} ${h};`);    // 最暗
-            // 亮色系：數字越大結果越暗 → light-90 最暗用白色，其他用黑色
-            variables.push(`  --color-${key}-light-90-content: 100% 0 0;`);  // 白色
-            variables.push(`  --color-${key}-light-70-content: 0% 0 0;`);      // 黑色
-            variables.push(`  --color-${key}-light-50-content: 0% 0 0;`);      // 黑色
-            variables.push(`  --color-${key}-light-30-content: 0% 0 0;`);      // 黑色
-            variables.push(`  --color-${key}-light-10-content: 0% 0 0;`);      // 黑色
+          const shades = [90, 70, 50, 30, 10];
+          const shadeLightValues: Record<number, number> = {};
+
+          if (lNum > 50) {
+            const range = lNum - 10;
+            const step = range / 4;
+            shadeLightValues[90] = lNum;
+            shadeLightValues[70] = Math.max(20, lNum - step);
+            shadeLightValues[50] = Math.max(20, lNum - 2 * step);
+            shadeLightValues[30] = Math.max(20, lNum - 3 * step);
+            shadeLightValues[10] = Math.max(20, lNum - 4 * step);
           } else {
-            // 暗色系：變亮
-            variables.push(`  --color-${key}-light-90: calc(var(--${key}-l)) ${c} ${h};`);                    // 接近原色
-            variables.push(`  --color-${key}-light-70: calc(var(--${key}-l) + 10%) ${c} ${h};`);           // 稍亮
-            variables.push(`  --color-${key}-light-50: calc(var(--${key}-l) + 20%) ${c} ${h};`);           // 中等亮
-            variables.push(`  --color-${key}-light-30: calc(var(--${key}-l) + 30%) ${c} ${h};`);           // 明亮
-            variables.push(`  --color-${key}-light-10: calc(min(95%, var(--${key}-l) + 40%)) ${c} ${h};`); // 最亮
-            // 暗色系：數字越大結果越亮 → light-90 最暗用白色，light-70 可能是邊界，其他用黑色
-            variables.push(`  --color-${key}-light-90-content: 100% 0 0;`);  // 白色
-            variables.push(`  --color-${key}-light-70-content: 100% 0 0;`);    // 白色（接近邊界）
-            variables.push(`  --color-${key}-light-50-content: 0% 0 0;`);      // 黑色
-            variables.push(`  --color-${key}-light-30-content: 0% 0 0;`);      // 黑色
-            variables.push(`  --color-${key}-light-10-content: 0% 0 0;`);      // 黑色
+            const range = 90 - lNum;
+            const step = range / 4;
+            shadeLightValues[90] = lNum;
+            shadeLightValues[70] = Math.min(95, lNum + step);
+            shadeLightValues[50] = Math.min(95, lNum + 2 * step);
+            shadeLightValues[30] = Math.min(95, lNum + 3 * step);
+            shadeLightValues[10] = Math.min(95, lNum + 4 * step);
+          }
+
+          for (const shade of shades) {
+            const finalL = shadeLightValues[shade];
+            variables.push(`  --color-${key}-light-${shade}: ${finalL}% ${c} ${h};`);
+            const contentColor = finalL > 70 ? 'oklch(0% 0 0)' : 'oklch(100% 0 0)';
+            variables.push(`  --color-${key}-light-${shade}-content: ${contentColor};`);
           }
         }
       }
