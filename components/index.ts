@@ -68,7 +68,7 @@ async function importComponentModule(componentPath: string, variant: string): Pr
 export default function createVariantComponent(componentPath: string) {
   const componentName = componentPath.split('/').pop() || componentPath;
 
-  return async function VariantComponent({ variant, ...props }: any) {
+  async function VariantComponent({ variant, ...props }: any) {
     try {
       // 如果有 context 且使用者未指定 variant，則從骨架讀取預設風格
       if(props && props.context && !variant){
@@ -90,24 +90,33 @@ export default function createVariantComponent(componentPath: string) {
           // 不用處理
         }
       }
-      
+
       // 最終預設值
       variant = variant || "solid";
-      
+
       // 嘗試載入指定的 variant
       let Component = await importComponentModule(componentPath, variant);
       if (!Component) {
         Component = await importComponentModule(componentPath, "solid");
       }
-      
+
       if (!Component) {
         return jsx("div", {}, `${componentPath}:${variant}`);
       }
-      
+
       const result = await Component({ variant, ...props });
       return result;
     } catch (_e) {
       return jsx("div", {}, `${componentPath}:${variant}`);
     }
   };
+
+  // 設置函數名稱，這樣可以通過 child.type.name 識別組件
+  Object.defineProperty(VariantComponent, 'name', {
+    value: componentName,
+    writable: false,
+    configurable: true
+  });
+
+  return VariantComponent;
 }

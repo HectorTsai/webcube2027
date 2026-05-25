@@ -1,7 +1,6 @@
 import { Context } from 'hono';
 import 動態方塊JSX解析器 from '../services/pageService/動態方塊JSX解析器.ts';
 import Card from '../components/Card/index.tsx';
-import InputField from '../components/InputField.tsx';
 
 const cubes = [
   { id: "方塊:方塊:avatar", name: "頭像" },
@@ -24,7 +23,13 @@ const cubes = [
   { id: "方塊:方塊:time-picker", name: "時間選擇器" },
   { id: "方塊:方塊:select", name: "選擇框" },
   { id: "方塊:方塊:option-picker", name: "選項選擇器" },
-  { id: "方塊:方塊:tags", name: "標籤" },
+  { id: "方塊:方塊:card", name: "卡片" },
+  { id: "方塊:方塊:hero", name: "英雄區塊" },
+  { id: "方塊:方塊:list", name: "列表" },
+  { id: "方塊:方塊:menubar", name: "導航列" },
+  { id: "方塊:方塊:steps", name: "步驟" },
+  { id: "方塊:方塊:timeline", name: "時間軸" },
+  { id: "方塊:方塊:book", name: "書籍" },
 ];
 
 const defaultParameters: Record<string, any> = {
@@ -76,8 +81,7 @@ const defaultParameters: Record<string, any> = {
   },
   "方塊:方塊:toggle": {
     size: "md",
-    color: "primary",
-    label: "切換開關"
+    color: "primary"
   },
   "方塊:方塊:swap": {
     fromIcon: "圖示:圖示:登入",
@@ -97,23 +101,43 @@ const defaultParameters: Record<string, any> = {
   "方塊:方塊:footer": {
     color: "primary",
     variant: "solid",
-    padding: "lg"
+    padding: "lg",
+    children: [
+      {"type": "span", "attributes": {"class": "text-sm"}, "children": ["© 2024 WebCube. All rights reserved."]}
+    ]
   },
   "方塊:方塊:flex": {
+    className: "w-full",
     direction: "row",
     gap: "md",
     justify: "start",
     align: "stretch",
     padding: "md",
     color: "primary",
-    variant: "solid"
+    variant: "solid",
+    children: [
+      {"type": "div", "attributes": {"class": "bg-primary text-primary-content p-4 rounded flex-1 text-center"}, "children": ["項目 1"]},
+      {"type": "div", "attributes": {"class": "bg-primary text-primary-content p-4 rounded flex-1 text-center"}, "children": ["項目 2"]},
+      {"type": "div", "attributes": {"class": "bg-primary text-primary-content p-4 rounded flex-1 text-center"}, "children": ["項目 3"]}
+    ]
   },
   "方塊:方塊:grid": {
+    className: "w-full",
     cols: 3,
     gap: "md",
     justify: "start",
     align: "stretch",
-    padding: "md"
+    padding: "md",
+    color: "primary",
+    variant: "solid",
+    children: [
+      {"type": "div", "attributes": {"class": "bg-primary text-primary-content p-4 rounded text-center"}, "children": ["1"]},
+      {"type": "div", "attributes": {"class": "bg-primary text-primary-content p-4 rounded text-center"}, "children": ["2"]},
+      {"type": "div", "attributes": {"class": "bg-primary text-primary-content p-4 rounded text-center"}, "children": ["3"]},
+      {"type": "div", "attributes": {"class": "bg-primary text-primary-content p-4 rounded text-center"}, "children": ["4"]},
+      {"type": "div", "attributes": {"class": "bg-primary text-primary-content p-4 rounded text-center"}, "children": ["5"]},
+      {"type": "div", "attributes": {"class": "bg-primary text-primary-content p-4 rounded text-center"}, "children": ["6"]}
+    ]
   },
   "方塊:方塊:input-field": {
     color: "primary",
@@ -157,9 +181,13 @@ const defaultParameters: Record<string, any> = {
   },
   "方塊:方塊:card": {
     color: "primary",
-    variant: "solid",
+    variant: "outline",
     direction: "column",
-    padding: "md"
+    children: [
+      {"方塊ID": "方塊:方塊:card-title", "attributes": {}, "children": ["卡片標題"]},
+      {"方塊ID": "方塊:方塊:card-body", "attributes": {}, "children": ["這是卡片內容"]},
+      {"方塊ID": "方塊:方塊:card-foot", "attributes": {}, "children": ["卡片底部"]}
+    ]
   },
   "方塊:方塊:card-title": {
     className: ""
@@ -176,7 +204,13 @@ const defaultParameters: Record<string, any> = {
     direction: "column",
     padding: "lg",
     minHeight: "24rem",
-    fullScreen: false
+    fullScreen: false,
+    children: [
+      {"方塊ID": "方塊:方塊:hero-title", "attributes": {}, "children": ["歡迎來到 WebCube"]},
+      {"方塊ID": "方塊:方塊:hero-subtitle", "attributes": {}, "children": ["快速建構現代化的網頁應用"]},
+      {"方塊ID": "方塊:方塊:hero-content", "attributes": {}, "children": ["WebCube 是一個強大的網頁開發框架"]},
+      {"方塊ID": "方塊:方塊:hero-actions", "attributes": {}, "children": []}
+    ]
   },
   "方塊:方塊:hero-title": {
     className: ""
@@ -218,26 +252,57 @@ const defaultParameters: Record<string, any> = {
   "方塊:方塊:menubar": {
     color: "primary",
     variant: "solid",
-    padding: "md"
+    padding: "md",
+    responsive: true,
+    drawerState: "menuOpen",
+    children: [
+      {"方塊ID": "方塊:方塊:menubar-head", "attributes": {}, "children": [
+        {"type": "span", "attributes": {"class": "font-bold text-xl"}, "children": ["WebCube"]}
+      ]},
+      {"方塊ID": "方塊:方塊:menubar-item", "attributes": {}, "children": [
+        {"方塊ID": "方塊:方塊:link", "attributes": {"href": "/"}, "children": ["首頁"]}
+      ]},
+      {"方塊ID": "方塊:方塊:menubar-item", "attributes": {}, "children": [
+        {"方塊ID": "方塊:方塊:link", "attributes": {"href": "/about"}, "children": ["關於"]}
+      ]},
+      {"方塊ID": "方塊:方塊:menubar-item", "attributes": {}, "children": [
+        {"方塊ID": "方塊:方塊:link", "attributes": {"href": "/services"}, "children": ["服務"]}
+      ]},
+      {"方塊ID": "方塊:方塊:menubar-item", "attributes": {}, "children": [
+        {"方塊ID": "方塊:方塊:link", "attributes": {"href": "/products"}, "children": ["產品"]}
+      ]},
+      {"方塊ID": "方塊:方塊:menubar-item", "attributes": {}, "children": [
+        {"方塊ID": "方塊:方塊:link", "attributes": {"href": "/contact"}, "children": ["聯繫"]}
+      ]},
+      {"方塊ID": "方塊:方塊:menubar-foot", "attributes": {}, "children": [
+        {"方塊ID": "方塊:方塊:button", "attributes": {"variant": "solid", "size": "sm"}, "children": ["登入"]}
+      ]}
+    ]
   },
-  "方塊:方塊:menu-item": {
-    color: "primary",
-    variant: "solid"
-  },
+  "方塊:方塊:menubar-head": {},
+  "方塊:方塊:menubar-item": {},
+  "方塊:方塊:menubar-foot": {},
   "方塊:方塊:select": {
     name: "select",
     placeholder: "請選擇",
     color: "primary",
-    variant: "solid"
-  },
-  "方塊:方塊:select-option": {
-    value: "option",
-    label: "選項"
+    variant: "solid",
+    children: [
+      {"方塊ID": "方塊:方塊:select-option", "attributes": {"value": "option1"}, "children": ["選項 1"]},
+      {"方塊ID": "方塊:方塊:select-option", "attributes": {"value": "option2"}, "children": ["選項 2"]},
+      {"方塊ID": "方塊:方塊:select-option", "attributes": {"value": "option3"}, "children": ["選項 3"]}
+    ]
   },
   "方塊:方塊:list": {
     color: "primary",
     variant: "solid",
-    padding: "md"
+    padding: "md",
+    children: [
+      {"方塊ID": "方塊:方塊:list-title", "attributes": {}, "children": ["列表標題"]},
+      {"方塊ID": "方塊:方塊:list-row", "attributes": {}, "children": ["列表項目 1"]},
+      {"方塊ID": "方塊:方塊:list-row", "attributes": {}, "children": ["列表項目 2"]},
+      {"方塊ID": "方塊:方塊:list-row", "attributes": {}, "children": ["列表項目 3"]}
+    ]
   },
   "方塊:方塊:list-row": {
     color: "primary",
@@ -249,7 +314,13 @@ const defaultParameters: Record<string, any> = {
   },
   "方塊:方塊:steps": {
     color: "primary",
-    variant: "solid"
+    variant: "solid",
+    className:"w-full",
+    children: [
+      {"方塊ID": "方塊:方塊:step", "attributes": {"completed": true}, "children": ["步驟 1"]},
+      {"方塊ID": "方塊:方塊:step", "attributes": {"completed": true}, "children": ["步驟 2"]},
+      {"方塊ID": "方塊:方塊:step", "attributes": {}, "children": ["步驟 3"]}
+    ]
   },
   "方塊:方塊:step": {
     label: "步驟",
@@ -258,25 +329,40 @@ const defaultParameters: Record<string, any> = {
   },
   "方塊:方塊:timeline": {
     color: "primary",
-    variant: "solid"
+    variant: "solid",
+    className:"w-full",
+    children: [
+      {"方塊ID": "方塊:方塊:timeline-item", "attributes": {"start": "1984", "end": "First Macintosh computer", "color": "primary"}, "children": []},
+      {"方塊ID": "方塊:方塊:timeline-item", "attributes": {"start": "1998", "end": "iMac", "color": "secondary"}, "children": []},
+      {"方塊ID": "方塊:方塊:timeline-item", "attributes": {"start": "2001", "end": "iPod", "color": "accent"}, "children": []}
+    ]
   },
   "方塊:方塊:timeline-item": {
     color: "primary",
     variant: "solid",
-    title: "時間軸項目"
+    start: "時間",
+    end: "事件"
   },
   "方塊:方塊:option-picker": {
     color: "primary",
     variant: "solid",
-    title: "選擇選項"
-  },
-  "方塊:方塊:option-item": {
-    value: "option",
-    label: "選項"
+    mode: "single",
+    name: "option",
+    children: [
+      {"方塊ID": "方塊:方塊:option-item", "attributes": {"value": "small"}, "children": ["小"]},
+      {"方塊ID": "方塊:方塊:option-item", "attributes": {"value": "medium"}, "children": ["中"]},
+      {"方塊ID": "方塊:方塊:option-item", "attributes": {"value": "large"}, "children": ["大"]}
+    ]
   },
   "方塊:方塊:book": {
     color: "primary",
-    variant: "solid"
+    variant: "solid",
+    children: [
+      {"方塊ID": "方塊:方塊:book-cover", "attributes": {}, "children": ["書籍封面"]},
+      {"方塊ID": "方塊:方塊:book-page", "attributes": {}, "children": ["第一頁內容"]},
+      {"方塊ID": "方塊:方塊:book-page", "attributes": {}, "children": ["第二頁內容"]},
+      {"方塊ID": "方塊:方塊:book-foot", "attributes": {}, "children": ["書籍底部"]}
+    ]
   },
   "方塊:方塊:book-cover": {
     color: "primary",
@@ -352,9 +438,10 @@ export default async function CubeTestPage(ctx: Context) {
           document.getElementById('cubeForm').submit();
         }
       }`}
-      x-init="updateTextarea()"
+      x-init="Alpine.store('drawers', { menuOpen: false, menuOpen1: false, menuOpen2: false, menuOpen3: false }); updateTextarea()"
     >
       <h1 class="text-3xl font-bold mb-6 text-center">動態方塊測試器</h1>
+      <a href="/test" class="text-primary hover:underline mb-4 inline-block">← 返回測試首頁</a>
 
       <Card className="mb-6" padding="xs" variant="outline">
         <h2 class="text-xl font-semibold mb-4">測試參數</h2>
@@ -407,16 +494,6 @@ export default async function CubeTestPage(ctx: Context) {
               <h3 class="font-semibold mb-2">動態渲染結果:</h3>
               <div class="bg-base-200 rounded min-h-[100px] flex items-center justify-center">
                 {cubeResult}
-              </div>
-            </div>
-            <div>
-              <h3 class="font-semibold mb-2">手動渲染結果 (對比):</h3>
-              <div class="bg-base-200 rounded min-h-[100px] flex items-center justify-center">
-                <InputField color="primary" variant="solid">
-                  <span class="fieldLabel">前綴</span>
-                  <input class="fieldInput" placeholder="請輸入內容" />
-                  <span class="fieldLabelEnd">後綴</span>
-                </InputField>
               </div>
             </div>
           </div>

@@ -13,6 +13,7 @@ export default function MenuItem({
     "flex",
     "items-center",
     "gap-2",
+    color?`text-${color}-content`:"",
     "rounded-md",
     "transition-colors",
     "duration-200",

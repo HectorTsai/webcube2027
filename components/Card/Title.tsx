@@ -18,8 +18,8 @@ export default function CardTitle({
   const processedChildren = processChildren(children, { color, variant, context });
 
   return (
-    <h3 class={finalClasses} {...restProps}>
+    <div class={finalClasses} {...restProps}>
       {processedChildren}
-    </h3>
+    </div>
   );
 }

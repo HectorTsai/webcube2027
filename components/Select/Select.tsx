@@ -18,15 +18,15 @@ export default function Select({
   context,
   ...restProps
 }: SelectProps) {
-  const ref = `$store.selects.${state}`;
-  const selectedLabelRef = `$store.selects.${state}SelectedLabel`;
+  const ref = `$store.popups.${state}`;
+  const selectedLabelRef = `$store.popups.${state}SelectedLabel`;
   
   // 自動初始化 Alpine.js Store 狀態
   const initScript = `
-    if(!Alpine.store('selects')){Alpine.store('selects',{})}
-    if(Alpine.store('selects').${state}===undefined){Alpine.store('selects').${state}=false}
-    if(Alpine.store('selects').${state}SelectedValue===undefined){Alpine.store('selects').${state}SelectedValue='${value || defaultValue || ''}'}
-    if(Alpine.store('selects').${state}SelectedLabel===undefined){Alpine.store('selects').${state}SelectedLabel='${placeholder}'}
+    if(!Alpine.store('popups')){Alpine.store('popups',{})}
+    if(Alpine.store('popups').${state}===undefined){Alpine.store('popups').${state}=false}
+    if(Alpine.store('popups').${state}SelectedValue===undefined){Alpine.store('popups').${state}SelectedValue='${value || defaultValue || ''}'}
+    if(Alpine.store('popups').${state}SelectedLabel===undefined){Alpine.store('popups').${state}SelectedLabel='${placeholder}'}
   `.replace(/\s+/g, ' ').trim();
   
   // 設置容器樣式

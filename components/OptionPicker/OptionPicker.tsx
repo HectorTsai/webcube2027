@@ -9,9 +9,9 @@ export default async function OptionPicker({
   variant = 'outline',
   color = 'primary',
   autoFill = true,
-  gap = 'md',
+  gap = 'none',
   padding = 'md',
-  rounded = 'md',
+  rounded = 'none',
   className = '',
   context,
   ...restProps
@@ -27,7 +27,9 @@ export default async function OptionPicker({
 
   const arrayChildren = Children.toArray(children as any);
   const optionContainers = await Promise.all(arrayChildren.map(async (child: any) => {
-    const isOptionItem = child?.type === OptionItem;
+    // 檢查是否是 OptionItem：直接比較或通過函數名稱比較
+    const childTypeName = child?.type?.name || '';
+    const isOptionItem = child?.type === OptionItem || childTypeName === 'OptionItem';
     if (isOptionItem) {
       const props: Record<string, any> = {
         color: child.props.color ?? color,
@@ -48,7 +50,10 @@ export default async function OptionPicker({
 
   const optionValues: Array<{ value: string; checked: boolean }> = [];
   arrayChildren.forEach((child: any) => {
-    if (child?.type === OptionItem) {
+    // 檢查是否是 OptionItem：直接比較或通過函數名稱比較
+    const childTypeName = child?.type?.name || '';
+    const isOptionItem = child?.type === OptionItem || childTypeName === 'OptionItem';
+    if (isOptionItem) {
       optionValues.push({
         value: child.props?.value,
         checked: child.props?.checked ?? false

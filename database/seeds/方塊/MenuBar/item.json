@@ -7,15 +7,15 @@
     "vi": "Mục menu"
   },
   "描述": {
-    "en": "A menu item component for navigation menus. IMPORTANT FOR AI: This component must be used as a child of MenuBar component and cannot be used alone. Usage example: <MenuBar><MenuItem>Home</MenuItem><MenuItem>About</MenuItem></MenuBar>",
-    "zh-tw": "用於導航選單的選單項目元件。AI注意：此元件必須作為MenuBar元件的子元件使用，無法單獨使用。使用範例：<MenuBar><MenuItem>首頁</MenuItem><MenuItem>關於</MenuItem></MenuBar>",
-    "zh-cn": "用于导航菜单的菜单项元件。AI注意：此元件必须作为MenuBar元件的子元件使用，无法单独使用。使用示例：<MenuBar><MenuItem>首页</MenuItem><MenuItem>关于</MenuItem></MenuBar>",
-    "vi": "Thành phần mục menu cho menu điều hướng. LƯU Ý CHO AI: Thành phần này phải được sử dụng làm con của thành phần MenuBar và không thể sử dụng một mình. Ví dụ sử dụng: <MenuBar><MenuItem>Trang chủ</MenuItem><MenuItem>Giới thiệu</MenuItem></MenuBar>"
+    "en": "A menu item component for navigation menus. IMPORTANT FOR AI: This component must be used as a child of MenuBar component. Children should typically contain Link component for proper styling. Usage example: <MenuBar><MenuItem><Link href=\"/\">Home</Link></MenuItem></MenuBar>",
+    "zh-tw": "用於導航選單的選單項目元件。AI注意：此元件必須作為 MenuBar 元件的子元件使用。children 中通常應包含 Link 元件以獲得正確樣式。使用範例：<MenuBar><MenuItem><Link href=\"/\">首頁</Link></MenuItem></MenuBar>",
+    "zh-cn": "用于导航菜单的菜单项元件。AI注意：此元件必须作为 MenuBar 元件的子元件使用。children 中通常应包含 Link 元件以获得正确样式。使用示例：<MenuBar><MenuItem><Link href=\"/\">首页</Link></MenuItem></MenuBar>",
+    "vi": "Thành phần mục menu cho menu điều hướng. LƯU Ý CHO AI: Thành phần này phải được sử dụng làm con của thành phần MenuBar. Children thường nên chứa thành phần Link để có kiểu đúng. Ví dụ sử dụng: <MenuBar><MenuItem><Link href=\"/\">Trang chủ</Link></MenuItem></MenuBar>"
   },
   "售價": 0,
   "標籤集": ["方塊:標籤:導航", "方塊:標籤:基礎"],
   "模式": "內建",
-  "元件路徑": "MenuBar/MenuItem",
+  "元件路徑": "MenuBar/Item",
   "屬性定義": {
     "children": {
       "type": "any",

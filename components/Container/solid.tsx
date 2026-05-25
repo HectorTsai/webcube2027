@@ -1,5 +1,5 @@
 import type { ContainerProps } from "./index.tsx";
-import { paddingClasses, marginClasses, alignClasses, justifyClasses, gapClasses, roundedClasses, shadowClasses, directionClasses } from "../classes.ts";
+import { paddingClasses, marginClasses, alignClasses, justifyClasses, gapClasses, roundedClasses, shadowClasses, directionClasses, color2TextColor, adjustColorLightOrOpacity } from "../classes.ts";
 import { processChildren } from "../index.ts";
 
 export default function SolidContainer({
@@ -91,8 +91,8 @@ export default function SolidContainer({
 
   // 沒有 activeStateName，使用原本的邏輯
   const colorPrefix = active ? color : "base-70";
-  const textColor = active ? `${color}-content` : "base-content";
-  const hoverColor = active ? `${color}-70` : "base-50";
+  const textColor = color2TextColor(active ? color : "base");
+  const hoverColor = adjustColorLightOrOpacity(active ? color : "base-70", 20, 0);
 
   const finalClasses = [
     "flex",

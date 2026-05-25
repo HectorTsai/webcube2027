@@ -25,8 +25,8 @@ export default function Option({
   const optionClasses = [
     "px-3",
     "py-2",
-    disabled 
-      ? "opacity-30 cursor-not-allowed pointer-events-none" 
+    disabled
+      ? "opacity-30 cursor-not-allowed pointer-events-none"
       : "cursor-pointer hover:bg-base-200 active:bg-base-300",
     className
   ].filter(Boolean).join(" ");
@@ -36,6 +36,7 @@ export default function Option({
 
   return (
     <ListRow
+      color={color}
       data-option-value={value}
       className={optionClasses}
       x-on:click={disabled ? "" : `
@@ -43,12 +44,11 @@ export default function Option({
         const state = parent?.getAttribute('data-select-state') || 'selectOpen';
         const value = '${value}';
         const label = $el.textContent.trim();
-        
+
         if (window.Alpine && Alpine.store) {
-          if (!Alpine.store('selects')) Alpine.store('selects', {});
-          Alpine.store('selects')[state] = false;
-          Alpine.store('selects')[state + 'SelectedValue'] = value;
-          Alpine.store('selects')[state + 'SelectedLabel'] = label;
+          Alpine.store('popups')[state] = false;
+          Alpine.store('popups')[state + 'SelectedValue'] = value;
+          Alpine.store('popups')[state + 'SelectedLabel'] = label;
           $dispatch('select-change', { value: value });
         }
       `}

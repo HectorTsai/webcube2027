@@ -2,12 +2,12 @@ import Book, { Cover, Page, Foot } from "../components/Book/index.tsx";
 
 export default function BookTest() {
   return (
-    <Book color="base">
+    <Book>
       <Cover title="網站申請書" icon="圖示:圖示:web_cube" variant="crystal" color="primary">
         <p class="text-lg">WebCube 2027 專案申請書</p>
       </Cover>
       
-      <Page color="accent" variant="dashed">
+      <Page>
         <div class="space-y-4">
           <h2 class="text-2xl font-bold">第一章：專案概述</h2>
           <p class="text-lg">
@@ -19,7 +19,7 @@ export default function BookTest() {
         </div>
       </Page>
       
-      <Page color="error" variant="dot">
+      <Page>
         <div class="space-y-4">
           <h2 class="text-2xl font-bold">第二章：技術架構</h2>
           <ul class="list-disc list-inside space-y-2">
@@ -32,7 +32,7 @@ export default function BookTest() {
         </div>
       </Page>
       
-      <Page color="warning" variant="outline">
+      <Page color="warning">
         <div class="space-y-4">
           <h2 class="text-2xl font-bold">第三章：功能特色</h2>
           <div class="grid grid-cols-2 gap-4">
@@ -56,7 +56,7 @@ export default function BookTest() {
         </div>
       </Page>
       
-      <Page color="secondary" variant="gradient-cone">
+      <Page color="secondary">
         <div class="space-y-4">
           <h2 class="text-2xl font-bold">第三章：功能特色</h2>
           <div class="grid grid-cols-2 gap-4">
@@ -79,7 +79,7 @@ export default function BookTest() {
           </div>
         </div>
       </Page>
-      <Foot copyright="DUI co., Ltd." publisher="WebCube 2027" color="primary">
+      <Foot copyright="DUI co., Ltd." publisher="WebCube 2027">
         <p class="text-lg">感謝您閱讀本申請書</p>
         <p class="text-sm">如有任何問題，請聯繫我們</p>
       </Foot>

@@ -102,3 +102,64 @@ export const sizeMap = {
   full: "100%",
   auto: "auto",
 };
+
+export function color2TextColor(color: string): string {
+  const base = color.split("/")[0].split("-")[0];
+  return `${base}-content`;
+}
+
+export function getContrastColor(color: string): string {
+  let shade = 500;
+  if (color.includes("/")) {
+    const base = color.split("/")[0];
+    const shadeMatch = base.match(/-(\d+)$/i);
+    if (shadeMatch) shade = parseInt(shadeMatch[1], 10);
+  } else {
+    const shadeMatch = color.match(/-(\d+)$/i);
+    if (shadeMatch) shade = parseInt(shadeMatch[1], 10);
+  }
+  return shade >= 500 ? "base-50" : "base";
+}
+
+export function adjustColorLightOrOpacity(color: string, light: number, opacity: number): string {
+  const clampLight = (v: number) => Math.min(100, Math.max(0, v));
+  const clampOpacity = (v: number) => Math.min(100, Math.max(0, v));
+
+  let base: string, currentLight: number, currentOpacity: number;
+
+  if (color.includes("/")) {
+    const [basePart, opacityPart] = color.split("/");
+    base = basePart;
+    currentOpacity = parseInt(opacityPart, 10);
+    currentLight = 100;
+  } else if (/-(\d+)$/.test(color)) {
+    const match = color.match(/^([a-z]+)-(\d+)$/i);
+    if (match) {
+      base = match[1];
+      currentLight = parseInt(match[2], 10);
+      currentOpacity = 100;
+    } else {
+      base = color;
+      currentLight = 100;
+      currentOpacity = 100;
+    }
+  } else {
+    base = color;
+    currentLight = 100;
+    currentOpacity = 100;
+  }
+
+  const newLight = clampLight(currentLight - light);
+  const newOpacity = clampOpacity(currentOpacity - opacity);
+
+  if (newOpacity === 100) {
+    if (newLight === 100) {
+      return base;
+    }
+    return `${base}-${newLight}`;
+  }
+  if (newLight === 100) {
+    return `${base}/${newOpacity}`;
+  }
+  return `${base}-${newLight}/${newOpacity}`;
+}

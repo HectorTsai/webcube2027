@@ -74,9 +74,9 @@ export default function Popup({
   // 如果啟用自動關閉，點擊內部也關閉
   if (autoClose) {
     // 在 Popup 主體也添加點擊關閉（移除阻止事件冒泡）
-    popupAlpineProps['@click'] = `${ref} = false`;
+    popupAlpine['@click'] = `${ref} = false`;
     // 移除 @click.stop，讓點擊內部也能關閉
-    delete popupAlpineProps['@click.stop'];
+    delete popupAlpine['@click.stop'];
   }
 
   // 處理 children，自動傳遞 color/variant/context
@@ -87,12 +87,12 @@ export default function Popup({
       {/* 全螢幕透明背景層，用於點擊外部關閉 */}
       <div
         class="fixed inset-0 z-30 bg-transparent"
-        {...backdropAlpineProps}
+        {...backdropAlpine}
       />
       {/* Popup 內容 */}
       <div
         class={popupClasses}
-        {...popupAlpineProps}
+        {...popupAlpine}
         {...restProps}
       >
         <Container

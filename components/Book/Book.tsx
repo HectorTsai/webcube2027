@@ -1,4 +1,3 @@
-import { Children, cloneElement } from 'hono/jsx';
 import type { BookProps } from "./index.tsx";
 import Page from "./Page.tsx";
 import Cover from "./Cover.tsx";
@@ -9,7 +8,7 @@ import { processChildren } from "../index.ts";
 export default async function Book({
   children,
   variant = "solid",
-  color = "base",
+  color = "primary",
   width = "full",
   height = "full",
   padding = "sm",
@@ -145,9 +144,7 @@ export default async function Book({
   // 使用 processChildren 處理子元件，並利用 extraPropsFn 處理 Book 特定的邏輯
   let pageCounter = 0;
   const processedChildren = processChildren(
-    children,
-    { color, variant, context },
-    (child: any, index: number) => {
+    children,{ color, variant, context }, (child: any, index: number) => {
       const extraProps: Record<string, any> = {};
       // 只有 Page、Cover、Foot 元件需要額外處理
       const isBookComponent = child?.type === Page || child?.type === Cover || child?.type === Foot;

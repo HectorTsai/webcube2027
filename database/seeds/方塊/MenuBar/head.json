@@ -1,0 +1,34 @@
+{
+  "id": "方塊:方塊:menubar-head",
+  "名稱": {
+    "en": "Menu Head",
+    "zh-tw": "選單標題",
+    "zh-cn": "菜单标题",
+    "vi": "Đầu menu"
+  },
+  "描述": {
+    "en": "Menu bar head section, typically used for logo",
+    "zh-tw": "選單列的標題區域，通常用於放置 Logo",
+    "zh-cn": "菜单栏的标题区域，通常用于放置 Logo",
+    "vi": "Phần đầu của thanh menu, thường dùng cho logo"
+  },
+  "售價": 0,
+  "標籤集": ["方塊:標籤:導航"],
+  "模式": "內建",
+  "元件路徑": "MenuBar/Head",
+  "屬性定義": {
+    "className": {
+      "type": "string",
+      "description": "額外的 CSS 類別",
+      "required": false,
+      "default": ""
+    }
+  },
+  "子方塊": [],
+  "預設參數": {},
+  "對外參數": {},
+  "程式碼": "",
+  "審核狀態": "approved",
+  "上架狀態": true,
+  "可刪除": false
+}

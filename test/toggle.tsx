@@ -1,4 +1,5 @@
 import Toggle, { ToggleProps } from '../components/Toggle.tsx';
+import Span from '../components/Span.tsx';
 
 const svgSet = {
   sun: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>`,
@@ -63,7 +64,9 @@ export default async function ToggleTestPage() {
         <div class="flex flex-wrap gap-6 mt-6">
           {toggleConfigs.map((config) => (
               <div class="flex justify-center items-center min-h-24 p-4 bg-base-200 rounded-lg">
-                {Toggle({ size: 'lg', label: config.title, ...config.props })}
+                <Toggle size="lg" {...config.props}>
+                  <Span language="zh-tw">{config.title}</Span>
+                </Toggle>
               </div>
           ))}
         </div>
@@ -75,7 +78,9 @@ export default async function ToggleTestPage() {
           {sizeVariants.map((variant) => (
             <div class="card bg-base-100 shadow-md p-4 flex flex-col items-center gap-4">
               <div class="flex justify-center items-center min-h-24 p-4 bg-base-200 rounded-lg">
-                {Toggle({ size: variant, label: `尺寸 ${String(variant).toUpperCase()}` })}
+                <Toggle size={variant}>
+                  <Span language="zh-tw">{`尺寸 ${String(variant).toUpperCase()}`}</Span>
+                </Toggle>
               </div>
             </div>
           ))}
@@ -88,11 +93,12 @@ export default async function ToggleTestPage() {
           {colorVariants.map((variant) => (
             <div class="card bg-base-100 shadow-md p-4 flex flex-col items-center gap-4">
               <div class="flex justify-center items-center min-h-24 p-4 bg-base-200 rounded-lg">
-                {Toggle({
-                  size: 'md',
-                  color: variant as ToggleProps['color'],
-                  label: `顏色 ${String(variant).toUpperCase()}`,
-                })}
+                <Toggle
+                  size="md"
+                  color={variant as ToggleProps['color']}
+                >
+                  <Span language="zh-tw">{`顏色 ${String(variant).toUpperCase()}`}</Span>
+                </Toggle>
               </div>
             </div>
           ))}
@@ -100,40 +106,48 @@ export default async function ToggleTestPage() {
       </section>
       
       <section>
-        <h2 class="text-2xl font-semibold mb-4">Label 布局測試</h2>
-        <p class="text-base-content/70 mb-4">測試 label 在寬度不足時的換行效果</p>
+        <h2 class="text-2xl font-semibold mb-4">Children 布局測試</h2>
+        <p class="text-base-content/70 mb-4">測試 children 在寬度不足時的換行效果</p>
         
         <div class="space-y-6">
           <div class="card bg-base-100 shadow-md p-4">
-            <h3 class="text-lg font-semibold mb-2">正常寬度 - label 在右邊</h3>
+            <h3 class="text-lg font-semibold mb-2">正常寬度 - Children 在右邊</h3>
             <div class="flex justify-center items-center min-h-24 p-4 bg-base-200 rounded-lg">
-              {Toggle({ size: 'md', label: '正常標籤文字' })}
+              <Toggle size="md">
+                <Span language="zh-tw">正常標籤文字</Span>
+              </Toggle>
             </div>
-            <p class="text-sm text-base-content/70 mt-2">正常寬度時，label 顯示在 toggle 右邊</p>
+            <p class="text-sm text-base-content/70 mt-2">正常寬度時，Children 顯示在 toggle 右邊</p>
           </div>
           
           <div class="card bg-base-100 shadow-md p-4">
             <h3 class="text-lg font-semibold mb-2">中等寬度 - 長文字測試</h3>
             <div class="w-64 flex justify-center items-center min-h-24 p-4 bg-base-200 rounded-lg">
-              {Toggle({ size: 'md', label: '這是一個中等長度的標籤文字，測試換行效果' })}
+              <Toggle size="md">
+                <Span language="zh-tw">這是一個中等長度的標籤文字，測試換行效果</Span>
+              </Toggle>
             </div>
-            <p class="text-sm text-base-content/70 mt-2">寬度 64 (w-64)，label 可能換行</p>
+            <p class="text-sm text-base-content/70 mt-2">寬度 64 (w-64)，Children 可能換行</p>
           </div>
           
           <div class="card bg-base-100 shadow-md p-4">
             <h3 class="text-lg font-semibold mb-2">窄容器測試</h3>
             <div class="w-48 flex justify-center items-center min-h-24 p-4 bg-base-200 rounded-lg">
-              {Toggle({ size: 'md', label: '這是一個非常長的標籤文字，當容器寬度不足時會自動換行到下方' })}
+              <Toggle size="md">
+                <Span language="zh-tw">這是一個非常長的標籤文字，當容器寬度不足時會自動換行到下方</Span>
+              </Toggle>
             </div>
-            <p class="text-sm text-base-content/70 mt-2">寬度 48 (w-48)，label 會換行到下方</p>
+            <p class="text-sm text-base-content/70 mt-2">寬度 48 (w-48)，Children 會換行到下方</p>
           </div>
           
           <div class="card bg-base-100 shadow-md p-4">
             <h3 class="text-lg font-semibold mb-2">極窄容器測試</h3>
             <div class="w-32 flex justify-center items-center min-h-24 p-4 bg-base-200 rounded-lg">
-              {Toggle({ size: 'md', label: '超長標籤文字測試，驗證換行效果' })}
+              <Toggle size="md">
+                <Span language="zh-tw">超長標籤文字測試，驗證換行效果</Span>
+              </Toggle>
             </div>
-            <p class="text-sm text-base-content/70 mt-2">寬度 32 (w-32)，label 一定會換行到下方</p>
+            <p class="text-sm text-base-content/70 mt-2">寬度 32 (w-32)，Children 一定會換行到下方</p>
           </div>
         </div>
       </section>
@@ -149,7 +163,8 @@ export default async function ToggleTestPage() {
           <li><strong>defaultChecked</strong>: 預設選中狀態</li>
           <li><strong>disabled</strong>: 禁用狀態</li>
           <li>圓角使用 <code>rounded-sm</code></li>
-          <li><strong>Label 布局</strong>: 當容器寬度不足時，label 文字會自動換行到 toggle 下方</li>
+          <li><strong>Children 布局</strong>: 當容器寬度不足時，Children 文字會自動換行到 toggle 下方</li>
+          <li><strong>多國語言支援</strong>: 使用 <code>&lt;Span language="zh-tw"&gt;</code> 支援多國語言</li>
         </ul>
       </div>
     </div>

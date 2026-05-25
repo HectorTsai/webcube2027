@@ -76,7 +76,9 @@ export default class 動態方塊JSX解析器 {
 
       // 使用 createVariantComponent 動態載入元件
       const createComponent = createVariantComponent(方塊定義.元件路徑);
-      const jsxElement = await createComponent(內容拷貝);
+
+      // 返回 JSX 元素而不是渲染結果，這樣 Children.toArray 和 cloneElement 才能正常工作
+      const jsxElement = jsx(createComponent as any, 內容拷貝 as any);
 
       await info('動態方塊JSX解析器', `內建方塊渲染完成: ${方塊定義.元件路徑}`);
       return jsxElement;
@@ -95,7 +97,9 @@ export default class 動態方塊JSX解析器 {
     for (const child of children) {
       if (child.方塊ID) {
         // 遞迴解析時深度 + 1
-        const 子方塊JSX = await this.解析(child.方塊ID, child.參數, context, 深度 + 1);
+        // children 在 child 上，不在 child.attributes 上
+        const componentProps = { ...child.attributes, children: child.children, context };
+        const 子方塊JSX = await this.解析(child.方塊ID, componentProps, context, 深度 + 1);
         解析後的Children.push(子方塊JSX);
       } else if (child.type) {
         // 這是一個原生 HTML 元素

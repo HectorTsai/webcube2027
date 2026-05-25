@@ -62,8 +62,8 @@ export default function Page({
   const processedChildren = processChildren(children, { color, variant, context });
 
   return (
-    <div class="book-page box-border">
-      <Container color={color} variant={variant} width="full" height="full" className={baseClasses} context={context} {...props}>
+    <div class="book-page box-border bg-base">
+      <Container color={`${color}/25`} variant={variant} width="full" height="full" className={baseClasses} context={context} {...props}>
         <div class="flex-1">{processedChildren}</div>
         {pageNumber && ( <div class={pageNumberClasses}>{pageNumber}</div>)}
       </Container>

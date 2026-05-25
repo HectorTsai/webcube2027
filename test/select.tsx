@@ -47,20 +47,20 @@ export default function SelectTestPage() {
   const iconSelect = (
     <Select state="iconSelect" placeholder="選擇一個圖示選項">
       <Option value="home">
-        <Icon id="圖示:圖示:home" class="w-4 h-4 mr-2" />
+        <Icon id="圖示:圖示:首頁" class="w-4 h-4 mr-2" />
         首頁
       </Option>
       <Option value="settings">
-        <Icon id="圖示:圖示:info" class="w-4 h-4 mr-2" />
+        <Icon id="圖示:圖示:資訊" class="w-4 h-4 mr-2" />
         設定
       </Option>
       <Option value="user">
-        <Icon id="圖示:圖示:user" class="w-4 h-4 mr-2" />
+        <Icon id="圖示:圖示:使用者" class="w-4 h-4 mr-2" />
         用戶
       </Option>
       <Option value="divider" divider />
       <Option value="logout">
-        <Icon id="圖示:圖示:phone" class="w-4 h-4 mr-2" />
+        <Icon id="圖示:圖示:電話" class="w-4 h-4 mr-2" />
         登出
       </Option>
     </Select>

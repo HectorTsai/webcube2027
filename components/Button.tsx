@@ -11,8 +11,6 @@ export interface ButtonProps extends ComponentProps {
   active?: boolean;
   /** Button type for form submission behavior */
   type?: "button" | "submit" | "reset";
-  /** Alpine.js click event handler - JavaScript expression to execute when clicked */
-  onClick?: string;
   [key: string]: any;
 }
 
@@ -24,10 +22,8 @@ export default async function Button({
   disabled = false,
   active = true,
   type = "button",
-  onClick,
   className,
   context,
-  /** Any additional props (including Alpine.js x- attributes and event handlers) */
   ...restProps
 }: ButtonProps) {
   const sizeClasses = {
@@ -58,11 +54,6 @@ export default async function Button({
 
   const containerClasses = finalContainerClasses.filter(Boolean).join(" ");
 
-  const alpineProps: Record<string, string> = {};
-  if (onClick) {
-    alpineProps['@click'] = onClick;
-  }
-
   // 處理 children，自動傳遞 color/variant/context
   const processedChildren = processChildren(children, { color, variant, context });
 
@@ -86,7 +77,6 @@ export default async function Button({
       type={type}
       disabled={disabled}
       class={buttonClasses}
-      {...alpineProps}
       {...restProps}
     >
       {container}

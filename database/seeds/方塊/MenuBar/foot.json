@@ -1,0 +1,34 @@
+{
+  "id": "方塊:方塊:menubar-foot",
+  "名稱": {
+    "en": "Menu Foot",
+    "zh-tw": "選單底部",
+    "zh-cn": "菜单底部",
+    "vi": "Chân menu"
+  },
+  "描述": {
+    "en": "Menu bar foot section, typically used for login button or actions",
+    "zh-tw": "選單列的底部區域，通常用於放置登入按鈕或操作",
+    "zh-cn": "菜单栏的底部区域，通常用于放置登录按钮或操作",
+    "vi": "Phần chân của thanh menu, thường dùng cho nút đăng nhập hoặc các hành động"
+  },
+  "售價": 0,
+  "標籤集": ["方塊:標籤:導航"],
+  "模式": "內建",
+  "元件路徑": "MenuBar/Foot",
+  "屬性定義": {
+    "className": {
+      "type": "string",
+      "description": "額外的 CSS 類別",
+      "required": false,
+      "default": ""
+    }
+  },
+  "子方塊": [],
+  "預設參數": {},
+  "對外參數": {},
+  "程式碼": "",
+  "審核狀態": "approved",
+  "上架狀態": true,
+  "可刪除": false
+}

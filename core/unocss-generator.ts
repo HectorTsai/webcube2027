@@ -75,7 +75,7 @@ export class UnoCSS生成器 {
         if (value.includes(' ')) {
           const [l, c, h] = value.split(' ');
           variables.push(`  --${key}-l: ${l};`);
-          
+
           // 在 TypeScript 中判斷亮色系還是暗色系
           const lNum = parseFloat(l);
           const isLightColor = lNum > 50;
@@ -87,6 +87,12 @@ export class UnoCSS生成器 {
             variables.push(`  --color-${key}-light-50: calc(max(20%, var(--${key}-l) - 20%)) ${c} ${h};`);    // 中等暗
             variables.push(`  --color-${key}-light-30: calc(max(20%, var(--${key}-l) - 30%)) ${c} ${h};`);    // 明暗
             variables.push(`  --color-${key}-light-10: calc(max(20%, var(--${key}-l) - 40%)) ${c} ${h};`);    // 最暗
+            // 亮色系：數字越大結果越暗 → light-90 最暗用白色，其他用黑色
+            variables.push(`  --color-${key}-light-90-content: 100% 0 0;`);  // 白色
+            variables.push(`  --color-${key}-light-70-content: 0% 0 0;`);      // 黑色
+            variables.push(`  --color-${key}-light-50-content: 0% 0 0;`);      // 黑色
+            variables.push(`  --color-${key}-light-30-content: 0% 0 0;`);      // 黑色
+            variables.push(`  --color-${key}-light-10-content: 0% 0 0;`);      // 黑色
           } else {
             // 暗色系：變亮
             variables.push(`  --color-${key}-light-90: calc(var(--${key}-l)) ${c} ${h};`);                    // 接近原色
@@ -94,6 +100,12 @@ export class UnoCSS生成器 {
             variables.push(`  --color-${key}-light-50: calc(var(--${key}-l) + 20%) ${c} ${h};`);           // 中等亮
             variables.push(`  --color-${key}-light-30: calc(var(--${key}-l) + 30%) ${c} ${h};`);           // 明亮
             variables.push(`  --color-${key}-light-10: calc(min(95%, var(--${key}-l) + 40%)) ${c} ${h};`); // 最亮
+            // 暗色系：數字越大結果越亮 → light-90 最暗用白色，light-70 可能是邊界，其他用黑色
+            variables.push(`  --color-${key}-light-90-content: 100% 0 0;`);  // 白色
+            variables.push(`  --color-${key}-light-70-content: 100% 0 0;`);    // 白色（接近邊界）
+            variables.push(`  --color-${key}-light-50-content: 0% 0 0;`);      // 黑色
+            variables.push(`  --color-${key}-light-30-content: 0% 0 0;`);      // 黑色
+            variables.push(`  --color-${key}-light-10-content: 0% 0 0;`);      // 黑色
           }
         }
       }
@@ -226,6 +238,11 @@ export class UnoCSS生成器 {
         50: 'oklch(var(--color-primary-light-50) / %alpha)',
         70: 'oklch(var(--color-primary-light-70) / %alpha)',
         90: 'oklch(var(--color-primary-light-90) / %alpha)',
+        '10-content': 'oklch(var(--color-primary-light-10-content) / %alpha)',
+        '30-content': 'oklch(var(--color-primary-light-30-content) / %alpha)',
+        '50-content': 'oklch(var(--color-primary-light-50-content) / %alpha)',
+        '70-content': 'oklch(var(--color-primary-light-70-content) / %alpha)',
+        '90-content': 'oklch(var(--color-primary-light-90-content) / %alpha)',
       },
       secondary: {
         DEFAULT: 'oklch(var(--color-secondary) / %alpha)',
@@ -235,6 +252,11 @@ export class UnoCSS生成器 {
         50: 'oklch(var(--color-secondary-light-50) / %alpha)',
         70: 'oklch(var(--color-secondary-light-70) / %alpha)',
         90: 'oklch(var(--color-secondary-light-90) / %alpha)',
+        '10-content': 'oklch(var(--color-secondary-light-10-content) / %alpha)',
+        '30-content': 'oklch(var(--color-secondary-light-30-content) / %alpha)',
+        '50-content': 'oklch(var(--color-secondary-light-50-content) / %alpha)',
+        '70-content': 'oklch(var(--color-secondary-light-70-content) / %alpha)',
+        '90-content': 'oklch(var(--color-secondary-light-90-content) / %alpha)',
       },
       accent: {
         DEFAULT: 'oklch(var(--color-accent) / %alpha)',
@@ -244,6 +266,11 @@ export class UnoCSS生成器 {
         50: 'oklch(var(--color-accent-light-50) / %alpha)',
         70: 'oklch(var(--color-accent-light-70) / %alpha)',
         90: 'oklch(var(--color-accent-light-90) / %alpha)',
+        '10-content': 'oklch(var(--color-accent-light-10-content) / %alpha)',
+        '30-content': 'oklch(var(--color-accent-light-30-content) / %alpha)',
+        '50-content': 'oklch(var(--color-accent-light-50-content) / %alpha)',
+        '70-content': 'oklch(var(--color-accent-light-70-content) / %alpha)',
+        '90-content': 'oklch(var(--color-accent-light-90-content) / %alpha)',
       },
       neutral: {
         DEFAULT: 'oklch(var(--color-neutral) / %alpha)',
@@ -253,6 +280,11 @@ export class UnoCSS生成器 {
         50: 'oklch(var(--color-neutral-light-50) / %alpha)',
         70: 'oklch(var(--color-neutral-light-70) / %alpha)',
         90: 'oklch(var(--color-neutral-light-90) / %alpha)',
+        '10-content': 'oklch(var(--color-neutral-light-10-content) / %alpha)',
+        '30-content': 'oklch(var(--color-neutral-light-30-content) / %alpha)',
+        '50-content': 'oklch(var(--color-neutral-light-50-content) / %alpha)',
+        '70-content': 'oklch(var(--color-neutral-light-70-content) / %alpha)',
+        '90-content': 'oklch(var(--color-neutral-light-90-content) / %alpha)',
       },
       base: {
         DEFAULT: 'oklch(var(--color-base) / %alpha)',
@@ -262,6 +294,11 @@ export class UnoCSS生成器 {
         50: 'oklch(var(--color-base-light-50) / %alpha)',
         70: 'oklch(var(--color-base-light-70) / %alpha)',
         90: 'oklch(var(--color-base-light-90) / %alpha)',
+        '10-content': 'oklch(var(--color-base-light-10-content) / %alpha)',
+        '30-content': 'oklch(var(--color-base-light-30-content) / %alpha)',
+        '50-content': 'oklch(var(--color-base-light-50-content) / %alpha)',
+        '70-content': 'oklch(var(--color-base-light-70-content) / %alpha)',
+        '90-content': 'oklch(var(--color-base-light-90-content) / %alpha)',
       },
       info: {
         DEFAULT: 'oklch(var(--color-info) / %alpha)',
@@ -271,6 +308,11 @@ export class UnoCSS生成器 {
         50: 'oklch(var(--color-info-light-50) / %alpha)',
         70: 'oklch(var(--color-info-light-70) / %alpha)',
         90: 'oklch(var(--color-info-light-90) / %alpha)',
+        '10-content': 'oklch(var(--color-info-light-10-content) / %alpha)',
+        '30-content': 'oklch(var(--color-info-light-30-content) / %alpha)',
+        '50-content': 'oklch(var(--color-info-light-50-content) / %alpha)',
+        '70-content': 'oklch(var(--color-info-light-70-content) / %alpha)',
+        '90-content': 'oklch(var(--color-info-light-90-content) / %alpha)',
       },
       success: {
         DEFAULT: 'oklch(var(--color-success) / %alpha)',
@@ -280,6 +322,11 @@ export class UnoCSS生成器 {
         50: 'oklch(var(--color-success-light-50) / %alpha)',
         70: 'oklch(var(--color-success-light-70) / %alpha)',
         90: 'oklch(var(--color-success-light-90) / %alpha)',
+        '10-content': 'oklch(var(--color-success-light-10-content) / %alpha)',
+        '30-content': 'oklch(var(--color-success-light-30-content) / %alpha)',
+        '50-content': 'oklch(var(--color-success-light-50-content) / %alpha)',
+        '70-content': 'oklch(var(--color-success-light-70-content) / %alpha)',
+        '90-content': 'oklch(var(--color-success-light-90-content) / %alpha)',
       },
       warning: {
         DEFAULT: 'oklch(var(--color-warning) / %alpha)',
@@ -289,6 +336,11 @@ export class UnoCSS生成器 {
         50: 'oklch(var(--color-warning-light-50) / %alpha)',
         70: 'oklch(var(--color-warning-light-70) / %alpha)',
         90: 'oklch(var(--color-warning-light-90) / %alpha)',
+        '10-content': 'oklch(var(--color-warning-light-10-content) / %alpha)',
+        '30-content': 'oklch(var(--color-warning-light-30-content) / %alpha)',
+        '50-content': 'oklch(var(--color-warning-light-50-content) / %alpha)',
+        '70-content': 'oklch(var(--color-warning-light-70-content) / %alpha)',
+        '90-content': 'oklch(var(--color-warning-light-90-content) / %alpha)',
       },
       error: {
         DEFAULT: 'oklch(var(--color-error) / %alpha)',
@@ -298,6 +350,11 @@ export class UnoCSS生成器 {
         50: 'oklch(var(--color-error-light-50) / %alpha)',
         70: 'oklch(var(--color-error-light-70) / %alpha)',
         90: 'oklch(var(--color-error-light-90) / %alpha)',
+        '10-content': 'oklch(var(--color-error-light-10-content) / %alpha)',
+        '30-content': 'oklch(var(--color-error-light-30-content) / %alpha)',
+        '50-content': 'oklch(var(--color-error-light-50-content) / %alpha)',
+        '70-content': 'oklch(var(--color-error-light-70-content) / %alpha)',
+        '90-content': 'oklch(var(--color-error-light-90-content) / %alpha)',
       },
     };
   }
