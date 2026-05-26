@@ -33,7 +33,7 @@ export default function Foot({
 
   return (
     <div class="book-foot book-page box-border">
-      <Container variant={variant} color={color} width="full" height="full" className={baseClasses} context={context} {...props}>
+      <Container variant={variant} color={`${color}-70`} width="full" height="full" className={baseClasses} context={context} {...props}>
         {children && (<div class="text-lg">{processedChildren}</div>)}
       
         {/* 出版資訊 */}

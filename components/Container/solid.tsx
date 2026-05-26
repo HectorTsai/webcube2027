@@ -55,11 +55,11 @@ export default function SolidContainer({
     ].filter(Boolean).join(" ");
 
     // 完整類別（結構 + 顏色）
-    const activeFullClasses = `${baseClasses} text-${color}-content bg-${color} `;
-    const activeHoverClasses = `${baseClasses} bg-${color}-70 text-${color}-content `;
+    const activeFullClasses = `${baseClasses} ${color2TextColor(color)} bg-${color} `;
+    const activeHoverClasses = `${baseClasses} ${adjustColorLightOrOpacity(`bg-${color}`,20,0)} ${color2TextColor(color)} `;
     const inactiveFullClasses = `${baseClasses} bg-base-70 text-base-content `;
     const inactiveHoverClasses = `${baseClasses} bg-base-50 text-base-content `;
-
+``
     if (hover) {
       return (
         <div 
@@ -106,7 +106,7 @@ export default function SolidContainer({
     justifyClasses[justify],
     gapClasses[gap],
     `bg-${colorPrefix}`,
-    `text-${textColor}`,
+    textColor,
     roundedClasses[rounded],
     hover ? `hover:bg-${hoverColor}` : undefined,
     hover ? "transition-all duration-200" : undefined

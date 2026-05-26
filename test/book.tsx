@@ -2,8 +2,8 @@ import Book, { Cover, Page, Foot } from "../components/Book/index.tsx";
 
 export default function BookTest() {
   return (
-    <Book>
-      <Cover title="網站申請書" icon="圖示:圖示:web_cube" variant="crystal" color="primary">
+    <Book variant="dot">
+      <Cover title="網站申請書" icon="圖示:圖示:web_cube" color="primary">
         <p class="text-lg">WebCube 2027 專案申請書</p>
       </Cover>
       

@@ -63,7 +63,7 @@ export default function Page({
 
   return (
     <div class="book-page box-border bg-base">
-      <Container color={`${color}-90`} variant={variant} width="full" height="full" className={baseClasses} context={context} {...props}>
+      <Container color={`${color}-70`} variant={variant} width="full" height="full" className={baseClasses} context={context} {...props}>
         <div class="flex-1">{processedChildren}</div>
         {pageNumber && ( <div class={pageNumberClasses}>{pageNumber}</div>)}
       </Container>

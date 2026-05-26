@@ -64,7 +64,7 @@ export class UnoCSS生成器 {
           
           // 根據 LCH 亮度決定文字顏色
           // 亮度 > 70% 用黑色文字，否則用白色文字
-          const contentColor = lNum > 70 ? 'oklch(0% 0 0)' : 'oklch(100% 0 0)';
+          const contentColor = lNum > 70 ? '0% 0 0' : '100% 0 0';
           variables.push(`  --color-${key}-content: ${contentColor};`);
         }
       }
@@ -99,7 +99,7 @@ export class UnoCSS生成器 {
           for (const shade of shades) {
             const finalL = shadeLightValues[shade];
             variables.push(`  --color-${key}-light-${shade}: ${finalL}% ${c} ${h};`);
-            const contentColor = finalL > 70 ? 'oklch(0% 0 0)' : 'oklch(100% 0 0)';
+            const contentColor = finalL > 70 ? '0% 0 0' : '100% 0 0';
             variables.push(`  --color-${key}-light-${shade}-content: ${contentColor};`);
           }
         }
@@ -554,20 +554,19 @@ export class UnoCSS生成器 {
   private 提取顏色Classes() {
     const colors: string[] = [];
     const theme = this.getTheme().colors as any;
-    
+
     for (const [colorName, colorConfig] of Object.entries(theme)) {
-      if (typeof colorConfig === 'string') {
-        // 基礎顏色
+      if (typeof colorConfig === 'object' && colorConfig !== null) {
+        const config = colorConfig as Record<string, any>;
         colors.push(`bg-${colorName}`, `text-${colorName}`, `border-${colorName}`);
-        
-        // content 顏色 - 檢查 theme 中是否有對應的 content 變數
-        if (theme[`${colorName}-content` as string]) {
+        if (config.content) {
           colors.push(`text-${colorName}-content`);
         }
-        
-        // 亮度變數
         for (let i = 10; i <= 90; i += 20) {
-          colors.push(`bg-${colorName}-${i}`);
+          if (config[i]) {
+            colors.push(`bg-${colorName}-${i}`);
+            colors.push(`text-${colorName}-${i}-content`);
+          }
         }
       }
     }

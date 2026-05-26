@@ -110,11 +110,11 @@ export function color2TextColor(color: string): string {
   if (parts.length > 1 && /^\d+$/.test(parts[parts.length - 1])) {
     const base = parts.slice(0, -1).join("-");
     const shade = parts[parts.length - 1];
-    return `${base}-${shade}-content`;
+    return `text-${base}-${shade}-content`;
   }
   
   const base = parts[0];
-  return `${base}-content`;
+  return `text-${base}-content`;
 }
 
 const 支援的Shade = [10, 30, 50, 70, 90];

@@ -38,7 +38,7 @@ export default async function Cover({
 
   return (
     <div class="book-cover book-page box-border" >
-      <Container color={color} variant={variant} width="full" height="full" className={baseClasses} context={context} {...props}>
+      <Container color={`${color}-70`} variant={variant} width="full" height="full" className={baseClasses} context={context} {...props}>
         {(icon || svg || src) && (
           <div class="mb-4">
             <Icon id={icon} svg={svg} src={src} size="4xl" context={context} />

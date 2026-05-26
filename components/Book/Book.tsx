@@ -8,7 +8,7 @@ import { processChildren } from "../index.ts";
 export default async function Book({
   children,
   variant = "solid",
-  color = "primary",
+  color = "base",
   width = "full",
   height = "full",
   padding = "sm",
