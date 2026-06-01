@@ -1,124 +1,63 @@
+// Container/crystal.tsx - 水晶玻璃容器 (AI 友善、Inactive 微光邊框防禦完全體)
 import type { ContainerProps } from "./index.tsx";
-import { paddingClasses, marginClasses, alignClasses, justifyClasses, gapClasses, roundedClasses, shadowClasses, directionClasses } from "../classes.ts";
+import { 準備Container基底 } from "./index.tsx"; // 💡 新架構核心：全面接管尺寸、結構類名與 inline style
+import { parseColor, CONTAINER_STORE_INIT, 過濾無效Props } from "../classes.ts";
 import { processChildren } from "../index.ts";
 
-export default function CrystalContainer({
-  children,
-  direction = "column",
-  color = "primary",
-  variant,
-  context,
-  width = "auto",
-  height = "auto",
-  padding = "md",
-  margin = "none",
-  align = "start",
-  justify = "start",
-  gap = "none",
-  rounded = "lg",
-  shadow = "none",
-  active = true,
-  activeStateName,
-  hover = false,
-  className,
-  ...restProps}: ContainerProps) {
+export default function CrystalContainer(props: ContainerProps) {
+  // 1. 呼叫基礎大腦，取得結構類名與基礎 inline style (處理寬高、Padding、Margin、圓角、陰影、Flex 方向)
+  const { inlineStyles, baseClassesStr } = 準備Container基底(props);
 
-  const widthStyle = (width === "full" || width === "auto") ? undefined : width;
-  const heightStyle = (height === "full" || height === "auto") ? undefined : height;
-  const widthClass = (width === "full" || width === "auto") ? `w-${width}` : undefined;
-  const heightClass = (height === "full" || height === "auto") ? `h-${height}` : undefined;
+  // 2. 提取屬性與狀態
+  const { color = "primary", active = true, activeStateName, hover = false, children, variant, context, ...rest } = props;
 
-  // 處理 children，自動傳遞 color/variant/context
+  // 3. 處理 children，自動傳遞 color/variant/context
   const processedChildren = processChildren(children, { color, variant, context });
 
-  // 結構性類別（不含顏色）
-  const baseClasses = [
-    "flex",
-    "box-border",
-    directionClasses[direction],
-    widthClass,
-    heightClass,
-    paddingClasses[padding],
-    marginClasses[margin],
-    alignClasses[align],
-    justifyClasses[justify],
-    gapClasses[gap],
-    "border-0",
-    roundedClasses[rounded],
-    shadowClasses[shadow],
-    hover ? "transition-all duration-200" : undefined,
-    className
-  ].filter(Boolean).join(" ");
+  // ---------------------------------------------------------
+  // 4. AI 友善防禦與微光邊框矩陣
+  // ---------------------------------------------------------
+  const parsedColor = parseColor(color);
+  const actBg = parsedColor.base; // 強行只取 base 名稱，如 primary
+  const inactBg = "base";          // 對齊系統最穩固的水晶中性字串
 
-  // 完整類別（結構 + 顏色）
-  const activeFullClasses = `${baseClasses} text-${color}-content bg-crystal-${color} `;
-  const activeHoverClasses = `${baseClasses} text-${color}-content bg-crystal-hover-${color} `;
-  const inactiveFullClasses = `${baseClasses} text-base-content bg-crystal-base `;
-  const inactiveHoverClasses = `${baseClasses} text-base-content bg-crystal-hover-base `;
+  // 🟢 激活狀態樣式：維持無邊框的純粹水晶感 (`border-0`)
+  const activeFull = `border-0 bg-crystal-${actBg} ${hover ? `hover:bg-crystal-hover-${actBg}` : ""} text-${color}-30-content`;
+  
+  // 🎯 未激活狀態樣式：神來之筆！加上 border-base-70，徹底拯救消融現象，拉出高級精緻輪廓線！
+  const inactiveFull = `border border-solid border-base-70/30 bg-crystal-${inactBg} ${hover ? `hover:bg-crystal-hover-${inactBg}` : ""} text-base-30-content`;
 
-  // 如果有 activeStateName，使用 Alpine.js store 動態控制 active 狀態
-  if (activeStateName) {
-    const initScript = `
-      if(!Alpine.store('Container')){Alpine.store('Container',{})}
-      if(Alpine.store('Container').${activeStateName}===undefined){Alpine.store('Container').${activeStateName}=${active}}
-    `.replace(/\s+/g, ' ').trim();
+  const hoverClasses = hover ? "transition-all duration-300" : "";
 
-    if (hover) {
-      return (
-        <div 
-          x-data={`{ hover: false }`}
-          x-init={initScript}
-          x-on:mouseenter="hover = true"
-          x-on:mouseleave="hover = false"
-          x-bind:class={`$store.Container.${activeStateName} ? (hover ? '${activeHoverClasses}' : '${activeFullClasses}') : (hover ? '${inactiveHoverClasses}' : '${inactiveFullClasses}')`}
-          style={{ width: widthStyle, height: heightStyle }}
-          {...restProps}
-        >
-          {processedChildren}
-        </div>
-      );
-    }
+  // ---------------------------------------------------------
+  // 5A. 純靜態渲染模式 (沒有 Alpine.js 動態狀態時)
+  // ---------------------------------------------------------
+  if (!activeStateName) {
+    const bgAndTextClasses = active ? activeFull : inactiveFull;
 
     return (
-      <div 
-        x-data
-        x-init={initScript}
-        x-bind:class={`$store.Container.${activeStateName} ? '${activeFullClasses}' : '${inactiveFullClasses}'`}
-        style={{ width: widthStyle, height: heightStyle }}
-        {...restProps}
+      <div
+        class={`${baseClassesStr} ${bgAndTextClasses} ${hoverClasses}`.trim()}
+        style={inlineStyles}
+        {...過濾無效Props(rest)}
       >
         {processedChildren}
       </div>
     );
   }
 
-  // 沒有 activeStateName，使用原本的邏輯
-  const colorPrefix = active ? color : `base`;
-  const textColor = active ? `${color}-content` : `base-content`;
-  const hoverColor = active ? `hover-${color}` : `hover-base`;
-
-  const finalClasses = [
-    "flex",
-    "box-border",
-    directionClasses[direction],
-    widthClass,
-    heightClass,
-    paddingClasses[padding],
-    marginClasses[margin],
-    alignClasses[align],
-    justifyClasses[justify],
-    gapClasses[gap],
-    `text-${textColor}`,
-    "border-0",
-    roundedClasses[rounded],
-    shadowClasses[shadow],
-    `bg-crystal-${colorPrefix}`,
-    hover ? `hover:bg-crystal-${hoverColor}` : undefined,
-    hover ? "transition-all duration-200" : undefined,
-    className
-  ];
-
-  const classes = finalClasses.filter(Boolean).join(" ");
-
-  return <div class={classes} style={{ width: widthStyle, height: heightStyle }} {...restProps}>{processedChildren}</div>;
+  // ---------------------------------------------------------
+  // 5B. Alpine.js 動態狀態模式 (完美動態切換：Active(無邊框) 🔁 Inactive(精緻邊框))
+  // ---------------------------------------------------------
+  return (
+    <div
+      class={`${baseClassesStr} ${hoverClasses}`.trim()}
+      style={inlineStyles}
+      x-init={CONTAINER_STORE_INIT(activeStateName, active)}
+      x-bind:class={`$store.Container.${activeStateName} ? '${activeFull}' : '${inactiveFull}'`}
+      {...過濾無效Props(rest)}
+    >
+      {processedChildren}
+    </div>
+  );
 }

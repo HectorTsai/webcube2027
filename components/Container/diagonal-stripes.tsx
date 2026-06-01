@@ -1,152 +1,96 @@
-import type { ContainerProps } from "./index.tsx";
-import { paddingClasses, marginClasses, alignClasses, justifyClasses, gapClasses, roundedClasses, shadowClasses, directionClasses } from "../classes.ts";
-import { processChildren } from "../index.ts";
+// Container/diagonal-stripes.tsx - 斜線條紋：主色帶 + 同系淺帶交替
+import { 準備Container基底, ContainerProps } from "./index.tsx";
+import {
+  parseColor,
+  color2TextColor,
+  色票CSS變數名稱,
+  色票色相,
+  CONTAINER_STORE_INIT,
+  過濾無效Props,
+} from "../classes.ts";
 
-export default function DiagonalStripesContainer({
-  children,
-  direction = "column",
-  color = "primary",
-  variant,
-  context,
-  width = "auto",
-  height = "auto",
-  padding = "md",
-  margin = "none",
-  align = "start",
-  justify = "start",
-  gap = "none",
-  rounded = "lg",
-  shadow = "none",
-  active = true,
-  activeStateName,
-  hover = false,
-  className,
-  ...restProps}: ContainerProps) {
+function 條紋漸層(mainVar: string, bandVar: string, alphaSuffix: string, angle: number): string {
+  const band = `oklch(var(--color-${bandVar})${alphaSuffix})`;
+  const main = `oklch(var(--color-${mainVar}))`;
+  return `repeating-linear-gradient(${angle}deg, ${main} 0px, ${main} 10px, ${band} 10px, ${band} 20px)`;
+}
 
-  const widthStyle = (width === "full" || width === "auto") ? undefined : width;
-  const heightStyle = (height === "full" || height === "auto") ? undefined : height;
-  const widthClass = (width === "full" || width === "auto") ? `w-${width}` : undefined;
-  const heightClass = (height === "full" || height === "auto") ? `h-${height}` : undefined;
+export default function DiagonalStripesContainer(props: ContainerProps) {
+  const { inlineStyles, baseClassesStr } = 準備Container基底(props);
+  const { color = "primary", active = true, activeStateName, hover = false, children, ...rest } = props;
 
-  const processedChildren = processChildren(children, { color, variant, context });
+  const parsed = parseColor(color);
+  const transitionClass = hover ? "transition-all duration-300 ease-out" : "";
+  const opacityAlphaStr = parsed.opacity !== undefined ? ` / ${parsed.opacity / 100}` : "";
 
-  // 結構性類別（不含顏色）
-  const baseClasses = [
-    "flex",
-    "box-border",
-    directionClasses[direction],
-    widthClass,
-    heightClass,
-    paddingClasses[padding],
-    marginClasses[margin],
-    alignClasses[align],
-    justifyClasses[justify],
-    gapClasses[gap],
-    "border-0",
-    roundedClasses[rounded],
-    shadowClasses[shadow],
-    hover ? "transition-all duration-200" : undefined,
-    className
-  ].filter(Boolean).join(" ");
+  const hue = 色票色相(color);
+  const actMainVar = 色票CSS變數名稱(hue);
+  const actBandVar = 色票CSS變數名稱(`${parsed.base}-70`);
 
-  // 漸層樣式
-  const activeGradient = `repeating-linear-gradient(45deg, oklch(var(--color-${color})/1) 0px, oklch(var(--color-${color})/1) 10px, oklch(var(--color-${color}-light-70)/1) 10px, oklch(var(--color-${color}-light-70)/1) 20px)`;
-  const inactiveGradient = `repeating-linear-gradient(45deg, oklch(var(--color-base)/1) 0px, oklch(var(--color-base)/1) 10px, oklch(var(--color-base-light-70)/1) 10px, oklch(var(--color-base-light-70)/1) 20px)`;
-  const activeHoverGradient = `repeating-linear-gradient(-45deg, oklch(var(--color-${color})/1) 0px, oklch(var(--color-${color})/1) 10px, oklch(var(--color-${color}-light-70)/1) 10px, oklch(var(--color-${color}-light-70)/1) 20px)`;
-  const inactiveHoverGradient = `repeating-linear-gradient(-45deg, oklch(var(--color-base)/1) 0px, oklch(var(--color-base)/1) 10px, oklch(var(--color-base-light-70)/1) 10px, oklch(var(--color-base-light-70)/1) 20px)`;
-  const activeTextColor = `${color}-content`;
-  const inactiveTextColor = `base-content`;
+  const activeText = color2TextColor(color);
+  const activeShadow = hover ? `hover:shadow-md hover:shadow-${parsed.base}/30` : "";
+  const actStripeNormal = 條紋漸層(actMainVar, actBandVar, opacityAlphaStr, 45);
+  const actStripeHover = 條紋漸層(actMainVar, actBandVar, opacityAlphaStr, -45);
 
-  // 如果有 activeStateName，使用 Alpine.js store 動態控制 active 狀態
+  const inactiveText = "text-base-content";
+  const inactiveShadow = hover ? `hover:shadow-md hover:shadow-base/30` : "";
+  const baseBandVar = 色票CSS變數名稱("base-70");
+  const inactStripeNormal = 條紋漸層(baseBandVar, baseBandVar, " / 0.5", 45);
+  const inactStripeHover = 條紋漸層(baseBandVar, baseBandVar, opacityAlphaStr, -45);
+
+  const hoverMouse = hover
+    ? { "x-on:mouseenter": "envHover = true", "x-on:mouseleave": "envHover = false" } as const
+    : {};
+
+  const shellProps = {
+    "x-data": hover ? "{ envHover: false }" : undefined,
+    ...hoverMouse,
+    class: `${baseClassesStr} ${transitionClass}`.trim(),
+    style: inlineStyles,
+    ...過濾無效Props(rest),
+  };
+
   if (activeStateName) {
-    const initScript = `
-      if(!Alpine.store('Container')){Alpine.store('Container',{})}
-      if(Alpine.store('Container').${activeStateName}===undefined){Alpine.store('Container').${activeStateName}=${active}}
-    `.replace(/\s+/g, ' ').trim();
-
-    const activeFullClasses = `${baseClasses} text-${activeTextColor} `;
-    const inactiveFullClasses = `${baseClasses} text-${inactiveTextColor} `;
-
-    if (hover) {
-      return (
-        <div
-          x-data={`{ hover: false, active: $store.Container.${activeStateName} }`}
-          x-init={initScript}
-          x-on:mouseenter="hover = true"
-          x-on:mouseleave="hover = false"
-          x-bind:class={`$store.Container.${activeStateName} ? '${activeFullClasses}' : '${inactiveFullClasses}'`}
-          x-bind:style="{ backgroundImage: hover ? ($store.Container.${activeStateName} ? '${activeHoverGradient}' : '${inactiveHoverGradient}') : ($store.Container.${activeStateName} ? '${activeGradient}' : '${inactiveGradient}') }"
-          style={{ width: widthStyle, height: heightStyle }}
-          {...restProps}
-        >
-          {processedChildren}
-        </div>
-      );
-    }
-
+    const store = `$store.Container.${activeStateName}`;
     return (
-      <div 
-        x-data
-        x-init={initScript}
-        x-bind:class={`$store.Container.${activeStateName} ? '${activeFullClasses}' : '${inactiveFullClasses}'`}
-        x-bind:style="() => ({ backgroundImage: $store.Container.${activeStateName} ? '${activeGradient}' : '${inactiveGradient}' })"
-        style={{ width: widthStyle, height: heightStyle }}
-        {...restProps}
+      <div
+        {...shellProps}
+        x-init={CONTAINER_STORE_INIT(activeStateName, active)}
+        x-bind:style={hover
+          ? `${store} ? (envHover ? { 'background-image': '${actStripeHover}' } : { 'background-image': '${actStripeNormal}' }) : (envHover ? { 'background-image': '${inactStripeHover}' } : { 'background-image': '${inactStripeNormal}' })`
+          : `${store} ? { 'background-image': '${actStripeNormal}' } : { 'background-image': '${inactStripeNormal}' }`}
+        x-bind:class={`${store} ? '${activeText} ${activeShadow}' : '${inactiveText} ${inactiveShadow}'`}
       >
-        {processedChildren}
+        {children}
       </div>
     );
   }
 
-  // 沒有 activeStateName，使用原本的邏輯
-  const colorPrefix = active ? color : `base`;
-  const textColor = active ? `${color}-content` : `base-content`;
+  const currentText = active ? activeText : inactiveText;
+  const currentShadow = active ? activeShadow : inactiveShadow;
+  const currentStripeNormal = active ? actStripeNormal : inactStripeNormal;
+  const currentStripeHover = active ? actStripeHover : inactStripeHover;
 
-  const finalClasses = [
-    "flex",
-    "box-border",
-    directionClasses[direction],
-    widthClass,
-    heightClass,
-    paddingClasses[padding],
-    marginClasses[margin],
-    alignClasses[align],
-    justifyClasses[justify],
-    gapClasses[gap],
-    `text-${textColor}`,
-    "border-0",
-    roundedClasses[rounded],
-    shadowClasses[shadow],
-    hover ? "transition-all duration-200" : undefined,
-    hover ? `hover:shadow-md hover:shadow-${colorPrefix}/30` : undefined
-  ];
-
-  if (className) {
-    finalClasses.push(className);
+  if (hover) {
+    return (
+      <div
+        {...shellProps}
+        class={`${baseClassesStr} ${currentText} ${currentShadow} ${transitionClass}`}
+        style={{ ...inlineStyles, backgroundImage: currentStripeNormal }}
+        x-bind:style={`envHover ? { 'background-image': '${currentStripeHover}' } : { 'background-image': '${currentStripeNormal}' }`}
+      >
+        {children}
+      </div>
+    );
   }
-
-  const classes = finalClasses.filter(Boolean).join(" ");
-
-  const gradient = `repeating-linear-gradient(45deg, oklch(var(--color-${colorPrefix})/1) 0px, oklch(var(--color-${colorPrefix})/1) 10px, oklch(var(--color-${colorPrefix}-light-70)/1) 10px, oklch(var(--color-${colorPrefix}-light-70)/1) 20px)`;
-  const hoverGradient = `repeating-linear-gradient(-45deg, oklch(var(--color-${colorPrefix})/1) 0px, oklch(var(--color-${colorPrefix})/1) 10px, oklch(var(--color-${colorPrefix}-light-70)/1) 10px, oklch(var(--color-${colorPrefix}-light-70)/1) 20px)`;
 
   return (
     <div
-      {...(hover && {
-        'x-data': '{ hover: false }',
-        'x-on:mouseenter': 'hover = true',
-        'x-on:mouseleave': 'hover = false',
-        'x-bind:style': `{ backgroundImage: hover ? '${hoverGradient}' : '${gradient}' }`
-      })}
-      class={classes}
-      style={{ 
-        width: widthStyle, 
-        height: heightStyle,
-        ...(!hover && { backgroundImage: gradient })
-      }}
-      {...restProps}
+      class={`${baseClassesStr} ${currentText}`}
+      style={{ ...inlineStyles, backgroundImage: currentStripeNormal }}
+      {...過濾無效Props(rest)}
     >
-      {processedChildren}
+      {children}
     </div>
   );
 }

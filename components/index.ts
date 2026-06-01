@@ -34,12 +34,14 @@ export function processChildren(
       
       // 合併 extraProps
       Object.assign(newProps, extraProps);
-      
       return cloneElement(child, newProps);
     }
     return child;
   });
 }
+
+// 核心優化點 A：用來記錄失敗的 import 路徑。Deno 無法快取失敗的 import，我們手動幫它阻斷
+const INVALID_PATHS = new Set<string>();
 
 async function importComponentModule(componentPath: string, variant: string): Promise<any> {
   const name = componentPath.split('/').pop() || componentPath;
@@ -49,11 +51,17 @@ async function importComponentModule(componentPath: string, variant: string): Pr
     `./${componentPath}.tsx`,
     `./${componentPath}/${name}.tsx`,
   ];
+
   for (const path of paths) {
+    // 如果這個路徑在之前的請求中已經失敗過了，直接跳過，避免無意義的磁碟 I/O 阻斷
+    if (INVALID_PATHS.has(path)) continue;
+
     try {
+      // 這裡完全交給 Deno 2 原生的 ESM 機制進行高速快取讀取（成功的 import 會自動快取）
       const mod = await import(path);
       if (mod.default) return mod.default;
     } catch {
+      INVALID_PATHS.add(path); // 記錄此無效路徑，下次直接跳過
       continue;
     }
   }
@@ -62,8 +70,7 @@ async function importComponentModule(componentPath: string, variant: string): Pr
 
 /**
  * 創建動態 variant 元件
- * @param componentPath 元件路徑（如 "Container"、"Select/Option"）
- * @returns 動態載入 variant 的元件函數
+ * @param componentPath 元件路徑（如 "Container"）
  */
 export default function createVariantComponent(componentPath: string) {
   const componentName = componentPath.split('/').pop() || componentPath;
@@ -71,19 +78,24 @@ export default function createVariantComponent(componentPath: string) {
   async function VariantComponent({ variant, ...props }: any) {
     try {
       // 如果有 context 且使用者未指定 variant，則從骨架讀取預設風格
-      if(props && props.context && !variant){
+      if (props && props.context && !variant) {
         try {
           const context = props.context;
           // 優先從 Context 快取讀取骨架，避免重複 API 呼叫
           let skeleton = context.get?.('skeleton');
+          
           if (!skeleton) {
             const res = await InnerAPI(context, `/api/v1/skeleton`);
-            if(res.ok){
+            if (res.ok) {
               const data = await res.json();
               skeleton = new 骨架(data.skeleton);
+              
+              // 【🔥 關鍵優化修正點】：查到後立刻寫回 Context 快取！
+              // 補上這一行後，同一次 SSR 請求內不論渲染多少個組件，都只會呼叫 1 次 API，效能暴增！
+              context.set?.('skeleton', skeleton);
             }
           }
-          if(skeleton?.風格){
+          if (skeleton?.風格) {
             variant = skeleton.風格[componentName] ?? skeleton.風格["default"];
           }
         } catch (_e) {
@@ -109,7 +121,7 @@ export default function createVariantComponent(componentPath: string) {
     } catch (_e) {
       return jsx("div", {}, `${componentPath}:${variant}`);
     }
-  };
+  }
 
   // 設置函數名稱，這樣可以通過 child.type.name 識別組件
   Object.defineProperty(VariantComponent, 'name', {

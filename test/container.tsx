@@ -3,14 +3,14 @@ import Container, { ContainerProps } from '../components/Container/index.tsx';
 export default async function ContainerTestPage() {
   const variants: ContainerProps['variant'][] = [
     'solid',
-    'outline',
     'ghost',
+    'outline',
     'dot',
     'dashed',
     'double',
-    'glow',
-    'gradient-right',
+    'minimalist',
     'gradient-left',
+    'gradient-right',
     'gradient-up',
     'gradient-down',
     'gradient-middle',
@@ -18,8 +18,13 @@ export default async function ContainerTestPage() {
     'gradient-center',
     'gradient-cone',
     'crystal',
+    'glow',
     'diagonal-stripes',
-    'minimalist',
+    'glass',
+    'neon',
+    'aurora',
+    'cyber-clip',
+    'paper',
   ];
 
   const colors: ContainerProps['color'][] = [

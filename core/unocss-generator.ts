@@ -398,29 +398,47 @@ export class UnoCSS生成器 {
             const name = part.trim()
             const baseColors = ['primary', 'secondary', 'accent', 'info', 'success', 'warning', 'error', 'base', "neutral"]
             
-            // 1. 處理帶數字的層級，例如 primary-50 -> --color-primary-light-50
-            if (/^([a-z]+)-(\d+)$/.test(name)) {
-              const [base] = name.split('-')
-              if (baseColors.includes(base)) return `oklch(var(--color-${name.replace('-', '-light-')}) / 1)`
+            // -----------------------------------------------------------------
+            // 🟢 1. 處理自訂核心色-刻度/透明度 (如 primary-50, base-30/70)
+            // -----------------------------------------------------------------
+            const scaleMatch = name.match(/^([a-z]+)-(\d+)(?:\/(\d+))?$/)
+            if (scaleMatch) {
+              const [_, base, scale, alpha] = scaleMatch
+              if (baseColors.includes(base)) {
+                const opacity = alpha ? `${alpha}%` : '1'
+                return `oklch(var(--color-${base}-light-${scale}) / ${opacity})`
+              }
             }
-            if (baseColors.includes(name) || name.endsWith('-content')) {
-              return `oklch(var(--color-${name}) / 1)`
-            }
-            // 2. 使用 parseCssColor 處理 gray-300, black 等
-            const colorPath = name.split('-')
-            let obj = theme.colors
-            for (const key of colorPath) {
-              obj = obj?.[key]
-              if (typeof obj === 'string') break 
-            }
-            if (typeof obj === 'string') return obj
-            if (obj && typeof obj === 'object' && obj.DEFAULT) return obj.DEFAULT
 
+            // -----------------------------------------------------------------
+            // 🟢 2. 處理自訂純核心色或 content (如 primary, primary/70, base-content/50)
+            // -----------------------------------------------------------------
+            const pureMatch = name.match(/^([a-zA-Z\-]+)(?:\/(\d+))?$/)
+            if (pureMatch) {
+              const [_, coreName, alpha] = pureMatch
+              if (baseColors.includes(coreName) || coreName.endsWith('-content')) {
+                const opacity = alpha ? `${alpha}%` : '1'
+                return `oklch(var(--color-${coreName}) / ${opacity})`
+              }
+            }
+
+            // -----------------------------------------------------------------
+            // 🎯 3. 原本的第三區塊：用最正規的 parseCssColor 一網打盡所有常規顏色！
+            // 💡 完美通殺 gray-300, gray-300/50, black, black/40 等所有常規與透明度狀況！
+            // -----------------------------------------------------------------
+            const parsed = parseCssColor(name, theme)
+            if (parsed) {
+              // 透過 UnoCSS 內建工具直接轉成完美的標準 CSS 色彩字串 (會自動帶上正確的透明度！)
+              // 例如：colorToString({ type: 'rgb', components: [...], alpha: 0.4 })
+              return colorToString(parsed)
+            }
+
+            // 兜底防禦
             return name
           })
 
           return { 
-            'background-image': `conic-gradient(${resolvedParts.join(', ')})` 
+            'background-image': `conic-gradient(${resolvedParts.join(', ')})`
           }
       }],
       ['shadow-sm', { 'box-shadow': 'var(--shadow-sm)' }] as any,

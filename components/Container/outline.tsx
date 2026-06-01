@@ -1,124 +1,81 @@
-import type { ContainerProps } from "./index.tsx";
-import { paddingClasses, marginClasses, alignClasses, justifyClasses, gapClasses, roundedClasses, shadowClasses, directionClasses } from "../classes.ts";
-import { processChildren } from "../index.ts";
+// Container/outline.tsx - 線框家族(Outline)高階工廠元件：反差語意完全體
+import { 準備Container基底, ContainerProps } from "./index.tsx";
+import {
+  color2TextColor,
+  adjustColorLightOrOpacity,
+  CONTAINER_STORE_INIT,
+  containerClassBind,
+  過濾無效Props,
+} from "../classes.ts";
 
-export default function OutlineContainer({
-  children,
-  direction = "column",
-  color = "primary",
-  variant,
-  context,
-  width = "auto",
-  height = "auto",
-  padding = "md",
-  margin = "none",
-  align = "start",
-  justify = "start",
-  gap = "none",
-  rounded = "lg",
-  shadow = "none",
-  active = true,
-  activeStateName,
-  hover = false,
-  className,
-  ...restProps}: ContainerProps) {
+export function createOutlineContainer(borderStyle: "solid" | "dashed" | "dotted" | "double") {
+  
+  return function OutlineContainer(props: ContainerProps) {
+    // 1. 呼叫大腦，取得純結構類名與 inline style (大腦已無 text-base 污染)
+    const { inlineStyles, baseClassesStr } = 準備Container基底(props);
 
-  const widthStyle = (width === "full" || width === "auto") ? undefined : width;
-  const heightStyle = (height === "full" || height === "auto") ? undefined : height;
-  const widthClass = (width === "full") ? `w-${width}` : undefined;
-  const heightClass = (height === "full") ? `h-${height}` : undefined;
+    // 2. 提取專屬狀態控制項 (小寫安全防禦)
+    const { color: rawColor = "primary", active = true, activeStateName, hover = false, children, ...rest } = props;
+    const color = rawColor.toLowerCase(); 
 
-  // 處理 children，自動傳遞 color/variant/context
-  const processedChildren = processChildren(children, { color, variant, context });
+    // 3. 根據 borderStyle 計算邊框粗細度
+    const borderWidth = borderStyle === "double" ? "border-4" : "border-2";
 
-  // 結構性類別（不含顏色）
-  const baseClasses = [
-    "flex",
-    "box-border",
-    directionClasses[direction],
-    widthClass,
-    heightClass,
-    paddingClasses[padding],
-    marginClasses[margin],
-    alignClasses[align],
-    justifyClasses[justify],
-    gapClasses[gap],
-    roundedClasses[rounded],
-    hover ? "transition-all duration-200" : undefined,
-    className
-  ].filter(Boolean).join(" ");
+    // 4. 核心色彩與邊框矩陣運算
+    // ---------------------------------------------------------
+    // 4a. 【激活狀態(Active)】：原色線框 + 原色文字
+    // ---------------------------------------------------------
+    const activeBorder = `${borderWidth} border-${borderStyle} border-${color}`;
+    const activeText = `text-${color}`;
+    
+    // 💡 Hover 激活：背景亮起 20 階淡色，文字轉換為 content 色
+    const activeHoverClasses = hover 
+      ? `hover:bg-${adjustColorLightOrOpacity(color, 20, 0)} hover:${color2TextColor(color)}` 
+      : "";
+    const activeFinalClasses = `bg-transparent ${activeBorder} ${activeText} ${activeHoverClasses}`.trim();
 
-  // 完整類別（結構 + 顏色）
-  const activeFullClasses = `${baseClasses} bg-base border-2 border-solid border-${color} text-${color} `;
-  const activeHoverClasses = `${baseClasses} bg-${color}-70 border-2 border-solid border-${color} text-${color}-content `;
-  const inactiveFullClasses = `${baseClasses} bg-base border-2 border-solid border-base-50 text-base-content `;
-  const inactiveHoverClasses = `${baseClasses} bg-base-70 border-2 border-solid border-base-50 text-base-content `;
+    // ---------------------------------------------------------
+    // 4b. 【未激活狀態(Inactive)】：base-70 線框 + 低調過渡文字色
+    // ---------------------------------------------------------
+    const inactiveBorder = `${borderWidth} border-${borderStyle} border-base-70`;
+    const inactiveText = `text-base-70-content`;
+    
+    // 💡 Hover 未激活：背景亮起 base-70，邊框收縮加深至 base-50，文字亮起成 base-content
+    const inactiveHoverClasses = hover 
+      ? `hover:bg-base-70 hover:border-base-50 hover:text-base-content` 
+      : "";
+    const inactiveFinalClasses = `bg-transparent ${inactiveBorder} ${inactiveText} ${inactiveHoverClasses}`.trim();
 
-  // 如果有 activeStateName，使用 Alpine.js store 動態控制 active 狀態
-  if (activeStateName) {
-    const initScript = `
-      if(!Alpine.store('Container')){Alpine.store('Container',{})}
-      if(Alpine.store('Container').${activeStateName}===undefined){Alpine.store('Container').${activeStateName}=${active}}
-    `.replace(/\s+/g, ' ').trim();
-
-    if (hover) {
+    // ---------------------------------------------------------
+    // 5. 根據是否具備 Alpine.js 狀態指針，分流渲染邏輯
+    // ---------------------------------------------------------
+    if (activeStateName) {
       return (
-        <div 
-          x-data={`{ hover: false }`}
-          x-init={initScript}
-          x-on:mouseenter="hover = true"
-          x-on:mouseleave="hover = false"
-          x-bind:class={`$store.Container.${activeStateName} ? (hover ? '${activeHoverClasses}' : '${activeFullClasses}') : (hover ? '${inactiveHoverClasses}' : '${inactiveFullClasses}')`}
-          style={{ width: widthStyle, height: heightStyle }}
-          {...restProps}
+        <div
+          class={baseClassesStr}
+          style={inlineStyles}
+          x-init={CONTAINER_STORE_INIT(activeStateName, active)}
+          x-bind:class={containerClassBind(activeStateName, activeFinalClasses, inactiveFinalClasses)}
+          {...過濾無效Props(rest)}
         >
-          {processedChildren}
+          {children}
         </div>
       );
     }
 
+    // 純靜態渲染模式
+    const finalColorClasses = active ? activeFinalClasses : inactiveFinalClasses;
+
     return (
-      <div 
-        x-data
-        x-init={initScript}
-        x-bind:class={`$store.Container.${activeStateName} ? '${activeFullClasses}' : '${inactiveFullClasses}'`}
-        style={{ width: widthStyle, height: heightStyle }}
-        {...restProps}
+      <div
+        class={`${baseClassesStr} ${finalColorClasses}`}
+        style={inlineStyles}
+        {...過濾無效Props(rest)}
       >
-        {processedChildren}
+        {children}
       </div>
     );
-  }
-
-  // 沒有 activeStateName，使用原本的邏輯
-  const colorPrefix = active ? color : "base-50";
-  const textColor = active ? `${color}` : `base-content`;
-  const hoverColor = active ? `${color}-70` : `base-70`;
-
-  const finalClasses = [
-    "flex",
-    "box-border",
-    directionClasses[direction],
-    widthClass,
-    heightClass,
-    paddingClasses[padding],
-    marginClasses[margin],
-    alignClasses[align],
-    justifyClasses[justify],
-    gapClasses[gap],
-    "bg-base",
-    `border-2 border-solid border-${colorPrefix}`,
-    `text-${textColor}`,
-    hover ? `hover:bg-${hoverColor} hover:text-${textColor === color ? `${color}-content` : textColor}` : undefined,
-    hover ? "transition-all duration-200" : undefined,
-    roundedClasses[rounded]
-  ];
-
-  if (className) {
-    finalClasses.push(className);
-  }
-
-  const classes = finalClasses.filter(Boolean).join(" ");
-
-  return <div class={classes} style={{ width: widthStyle, height: heightStyle }} {...restProps}>{processedChildren}</div>;
+  };
 }
+
+export default createOutlineContainer("solid");

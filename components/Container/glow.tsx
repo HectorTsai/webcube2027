@@ -1,126 +1,93 @@
-import type { ContainerProps } from "./index.tsx";
-import { paddingClasses, marginClasses, alignClasses, justifyClasses, gapClasses, roundedClasses, shadowClasses, directionClasses } from "../classes.ts";
-import { processChildren } from "../index.ts";
+// Container/glow.tsx - 霓虹外發光(Glow)元件：高階色彩演算法與霓虹靈魂完全體
+import { 準備Container基底, ContainerProps } from "./index.tsx";
+// 💡 精準導航至全域色彩大腦
+import {
+  parseColor,
+  color2TextColor,
+  adjustColorLightOrOpacity,
+  CONTAINER_STORE_INIT,
+  containerClassBind,
+  過濾無效Props,
+} from "../classes.ts";
 
-export default function GlowContainer({
-  children,
-  direction = "column",
-  color = "primary",
-  variant,
-  context,
-  width = "auto",
-  height = "auto",
-  padding = "md",
-  margin = "none",
-  align = "start",
-  justify = "start",
-  gap = "none",
-  rounded = "lg",
-  shadow = "none",
-  active = true,
-  activeStateName,
-  hover = false,
-  className,
-  ...restProps}: ContainerProps) {
+export default function GlowContainer(props: ContainerProps) {
+  // 1. 呼叫骨架大腦，取得純結構類名與 inline style（圓角 rounded、寬高、幾何間距全面解放）
+  const { inlineStyles, baseClassesStr } = 準備Container基底(props);
 
-  const widthStyle = (width === "full" || width === "auto") ? undefined : width;
-  const heightStyle = (height === "full" || height === "auto") ? undefined : height;
-  const widthClass = (width === "full") ? `w-${width}` : undefined;
-  const heightClass = (height === "full") ? `h-${height}` : undefined;
+  // 2. 提取狀態控制（🎯 100% 依循原版預設值：active 預設為 true！）
+  const { color = "primary", active = true, activeStateName, hover = false, children, ...rest } = props;
 
-  // 處理 children，自動傳遞 color/variant/context
-  const processedChildren = processChildren(children, { color, variant, context });
+  const parsed = parseColor(color);
+  const transitionClass = hover ? "transition-all duration-200" : "";
+  const scaleClass = hover ? "hover:scale-105" : ""; // 🎯 滿血還原原版 scale-105 放大反饋
 
-  // 結構性類別（不含顏色）
-  const baseClasses = [
-    "flex",
-    "box-border",
-    directionClasses[direction],
-    widthClass,
-    heightClass,
-    paddingClasses[padding],
-    marginClasses[margin],
-    alignClasses[align],
-    justifyClasses[justify],
-    gapClasses[gap],
-    "border-0",
-    roundedClasses[rounded],
-    hover ? "transition-all duration-200" : undefined,
-    className
-  ].filter(Boolean).join(" ");
+  // ---------------------------------------------------------
+  // 3a. 【激活狀態(Active)】：全面由色彩大腦計算
+  // ---------------------------------------------------------
+  const activeBg = `bg-${color}`;
+  const activeText = color2TextColor(color);
+  
+  // 💡 精準發光：平常狀態為大發光的 shadow-lg，影子顏色精準與主色連動
+  const activeGlow = `shadow-lg shadow-${color}`; 
+  
+  // 🎯 核心演算法：Hover 激活時背景切換至凝聚的 70 刻度軌道
+  // 💡 霓虹暴漲：Hover 時發光完美增強至 shadow-xl，且影子顏色跟著背景一起變幻至凝聚色！
+  const actHvrColor = adjustColorLightOrOpacity(color, 20, 0);
+  const activeHoverClasses = hover
+    ? `hover:bg-${actHvrColor} hover:shadow-xl hover:shadow-${actHvrColor} ${scaleClass}`
+    : "";
 
-  // 完整類別（結構 + 顏色）
-  const activeFullClasses = `${baseClasses} text-${color}-content bg-${color} shadow-lg shadow-${color} `;
-  const activeHoverClasses = `${baseClasses} text-${color}-content bg-${color} shadow-xl shadow-${color} scale-105 `;
-  const inactiveFullClasses = `${baseClasses} text-base-content bg-base-70 shadow-lg shadow-base-70 `;
-  const inactiveHoverClasses = `${baseClasses} text-base-content bg-base-70 shadow-xl shadow-base-70 scale-105 `;
+  // ---------------------------------------------------------
+  // 3b. 【未激活狀態(Inactive)】：完美呼叫 base-70 儀表板深暗調語意
+  // ---------------------------------------------------------
+  // 🎯 核心演算法：未激活時背景走 base-70（自動繼承使用者傳入的原始透明度）
+  const inactiveBgRaw = parsed.opacity ? `base-70/${parsed.opacity}` : "base-70";
+  const inactiveBg = `bg-${inactiveBgRaw}`;
+  const inactiveText = color2TextColor(inactiveBgRaw);
+  
+  // 💡 微光發光：未激活時，發光為緊緻內斂的 shadow-lg shadow-base-70
+  const inactiveGlow = `shadow-lg shadow-${inactiveBgRaw}`; 
 
-  // 如果有 activeStateName，使用 Alpine.js store 動態控制 active 狀態
+  // 🎯 核心演算法：Hover 未激活時，背景向外挪動到更凝聚、亮灰色的 base-50 軌道
+  // 💡 霓虹暴漲：Hover 未激活發光同樣增強至 shadow-xl，影子顏色同步聯動，並搭配 scale-105
+  const inactHvrColor = parsed.opacity ? `base-50/${parsed.opacity}` : "base-50";
+  const inactiveHoverClasses = hover
+    ? `hover:bg-${inactHvrColor} hover:shadow-xl hover:shadow-${inactHvrColor} ${scaleClass}`
+    : "";
+
+  // ---------------------------------------------------------
+  // 4. 組合最終的狀態類名鏈
+  // ---------------------------------------------------------
+  const activeFinalClasses = `${activeBg} ${activeText} ${activeGlow} ${activeHoverClasses} ${transitionClass}`.trim();
+  const inactiveFinalClasses = `${inactiveBg} ${inactiveText} ${inactiveGlow} ${inactiveHoverClasses} ${transitionClass}`.trim();
+
+  // ---------------------------------------------------------
+  // 5. Alpine.js 動態狀態模式分流
+  // ---------------------------------------------------------
   if (activeStateName) {
-    const initScript = `
-      if(!Alpine.store('Container')){Alpine.store('Container',{})}
-      if(Alpine.store('Container').${activeStateName}===undefined){Alpine.store('Container').${activeStateName}=${active}}
-    `.replace(/\s+/g, ' ').trim();
-
-    if (hover) {
-      return (
-        <div 
-          x-data={`{ hover: false }`}
-          x-init={initScript}
-          x-on:mouseenter="hover = true"
-          x-on:mouseleave="hover = false"
-          x-bind:class={`$store.Container.${activeStateName} ? (hover ? '${activeHoverClasses}' : '${activeFullClasses}') : (hover ? '${inactiveHoverClasses}' : '${inactiveFullClasses}')`}
-          style={{ width: widthStyle, height: heightStyle }}
-          {...restProps}
-        >
-          {processedChildren}
-        </div>
-      );
-    }
-
     return (
-      <div 
-        x-data
-        x-init={initScript}
-        x-bind:class={`$store.Container.${activeStateName} ? '${activeFullClasses}' : '${inactiveFullClasses}'`}
-        style={{ width: widthStyle, height: heightStyle }}
-        {...restProps}
+      <div
+        class={baseClassesStr}
+        style={inlineStyles}
+        x-init={CONTAINER_STORE_INIT(activeStateName, active)}
+        x-bind:class={containerClassBind(activeStateName, activeFinalClasses, inactiveFinalClasses)}
+        {...過濾無效Props(rest)}
       >
-        {processedChildren}
+        {children}
       </div>
     );
   }
 
-  // 沒有 activeStateName，使用原本的邏輯
-  const colorPrefix = active ? color : "base-70";
-  const textColor = active ? `${color}-content` : "base-content";
-  const hoverColor = active ? `${color}-70` : "base-50";
+  // 純靜態渲染模式
+  const finalColorClasses = active ? activeFinalClasses : inactiveFinalClasses;
 
-  const finalClasses = [
-    "flex",
-    "box-border",
-    directionClasses[direction],
-    widthClass,
-    heightClass,
-    paddingClasses[padding],
-    marginClasses[margin],
-    alignClasses[align],
-    justifyClasses[justify],
-    gapClasses[gap],
-    `text-${textColor}`,
-    "border-0",
-    `bg-${colorPrefix}`,
-    roundedClasses[rounded],
-    hover ? `shadow-lg hover:shadow-xl hover:scale-105 transition-transform shadow-${colorPrefix}` : `shadow-lg shadow-${colorPrefix}`,
-    hover ? `hover:bg-${hoverColor}` : undefined,
-    hover ? "transition-all duration-200" : undefined
-  ];
-
-  if (className) {
-    finalClasses.push(className);
-  }
-
-  const classes = finalClasses.filter(Boolean).join(" ");
-
-  return <div class={classes} style={{ width: widthStyle, height: heightStyle }} {...restProps}>{processedChildren}</div>;
+  return (
+    <div
+      class={`${baseClassesStr} ${finalColorClasses}`}
+      style={inlineStyles}
+      {...過濾無效Props(rest)}
+    >
+      {children}
+    </div>
+  );
 }
