@@ -25,6 +25,7 @@ export default async function ContainerTestPage() {
     'aurora',
     'cyber-clip',
     'paper',
+    'texture'
   ];
 
   const colors: ContainerProps['color'][] = [

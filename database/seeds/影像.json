@@ -1,5 +1,11 @@
 [
   {"id": "影像:標籤:商標","名稱":{"en":"logo","zh-tw":"商標","vi":"logo"},"標籤集":[],"可刪除": false},
+  {"id": "影像:標籤:材質","名稱":{"en":"material","zh-tw":"材質","vi":"Vật liệu"},"標籤集":[],"可刪除": false},
+  {"id": "影像:標籤:紙張","名稱":{"en":"paper","zh-tw":"紙張","vi":"Giấy"},"標籤集":[],"可刪除": false},
+  {"id": "影像:標籤:木質","名稱":{"en":"wood","zh-tw":"木質","vi":"Gỗ"},"標籤集":[],"可刪除": false},
+  {"id": "影像:標籤:石材","名稱":{"en":"stone","zh-tw":"石材","vi":"Đá"},"標籤集":[],"可刪除": false},
+  {"id": "影像:標籤:金屬","名稱":{"en":"metal","zh-tw":"金屬","vi":"Kim loại"},"標籤集":[],"可刪除": false},
+  {"id": "影像:標籤:紡織品","名稱":{"en":"fabric","zh-tw":"紡織品","vi":"Vải"},"標籤集":[],"可刪除": false},
   {"id": "影像:標籤:商品","名稱":{"en":"goods","zh-tw":"商品","vi":"hàng hóa"},"標籤集":[],"可刪除": false},
   {
     "id": "影像:影像:deno2",
@@ -30,5 +36,95 @@
     },
     "標籤集": ["影像:標籤:商標"],
     "可刪除": false
+  },
+  {
+    "id":"影像:影像:石英板岩亂形石",
+    "名稱": {"en":"Crazy Paving Slate","zh-tw":"石英板岩亂形石","vi":"Đá phiến lát sân"},
+    "資料": {
+      "format": "JPG",
+      "content":"file://images/texture/Stone_Paving_Slate_CrazyPave_Grey_01.jpg"
+    },
+    "標籤集": ["影像:標籤:材質","影像:標籤:石材"],
+    "可刪除": false
+  },
+  {
+    "id":"影像:影像:米色洞石亂形石",
+    "名稱": {"en":"Travertine Crazy Paving","zh-tw":"米色洞石亂形石","vi":"Đá rối Travertine màu kem"},
+    "資料": {
+      "format": "JPG",
+      "content":"file://images/texture/Stone_Wall_Travertine_CrazyPave_Beige_01.jpg"
+    },
+    "標籤集": ["影像:標籤:材質","影像:標籤:石材"],
+    "可刪除": false
+  },
+  {
+    "id":"影像:影像:拉絲不鏽鋼",
+    "名稱": {"en":"Brushed Stainless Steel","zh-tw":"拉絲不鏽鋼","vi":"Inox xước"},
+    "資料": {
+      "format": "JPG",
+      "content":"file://images/texture/Metal_StainlessSteel_Brushed_Grey_01.jpg"
+    },
+    "標籤集": ["影像:標籤:材質","影像:標籤:金屬"],
+    "可刪除": false
+  },
+  {
+    "id":"影像:影像:花崗岩亂形石牆",
+    "名稱": {"en":"Granite Flagstone Wall","zh-tw":"不規則乾砌石","vi":"Đá chẻ ốp tường"},
+    "資料": {
+      "format": "JPG",
+      "content":"file://images/texture/Stone_Wall_Granite_Irregular_Grey_01.jpg"
+    },
+    "標籤集": ["影像:標籤:材質","影像:標籤:石材"],
+    "可刪除": false
+  },
+  {
+    "id":"影像:影像:花旗松木格柵",
+    "名稱": {"en":"Douglas Fir Wood Slat","zh-tw":"交錯式花旗松","vi":"Lam gỗ thông"},
+    "資料": {
+      "format": "JPG",
+      "content":"file://images/texture/Wood_Slat_DouglasFir_Vertical_Light_01.jpg"
+    },
+    "標籤集": ["影像:標籤:材質","影像:標籤:木質"],
+    "可刪除": false
+  },
+  {
+    "id":"影像:影像:亂形石貼片牆面",
+    "名稱": {"en":"Irregular pebble stone cladding texture","zh-tw":"亂形石拼貼","vi":"Đá rối xám gắn vữa"},
+    "資料": {
+      "format": "JPG",
+      "content":"file://images/texture/Stone_Wall_Granite_Ashlar_Grey_01.jpg"
+    },
+    "標籤集": ["影像:標籤:材質","影像:標籤:石材"],
+    "可刪除": false
+  },
+  {
+    "id":"影像:影像:米灰石灰岩",
+    "名稱": {"en":"Beige Limestone Texture","zh-tw":"米灰石灰岩","vi":"Texture đá vôi màu beige"},
+    "資料": {
+      "format": "JPG",
+      "content":"file://images/texture/Stone_Limestone_Matte_BeigeGrey_01.jpg"
+    },
+    "標籤集": ["影像:標籤:材質","影像:標籤:石材"],
+    "可刪除": false
+  },
+  {
+    "id":"影像:影像:青石碎拼地磚",
+    "名稱": {"en":"Bluestone Flagstone","zh-tw":"青石碎拼地磚","vi":" Đá xanh thanh hóa lát nền"},
+    "資料": {
+      "format": "JPG",
+      "content":"file://images/texture/Stone_Paving_Andesite_Bluestone_DarkGrey_01.jpg"
+    },
+    "標籤集": ["影像:標籤:材質","影像:標籤:石材"],
+    "可刪除": false
+  },
+  {
+    "id":"影像:影像:藍色方塊拼接布紋",
+    "名稱": {"en":"Bluestone Flagstone","zh-tw":"藍色方塊拼接布紋","vi":" Đá xanh thanh hóa lát nền"},
+    "資料": {
+      "format": "JPG",
+      "content":"file://images/texture/Fabric_Wallpaper_Geometric_Cube_Blue_01.jpg"
+    },
+    "標籤集": ["影像:標籤:材質","影像:標籤:紡織品"],
+    "可刪除": false 
   }
 ]
