@@ -108,7 +108,7 @@ async function 渲染測試頁面(c: Context, 測試名稱: string): Promise<Res
   <script defer src="/media/v1/script/embla-carousel.min.js"></script>
   <script type="module" src="/media/v1/script/cally.js"></script>
 </head>
-<body x-data style="margin: 0;">
+<body x-data x-init="Alpine.store('Container', {})" style="margin: 0;">
   ${htmlContent}
 </body>
 </html>`;

@@ -46,17 +46,23 @@ export default function Container(props: ContainerProps) {
 
   const 智慧分發Children = processChildren(children, { context: { ...context, color: 實際供電色彩, active, activeStateName, hover } });
 
-  // 📦 4. 方案甲終極震撼彈：完全依據您的頂峰直覺，盲倒現代化、無衝突的變體組合！
-  const 最終盲倒Class = `c-style-apply c-div-active hover:c-div-hover inactive:c-div-inactive ${className}`.trim().replace(/\s+/g, ' ');
+  // 📦 方案甲盲倒組合:
+  //    c-style-apply  → rule  處理 current token → CSS variable
+  //    c-div-active   → shortcut 非 current active  token
+  //    c-div-hover    → shortcut 非 current hover   token
+  //    c-div-inactive → shortcut 非 current inactive token
+  const 最終盲倒Class = `c-style-apply c-div-active c-div-hover c-div-inactive ${className}`.trim().replace(/\s+/g, ' ');
 
   if (activeStateName) {
     return (
       <div
         class={最終盲倒Class}
         style={scopedStyles}
+        // 🛡️ x-init 先建立 Alpine store，x-bind 用 ?. + ?? fallback 到 props 預設值，
+        //    防止 store 未就緒時首次求值炸出 TypeError
         x-init={`if(!Alpine.store('Container')){Alpine.store('Container',{})}if(Alpine.store('Container').${activeStateName}===undefined){Alpine.store('Container').${activeStateName}=${active}}`}
-        x-bind:data-active={`$store.Container.${activeStateName} ? 'true' : 'false'`}
-        x-bind:style={`!$store.Container.${activeStateName} ? '--c-current: var(--color-neutral-raw); --c-current-content: var(--color-neutral-content-raw); --c-current-50: var(--color-neutral-50-raw); --c-current-70: var(--color-neutral-70-raw); --c-current-90: var(--color-neutral-90-raw);' : ''`}
+        x-bind:data-active={`($store.Container?.${activeStateName} ?? ${active}) ? 'true' : 'false'`}
+        x-bind:style={`!($store.Container?.${activeStateName} ?? ${active}) ? '--c-current: var(--color-neutral-raw); --c-current-content: var(--color-neutral-content-raw); --c-current-50: var(--color-neutral-50-raw); --c-current-70: var(--color-neutral-70-raw); --c-current-90: var(--color-neutral-90-raw);' : ''`}
         data-hover={hover ? "true" : "false"} 
         {...過濾無效Props(props)} 
       >

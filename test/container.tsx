@@ -43,21 +43,28 @@ export default async function ContainerTestPage(ctx: any) {
           scenario.layoutType === 'flex-wrap' ? 'flex flex-wrap gap-4 items-start' : 'space-y-3'
         }>
           {colors.map(color => (
-            <Container 
-              color={color} 
-              width={scenario.width} 
-              height={scenario.height} 
-              padding={scenario.padding}
-              hover={true}
-              active={true}
+            <div 
+              style={{ 
+                width: scenario.width, 
+                height: scenario.height,
+                boxSizing: 'border-box'
+              }}
             >
-              <div class="text-center">
-                <div class="text-sm font-black tracking-tight capitalize">{color}</div>
-                {scenario.width === '100%' && (
-                  <p class="text-xs mt-1 max-w-xl opacity-80">{scenario.desc}</p>
-                )}
-              </div>
-            </Container>
+              <Container 
+                color={color} 
+                padding={scenario.padding}
+                hover={true}
+                active={true}
+                style={{ width: '100%', height: '100%' }}
+              >
+                <div class="text-center">
+                  <div class="text-sm font-black tracking-tight capitalize">{color}</div>
+                  {scenario.width === '100%' && (
+                    <p class="text-xs mt-1 max-w-xl opacity-80">{scenario.desc}</p>
+                  )}
+                </div>
+              </Container>
+            </div>
           ))}
         </div>
       </div>
@@ -74,15 +81,14 @@ export default async function ContainerTestPage(ctx: any) {
           ⚙️ 狀態實驗流：{scenario.label}
         </div>
         
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="flex flex-wrap gap-4">
           {colors.slice(0, 3).map(color => (
             <Container
               color={color}
-              width="100%"
-              height="auto"
               padding="lg"
               active={scenario.active}
               hover={scenario.hover}
+              className="flex-1 min-w-[200px]"
             >
               {scenario.type === 'with-opacity-wrapper' ? (
                 <div class="flex items-center gap-2 text-sm font-medium opacity-40">

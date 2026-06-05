@@ -25,7 +25,8 @@ export async function 初始化UnoCSS(Skeleton?: 骨架, Color?: 配色, Style?:
     Ornament || new 裝飾()
   );
   
-  const 物理對齊預熱HTML = '<div class="c-style-apply c-div-active hover:c-div-hover inactive:c-div-inactive"></div>';
+  // 預熱：觸發 c-style-apply rule + 三個 c-div-* shortcut 的 CSS 生成
+  const 物理對齊預熱HTML = '<div class="c-style-apply c-div-active c-div-hover c-div-inactive"></div>';
   await 系統生成器.產生樣式(物理對齊預熱HTML, false);
 }
 

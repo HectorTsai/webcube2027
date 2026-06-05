@@ -1,79 +1,95 @@
-// unocss-rules.ts (2026 完全體 - 內建函數對譯、解決 c-div-active 缺失防線)
-import { Rule, Variant } from '@unocss/core';
+// unocss-rules.ts (2026 完全體 — rule ⇄ shortcut 雙軌分工)
+//    c-style-apply   → current token 直譯 CSS variable（transition + 三態）
+//    c-div-active    → 非 current active  token，走 UnoCSS 後重寫選擇器
+//    c-div-hover     → 非 current hover   token，走 UnoCSS 後重寫選擇器
+//    c-div-inactive  → 非 current inactive token，走 UnoCSS 後重寫選擇器
+import { Rule } from '@unocss/core';
+
+// ---------- current token → CSS variable ----------
+const TOKEN_PREFIX_MAP: Record<string, string> = {
+  'bg-': 'background-color',
+  'text-': 'color',
+  'border-': 'border-color',
+};
+
+function resolveCurrentToken(token: string): string {
+  for (const [prefix, prop] of Object.entries(TOKEN_PREFIX_MAP)) {
+    if (token.startsWith(prefix)) {
+      return `${prop}: oklch(var(--c-${token.slice(prefix.length)}))`;
+    }
+  }
+  return '';
+}
+
+function buildCurrentCSS(tokens: string[], selector: string): string {
+  if (tokens.length === 0) return '';
+  const declarations = tokens.map(resolveCurrentToken).filter(Boolean);
+  if (declarations.length === 0) return '';
+  return `${selector} {\n  ${declarations.join(' !important;\n  ')} !important;\n}\n`;
+}
+
+// ---------- non-current token → UnoCSS 生成後重寫選擇器 ----------
+async function generateNonCurrentCSS(
+  tokens: string[],
+  selector: string,
+  generator: any,
+): Promise<string> {
+  if (tokens.length === 0) return '';
+  const input = tokens.join(' ');
+  const { css } = await generator.generate(input, { preflights: false, minify: true });
+  if (!css.trim()) return '';
+  // 只在 rule 開頭（^ 或 } 之後）匹配 class selector，避開 CSS 值中的 .05 等浮點數
+  return css.replace(/(^|})(\.\w[\w:-]*)(?=\{)/g, (_m: string, sep: string, _cls: string) => {
+    // sep 是 ''（開頭）或 '}'（銜接上條 rule），需要保留以免吃掉分隔符
+    return sep + selector;
+  }) + '\n';
+}
 
 export function getSystemRules(
   activeCurrent: string[] = [],
   hoverCurrent: string[] = [],
-  inactiveCurrent: string[] = []
-): { rules: Rule<any>[], variants: Variant<any>[] } {
-  const rules: Rule<any>[] = [
-    // 📐 1. c-style-apply 專職處理您指定的過渡效果與核心強制變色
+  inactiveCurrent: string[] = [],
+  activeElse: string[] = [],
+  hoverElse: string[] = [],
+  inactiveElse: string[] = [],
+): Rule<any>[] {
+  return [
+    // 1. c-style-apply — current token → CSS variable + transition
     [
       /^c-style-apply$/,
       () => {
-        return `
-.c-style-apply {
-  background-color: currentColor !important;
-  transition: background-color 0.2s ease-out, color 0.2s ease-out, border-color 0.2s ease-out, box-shadow 0.2s ease-out;
-}
-`.trim();
+        let css = `.c-style-apply {\n  transition: background-color 0.2s ease-out, color 0.2s ease-out, border-color 0.2s ease-out, box-shadow 0.2s ease-out;\n}\n`;
+        css += buildCurrentCSS(activeCurrent, '.c-style-apply');
+        const cleanHover = hoverCurrent.map(cls => cls.replace(/^hover:/, ''));
+        css += buildCurrentCSS(cleanHover, '.c-style-apply[data-active="true"]:hover');
+        const cleanInactive = inactiveCurrent.map(cls => cls.replace(/^inactive:/, ''));
+        css += buildCurrentCSS(cleanInactive, '.c-style-apply[data-active="false"]');
+        return css.trim();
       }
     ],
 
-    // ⚡ 2. c-div-active 規則：透過解構直接拿官方 generator 引擎，進行 100% 零硬編碼動態對譯！
+    // 2. c-div-active — non-current active token → [data-active="true"] 才通電
     [
       /^c-div-active$/,
       async (_, { generator }) => {
-        let finalDynamicCss = '';
-
-        // 萬能轉譯與重寫輔助函數 (完全無 if/else)
-        const 轉換並重寫選擇器 = async (tokens: string[], 目標選擇器: string) => {
-          if (tokens.length === 0) return '';
-          
-          // 🚀 100% 使用 UnoCSS 內建函數將傳入的 current 類別字串編譯為標準原子 CSS
-          const { css } = await generator.generate(tokens.join(' '), { preflights: false, minify: true });
-          
-          // 🎯 利用正則精準將 UnoCSS 生成的原子選擇器（如 .bg-current, .text-current-content）批次替換成我們的目標選擇器
-          let rewrittenCss = css.replace(/\.[^\s{,]+(?=[{,])/g, 目標選擇器);
-          
-          // ⚡ 自動在每條屬性宣告後方強灌 !important 確保最高權重，不帶任何屬性對照表
-          rewrittenCss = rewrittenCss.replace(/([^;{}]+)(;|\s*})/g, (match, propVal, end) => {
-            const trimmed = propVal.trim();
-            if (!trimmed || trimmed.includes('!important') || trimmed.startsWith('/*')) return match;
-            return `${trimmed} !important${end}`;
-          });
-          
-          return rewrittenCss + '\n';
-        };
-
-        // 🟢 三態流道自動對譯注入 -> 讓它們全部依附在 .c-div-active 選擇器族群下
-        
-        // Active 態 -> 生成 .c-div-active
-        finalDynamicCss += await 轉換並重寫選擇器(activeCurrent, '.c-div-active');
-        
-        // Hover 態 -> 清除前綴並生成 .c-div-active:hover
-        const cleanHover = hoverCurrent.map(cls => cls.replace(/^hover:/, ''));
-        finalDynamicCss += await 轉換並重寫選擇器(cleanHover, '.c-div-active:hover');
-        
-        // Inactive 態 -> 清除前綴並生成 .c-div-active[data-active="false"]
-        const cleanInactive = inactiveCurrent.map(cls => cls.replace(/^inactive:/, ''));
-        finalDynamicCss += await 轉換並重寫選擇器(cleanInactive, '.c-div-active[data-active="false"]');
-
-        return finalDynamicCss.trim();
+        return await generateNonCurrentCSS(activeElse, '.c-div-active[data-active="true"]', generator);
       }
-    ]
-  ];
+    ],
 
-  // 🛡️ 變體隔離防線
-  const variants: Variant<any>[] = [
-    (matcher) => {
-      if (!matcher.startsWith('inactive:')) return matcher;
-      return {
-        matcher: matcher.slice(9),
-        selector: (s) => `${s}[data-active="false"]`
-      };
-    }
-  ];
+    // 3. c-div-hover — non-current hover token → active+hover+:hover 三重門禁
+    [
+      /^c-div-hover$/,
+      async (_, { generator }) => {
+        return await generateNonCurrentCSS(hoverElse, '.c-div-hover[data-active="true"][data-hover="true"]:hover', generator);
+      }
+    ],
 
-  return { rules, variants };
+    // 4. c-div-inactive — non-current inactive token → [data-active="false"] 才爆發
+    [
+      /^c-div-inactive$/,
+      async (_, { generator }) => {
+        return await generateNonCurrentCSS(inactiveElse, '.c-div-inactive[data-active="false"]', generator);
+      }
+    ],
+  ];
 }
