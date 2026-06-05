@@ -17,7 +17,8 @@
   {"id": "圖示:標籤:載入","名稱":{"en":"loading","zh-tw":"載入動畫","vi":"đang tải"},"標籤集":[],"可刪除": false},
   {"id": "圖示:標籤:動畫","名稱":{"en":"animate","zh-tw":"動畫","vi":"hoạt hình"},"標籤集":[],"可刪除": false},
   {"id": "圖示:標籤:面板","名稱":{"en":"panel","zh-tw":"面板","vi":"bảng điều khiển"},"標籤集":[],"可刪除": false},
-  
+  {"id": "圖示:標籤:圖樣","名稱":{"en":"pattern","zh-tw":"圖樣","vi":"mẫu hình"},"標籤集":[],"可刪除": false},
+
   {
     "id": "圖示:圖示:web_cube",
     "名稱": {"en":"cube","zh-tw":"方塊","vi":"hình lập phương"},
@@ -286,6 +287,36 @@
       "content": "https://flagicons.lipis.dev/flags/4x3/vn.svg"
     },
     "標籤集": ["圖示:標籤:旗幟"],
+    "可刪除": false
+  },
+  {
+    "id": "圖示:圖示:對角線",
+    "名稱": {"en":"Diagonal Lines","zh-tw": "對角線","vi": "Đường chéo"},
+    "資料": {
+      "format": "SVG",
+      "content": "file://icons/patterns/linear-diagonal.svg"
+    },
+    "標籤集": ["圖示:標籤:圖樣"],
+    "可刪除": false
+  },
+  {
+    "id": "圖示:圖示:拼花地板",
+    "名稱": {"en":"Parkay Floor","zh-tw": "拼花地板","vi": "Sàn gỗ ghép thanh"},
+    "資料": {
+      "format": "SVG",
+      "content": "file://icons/patterns/parkay-floor.svg"
+    },
+    "標籤集": ["圖示:標籤:圖樣"],
+    "可刪除": false
+  },
+  {
+    "id": "圖示:圖示:紋理",
+    "名稱": {"en":"Texture","zh-tw": "紋理","vi": "Mãu sắc"},
+    "資料": {
+      "format": "SVG",
+      "content": "file://icons/patterns/texture.svg"
+    },
+    "標籤集": ["圖示:標籤:圖樣"],
     "可刪除": false
   }
 ]

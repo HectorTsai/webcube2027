@@ -3,48 +3,68 @@
   {"id": "骨架:標籤:簡約","名稱":{"en":"simplicity","zh-tw":"簡約風","vi":"sự tối giản"},"標籤集":[],"可刪除": false},
   {
     "id": "骨架:骨架:經典",
-    "名稱":{"en":"classic","zh-tw":"經典","vi":"cổ điển"},
-    "描述":{"en":"classic style's skeleton","zh-tw":"經典風格的骨架","vi":"Cấu trúc của phong cách cổ điển"},
-    "影像":"",
-    "佈局":"方塊:方塊:basic-layout",
-    "風格":{"default":"solid", "image":"影像:影像:藍色方塊拼接布紋"},
-    "圖示":"外框", 
+    "名稱": { "en": "Classic Geometry", "zh-tw": "經典幾何骨架" },
+    "描述": { "zh-tw": "標準比例的經典空間結構骨架。" },
+    "影像": "",
+    "佈局": "方塊:方塊:basic-layout",
+    "圖示": "外框", 
     "書本樣式": "經典",
-    "選單按鈕":"圖示:圖示:menu2",
-    "開始動畫":{"type":"內建","name":"Buildings"},
-    "載入器":{"type":"系統","name":"spinner"},
-    "圓角":{"sm":"0.25rem","md":"0.5rem","lg":"1rem","avatar":"999rem"},
-    "空間":{"xs":"0.5rem","sm":"0.75rem","md":"1rem","lg":"1.5rem","xl":"2rem","2xl":"3rem"},
-    "字型":{"xs":"0.75rem","sm":"0.875rem","base":"1rem","lg":"1.125rem","xl":"1.25rem","2xl":"1.5rem","3xl":"1.875rem"},
-    "行高":{"xs":"1rem","sm":"1.25rem","base":"1.5rem","lg":"1.75rem","xl":"1.75rem","2xl":"2rem","3xl":"2.25rem"},
-    "邊框":"1px",
-    "動畫":{
-      "下拉選單":{
-        "開": "animate-in fade-in",
-        "關": "animate-in fade-out"
-      },
-      "抽屜":{
-        "上.開": "animate-in slide-in-from-up",
-        "上.關": "animate-out slide-out-to-up",
-        "下.開": "animate-in slide-in-from-down",
-        "下.關": "animate-out slide-out-to-down",
-        "左.開": "animate-in slide-in-from-left",
-        "左.關": "animate-out slide-out-to-left",
-        "右.開": "animate-in slide-in-from-right",
-        "右.關": "animate-out slide-out-to-right"
+    "選單按鈕": "圖示:圖示:menu2",
+    "開始動畫": "Buildings",
+    "載入器": "spinner",
+    "配置": {
+      "radius-sm": "0.25rem",
+      "radius-md": "0.5rem",
+      "radius-lg": "1rem",
+      "radius-avatar": "999rem",
+      
+      "spacing-xs": "0.5rem",
+      "spacing-sm": "0.75rem",
+      "spacing-md": "1rem",
+      "spacing-lg": "1.5rem",
+      "spacing-xl": "2rem",
+      "spacing-2xl": "3rem",
+      
+      "font-xs": "0.75rem",
+      "font-sm": "0.875rem",
+      "font-base": "1rem",
+      "font-lg": "1.125rem",
+      "font-xl": "1.25rem",
+      "font-2xl": "1.5rem",
+      "font-3xl": "1.875rem",
+      "font-5xl": "3rem",
+      "font-9xl": "8rem",
+      
+      "leading-xs": "1rem",
+      "leading-sm": "1.25rem",
+      "leading-base": "1.5rem",
+      "leading-lg": "1.75rem",
+      "leading-xl": "1.75rem",
+      "leading-2xl": "2rem",
+      "leading-3xl": "2.25rem",
+      "leading-5xl": "1",
+      "leading-9xl": "1",
+      
+      "border-sm": "1px",
+      "border-md": "1.5px",
+      "border-lg": "3px",
 
-      },
-      "視窗":{
-        "開": "animate-bounce-in",
-        "關": "animate-bounce-out"
-      },
-      "彈出":{
-        "開": "animate-bounce-in",
-        "關": "animate-bounce-out"
-      }
+      "icon-xs": "12px",
+      "icon-sm": "16px",
+      "icon-md": "24px",
+      "icon-lg": "32px",
+
+      "image-sm": "48px",
+      "image-md": "96px",
+      "image-lg": "192px",
+      "image-xl": "256px",
+      "image-2xl": "384px",
+      "image-3xl": "512px",
+      "image-5xl": "768px",
+      "image-9xl": "1024px"
     },
-    "標籤集":["骨架:標籤:經典"],
-    "售價":0,
+    "標籤集": ["骨架:標籤:經典"],
+    "售價": 0,
     "可刪除": false
   }
 ]

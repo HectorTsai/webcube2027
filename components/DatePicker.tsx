@@ -1,9 +1,9 @@
-import { ComponentProps } from "./classes.ts";
+import { BaseComponentProps } from "./classes.ts";
 import Container from "./Container/index.tsx";
 import Button from "./Button.tsx";
 import Span from "./Span.tsx";
 
-export interface DatePickerProps extends ComponentProps {
+export interface DatePickerProps extends BaseComponentProps {
   /** 表單欄位名稱 */
   name?: string;
   /** 初始日期值 (YYYY-MM-DD) */

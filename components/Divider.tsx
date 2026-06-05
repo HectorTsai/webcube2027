@@ -1,7 +1,7 @@
-import {ComponentProps} from "./classes.ts";
+import {BaseComponentProps} from "./classes.ts";
 import { processChildren } from "./index.ts";
 
-export interface DividerProps extends ComponentProps {
+export interface DividerProps extends BaseComponentProps {
   /** 是否水平 */
   horizontal?: boolean;
   /** 位置 */

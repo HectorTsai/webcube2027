@@ -6,7 +6,7 @@ const _DEFAULT_STRINGS = {
   描述: {
     en: "A blue tone, giving a feeling of calm, gentleness and comfort.",
     "zh-tw": "一種藍色調，給人冷靜、柔和舒服的感覺",
-    vi: "Một tông màu xanh, mang lại cảm giác bình tĩnh, nhẹ nhàng và thoải mái.",
+    vi: "Một tông màu xanh, mang lại cảm giác bình tĩnh, nhẹ nhàng and thoải mái.",
   },
 };
 
@@ -17,7 +17,7 @@ const DEFAULT_COLORS = {
   中性色: "35.5192% .032071 262.988584", // --nc
   背景色: "100% 0 0",                    // --b1
   資訊色: "71.17% 0.166 241.15",       // --info
-  成功色: "60.9% 0.135 161.2",         // --success
+  成功色: "60.9% 0.135 161.2",         //         --success
   警告色: "73% 0.19 52",               // --warning
   錯誤色: "57.3% 0.234 28.28",        // --error
 };
@@ -25,6 +25,8 @@ const DEFAULT_COLORS = {
 export default class 配色 extends 資料 {
   public 名稱: MultilingualString;
   public 描述: MultilingualString;
+  
+  // 基礎色彩
   public 主色: string;
   public 次色: string;
   public 強調色: string;
@@ -43,6 +45,8 @@ export default class 配色 extends 資料 {
     super(data, 可刪除);
     this.名稱 = new MultilingualString(data?.名稱 as Record<string, string> | undefined ?? _DEFAULT_STRINGS.名稱);
     this.描述 = new MultilingualString(data?.描述 as Record<string, string> | undefined ?? _DEFAULT_STRINGS.描述);
+    
+    // 基礎色初始化
     this.主色 = (data?.主色 as string) ?? DEFAULT_COLORS.主色;
     this.次色 = (data?.次色 as string) ?? DEFAULT_COLORS.次色;
     this.強調色 = (data?.強調色 as string) ?? DEFAULT_COLORS.強調色;
@@ -69,7 +73,7 @@ export default class 配色 extends 資料 {
       成功色: this.成功色,
       警告色: this.警告色,
       錯誤色: this.錯誤色,
-      售價: this.售價,
+      售價: this.售價
     };
   }
 }
