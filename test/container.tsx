@@ -16,7 +16,7 @@ export default async function ContainerTestPage(ctx: any) {
   // 📐 幾何與尺寸伸縮測試配置
   const layoutScenarios = [
     { width: '56px', height: '56px', padding: 'sm', label: '正方顆粒', desc: '小圖示容器', layoutType: 'grid' },
-    { width: '120px', height: '48px', padding: 'md', label: '標準條狀', desc: '常見按鈕規格', layoutType: 'grid' },
+    { width: '120px', height: '48px', padding: 'md', label: '標準條狀', desc: '常見按鈕規格', layoutType: 'flex-wrap' },
     { width: '280px', height: '160px', padding: 'lg', label: '卡片區塊', desc: '內容控制面板 (自動換行防重疊)', layoutType: 'flex-wrap' },
     { width: '100%', height: 'auto', padding: 'xl', label: '滿版寬彈性高', desc: '外層 RWD 包裹盒 (垂直排列流)', layoutType: 'stack' },
   ];

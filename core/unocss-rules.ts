@@ -61,7 +61,7 @@ export function getSystemRules(
         let css = `.c-style-apply {\n  transition: background-color 0.2s ease-out, color 0.2s ease-out, border-color 0.2s ease-out, box-shadow 0.2s ease-out;\n}\n`;
         css += buildCurrentCSS(activeCurrent, '.c-style-apply');
         const cleanHover = hoverCurrent.map(cls => cls.replace(/^hover:/, ''));
-        css += buildCurrentCSS(cleanHover, '.c-style-apply[data-active="true"]:hover');
+        css += buildCurrentCSS(cleanHover, '.c-style-apply[data-active="true"][data-hover="true"]:hover');
         const cleanInactive = inactiveCurrent.map(cls => cls.replace(/^inactive:/, ''));
         css += buildCurrentCSS(cleanInactive, '.c-style-apply[data-active="false"]');
         return css.trim();
