@@ -19,9 +19,7 @@ export default function Container(props: ContainerProps) {
     style, 
     context, 
     width,     
-    height,    
-    padding,   
-    ...rest 
+    height,
   } = props;
 
   const 實際供電色彩 = (!active && !activeStateName) ? "neutral" : color;
@@ -37,9 +35,6 @@ export default function Container(props: ContainerProps) {
 
     '--c-width': width || 'auto',
     '--c-height': height || 'auto',
-    '--c-padding': padding 
-      ? (['sm', 'md', 'lg', 'xl'].includes(padding) ? `var(--spacing-${padding})` : padding) 
-      : 'unset',
 
     ...style 
   };

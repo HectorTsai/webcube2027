@@ -134,7 +134,6 @@ export class 資料 {
   public 標籤集: string[];
   public 最後修改: Date;
   public 可刪除: boolean;
-  embedding?: number[];
 
   public get type() {
     return this.編號._type;
