@@ -1,8 +1,8 @@
 // deno-lint-ignore-file no-explicit-any
-import { info, error } from '../utils/logger.ts';
-import 系統資訊 from '../database/models/系統資訊.ts';
-import SecretString from '../database/secretstring.ts';
-import { 資料, L2連線資訊 } from '../database/index.ts'; // Added for generic methods
+import { info, error } from '../../utils/logger.ts';
+import 系統資訊 from '../models/系統資訊.ts';
+import SecretString from '../secretstring.ts';
+import { 資料, L2連線資訊 } from '../index.ts'; // Added for generic methods
 
 
 // KV 資料庫管理類別
@@ -77,7 +77,7 @@ export class KV資料庫 {
       if (筆數 === 0) {
         // 使用統一的讀取種子函數
         try {
-          const { 讀取種子 } = await import('../database/index.ts');
+          const { 讀取種子 } = await import('../index.ts');
           const seed資料 = await 讀取種子(model);
           
           if (seed資料 && Array.isArray(seed資料)) {
@@ -127,7 +127,7 @@ export class KV資料庫 {
       
       try {
         // 動態導入模型類別
-        const 模型模組 = await import(`../database/models/${model}.ts`);
+        const 模型模組 = await import(`../models/${model}.ts`);
         const 模型類別 = 模型模組.default;
         
         if (!模型類別 || typeof 模型類別 !== 'function') {
@@ -201,7 +201,7 @@ export class KV資料庫 {
       
       try {
         // 動態導入模型類別
-        const 模型模組 = await import(`../database/models/${model}.ts`);
+        const 模型模組 = await import(`../models/${model}.ts`);
         const 模型類別 = 模型模組.default;
         
         // 合併資料
@@ -242,7 +242,7 @@ export class KV資料庫 {
       const kv = await this.取得KV();
       
       // 動態導入系統資訊模型類別
-      const 模型模組 = await import('../database/models/系統資訊.ts');
+      const 模型模組 = await import('../models/系統資訊.ts');
       const 系統資訊類別 = 模型模組.default;
       
       // 建立新的系統資訊實例

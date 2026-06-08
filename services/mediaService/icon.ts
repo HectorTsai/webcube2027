@@ -3,7 +3,7 @@ import { Context } from 'hono';
 import { error } from '../../utils/logger.ts';
 import { MediaModule, RouteParams } from './index.ts';
 import 圖示 from "../../database/models/圖示.ts";
-import { 三層查詢管理器 } from '../../core/three-tier-query.ts';
+import { 三層查詢管理器 } from '../../database/core/three-tier-query.ts';
 
 /**
  * 從三層資料庫載入圖示 (優化點：補上長效強快取與正則編碼優化)

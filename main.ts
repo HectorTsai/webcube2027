@@ -1,15 +1,15 @@
 // deno-lint-ignore-file no-explicit-any
 import { Hono } from "hono";
 import { jsx } from "hono/jsx";
-import { 初始化UnoCSS, 產生樣式 } from './core/unocss.ts';
-import { 取得KV資料庫 } from './core/kv.ts';
+import { 初始化UnoCSS, 產生樣式 } from './unocss/unocss.ts';
+import { 取得KV資料庫 } from './database/core/kv.ts';
 import { info, error } from './utils/logger.ts';
 import { 加密, 解密 } from './utils/密碼方法.ts';
 // 移除已刪除的 system.ts 導入
 import { 資料庫解析器, 清理資料庫連線 } from './middleware/db-resolver.ts';
 import { 資訊載入器 } from './middleware/info-loader.ts';
 import { 語言解析器 } from './middleware/language-resolver.ts';
-import { 三層查詢管理器 } from './core/three-tier-query.ts';
+import { 三層查詢管理器 } from './database/core/three-tier-query.ts';
 import 骨架 from './database/models/骨架.ts';
 import 配色 from './database/models/配色.ts';
 import { 處理API請求 } from "./services/apiService/index.ts";

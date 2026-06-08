@@ -1,7 +1,7 @@
 // Renderer Service 主要入口點 - 解決 UnoCSS 動態類名丟失問題的完全體
 
 import { Context } from 'hono';
-import { 產生樣式 } from '../../core/unocss.ts';
+import { 產生樣式 } from '../../unocss/unocss.ts';
 import { info, error } from '../../utils/logger.ts';
 import { InnerAPI } from '../index.ts';
 import 骨架 from "../../database/models/骨架.ts";

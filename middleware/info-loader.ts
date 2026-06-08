@@ -1,7 +1,7 @@
 // 資訊載入中間件 - 預先載入系統資訊和網站資訊到 context
 import { Context, Next } from 'hono';
 import { info } from '../utils/logger.ts';
-import { 三層查詢管理器 } from '../core/three-tier-query.ts';
+import { 三層查詢管理器 } from '../database/core/three-tier-query.ts';
 import 系統資訊 from '../database/models/系統資訊.ts';
 import 網站資訊 from '../database/models/網站資訊.ts';
 

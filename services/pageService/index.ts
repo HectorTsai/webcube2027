@@ -3,7 +3,7 @@ import 動態方塊JSX解析器 from "./動態方塊JSX解析器.ts";
 import 頁面 from "../../database/models/頁面.ts";
 import 方塊 from "../../database/models/方塊.ts";
 import { info, error } from "../../utils/logger.ts";
-import { 三層查詢管理器 } from '../../core/three-tier-query.ts';
+import { 三層查詢管理器 } from '../../database/core/three-tier-query.ts';
 import { 資料過濾器 } from '../../utils/資料過濾器.ts';
 import { InnerAPI } from "../index.ts";
 import { Context } from "hono";

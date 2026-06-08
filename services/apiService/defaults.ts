@@ -2,7 +2,7 @@
 import { Context } from 'hono';
 import { APIModule, RouteParams } from './index.ts';
 import { info, error } from '../../utils/logger.ts';
-import { 三層查詢管理器 } from '../../core/three-tier-query.ts';
+import { 三層查詢管理器 } from '../../database/core/three-tier-query.ts';
 import 佈景主題 from '../../database/models/佈景主題.ts';
 import 配色 from '../../database/models/配色.ts';
 import 骨架 from '../../database/models/骨架.ts';

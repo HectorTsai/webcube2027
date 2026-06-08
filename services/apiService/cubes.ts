@@ -2,7 +2,7 @@
 import { Context } from 'hono';
 import { APIModule, RouteParams } from './index.ts';
 import { info, error } from '../../utils/logger.ts';
-import { 三層查詢管理器 } from '../../core/three-tier-query.ts';
+import { 三層查詢管理器 } from '../../database/core/three-tier-query.ts';
 import { 資料過濾器 } from '../../utils/資料過濾器.ts';
 import 方塊 from '../../database/models/方塊.ts';
 

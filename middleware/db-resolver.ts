@@ -1,8 +1,8 @@
 // 三層資料庫解析器 - 根據 host 選擇正確的 DB 連線
 import { Context, Next } from 'hono';
-import { 取得KV資料庫 } from '../core/kv.ts';
+import { 取得KV資料庫 } from '../database/core/kv.ts';
 import { L2連線資訊 } from '../database/index.ts';
-import Surreal資料庫 from '../core/surrealdb.ts';
+import Surreal資料庫 from '../database/core/surrealdb.ts';
 import { info, error } from '../utils/logger.ts';
 
 // 擴展 Hono Context 類型，加入資料庫實例

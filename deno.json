@@ -12,11 +12,13 @@
     "hono/jsx": "jsr:@hono/hono@^4.6.3/jsx",
     "hono/jsx/dom": "jsr:@hono/hono@^4.6.3/jsx/dom",
     "hono/utils/html": "jsr:@hono/hono@^4.6.3/utils/html",
+    "mongodb": "npm:mongodb@^7.2.0",
     "nanoid": "npm:nanoid@^5.1.7",
     "@dui/smartmultilingual": "jsr:@dui/smartmultilingual@0.2.3",
     "deno-dom": "jsr:@b-fuze/deno-dom@^0.1.47",
     "surrealdb": "npm:surrealdb@^2.0.3",
-    "svgson": "npm:svgson@^5.3.1"
+    "svgson": "npm:svgson@^5.3.1",
+    "mongodb": "npm:mongodb@^6"
   },
   "compilerOptions": {
     "jsx": "precompile",

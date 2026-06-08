@@ -1,7 +1,7 @@
 // 三層查詢架構核心邏輯
 import { Context } from 'hono';
-import { 資料 } from '../database/index.ts';
-import { info, error } from '../utils/logger.ts';
+import { 資料 } from '../index.ts';
+import { info, error } from '../../utils/logger.ts';
 
 // 三層查詢結果類型
 export interface 查詢結果<T> {
@@ -240,7 +240,7 @@ export class 三層查詢管理器 {
       }
       
       // 動態導入模型類別
-      const 模型模組 = await import(`../database/models/${model}.ts`);
+      const 模型模組 = await import(`../models/${model}.ts`);
       const 模型類別 = 模型模組.default;
       
       if (!模型類別 || typeof 模型類別 !== 'function') {

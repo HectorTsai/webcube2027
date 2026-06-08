@@ -116,7 +116,7 @@ export default class Surreal資料庫 {
 
     if (await this.個數(model) === 0) {
       // 使用統一的讀取種子函數
-      const { 讀取種子 } = await import('../database/index.ts');
+      const { 讀取種子 } = await import('../index.ts');
       const items = await 讀取種子(model);
       
       if (!items) {

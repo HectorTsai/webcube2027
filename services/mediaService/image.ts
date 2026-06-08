@@ -3,7 +3,7 @@ import { Context } from 'hono';
 import { info, error } from '../../utils/logger.ts';
 import { MediaModule, RouteParams } from './index.ts';
 import 影像 from "../../database/models/影像.ts";
-import { 三層查詢管理器 } from '../../core/three-tier-query.ts';
+import { 三層查詢管理器 } from '../../database/core/three-tier-query.ts';
 import { ArrayUtils } from '@dui/smartmultilingual';
 
 /**
