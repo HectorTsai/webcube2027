@@ -5,6 +5,7 @@ import {
 } from "@dui/smartmultilingual";
 import SecretString from "../secretstring.ts";
 import { 版權資料, 資料 } from "../index.ts";
+import { AI模型定義 } from "./AI伺服器.ts";
 
 const DEFAULTS = {
   名稱: { en: "webcube", "zh-tw": "網站方塊", vi: "webcube" },
@@ -33,6 +34,8 @@ export default class 系統資訊 extends 資料 {
   public 軟體服務條款: MultilingualSmartContent;
   public 使用者服務條款: MultilingualSmartContent;
   public 隱私權政策: MultilingualSmartContent;
+  public AI伺服器池: string[];     // AI伺服器 ID 列表
+  public AI翻譯啟用: boolean;
 
   public constructor(
     data: Record<string, unknown> = {},
@@ -58,6 +61,8 @@ export default class 系統資訊 extends 資料 {
     this.佈景主題 = (data?.佈景主題 as string) ?? DEFAULTS.佈景主題;
     this.配色 = (data?.配色 as string) ?? "";
     this.骨架 = (data?.骨架 as string) ?? "";
+    this.AI伺服器池 = (data?.AI伺服器池 as string[]) ?? [];
+    this.AI翻譯啟用 = (data?.AI翻譯啟用 as boolean) ?? false;
     }
 
   public override toJSON(): Record<string, unknown> {
@@ -82,6 +87,8 @@ export default class 系統資訊 extends 資料 {
       佈景主題: this.佈景主題,
       配色: this.配色,
       骨架: this.骨架,
+      AI伺服器池: this.AI伺服器池,
+      AI翻譯啟用: this.AI翻譯啟用,
     };
   }
   public override async 初始化(): Promise<void> {

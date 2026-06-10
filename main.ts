@@ -16,6 +16,7 @@ import { 處理API請求 } from "./services/apiService/index.ts";
 import { 處理Media請求 } from "./services/mediaService/index.ts";
 import { 處理Renderer請求 } from './services/rendererService/index.ts';
 import { 處理測試請求 } from './services/testService.ts';
+import { 處理AI請求 } from './services/aiService/index.ts';
 
 // API 透過動態路由分發器處理，無需直接導入
 
@@ -80,6 +81,8 @@ app.all('*', async (c) => {
         // 測試服務
         // await info('路由分發器', `分發到測試服務: ${path}`);
         return await 處理測試請求(c);
+      case path.startsWith('/api/v1/ai'):
+        return await 處理AI請求(c);
       case path.startsWith('/api'):
         // API 服務
         // await info('路由分發器', `分發到 API 服務: ${path}`);

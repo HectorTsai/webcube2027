@@ -1,0 +1,30 @@
+[
+  {
+    "id": "AI伺服器:AI伺服器:ollama雲端",
+    "名稱": "Ollama Cloud 免費",
+    "provider": "openai",
+    "url": "https://ollama.com/v1",
+    "apiKey": "請填入你的 Ollama Cloud API Key",
+    "模型列表": [
+      {
+        "名稱": "gpt-oss:20b",
+        "能力值": 7,
+        "擅長能力": [
+          "文本生成", "翻譯", "代碼生成", "CSS與設計", "結構化輸出",
+          "多語言", "嵌入", "工具調用",
+          "圖片理解", "推理"
+        ]
+      }
+    ],
+    "硬體描述": "Ollama Cloud 免費 tier",
+    "硬體分數": 7,
+    "收費": false,
+    "月次數上限": 0,
+    "有效日期": null,
+    "網站ID": null,
+    "啟用": true,
+    "可刪除": true,
+    "標籤集": ["系統預設", "開發測試"],
+    "備註": "生產環境請由系統管理員自行申請 Ollama Cloud API Key 並修改此 seed"
+  }
+]

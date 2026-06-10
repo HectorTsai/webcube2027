@@ -3,6 +3,7 @@ import Card from "../components/Card/index.tsx";
 
 export default function TestIndex(ctx: Context) {
   const testPages = [
+    { name: "AI Service 測試", path: "/test/ai" },
     { name: "動態方塊測試器", path: "/test/cube" },
     { name: "Span 測試", path: "/test/span" },
     { name: "Swap 測試", path: "/test/swap" },

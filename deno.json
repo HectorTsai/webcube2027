@@ -17,8 +17,7 @@
     "@dui/smartmultilingual": "jsr:@dui/smartmultilingual@0.2.3",
     "deno-dom": "jsr:@b-fuze/deno-dom@^0.1.47",
     "surrealdb": "npm:surrealdb@^2.0.3",
-    "svgson": "npm:svgson@^5.3.1",
-    "mongodb": "npm:mongodb@^6"
+    "svgson": "npm:svgson@^5.3.1"
   },
   "compilerOptions": {
     "jsx": "precompile",
