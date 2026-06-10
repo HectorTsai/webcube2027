@@ -30,7 +30,10 @@ export default class AI伺服器 extends 資料 {
     this.名稱 = (data?.名稱 as string) ?? "";
     this.provider = (data?.provider as string) ?? "ollama";
     this.url = (data?.url as string) ?? "";
-    this.apiKey = new SecretString({ cipherText: data?.apiKey as string });
+    const rawKey = data?.apiKey as string;
+    this.apiKey = rawKey?.startsWith('enc:')
+      ? new SecretString({ cipherText: rawKey })
+      : new SecretString({ plainText: rawKey });
     this.模型列表 = (data?.模型列表 as AI模型定義[]) ?? [];
     this.硬體描述 = (data?.硬體描述 as string) ?? "";
     this.硬體分數 = (data?.硬體分數 as number) ?? 0;
@@ -53,7 +56,7 @@ export default class AI伺服器 extends 資料 {
       名稱: this.名稱,
       provider: this.provider,
       url: this.url,
-      apiKey: this.apiKey.toJSON(),
+      apiKey: this.apiKey.CipherText,
       模型列表: this.模型列表,
       硬體描述: this.硬體描述,
       硬體分數: this.硬體分數,

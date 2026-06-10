@@ -6,10 +6,12 @@ export class OllamaProvider implements AIProvider {
   readonly 類型 = 'ollama';
   private url: string;
   private model: string;
+  private apiKey: string;
 
-  constructor(url: string, model: string = 'llama3') {
+  constructor(url: string, model: string = 'llama3', apiKey: string = '') {
     this.url = url.replace(/\/$/, '');
     this.model = model;
+    this.apiKey = apiKey;
   }
 
   async 聊天(
@@ -21,9 +23,18 @@ export class OllamaProvider implements AIProvider {
     const model = options?.model ?? this.model;
 
     try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (this.apiKey) {
+        headers['Authorization'] = `Bearer ${this.apiKey}`;
+      }
+      // 🔍 DEBUG: 暫時顯示送出的 apiKey 前 15 字元 / url / model
+      console.log('[OllamaProvider DEBUG] url:', this.url);
+      console.log('[OllamaProvider DEBUG] model:', model);
+      console.log('[OllamaProvider DEBUG] apiKey 長度:', this.apiKey.length, '前15字:', this.apiKey.substring(0, 15));
+      console.log('[OllamaProvider DEBUG] Authorization header:', headers['Authorization']?.substring(0, 30), '...');
       const response = await fetch(`${this.url}/api/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           model,
           messages: [
@@ -63,7 +74,14 @@ export class OllamaProvider implements AIProvider {
 
   async 檢查可用性(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.url}/api/tags`, { signal: AbortSignal.timeout(3000) });
+      const headers: Record<string, string> = {};
+      if (this.apiKey) {
+        headers['Authorization'] = `Bearer ${this.apiKey}`;
+      }
+      const response = await fetch(`${this.url}/api/tags`, {
+        headers,
+        signal: AbortSignal.timeout(3000),
+      });
       return response.ok;
     } catch {
       return false;

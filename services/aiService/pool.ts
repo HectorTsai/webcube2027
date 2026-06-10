@@ -274,26 +274,27 @@ export class AIPoolManager {
         : s.provider === 'together' ? 'https://api.together.xyz/v1'
         : s.provider === 'mistral' ? 'https://api.mistral.ai/v1'
         : s.url;
-      const key = s.apiKey.PlainText || await s.apiKey.getPlainText();
+      const key = await s.apiKey.getPlainText();
       return key ? new OpenAIProvider(key, model, baseUrl) : null;
     }
 
     if (PROVIDER_OLLAMA.has(s.provider)) {
-      return new OllamaProvider(s.url, model) as AIProvider;
+      const key = await s.apiKey.getPlainText();
+      return new OllamaProvider(s.url, model, key) as AIProvider;
     }
 
     if (PROVIDER_ANTHROPIC.has(s.provider)) {
-      const key = s.apiKey.PlainText || await s.apiKey.getPlainText();
+      const key = await s.apiKey.getPlainText();
       return key ? new AnthropicProvider(key, model) : null;
     }
 
     if (PROVIDER_GEMINI.has(s.provider)) {
-      const key = s.apiKey.PlainText || await s.apiKey.getPlainText();
+      const key = await s.apiKey.getPlainText();
       return key ? new GeminiProvider(key, model) : null;
     }
 
     // 未知 provider → fallback OpenAI-compatible
-    const key = s.apiKey.PlainText || await s.apiKey.getPlainText();
+    const key = await s.apiKey.getPlainText();
     return key ? new OpenAIProvider(key, model, s.url) : null;
   }
 

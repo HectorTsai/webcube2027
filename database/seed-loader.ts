@@ -1,5 +1,6 @@
 // 種子資料讀取器 — 從 /database/seeds/ 載入初始資料
 import { 資料 } from './base-model.ts';
+import SecretString from './secretstring.ts';
 
 /** 讀取一顆種子 — 處理單一 JSON 檔案 */
 async function 讀取一顆種子(filePath: string | URL): Promise<Record<string, unknown>[]> {
@@ -72,6 +73,16 @@ export async function 讀取種子<T extends 資料>(model: string): Promise<T[]
       const mod = await import(`./models/${model}.ts`);
       const Model = mod.default;
       const result = 所有資料.map((item) => new Model(item));
+
+      // 對所有 SecretString 欄位觸發加密，確保寫入 DB 時為密文
+      for (const instance of result) {
+        for (const value of Object.values(instance as Record<string, unknown>)) {
+          if (value instanceof SecretString) {
+            await value.process();
+          }
+        }
+      }
+
       return result;
     } catch (modelErr) {
       console.error(`[讀取種子] 模型實例化失敗: ${model}`, modelErr);
