@@ -9,6 +9,7 @@ import { StyleGenerator } from './task/style-generator.ts';
 import { CubeGenerator } from './task/cube-generator.ts';
 import { Translator } from './task/translator.ts';
 import { CustomerService } from './task/customer-service.ts';
+import { CodeReview } from './task/code-review.ts';
 import { 處理Assist請求 } from './assist.ts';
 import { AIPoolManager } from './pool.ts';
 
@@ -95,6 +96,13 @@ export async function 處理AI請求(c: Context): Promise<Response> {
       // ── AI 小幫手 ──
       case method === 'POST' && aiPath.startsWith('assist'):
         return 處理Assist請求(c);
+
+      // ── 代碼審查 ──
+      case method === 'POST' && aiPath === 'review/scan': {
+        const reviewer = new CodeReview(c);
+        const result = await reviewer.掃描未檢驗方塊();
+        return c.json({ success: true, data: result });
+      }
 
       // ── AI Server 列表 ──
       case method === 'GET' && aiPath === 'servers': {

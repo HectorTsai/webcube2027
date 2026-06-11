@@ -45,6 +45,8 @@ export default class 方塊 extends 資料 {
   public slots: Record<string, unknown> | undefined;
   public children: (Record<string, unknown> | string)[] | undefined;
   public 售價: number;
+  /** SHA-256 完整性雜湊，AI 審查通過後寫入，渲染前驗證 */
+  public 已檢驗: string;
 
   public constructor(data: Record<string, unknown> = {}, 可刪除: boolean = true) {
     super(data, 可刪除);
@@ -60,6 +62,7 @@ export default class 方塊 extends 資料 {
     this.slots = (data?.slots as Record<string, unknown> | undefined) ?? undefined;
     this.children = (data?.children as (Record<string, unknown> | string)[] | null | undefined) ?? undefined;
     this.售價 = (data?.售價 as number) ?? DEFAULT_VALUES.售價;
+    this.已檢驗 = (data?.已檢驗 as string) ?? '';
   }
 
   public override toJSON(): Record<string, unknown> {
@@ -77,6 +80,7 @@ export default class 方塊 extends 資料 {
       slots: this.slots,
       children: this.children,
       售價: this.售價,
+      已檢驗: this.已檢驗,
     };
   }
 }

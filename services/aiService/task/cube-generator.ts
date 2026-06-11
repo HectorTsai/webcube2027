@@ -1,12 +1,13 @@
 // Cube 生成 Task — 與 AI 對話生成新的方塊(Cube)定義
 
 import { Context } from 'hono';
-import { AIPoolManager } from '../pool.ts';
 import { AITaskConfig, AI能力標籤 } from '../provider/adapter.ts';
 import AI對話 from '../../../database/models/AI對話.ts';
 import AI使用記錄 from '../../../database/models/AI使用記錄.ts';
 import { 資料池 } from '../../../database/資料池.ts';
 import { error } from '../../../utils/logger.ts';
+import { 安全過濾Cube } from '../../../utils/安全過濾器.ts';
+import { 聊天並解析JSON } from '../../../utils/AI重試.ts';
 
 export const CUBE_TASK_CONFIG: AITaskConfig = {
   類型: 'Cube生成',
@@ -34,7 +35,6 @@ export class CubeGenerator {
   constructor(private c: Context) {}
 
   async 生成Cube(描述: string, 儲存目標: '系統' | '網站' = '網站'): Promise<{ cubeData: Record<string, unknown>[]; 對話ID: string }> {
-    const pool = new AIPoolManager(this.c);
     const 開始時間 = Date.now();
 
     try {
@@ -44,22 +44,25 @@ export class CubeGenerator {
       對話.網站ID = this.c.get('host') as string;
       對話.新增訊息('user', `生成方塊（儲存於${儲存目標}）: ${描述}`);
 
-      const { 回應, serverID, providerType } = await pool.聊天(
+      // 使用自動重試機制：JSON 解析失敗時自動重試一次
+      const { json, 原始回應, serverID, providerType } = await 聊天並解析JSON(
+        this.c,
         PROMPT,
         [{ 角色: 'user', 內容: `請設計一個方塊元件: ${描述}` }],
         CUBE_TASK_CONFIG,
-        { maxTokens: 2048, temperature: 0.7 }
+        { 重試提示: '請只回傳 JSON 陣列，不要包含任何其他文字' },
       );
 
-      對話.新增訊息('assistant', 回應.內容);
-      對話.摘要 = 回應.內容.slice(0, 100);
+      對話.新增訊息('assistant', 原始回應);
+      對話.摘要 = 原始回應.slice(0, 100);
 
-      let cubeData: Record<string, unknown>[] = [];
-      const jsonMatch = 回應.內容.match(/\[[\s\S]*\]/);
-      if (jsonMatch) { try { cubeData = JSON.parse(jsonMatch[0]); } catch { cubeData = [{ 原始回應: 回應.內容 }]; } }
+      let cubeData: Record<string, unknown>[] = Array.isArray(json) ? json : [{ 原始回應 }];
+
+      // L1 安全過濾：移除 script、危險 URI、inline 事件
+      cubeData = cubeData.map((cube) => 安全過濾Cube(cube)) as Record<string, unknown>[];
 
       const 儲存結果 = await 資料池.創建或更新<AI對話>('AI對話', 對話.toJSON());
-      await this.記錄使用(serverID, providerType, 回應, 開始時間, true);
+      await this.記錄使用(serverID, providerType, { 內容: 原始回應, token數: 0, 耗時毫秒: Date.now() - 開始時間 }, 開始時間, true);
 
       return { cubeData, 對話ID: 儲存結果.data?.id ?? '' };
     } catch (err) {

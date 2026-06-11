@@ -1,12 +1,12 @@
 // 頁面生成 Task — 與 AI 對話生成頁面內容與 Cube 組合
 
 import { Context } from 'hono';
-import { AIPoolManager } from '../pool.ts';
 import { AITaskConfig, AI能力標籤 } from '../provider/adapter.ts';
 import AI對話 from '../../../database/models/AI對話.ts';
 import AI使用記錄 from '../../../database/models/AI使用記錄.ts';
 import { 資料池 } from '../../../database/資料池.ts';
 import { error } from '../../../utils/logger.ts';
+import { 聊天並解析JSON } from '../../../utils/AI重試.ts';
 
 export const PAGE_TASK_CONFIG: AITaskConfig = {
   類型: '頁面生成',
@@ -33,7 +33,6 @@ export class PageGenerator {
   constructor(private c: Context) {}
 
   async 生成頁面(描述: string, 語言 = 'zh-tw'): Promise<{ 頁面Data: Record<string, unknown>; 對話ID: string }> {
-    const pool = new AIPoolManager(this.c);
     const 開始時間 = Date.now();
 
     try {
@@ -43,24 +42,26 @@ export class PageGenerator {
       對話.網站ID = this.c.get('host') as string;
       對話.新增訊息('user', 描述);
 
-      const { 回應, serverID, providerType } = await pool.聊天(
+      const { json, 原始回應, serverID, providerType } = await 聊天並解析JSON(
+        this.c,
         PROMPT,
         [{ 角色: 'user', 內容: `使用者需求（語言: ${語言}）:\n${描述}` }],
         PAGE_TASK_CONFIG,
-        { maxTokens: 2048, temperature: 0.7 }
+        { 重試提示: '請只回傳 JSON 物件，不要包含任何其他文字' },
       );
 
-      對話.新增訊息('assistant', 回應.內容);
+      對話.新增訊息('assistant', 原始回應);
 
       let 頁面Data: Record<string, unknown> = {};
-      const jsonMatch = 回應.內容.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        try { 頁面Data = JSON.parse(jsonMatch[0]); } catch { 頁面Data = { 原始回應: 回應.內容 }; }
+      if (typeof json === 'object' && json !== null && !Array.isArray(json)) {
+        頁面Data = json as Record<string, unknown>;
+      } else {
+        頁面Data = { 原始回應 };
       }
 
-      對話.摘要 = 回應.內容.slice(0, 100);
+      對話.摘要 = 原始回應.slice(0, 100);
       const 儲存結果 = await 資料池.創建或更新<AI對話>('AI對話', 對話.toJSON());
-      await this.記錄使用(serverID, providerType, 回應, 開始時間, true);
+      await this.記錄使用(serverID, providerType, { 內容: 原始回應, token數: 0, 耗時毫秒: Date.now() - 開始時間 }, 開始時間, true);
 
       return {
         頁面Data: { ...頁面Data, 對話ID: 儲存結果.data?.id ?? '' },
@@ -73,7 +74,6 @@ export class PageGenerator {
   }
 
   async 繼續對話(對話ID: string, 訊息: string): Promise<{ 回應內容: string; 頁面Data?: Record<string, unknown> }> {
-    const pool = new AIPoolManager(this.c);
     const 開始時間 = Date.now();
 
     const 查詢結果 = await 資料池.查詢單一<AI對話>(對話ID);
@@ -86,19 +86,24 @@ export class PageGenerator {
       角色: m.角色 as 'user' | 'assistant', 內容: m.內容,
     }));
 
-    const { 回應, serverID, providerType } = await pool.聊天(
-      PROMPT, 歷史, PAGE_TASK_CONFIG, { maxTokens: 2048, temperature: 0.7 }
+    const { json, 原始回應, serverID, providerType } = await 聊天並解析JSON(
+      this.c,
+      PROMPT,
+      歷史,
+      PAGE_TASK_CONFIG,
+      { 重試提示: '請只回傳 JSON 物件，不要包含任何其他文字' },
     );
 
-    對話.新增訊息('assistant', 回應.內容);
+    對話.新增訊息('assistant', 原始回應);
     await 資料池.創建或更新<AI對話>('AI對話', 對話.toJSON());
-    await this.記錄使用(serverID, providerType, 回應, 開始時間, true);
+    await this.記錄使用(serverID, providerType, { 內容: 原始回應, token數: 0, 耗時毫秒: Date.now() - 開始時間 }, 開始時間, true);
 
     let 頁面Data: Record<string, unknown> | undefined;
-    const jsonMatch = 回應.內容.match(/\{[\s\S]*\}/);
-    if (jsonMatch) { try { 頁面Data = JSON.parse(jsonMatch[0]); } catch { /* 純文字對話 */ } }
+    if (typeof json === 'object' && json !== null && !Array.isArray(json)) {
+      頁面Data = json as Record<string, unknown>;
+    }
 
-    return { 回應內容: 回應.內容, 頁面Data };
+    return { 回應內容: 原始回應, 頁面Data };
   }
 
   private async 記錄使用(serverID: string, providerType: string, 回應: { 內容: string; token數: number; 耗時毫秒: number }, 開始時間: number, 成功: boolean) {

@@ -52,6 +52,7 @@ export const AI能力標籤 = {
   語音合成: '語音合成',
   語音辨識: '語音辨識',
   推理: '推理',
+  代碼審核: '代碼審核',
 } as const;
 
 export type AI能力 = (typeof AI能力標籤)[keyof typeof AI能力標籤];

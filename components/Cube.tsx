@@ -19,6 +19,7 @@ import { processChildren } from "./index.ts";
 import { jsx } from "hono/jsx/jsx-runtime";
 import { Context } from "hono";
 import { InnerAPI } from "../services/index.ts";
+import { 驗證完整性, 安全過濾Cube } from "../utils/安全過濾器.ts";
 import 方塊 from "../database/models/方塊.ts";
 import Container from "./Container.tsx";
 
@@ -150,6 +151,20 @@ export default async function Cube(props: CubeProps): Promise<any> {
       const response = await InnerAPI(c, `/api/v1/cube/${encodeURIComponent(cubeId)}`);
       const result = await response.json();
       if (result.success && result.data) {
+        // L3 完整性驗證：hash 匹配 → 直接放行；否則執行 L1 安全過濾
+        const 已檢驗 = result.data.已檢驗 as string;
+        if (已檢驗) {
+          const 待驗證內容 = { from: result.data.from, className: result.data.className, style: result.data.style, args: result.data.args, children: result.data.children, on: result.data.on };
+          const 通過 = await 驗證完整性(待驗證內容, 已檢驗);
+          if (!通過) {
+            // hash 不匹配 → 內容可能被篡改 → L1 過濾
+            result.data = 安全過濾Cube(result.data);
+          }
+          // 通過則直接使用原始資料
+        } else {
+          // 未檢驗 → L1 過濾
+          result.data = 安全過濾Cube(result.data);
+        }
         const model = new 方塊(result.data);
         definition = model;
       } else {

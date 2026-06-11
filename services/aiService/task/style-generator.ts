@@ -1,12 +1,12 @@
 // 風格生成 Task — 與 AI 對話生成新的風格模組
 
 import { Context } from 'hono';
-import { AIPoolManager } from '../pool.ts';
 import { AITaskConfig, AI能力標籤 } from '../provider/adapter.ts';
 import AI對話 from '../../../database/models/AI對話.ts';
 import AI使用記錄 from '../../../database/models/AI使用記錄.ts';
 import { 資料池 } from '../../../database/資料池.ts';
 import { error } from '../../../utils/logger.ts';
+import { 聊天並解析JSON } from '../../../utils/AI重試.ts';
 
 export const STYLE_TASK_CONFIG: AITaskConfig = {
   類型: '風格生成',
@@ -37,7 +37,6 @@ export class StyleGenerator {
   constructor(private c: Context) {}
 
   async 生成風格(描述: string, 儲存目標: '系統' | '網站' = '網站'): Promise<{ 風格Data: Record<string, unknown>; 對話ID: string }> {
-    const pool = new AIPoolManager(this.c);
     const 開始時間 = Date.now();
 
     try {
@@ -47,22 +46,26 @@ export class StyleGenerator {
       對話.網站ID = this.c.get('host') as string;
       對話.新增訊息('user', `生成風格（儲存於${儲存目標}）: ${描述}`);
 
-      const { 回應, serverID, providerType } = await pool.聊天(
+      const { json, 原始回應, serverID, providerType } = await 聊天並解析JSON(
+        this.c,
         PROMPT,
         [{ 角色: 'user', 內容: `請生成一個風格: ${描述}` }],
         STYLE_TASK_CONFIG,
-        { maxTokens: 1024, temperature: 0.7 }
+        { 重試提示: '請只回傳 JSON 物件，不要包含任何其他文字' },
       );
 
-      對話.新增訊息('assistant', 回應.內容);
-      對話.摘要 = 回應.內容.slice(0, 100);
+      對話.新增訊息('assistant', 原始回應);
+      對話.摘要 = 原始回應.slice(0, 100);
 
       let 風格Data: Record<string, unknown> = {};
-      const jsonMatch = 回應.內容.match(/\{[\s\S]*\}/);
-      if (jsonMatch) { try { 風格Data = JSON.parse(jsonMatch[0]); } catch { 風格Data = { 原始回應: 回應.內容 }; } }
+      if (typeof json === 'object' && json !== null && !Array.isArray(json)) {
+        風格Data = json as Record<string, unknown>;
+      } else {
+        風格Data = { 原始回應 };
+      }
 
       const 儲存結果 = await 資料池.創建或更新<AI對話>('AI對話', 對話.toJSON());
-      await this.記錄使用(serverID, providerType, 回應, 開始時間, true);
+      await this.記錄使用(serverID, providerType, { 內容: 原始回應, token數: 0, 耗時毫秒: Date.now() - 開始時間 }, 開始時間, true);
 
       return { 風格Data, 對話ID: 儲存結果.data?.id ?? '' };
     } catch (err) {
