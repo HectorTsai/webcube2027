@@ -16,6 +16,14 @@ export interface ArgDef {
   description?: string;
   default?: unknown;
   options?: string[];
+  /** 每個 option 值對應的 className/style/alpine/on/data 覆寫 */
+  variants?: Record<string, {
+    className?: string;
+    style?: Record<string, string>;
+    alpine?: Record<string, unknown>;
+    on?: Record<string, string>;
+    data?: Record<string, string>;
+  }>;
 }
 
 // ---------- 預設值 ----------

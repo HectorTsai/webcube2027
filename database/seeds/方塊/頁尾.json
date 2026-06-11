@@ -1,0 +1,64 @@
+{
+  "id": "方塊:方塊:頁尾",
+  "名稱": { "en": "Footer", "zh-tw": "頁尾", "vi": "Chân trang" },
+  "描述": {
+    "en": "Page footer section built on Container. Centered column layout with configurable color, variant, padding, and gap. Content is passed as children.",
+    "zh-tw": "基於 Container 的頁面頁尾區塊。置中欄佈局，可設定 color、variant、padding 與 gap。內容透過 children 傳入。",
+    "vi": "Phần chân trang dựa trên Container. Bố cục cột căn giữa với màu sắc, biến thể, đệm và khoảng cách có thể cấu hình. Nội dung được truyền qua children."
+  },
+  "from": "方塊:方塊:容器",
+  "args": {
+    "color": {
+      "type": "string",
+      "description": "色彩主題",
+      "default": "base",
+      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "base", "neutral"]
+    },
+    "variant": {
+      "type": "string",
+      "description": "樣式變體",
+      "default": "solid"
+    },
+    "direction": {
+      "type": "string",
+      "description": "排列方向",
+      "default": "column"
+    },
+    "padding": {
+      "type": "string",
+      "description": "內距",
+      "default": "md",
+      "options": ["none", "xs", "sm", "md", "lg", "xl", "2xl"]
+    },
+    "width": {
+      "type": "string",
+      "description": "寬度",
+      "default": "full"
+    },
+    "gap": {
+      "type": "string",
+      "description": "間距",
+      "default": "xs",
+      "options": ["none", "xs", "sm", "md", "lg", "xl"]
+    },
+    "rounded": {
+      "type": "string",
+      "description": "圓角",
+      "default": "none",
+      "options": ["none", "sm", "md", "lg"]
+    },
+    "shadow": {
+      "type": "string",
+      "description": "陰影",
+      "default": "none",
+      "options": ["none", "sm", "md", "lg"]
+    },
+    "className": {
+      "type": "string",
+      "description": "額外的 CSS 類別（如 items-center justify-center text-sm）",
+      "default": "items-center justify-center text-sm"
+    }
+  },
+  "children": [],
+  "可刪除": false
+}

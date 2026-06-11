@@ -1,0 +1,69 @@
+{
+  "id": "方塊:方塊:圖示",
+  "名稱": { "en": "Icon", "zh-tw": "圖示", "vi": "Biểu tượng" },
+  "描述": {
+    "en": "SVG icon cube, renders as a native svg element. Pass SVG path children. Supports viewBox and xmlns configuration.",
+    "zh-tw": "SVG 圖示方塊，渲染為原生 svg 元素。傳入 SVG path 作為 children。支援 viewBox 和 xmlns 設定。",
+    "vi": "Khối biểu tượng SVG, kết xuất dưới dạng phần tử svg gốc. Truyền đường dẫn SVG làm children. Hỗ trợ cấu hình viewBox và xmlns."
+  },
+  "from": "方塊:方塊:圖示",
+  "args": {
+    "id": {
+      "type": "string",
+      "description": "從圖示資料庫載入（如 圖示:圖示:web_cube），有值時忽略 children",
+      "default": ""
+    },
+    "size": {
+      "type": "string",
+      "description": "尺寸",
+      "default": "md",
+      "options": ["xs", "sm", "md", "lg", "xl", "2xl", "3xl", "4xl"]
+    },
+    "xmlns": {
+      "type": "string",
+      "description": "SVG namespace（留空則取自資料庫圖示，再無則 fallback）",
+      "default": ""
+    },
+    "viewBox": {
+      "type": "string",
+      "description": "SVG viewBox，如 0 0 24 24（留空則取自資料庫圖示）",
+      "default": ""
+    },
+    "fill": {
+      "type": "string",
+      "description": "填充色（留空則取自資料庫圖示，再無則 'none'）",
+      "default": ""
+    },
+    "stroke": {
+      "type": "string",
+      "description": "線條色（留空則取自資料庫圖示，再無則 'currentColor'）",
+      "default": ""
+    },
+    "strokeWidth": {
+      "type": "string",
+      "description": "線條粗細（留空則取自資料庫圖示，再無則 '2'）",
+      "default": ""
+    },
+    "strokeLinecap": {
+      "type": "string",
+      "description": "線條端點樣式（留空則取自資料庫圖示，再無則 'round'）",
+      "default": "",
+      "options": ["", "butt", "round", "square"]
+    },
+    "strokeLinejoin": {
+      "type": "string",
+      "description": "線條轉角樣式（留空則取自資料庫圖示，再無則 'round'）",
+      "default": "",
+      "options": ["", "miter", "round", "bevel"]
+    }
+  },
+  "style": {
+    "fill": "{fill}",
+    "stroke": "{stroke}",
+    "stroke-width": "{strokeWidth}",
+    "stroke-linecap": "{strokeLinecap}",
+    "stroke-linejoin": "{strokeLinejoin}"
+  },
+  "className": "inline-block shrink-0",
+  "可刪除": false
+}

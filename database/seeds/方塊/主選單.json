@@ -1,0 +1,91 @@
+{
+  "id": "方塊:方塊:主選單",
+  "名稱": { "en": "Menu Bar", "zh-tw": "主選單", "vi": "Thanh menu" },
+  "描述": {
+    "en": "Responsive navigation menu bar built on Container. Desktop: horizontal row layout. Mobile: collapses to a hamburger button with Alpine.js drawer toggle. Supports color/variant theming through Container.",
+    "zh-tw": "基於 Container 的響應式導航選單列。桌面版：水平 row 佈局。行動版：收合為漢堡選單按鈕，透過 Alpine.js 切換抽屜。支援 Container 的 color/variant 主題。",
+    "vi": "Thanh menu điều hướng đáp ứng dựa trên Container. Phiên bản desktop: bố cục row ngang. Phiên bản di động: thu gọn thành nút hamburger, chuyển đổi ngăn kéo qua Alpine.js. Hỗ trợ chủ đề màu sắc/biến thể của Container."
+  },
+  "from": "方塊:方塊:容器",
+  "args": {
+    "color": {
+      "type": "string",
+      "description": "色彩主題",
+      "default": "primary",
+      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "base", "neutral"]
+    },
+    "variant": {
+      "type": "string",
+      "description": "樣式變體",
+      "default": "solid"
+    },
+    "direction": {
+      "type": "string",
+      "description": "排列方向",
+      "default": "row"
+    },
+    "padding": {
+      "type": "string",
+      "description": "內距",
+      "default": "sm",
+      "options": ["none", "xs", "sm", "md", "lg", "xl", "2xl"]
+    },
+    "width": {
+      "type": "string",
+      "description": "寬度",
+      "default": "full"
+    },
+    "gap": {
+      "type": "string",
+      "description": "間距",
+      "default": "md",
+      "options": ["none", "xs", "sm", "md", "lg", "xl"]
+    },
+    "drawerState": {
+      "type": "string",
+      "description": "行動版抽屜的 Alpine store 狀態名稱",
+      "default": "menuDrawer"
+    },
+    "className": {
+      "type": "string",
+      "description": "額外的 CSS 類別（如 sticky top-0 z-50）",
+      "default": ""
+    }
+  },
+  "alpine": {
+    "init": "$store.drawers = $store.drawers || {}"
+  },
+  "children": [
+    {
+      "from": "div",
+      "className": "hidden md:flex items-center flex-1 gap-4",
+      "children": []
+    },
+    {
+      "from": "div",
+      "className": "md:hidden flex items-center",
+      "children": [
+        {
+          "from": "button",
+          "className": "p-2 rounded-md hover:bg-base-200 transition-colors",
+          "on": {
+            "click": "$store.drawers.menuDrawer = !$store.drawers.menuDrawer"
+          },
+          "children": [
+            {
+              "from": "svg",
+              "className": "w-6 h-6",
+              "style": { "fill": "none", "stroke": "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round" },
+              "children": [
+                { "from": "line", "data": { "x1": "3", "y1": "6", "x2": "21", "y2": "6" } },
+                { "from": "line", "data": { "x1": "3", "y1": "12", "x2": "21", "y2": "12" } },
+                { "from": "line", "data": { "x1": "3", "y1": "18", "x2": "21", "y2": "18" } }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "可刪除": false
+}

@@ -21,7 +21,9 @@ import { Context } from "hono";
 import { InnerAPI } from "../services/index.ts";
 import { 驗證完整性, 安全過濾Cube } from "../utils/安全過濾器.ts";
 import 方塊 from "../database/models/方塊.ts";
-import Container from "./Container.tsx";
+import 容器 from "./容器.tsx";
+import 圖示 from "./圖示.tsx";
+import 圖片 from "./圖片.tsx";
 
 // ---------- 全域 fallback 註冊表 ----------
 // 方塊 ID → FallbackComponent。使用者可透過 registerFallback() 註冊自訂方塊，
@@ -36,17 +38,20 @@ export function registerFallback(id: string, component: FallbackComponent): void
 }
 
 // 註冊內建元件
-registerFallback("方塊:方塊:Container", (props: Record<string, unknown>) => {
-  const { children, context: _context, width, height, ...containerProps } = props;
+registerFallback("方塊:方塊:容器", (props: Record<string, unknown>) => {
+  const { children, context: _context, width, height, ...rest } = props;
   const containerStyle: Record<string, string> = {};
   if (width) containerStyle.width = width as string;
   if (height) containerStyle.height = height as string;
   return (
-    <Container {...containerProps} width={width as string} height={height as string} style={containerStyle}>
+    <容器 {...rest} width={width as string} height={height as string} style={containerStyle}>
       {children}
-    </Container>
+    </容器>
   );
 });
+
+registerFallback("方塊:方塊:圖示", (props: Record<string, unknown>) => 圖示(props));
+registerFallback("方塊:方塊:圖片", (props: Record<string, unknown>) => 圖片(props));
 
 // 型別從 database/models/方塊.ts 統一匯出
 export type { ArgDef } from "../database/models/方塊.ts";
@@ -204,7 +209,7 @@ export default async function Cube(props: CubeProps): Promise<any> {
     const fallbackFn = fallbacks?.[from] ?? fallbackRegistry[from];
     if (fallbackFn) {
       // 不在此 processChildren — 讓 fallback 元件（如 Container.tsx）自己處理
-      return fallbackFn({ ...mergedArgs, context, children: childrenProp });
+      return await fallbackFn({ ...mergedArgs, context, children: childrenProp });
     }
     return <div class="cube-reference" data-cube-id={from}>未知方塊: {from}</div>;
   }
@@ -220,24 +225,50 @@ export default async function Cube(props: CubeProps): Promise<any> {
   }
 
   // className
-  const finalClassName = definition.className || "";
+  let finalClassName = definition.className || "";
+
+  // ── variant 合併（args 中有 variants 定義時，依目前值合併 className/style/alpine/on/data）──
+  let variantAlpine: Record<string, unknown> | undefined;
+  if (definition.args) {
+    for (const [key, argDef] of Object.entries(definition.args)) {
+      if (argDef.variants) {
+        const val = String(mergedArgs[key] ?? "");
+        const v = argDef.variants[val];
+        if (v) {
+          if (v.className) finalClassName = finalClassName ? `${finalClassName} ${v.className}` : v.className;
+          if (v.style) Object.assign(finalStyle, v.style);
+          if (v.alpine) variantAlpine = v.alpine;
+          if (v.on) Object.assign(definition.on ??= {}, v.on);
+          if (v.data) Object.assign(definition.data ??= {}, v.data);
+        }
+      }
+    }
+  }
 
   // 組裝屬性
   const attrs: Record<string, string> = {};
 
-  // alpine bind
-  if (definition.alpine) {
-    const bind = definition.alpine.bind as Record<string, string> | undefined;
+  // alpine bind（含 variant 覆寫）
+  const effectiveAlpine = variantAlpine ? { ...definition.alpine, ...variantAlpine } : definition.alpine;
+  if (effectiveAlpine) {
+    const bind = effectiveAlpine.bind as Record<string, string> | undefined;
     if (bind) {
       for (const [key, value] of Object.entries(bind)) {
         attrs[`x-bind:${key}`] = substitute(value, mergedArgs);
       }
     }
-    const init = definition.alpine.init as string | undefined;
+    // 通用 x-* 屬性（如 x-transition:enter）
+    const attrs_ = effectiveAlpine.attrs as Record<string, string> | undefined;
+    if (attrs_) {
+      for (const [key, value] of Object.entries(attrs_)) {
+        attrs[key.startsWith("x-") ? key : `x-${key}`] = substitute(value, mergedArgs);
+      }
+    }
+    const init = effectiveAlpine.init as string | undefined;
     if (init) {
       attrs["x-init"] = substitute(init, mergedArgs);
     }
-    const model = definition.alpine.model as string | undefined;
+    const model = effectiveAlpine.model as string | undefined;
     if (model) {
       attrs["x-model"] = substitute(model, mergedArgs);
     }
@@ -246,7 +277,7 @@ export default async function Cube(props: CubeProps): Promise<any> {
   // events
   if (definition.on) {
     for (const [key, value] of Object.entries(definition.on)) {
-      attrs[`x-on:${key}`] = value;
+      attrs[`x-on:${key}`] = substitute(value, mergedArgs);
     }
   }
 
@@ -254,6 +285,15 @@ export default async function Cube(props: CubeProps): Promise<any> {
   if (definition.data) {
     for (const [key, value] of Object.entries(definition.data)) {
       attrs[`data-${key}`] = substitute(value, mergedArgs);
+    }
+  }
+
+  // args → HTML 屬性（string 型別的 arg 直接輸出為 HTML 屬性，如 viewBox、xmlns）
+  if (definition.args) {
+    for (const [key, argDef] of Object.entries(definition.args)) {
+      if (argDef.type === "string" && mergedArgs[key] !== undefined && mergedArgs[key] !== null) {
+        attrs[key] = substitute(String(mergedArgs[key]), mergedArgs);
+      }
     }
   }
 

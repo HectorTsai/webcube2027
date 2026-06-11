@@ -1,0 +1,55 @@
+{
+  "id": "方塊:方塊:圖片",
+  "名稱": { "en": "Image", "zh-tw": "圖片", "vi": "Hình ảnh" },
+  "描述": {
+    "en": "Image cube, renders as a native img element. Supports src, alt, width, height, object-fit and lazy loading.",
+    "zh-tw": "圖片方塊，渲染為原生 img 元素。支援 src、alt、寬高、object-fit 及延遲載入。",
+    "vi": "Khối hình ảnh, kết xuất dưới dạng phần tử img gốc. Hỗ trợ src, alt, chiều rộng, chiều cao, object-fit và tải chậm."
+  },
+  "from": "方塊:方塊:圖片",
+  "args": {
+    "id": {
+      "type": "string",
+      "description": "從圖片資料庫載入（如 影像:影像:hero_bg），有值時忽略 src",
+      "default": ""
+    },
+    "src": {
+      "type": "string",
+      "description": "圖片來源 URL 或路徑",
+      "default": ""
+    },
+    "alt": {
+      "type": "string",
+      "description": "替代文字",
+      "default": "Image"
+    },
+    "width": {
+      "type": "string",
+      "description": "圖片寬度",
+      "default": ""
+    },
+    "height": {
+      "type": "string",
+      "description": "圖片高度",
+      "default": ""
+    },
+    "objectFit": {
+      "type": "string",
+      "description": "圖片適應方式",
+      "default": "cover",
+      "options": ["fill", "contain", "cover", "none", "scale-down"]
+    },
+    "loading": {
+      "type": "string",
+      "description": "載入策略",
+      "default": "lazy",
+      "options": ["lazy", "eager"]
+    }
+  },
+  "style": {
+    "max-width": "100%",
+    "object-fit": "{objectFit}"
+  },
+  "className": "image",
+  "可刪除": false
+}

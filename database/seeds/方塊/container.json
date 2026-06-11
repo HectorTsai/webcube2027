@@ -1,12 +1,12 @@
 {
-  "id": "方塊:方塊:Container",
+  "id": "方塊:方塊:容器",
   "名稱": {"en": "Container", "zh-tw": "容器", "vi": "Container"},
   "描述": {
     "en": "Universal container cube, supports active/hover states and color themes",
     "zh-tw": "通用容器方塊，支援 active/hover 狀態與色彩主題", 
     "vi": "Khối chứa phổ quát, hỗ trợ trạng thái active/hover và chủ đề màu sắc"
   },
-  "from": "方塊:方塊:Container",
+  "from": "方塊:方塊:容器",
   "args": {
     "color": {
       "type": "string",

@@ -1,0 +1,86 @@
+{
+  "id": "方塊:方塊:抽屜",
+  "名稱": { "en": "Drawer", "zh-tw": "抽屜", "vi": "Ngăn kéo" },
+  "描述": {
+    "en": "Alpine.js powered slide-in drawer. Supports left/right/top/bottom positions, backdrop close, and configurable state. Content passed as children.",
+    "zh-tw": "Alpine.js 驅動的滑入式抽屜面板。支援上/下/左/右四方向、背景點擊關閉、自訂 state。內容透過 children 傳入。",
+    "vi": "Ngăn kéo trượt được điều khiển bởi Alpine.js. Hỗ trợ bốn hướng, đóng khi nhấp nền, state tùy chỉnh. Nội dung truyền qua children."
+  },
+  "from": "div",
+  "className": "fixed z-50 bg-base-100 shadow-lg transition-transform duration-300 overflow-y-auto pointer-events-auto",
+  "args": {
+    "state": {
+      "type": "string",
+      "description": "Alpine store 狀態名稱（$store.drawers.{state}）",
+      "default": "drawerOpen"
+    },
+    "position": {
+      "type": "string",
+      "description": "抽屜滑出方向（自動調整 className / 寬度 / transition）",
+      "default": "left",
+      "options": ["left", "right", "top", "bottom"],
+      "variants": {
+        "left": {
+          "className": "left-0 inset-y-0 max-h-screen",
+          "style": { "width": "320px" },
+          "alpine": {
+            "attrs": {
+              "x-transition:enter": "drawer-left-enter",
+              "x-transition:leave": "drawer-left-leave"
+            }
+          }
+        },
+        "right": {
+          "className": "right-0 inset-y-0 max-h-screen",
+          "style": { "width": "320px" },
+          "alpine": {
+            "attrs": {
+              "x-transition:enter": "drawer-right-enter",
+              "x-transition:leave": "drawer-right-leave"
+            }
+          }
+        },
+        "top": {
+          "className": "top-0 inset-x-0 max-h-[85vh]",
+          "style": { "width": "100%" },
+          "alpine": {
+            "attrs": {
+              "x-transition:enter": "drawer-top-enter",
+              "x-transition:leave": "drawer-top-leave"
+            }
+          }
+        },
+        "bottom": {
+          "className": "bottom-0 inset-x-0 max-h-[85vh]",
+          "style": { "width": "100%" },
+          "alpine": {
+            "attrs": {
+              "x-transition:enter": "drawer-bottom-enter",
+              "x-transition:leave": "drawer-bottom-leave"
+            }
+          }
+        }
+      }
+    }
+  },
+  "alpine": {
+    "init": "$store.drawers = $store.drawers || {}",
+    "bind": { "show": "$store.drawers.{state}" }
+  },
+  "on": {
+    "click.stop": ""
+  },
+  "slots": {
+    "backdrop": {
+      "from": "div",
+      "className": "fixed inset-0 z-40 bg-neutral-900/50 pointer-events-auto transition-opacity duration-300",
+      "alpine": {
+        "bind": { "show": "$store.drawers.{state}" }
+      },
+      "on": {
+        "click": "$store.drawers.{state} = false"
+      }
+    }
+  },
+  "可刪除": false
+}
