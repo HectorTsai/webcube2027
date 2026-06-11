@@ -1,5 +1,4 @@
 // database/index.ts — 資料層統一入口
-// 僅做 re-export，實際邏輯在 base-model.ts 和 seed-loader.ts
 
 import { MultilingualString } from "@dui/smartmultilingual";
 
@@ -10,14 +9,20 @@ export { 資料 } from './base-model.ts';
 // ── 種子讀取 ──
 export { 讀取種子 } from './seed-loader.ts';
 
+// ── 資料池（全域單例）──
+export { 資料池 } from './資料池.ts';
+export type { 查詢結果 } from './資料池.ts';
+
 // ── L2 連線資訊 ──
 export interface L2連線資訊 {
-  主機: string;
-  埠號: number;
-  使用者名稱: string;
-  密碼: string;
-  資料庫名稱: string;
-  命名空間: string;
+  類型: string;        // "surrealdb" | "sqlite" | "mongodb"，預設 "surrealdb"
+  檔案路徑?: string;    // 檔案型 DB (sqlite) 的路徑
+  主機?: string;        // 網路型 DB (surrealdb/mongodb) 用
+  埠號?: number;
+  使用者名稱?: string;
+  密碼?: string;
+  資料庫名稱?: string;  // surreal/mongo: DB 名稱；sqlite: fallback 路徑
+  命名空間?: string;    // SurrealDB 專用
   啟用: boolean;
 }
 
@@ -41,6 +46,3 @@ export class 版權資料 {
     };
   }
 }
-
-// ── 全域 DB 註冊表 ──
-export const 所有資料庫: Record<string, unknown> = {};

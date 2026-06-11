@@ -2,21 +2,19 @@
 import { Hono } from "hono";
 import { jsx } from "hono/jsx";
 import { 初始化UnoCSS, 產生樣式 } from './unocss/unocss.ts';
-import { 取得KV資料庫 } from './database/core/kv.ts';
 import { info, error } from './utils/logger.ts';
 import { 加密, 解密 } from './utils/密碼方法.ts';
-// 移除已刪除的 system.ts 導入
 import { 資料庫解析器, 清理資料庫連線 } from './middleware/db-resolver.ts';
 import { 資訊載入器 } from './middleware/info-loader.ts';
 import { 語言解析器 } from './middleware/language-resolver.ts';
-import { 三層查詢管理器 } from './database/core/three-tier-query.ts';
-import 骨架 from './database/models/骨架.ts';
-import 配色 from './database/models/配色.ts';
+import { 資料池 } from './database/資料池.ts';
 import { 處理API請求 } from "./services/apiService/index.ts";
 import { 處理Media請求 } from "./services/mediaService/index.ts";
 import { 處理Renderer請求 } from './services/rendererService/index.ts';
 import { 處理測試請求 } from './services/testService.ts';
 import { 處理AI請求 } from './services/aiService/index.ts';
+import { registerTranslation } from '@dui/smartmultilingual';
+import { TranslationAdapter } from './services/aiService/translation-adapter.ts';
 
 // API 透過動態路由分發器處理，無需直接導入
 
@@ -110,11 +108,12 @@ app.all('*', async (c) => {
 // 初始化並啟動伺服器
 async function 啟動伺服器() {
   try {
-    // 初始化 KV 資料庫
-    const kvDB = 取得KV資料庫();
-    await kvDB.初始化();
-    // await info('伺服器', 'KV 資料庫初始化完成');
-    
+    // 初始化資料池（L1 連線 + 種子 + 定時器）
+    await 資料池.初始化();
+
+    // 註冊自訂翻譯服務（KV 快取 + Google fallback），取代內建 Google 翻譯
+    registerTranslation(new TranslationAdapter());
+
     // 初始化 UnoCSS
     await 初始化UnoCSS();
     // await info('伺服器', 'UnoCSS 初始化完成');

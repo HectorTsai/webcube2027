@@ -2,7 +2,7 @@
 import { Context } from 'hono';
 import { APIModule, RouteParams } from './index.ts';
 import { info, error } from '../../utils/logger.ts';
-import { 三層查詢管理器 } from '../../database/core/three-tier-query.ts';
+import { 資料池 } from '../../database/資料池.ts';
 import 佈景主題 from '../../database/models/佈景主題.ts';
 import 配色 from '../../database/models/配色.ts';
 import 骨架 from '../../database/models/骨架.ts';
@@ -48,9 +48,9 @@ async function 處理取得所有預設值(c: Context): Promise<Response> {
     
     // 並行取得所有預設值
     const [佈景主題結果, 配色結果, 骨架結果] = await Promise.all([
-      三層查詢管理器.取得預設值<佈景主題>(c, '佈景主題'),
-      三層查詢管理器.取得預設值<配色>(c, '配色'),
-      三層查詢管理器.取得預設值<骨架>(c, '骨架')
+      資料池.取得預設值<佈景主題>('佈景主題'),
+      資料池.取得預設值<配色>('配色'),
+      資料池.取得預設值<骨架>('骨架')
     ]);
     
     const 預設值資料 = {
@@ -93,8 +93,8 @@ async function 處理取得預設佈景主題(c: Context): Promise<Response> {
   try {
     // await info('預設值 API', '取得預設佈景主題');
     
-    // 直接從三層查詢管理器取得預設值
-    const 結果 = await 三層查詢管理器.取得預設值<佈景主題>(c, '佈景主題');
+    // 直接從資料池取得預設值
+    const 結果 = await 資料池.取得預設值<佈景主題>('佈景主題');
     
     if (!結果.success || !結果.data) {
       return c.json({
@@ -127,8 +127,8 @@ async function 處理取得預設配色(c: Context): Promise<Response> {
   try {
     // await info('預設值 API', '取得預設配色');
     
-    // 直接從三層查詢管理器取得預設值
-    const 結果 = await 三層查詢管理器.取得預設值<配色>(c, '配色');
+    // 直接從資料池取得預設值
+    const 結果 = await 資料池.取得預設值<配色>('配色');
     
     if (!結果.success || !結果.data) {
       return c.json({
@@ -161,8 +161,8 @@ async function 處理取得預設骨架(c: Context): Promise<Response> {
   try {
     // await info('預設值 API', '取得預設骨架');
     
-    // 直接從三層查詢管理器取得預設值
-    const 結果 = await 三層查詢管理器.取得預設值<骨架>(c, '骨架');
+    // 直接從資料池取得預設值
+    const 結果 = await 資料池.取得預設值<骨架>('骨架');
     
     if (!結果.success || !結果.data) {
       return c.json({

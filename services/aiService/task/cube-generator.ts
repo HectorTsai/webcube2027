@@ -5,7 +5,7 @@ import { AIPoolManager } from '../pool.ts';
 import { AITaskConfig, AI能力標籤 } from '../provider/adapter.ts';
 import AI對話 from '../../../database/models/AI對話.ts';
 import AI使用記錄 from '../../../database/models/AI使用記錄.ts';
-import { 三層查詢管理器 } from '../../../database/core/three-tier-query.ts';
+import { 資料池 } from '../../../database/資料池.ts';
 import { error } from '../../../utils/logger.ts';
 
 export const CUBE_TASK_CONFIG: AITaskConfig = {
@@ -41,7 +41,7 @@ export class CubeGenerator {
       const 對話 = new AI對話();
       對話.類型 = 'Cube生成';
       對話.標題 = `Cube: ${描述.slice(0, 30)}...`;
-      對話.網站ID = this.c.get('tenant') as string;
+      對話.網站ID = this.c.get('host') as string;
       對話.新增訊息('user', `生成方塊（儲存於${儲存目標}）: ${描述}`);
 
       const { 回應, serverID, providerType } = await pool.聊天(
@@ -58,7 +58,7 @@ export class CubeGenerator {
       const jsonMatch = 回應.內容.match(/\[[\s\S]*\]/);
       if (jsonMatch) { try { cubeData = JSON.parse(jsonMatch[0]); } catch { cubeData = [{ 原始回應: 回應.內容 }]; } }
 
-      const 儲存結果 = await 三層查詢管理器.創建或更新<AI對話>(this.c, 'AI對話', 對話.toJSON());
+      const 儲存結果 = await 資料池.創建或更新<AI對話>('AI對話', 對話.toJSON());
       await this.記錄使用(serverID, providerType, 回應, 開始時間, true);
 
       return { cubeData, 對話ID: 儲存結果.data?.id ?? '' };
@@ -71,14 +71,14 @@ export class CubeGenerator {
   private async 記錄使用(serverID: string, providerType: string, 回應: { 內容: string; token數: number; 耗時毫秒: number }, 開始時間: number, 成功: boolean) {
     try {
       const 記錄 = new AI使用記錄();
-      記錄.網站ID = this.c.get('tenant') as string;
+      記錄.網站ID = this.c.get('host') as string;
       記錄.使用類型 = 'Cube生成';
       記錄.provider = providerType;
       記錄.serverID = serverID;
       記錄.成功 = 成功;
       記錄.耗時毫秒 = 回應.耗時毫秒 || (Date.now() - 開始時間);
       記錄.token數 = 回應.token數;
-      await 三層查詢管理器.創建或更新<AI使用記錄>(this.c, 'AI使用記錄', 記錄.toJSON());
+      await 資料池.創建或更新<AI使用記錄>('AI使用記錄', 記錄.toJSON());
     } catch (err) {
       await error('CubeGenerator', `記錄使用失敗: ${err}`);
     }

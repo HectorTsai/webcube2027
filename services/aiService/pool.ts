@@ -8,7 +8,7 @@ import { AnthropicProvider } from './provider/anthropic.ts';
 import { GeminiProvider } from './provider/gemini.ts';
 import { OllamaProvider } from './provider/ollama.ts';
 import { info, error } from '../../utils/logger.ts';
-import { 三層查詢管理器 } from '../../database/core/three-tier-query.ts';
+import { 資料池 } from '../../database/資料池.ts';
 import AI伺服器 from '../../database/models/AI伺服器.ts';
 
 // ── Provider 路由表 ──
@@ -43,7 +43,7 @@ export class AIPoolManager {
 
   /**
    * 執行聊天請求
-   * Fallback 鏈: 網站自備(L3) → 系統收費(L2) → 系統免費(L2) → 系統transformer
+   * Fallback 鏈: 網站自備(L3) → 系統收費(L2) → 系統免費(L2)
    * 每個階段都做 model 層級 AND 能力匹配 + 加權負載均衡
    */
   async 聊天(
@@ -63,7 +63,7 @@ export class AIPoolManager {
       .filter(s => s.啟用 && this.檢查有效日期(s));
 
     // 2. 網站自備 server（L3，排最前面）
-    const 網站ID = this.c.get('tenant') as string;
+    const 網站ID = this.c.get('host') as string;
     const 網站自備 = 全部.filter(s => s.網站ID === 網站ID);
     const result = await this.匹配並執行(網站自備, 最低能力值, 需求能力, 系統提示, 對話歷史, options);
     if (result) return result;
@@ -106,7 +106,7 @@ export class AIPoolManager {
       for (const serverId of 伺服器池) {
         if (AIPoolManager.servers.has(serverId)) continue;
         try {
-          const r = await 三層查詢管理器.查詢單一<AI伺服器>(this.c, serverId);
+          const r = await 資料池.查詢單一<AI伺服器>(serverId);
           if (r.success && r.data) AIPoolManager.servers.set(serverId, r.data);
         } catch (err) {
           await error('AIPool', `載入系統 server ${serverId} 失敗: ${err}`);
@@ -116,7 +116,7 @@ export class AIPoolManager {
 
     // L3: 網站自備 server（查詢當前租戶的 AI伺服器）
     try {
-      const r = await 三層查詢管理器.查詢列表<AI伺服器>(this.c, 'AI伺服器', 100, 0);
+      const r = await 資料池.查詢列表<AI伺服器>('AI伺服器', 100, 0);
       if (r.success && r.data) {
         for (const s of r.data) {
           if (!AIPoolManager.servers.has(s.id)) {

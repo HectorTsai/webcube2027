@@ -2,7 +2,7 @@
 import { Context } from 'hono';
 import { APIModule, RouteParams } from './index.ts';
 import { error } from '../../utils/logger.ts';
-import { 三層查詢管理器 } from '../../database/core/three-tier-query.ts';
+import { 資料池 } from '../../database/資料池.ts';
 import { 資料過濾器 } from '../../utils/資料過濾器.ts';
 import { 資料 } from '../../database/index.ts';
 import { InnerAPI } from '../../services/index.ts';
@@ -52,7 +52,7 @@ async function 處理取得當前動畫(c: Context): Promise<Response> {
 async function 處理取得單一動畫(c: Context, id: string): Promise<Response> {
   try {
     // 🎯 嚴格遵循大一統三層管理器精準查找，不觸碰單一 DB 實例
-    const 結果 = await 三層查詢管理器.查詢單一<動畫>(c, id);
+    const 結果 = await 資料池.查詢單一<動畫>(id);
     
     if (!結果.success || !結果.data) {
       return c.json({
@@ -82,7 +82,7 @@ async function 處理取得單一動畫(c: Context, id: string): Promise<Respons
 // 處理取得預設動畫
 async function 處理取得預設動畫(c: Context): Promise<Response> {
   try {
-    const 結果 = await 三層查詢管理器.查詢單一<動畫>(c, 'seed:動畫:default_animate');
+    const 結果 = await 資料池.查詢單一<動畫>('seed:動畫:default_animate');
     
     if (!結果.success || !結果.data) {
       return c.json({

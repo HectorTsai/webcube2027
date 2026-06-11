@@ -1,12 +1,12 @@
-// SQLite Adapter — 使用 Deno 內建 node:sqlite 實作 L3DatabaseAdapter 介面
+// SQLite Adapter — 使用 Deno 內建 node:sqlite 實作 DatabaseAdapter 介面
 // 每個 model = 一張表，JSON 欄位儲存完整記錄
 // 適用於租戶自備 SQLite 檔案（零依賴、輕量）
 
 import { DatabaseSync } from 'node:sqlite';
-import { L3DatabaseAdapter, 查詢選項 } from './adapter-interface.ts';
+import { DatabaseAdapter, 查詢選項, 欄位篩選 } from './adapter-interface.ts';
 import { info, error } from '../../utils/logger.ts';
 
-export class SqliteAdapter implements L3DatabaseAdapter {
+export class SqliteAdapter implements DatabaseAdapter {
   readonly 類型 = 'sqlite';
   private db: DatabaseSync;
 
@@ -71,6 +71,18 @@ export class SqliteAdapter implements L3DatabaseAdapter {
     );
     stmt.run(id, JSON.stringify(dataWithId), dataWithId.最後修改 as string);
     return dataWithId;
+  }
+
+  查詢依欄位(模型: string, 篩選: 欄位篩選): Promise<Record<string, unknown>[]> {
+    try {
+      const stmt = this.db.prepare(
+        `SELECT data FROM "${模型}" WHERE json_extract(data, '$.${篩選.欄位}') = ?;`
+      );
+      const rows = stmt.all(篩選.值) as { data: string }[];
+      return Promise.resolve(rows.map((r) => JSON.parse(r.data) as Record<string, unknown>));
+    } catch {
+      return Promise.resolve([]);
+    }
   }
 
   刪除(模型: string, id: string): Promise<boolean> {

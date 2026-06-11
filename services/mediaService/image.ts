@@ -3,7 +3,7 @@ import { Context } from 'hono';
 import { info, error } from '../../utils/logger.ts';
 import { MediaModule, RouteParams } from './index.ts';
 import 影像 from "../../database/models/影像.ts";
-import { 三層查詢管理器 } from '../../database/core/three-tier-query.ts';
+import { 資料池 } from '../../database/資料池.ts';
 import { ArrayUtils } from '@dui/smartmultilingual';
 
 /**
@@ -12,7 +12,7 @@ import { ArrayUtils } from '@dui/smartmultilingual';
  */
 async function 從資料庫載入影像(c: Context, imageId: string): Promise<Response | null> {
   try {
-    const 查詢結果 = await 三層查詢管理器.查詢單一<影像>(c, imageId);
+    const 查詢結果 = await 資料池.查詢單一<影像>(imageId);
     
     if (!查詢結果.success || !查詢結果.data) {
       return null;

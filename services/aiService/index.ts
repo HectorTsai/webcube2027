@@ -3,6 +3,7 @@
 
 import { Context } from 'hono';
 import { info, error } from '../../utils/logger.ts';
+import { 資料池 } from '../../database/資料池.ts';
 import { PageGenerator } from './task/page-generator.ts';
 import { StyleGenerator } from './task/style-generator.ts';
 import { CubeGenerator } from './task/cube-generator.ts';
@@ -104,14 +105,12 @@ export async function 處理AI請求(c: Context): Promise<Response> {
 
       // ── AI 對話歷史 ──
       case method === 'GET' && aiPath === 'conversations': {
-        const { 三層查詢管理器 } = await import('../../database/core/three-tier-query.ts');
-        const result = await 三層查詢管理器.查詢列表(c, 'AI對話', 50, 0);
+        const result = await 資料池.查詢列表('AI對話', 50, 0);
         return c.json({ success: true, data: result.data });
       }
       case method === 'GET' && aiPath.startsWith('conversations/'): {
         const id = aiPath.replace('conversations/', '');
-        const { 三層查詢管理器 } = await import('../../database/core/three-tier-query.ts');
-        const result = await 三層查詢管理器.查詢單一(c, id);
+        const result = await 資料池.查詢單一(id);
         return c.json({ success: true, data: result.data });
       }
 

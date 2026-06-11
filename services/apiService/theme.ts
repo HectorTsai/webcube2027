@@ -2,7 +2,7 @@
 import { Context } from 'hono';
 import { APIModule, RouteParams } from './index.ts';
 import { error, info } from '../../utils/logger.ts';
-import { 三層查詢管理器 } from '../../database/core/three-tier-query.ts';
+import { 資料池 } from '../../database/資料池.ts';
 import { 資料過濾器 } from '../../utils/資料過濾器.ts';
 import 佈景主題 from '../../database/models/佈景主題.ts';
 import { InnerAPI } from '../../services/index.ts';
@@ -56,7 +56,7 @@ async function 處理取得當前佈景主題(c: Context): Promise<Response> {
 // 處理取得單一佈景主題
 async function 處理取得單一佈景主題(c: Context, id: string): Promise<Response> {
   try {
-    const 結果 = await 三層查詢管理器.查詢單一<佈景主題>(c, id);
+    const 結果 = await 資料池.查詢單一<佈景主題>(id);
     
     if (!結果.success || !結果.data) {
       return await 處理取得預設保底佈景主題(c);
@@ -72,7 +72,7 @@ async function 處理取得單一佈景主題(c: Context, id: string): Promise<R
 // 最終萬一防線：如果連 info 都崩潰拿不到資料時的底層盲撈保底
 async function 處理取得預設保底佈景主題(c: Context): Promise<Response> {
   try {
-    const 盲撈結果 = await 三層查詢管理器.取得預設值<佈景主題>(c, '佈景主題');
+    const 盲撈結果 = await 資料池.取得預設值<佈景主題>('佈景主題');
     
     if (盲撈結果.success && 盲撈結果.data) {
       return 包裝並回傳佈景主題(c, 盲撈結果.data, 盲撈結果.source);

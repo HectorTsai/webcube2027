@@ -2,7 +2,7 @@
 import { Context } from 'hono';
 import { APIModule, RouteParams } from '../index.ts';
 import { info, error } from '../../../utils/logger.ts';
-import { 三層查詢管理器 } from '../../../database/core/three-tier-query.ts';
+import { 資料池 } from '../../../database/資料池.ts';
 import { 資料過濾器 } from '../../../utils/資料過濾器.ts';
 import 頁面 from '../../../database/models/頁面.ts';
 
@@ -27,7 +27,7 @@ export async function GET(c: Context, params: RouteParams): Promise<Response> {
       // await info('頁面路徑 API', `根據路徑取得頁面: ${normalizedPath}`);
       
       // 使用查詢列表來根據路徑查找頁面
-      const 結果 = await 三層查詢管理器.查詢列表<頁面>(c, '頁面', 100, 0);
+      const 結果 = await 資料池.查詢列表<頁面>('頁面', 100, 0);
       
       if (!結果.success || !結果.data) {
         return c.json({

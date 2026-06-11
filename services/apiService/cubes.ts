@@ -2,7 +2,7 @@
 import { Context } from 'hono';
 import { APIModule, RouteParams } from './index.ts';
 import { info, error } from '../../utils/logger.ts';
-import { 三層查詢管理器 } from '../../database/core/three-tier-query.ts';
+import { 資料池 } from '../../database/資料池.ts';
 import { 資料過濾器 } from '../../utils/資料過濾器.ts';
 import 方塊 from '../../database/models/方塊.ts';
 
@@ -40,7 +40,7 @@ export async function GET(c: Context, params: RouteParams): Promise<Response> {
 export async function POST(c: Context, _params: RouteParams): Promise<Response> {
   try {
     const body = await c.req.json();
-    const 結果 = await 三層查詢管理器.創建或更新<方塊>(c, '方塊', body);
+    const 結果 = await 資料池.創建或更新<方塊>('方塊', body);
     
     if (!結果.success || !結果.data) {
       return c.json({
@@ -85,7 +85,7 @@ export async function PUT(c: Context, _params: RouteParams): Promise<Response> {
     }
     
     // 先檢查方塊是否存在
-    const 現有資料 = await 三層查詢管理器.查詢單一<方塊>(c, decodedId);
+    const 現有資料 = await 資料池.查詢單一<方塊>(decodedId);
     if (!現有資料.success || !現有資料.data) {
       return c.json({
         success: false,
@@ -94,7 +94,7 @@ export async function PUT(c: Context, _params: RouteParams): Promise<Response> {
     }
     
     const body = await c.req.json();
-    const 結果 = await 三層查詢管理器.創建或更新<方塊>(c, '方塊', { ...body, id: decodedId });
+    const 結果 = await 資料池.創建或更新<方塊>('方塊', { ...body, id: decodedId });
     
     if (!結果.success || !結果.data) {
       return c.json({
@@ -139,7 +139,7 @@ export async function DELETE(c: Context, _params: RouteParams): Promise<Response
     }
     
     // 先檢查方塊是否存在
-    const 現有資料 = await 三層查詢管理器.查詢單一<方塊>(c, decodedId);
+    const 現有資料 = await 資料池.查詢單一<方塊>(decodedId);
     if (!現有資料.success || !現有資料.data) {
       return c.json({
         success: false,
@@ -147,7 +147,7 @@ export async function DELETE(c: Context, _params: RouteParams): Promise<Response
       }, 404);
     }
     
-    const 結果 = await 三層查詢管理器.刪除(c, decodedId);
+    const 結果 = await 資料池.刪除(decodedId);
     
     if (!結果.success) {
       return c.json({
@@ -198,7 +198,7 @@ async function 處理取得當前方塊(c: Context): Promise<Response> {
     }
     
     // 取得當前方塊資料
-    const 結果 = await 三層查詢管理器.查詢單一<方塊>(c, 當前方塊ID);
+    const 結果 = await 資料池.查詢單一<方塊>(當前方塊ID);
     
     if (!結果.success || !結果.data) {
       return c.json({
@@ -236,7 +236,7 @@ async function 處理取得所有方塊(c: Context): Promise<Response> {
     const limit = parseInt(c.req.query('limit') || '10');
     const offset = parseInt(c.req.query('offset') || '0');
     
-    const 結果 = await 三層查詢管理器.查詢列表<方塊>(c, '方塊', limit, offset);
+    const 結果 = await 資料池.查詢列表<方塊>('方塊', limit, offset);
     
     // await info('方塊 API', `取得方塊列表: ${結果.data?.length || 0} 筆 (來源: ${結果.source})`);
     
@@ -269,7 +269,7 @@ async function 處理取得單一方塊(c: Context, id: string): Promise<Respons
   try {
     // await info('方塊 API', `取得方塊: ${id}`);
     
-    const 結果 = await 三層查詢管理器.查詢單一<方塊>(c, id);
+    const 結果 = await 資料池.查詢單一<方塊>(id);
     
     if (!結果.success || !結果.data) {
       return c.json({

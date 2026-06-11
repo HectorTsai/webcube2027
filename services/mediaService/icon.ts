@@ -3,14 +3,14 @@ import { Context } from 'hono';
 import { error } from '../../utils/logger.ts';
 import { MediaModule, RouteParams } from './index.ts';
 import 圖示 from "../../database/models/圖示.ts";
-import { 三層查詢管理器 } from '../../database/core/three-tier-query.ts';
+import { 資料池 } from '../../database/資料池.ts';
 
 /**
  * 從三層資料庫載入圖示 (優化點：補上長效強快取與正則編碼優化)
  */
 async function 從資料庫載入圖示(c: Context, iconId: string): Promise<Response | null> {
   try {
-    const 查詢結果 = await 三層查詢管理器.查詢單一<圖示>(c, iconId);
+    const 查詢結果 = await 資料池.查詢單一<圖示>(iconId);
     
     if (!查詢結果.success || !查詢結果.data) {
       return null;

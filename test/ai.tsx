@@ -2,8 +2,20 @@
 // 互動式測試所有 AI 端點
 
 import { Context } from 'hono';
+import { MultilingualString } from '@dui/smartmultilingual';
+import type { SupportedLanguage } from '@dui/smartmultilingual';
 
-export default function AITestPage(_ctx: Context) {
+export default async function AITestPage(c: Context) {
+  // Server-side MultilingualString 測試
+  const mls = new MultilingualString({ en: 'Hello, welcome to our website.' });
+  const host = c.req.header('host') ? `http://${c.req.header('host')}` : undefined;
+  let mlsResult = '載入中...';
+  try {
+    mlsResult = await mls.toStringAsync('zh-tw' as SupportedLanguage, host);
+  } catch (e) {
+    mlsResult = `錯誤: ${String(e)}`;
+  }
+
   const scriptContent = `
 document.addEventListener('alpine:init', () => {
   Alpine.data('aiTester', () => ({
@@ -12,7 +24,7 @@ document.addEventListener('alpine:init', () => {
     srcLang:'zh-tw', tgtLang:'en',
     txt:'你好，歡迎來到我們的網站',
     q:'你們公司提供什麼服務？',
-    cpu:'Intel i3-N305',
+    cpu:'Intel Core i3-N305',
     fk:'名稱', fv:'關於我們',
     pd:'建立一個簡潔的公司簡介頁面',
     async call(url, body, key) {
@@ -96,6 +108,23 @@ document.addEventListener('alpine:init', () => {
           生成頁面
         </button>
         <pre class="text-xs bg-base-300 p-2 rounded mt-2 max-h-64 overflow-auto" x-text="r5 || '結果會顯示在這裡'"></pre>
+      </div>
+
+      {/* MultilingualString 測試 — server-side 直接渲染 */}
+      <div class="card bg-base-200 mb-4 p-4">
+        <h2 class="text-xl font-semibold mb-2">6. MultilingualString.toStringAsync() 測試</h2>
+        <p class="text-sm mb-2">建立只有 <code class="bg-base-300 px-1 rounded">en: "Hello, welcome to our website"</code> 的 MultilingualString，<br />
+        Server-side 呼叫 <code>toStringAsync("zh-tw")</code>，觸發 TranslationAdapter（快取 → AI → Google fallback）</p>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <span class="text-xs font-semibold">en (input)</span>
+            <pre class="text-xs bg-base-300 p-2 rounded mt-1">Hello, welcome to our website</pre>
+          </div>
+          <div>
+            <span class="text-xs font-semibold">zh-tw (toStringAsync 結果)</span>
+            <pre class="text-xs bg-base-300 p-2 rounded mt-1">{mlsResult}</pre>
+          </div>
+        </div>
       </div>
 
       <div class="text-xs text-base-content/50 mt-4" x-text="status"></div>

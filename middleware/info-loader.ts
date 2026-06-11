@@ -1,7 +1,7 @@
 // 資訊載入中間件 - 預先載入系統資訊和網站資訊到 context
 import { Context, Next } from 'hono';
 import { info } from '../utils/logger.ts';
-import { 三層查詢管理器 } from '../database/core/three-tier-query.ts';
+import { 資料池 } from '../database/資料池.ts';
 import 系統資訊 from '../database/models/系統資訊.ts';
 import 網站資訊 from '../database/models/網站資訊.ts';
 
@@ -15,10 +15,7 @@ export async function 資訊載入器(c: Context, next: Next) {
   
   // 1. 載入系統資訊（從 L1）
   try {
-    const 系統資訊結果 = await 三層查詢管理器.查詢單一<系統資訊>(
-      c, 
-      '系統資訊:系統資訊:預設'
-    );
+    const 系統資訊結果 = await 資料池.查詢單一<系統資訊>('系統資訊:系統資訊:預設');
     
     if (系統資訊結果.success && 系統資訊結果.data) {
       c.set('系統資訊', 系統資訊結果.data);
@@ -34,12 +31,7 @@ export async function 資訊載入器(c: Context, next: Next) {
   
   // 2. 載入網站資訊（從 L3→L2→L1）
   try {
-    const 網站資訊列表 = await 三層查詢管理器.查詢列表<網站資訊>(
-      c, 
-      '網站資訊', 
-      1, 
-      0
-    );
+    const 網站資訊列表 = await 資料池.查詢列表<網站資訊>('網站資訊', 1, 0);
     
     if (網站資訊列表.success && 網站資訊列表.data && 網站資訊列表.data.length > 0) {
       c.set('網站資訊', 網站資訊列表.data[0]);

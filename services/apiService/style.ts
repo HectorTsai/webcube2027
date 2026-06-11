@@ -2,7 +2,7 @@
 import { Context } from 'hono';
 import { APIModule, RouteParams } from './index.ts';
 import { error } from '../../utils/logger.ts';
-import { 三層查詢管理器 } from '../../database/core/three-tier-query.ts';
+import { 資料池 } from '../../database/資料池.ts';
 import { 資料過濾器 } from '../../utils/資料過濾器.ts';
 import 風格 from '../../database/models/風格.ts';
 import { InnerAPI } from '../../services/index.ts';
@@ -49,7 +49,7 @@ async function 處理取得當前風格(c: Context): Promise<Response> {
 async function 處理取得單一風格(c: Context, id: string): Promise<Response> {
   try {
     // 🎯 嚴格遵循大一統三層管理器精準查找，不觸碰單一 DB 實例
-    const 結果 = await 三層查詢管理器.查詢單一<風格>(c, id);
+    const 結果 = await 資料池.查詢單一<風格>(id);
     
     if (!結果.success || !結果.data) {
       return c.json({
@@ -80,7 +80,7 @@ async function 處理取得單一風格(c: Context, id: string): Promise<Respons
 async function 處理取得預設風格(c: Context): Promise<Response> {
   try {
     // 使用系統標準定義的 seed 規格標籤 ID 向管理器請求
-    const 結果 = await 三層查詢管理器.查詢單一<風格>(c, 'seed:風格:default_style');
+    const 結果 = await 資料池.查詢單一<風格>('seed:風格:default_style');
     
     if (!結果.success || !結果.data) {
       return c.json({

@@ -27,11 +27,6 @@ export class OllamaProvider implements AIProvider {
       if (this.apiKey) {
         headers['Authorization'] = `Bearer ${this.apiKey}`;
       }
-      // 🔍 DEBUG: 暫時顯示送出的 apiKey 前 15 字元 / url / model
-      console.log('[OllamaProvider DEBUG] url:', this.url);
-      console.log('[OllamaProvider DEBUG] model:', model);
-      console.log('[OllamaProvider DEBUG] apiKey 長度:', this.apiKey.length, '前15字:', this.apiKey.substring(0, 15));
-      console.log('[OllamaProvider DEBUG] Authorization header:', headers['Authorization']?.substring(0, 30), '...');
       const response = await fetch(`${this.url}/api/chat`, {
         method: 'POST',
         headers,

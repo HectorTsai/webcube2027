@@ -1,10 +1,12 @@
 // 翻譯 Task — AI 接手多國語言翻譯，Google Translate 作為 fallback
+// 對 ≤ 60 bytes 的文字，先查單字快取，翻譯後回存
 
 import { Context } from 'hono';
 import { getTranslation } from '@dui/smartmultilingual';
 import { AIPoolManager } from '../pool.ts';
 import { AITaskConfig, AI能力標籤 } from '../provider/adapter.ts';
-import { error } from '../../../utils/logger.ts';
+import { 查詢翻譯快取, 寫入翻譯快取 } from '../翻譯快取.ts';
+import { error, info } from '../../../utils/logger.ts';
 
 export const TRANSLATE_TASK_CONFIG: AITaskConfig = {
   類型: '翻譯',
@@ -20,6 +22,28 @@ export class Translator {
   constructor(private c: Context) {}
 
   async 翻譯(text: string, sourceLang: string, targetLangs: string[]): Promise<Record<string, string>> {
+    // 1. 查快取
+    const cached = await 查詢翻譯快取(sourceLang, text, targetLangs);
+    if (cached) {
+      await info('Translator', `快取命中: ${sourceLang} → ${targetLangs.join(',')} "${text.slice(0, 30)}"`);
+      return cached;
+    }
+
+    // 2. AI / Google 翻譯
+    const result = await this.執行翻譯(text, sourceLang, targetLangs);
+
+    // 3. 寫入快取
+    await 寫入翻譯快取(sourceLang, text, result);
+
+    return result;
+  }
+
+  /** 實際執行翻譯（AI → Google fallback） */
+  private async 執行翻譯(
+    text: string,
+    sourceLang: string,
+    targetLangs: string[],
+  ): Promise<Record<string, string>> {
     const pool = new AIPoolManager(this.c);
 
     try {
@@ -28,14 +52,15 @@ export class Translator {
         PROMPT,
         [{ 角色: 'user', 內容: `將以下 ${sourceLang} 文字翻譯成 ${langList}:\n"${text}"` }],
         TRANSLATE_TASK_CONFIG,
-        { maxTokens: 1024, temperature: 0.3 }
+        { maxTokens: 1024, temperature: 0.3 },
       );
 
-      // 嘗試提取第一個 JSON 物件（非貪婪匹配）
       const jsonMatch = 回應.內容.match(/\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/);
       if (jsonMatch) {
         try {
-          return JSON.parse(jsonMatch[0]) as Record<string, string>;
+          const parsed = JSON.parse(jsonMatch[0]) as Record<string, string>;
+          await info('Translator', `AI 翻譯成功: ${sourceLang} → ${targetLangs.join(',')} "${text.slice(0, 30)}"`);
+          return parsed;
         } catch (parseErr) {
           await error('Translator', `JSON 解析失敗: ${parseErr}, 原始: ${回應.內容.slice(0, 200)}`);
         }
@@ -51,6 +76,7 @@ export class Translator {
         for (const lang of targetLangs) {
           result[lang] = await gt.translate(sourceLang, lang, text);
         }
+        await info('Translator', `Google 翻譯成功: ${sourceLang} → ${targetLangs.join(',')} "${text.slice(0, 30)}"`);
         return result;
       } catch (gtErr) {
         await error('Translator', `Google Translate 也失敗: ${gtErr}`);
@@ -62,47 +88,36 @@ export class Translator {
   async 批次翻譯(texts: string[], sourceLang: string, targetLangs: string[]): Promise<Record<string, string>[]> {
     if (texts.length === 0) return [];
 
-    const pool = new AIPoolManager(this.c);
-    const langList = targetLangs.join(', ');
-    const textList = texts.map((t, i) => `${i + 1}. "${t}"`).join('\n');
+    // 逐筆檢查快取，拆成已快取與未快取兩群
+    const results: (Record<string, string> | null)[] = new Array(texts.length).fill(null);
+    const uncachedTexts: string[] = [];
+    const uncachedMap: number[] = []; // uncached 在原 texts 的 index
 
-    try {
-      const { 回應 } = await pool.聊天(
-        PROMPT,
-        [{ 角色: 'user', 內容: `將以下 ${sourceLang} 文字分別翻譯成 ${langList}，回傳 JSON 陣列:\n${textList}` }],
-        TRANSLATE_TASK_CONFIG,
-        { maxTokens: 2048, temperature: 0.3 }
-      );
-
-      const jsonMatch = 回應.內容.match(/\[[\s\S]*\]/);
-      if (jsonMatch) {
-        try {
-          return JSON.parse(jsonMatch[0]) as Record<string, string>[];
-        } catch (parseErr) {
-          await error('Translator', `批次 JSON 解析失敗: ${parseErr}, 原始: ${回應.內容.slice(0, 200)}`);
-        }
-      }
-
-      await error('Translator', '批次翻譯 JSON 解析失敗');
-      return texts.map(t => ({ [sourceLang]: t }));
-    } catch (err) {
-      await error('Translator', `批次 AI 翻譯失敗，改用 Google Translate: ${err}`);
-      try {
-        const gt = getTranslation();
-        const results: Record<string, string>[] = [];
-        for (const text of texts) {
-          const entry: Record<string, string> = {};
-          for (const lang of targetLangs) {
-            entry[lang] = await gt.translate(sourceLang, lang, text);
-          }
-          results.push(entry);
-        }
-        return results;
-      } catch (gtErr) {
-        await error('Translator', `批次 Google Translate 也失敗: ${gtErr}`);
-        return texts.map(t => ({ [sourceLang]: t }));
+    for (let i = 0; i < texts.length; i++) {
+      const cached = await 查詢翻譯快取(sourceLang, texts[i], targetLangs);
+      if (cached) {
+        results[i] = cached;
+      } else {
+        uncachedTexts.push(texts[i]);
+        uncachedMap.push(i);
       }
     }
+
+    // 全部命中快取
+    if (uncachedTexts.length === 0) {
+      return results as Record<string, string>[];
+    }
+
+    // 對未快取的，逐筆呼叫 AI / Google 翻譯
+    for (let j = 0; j < uncachedTexts.length; j++) {
+      const translated = await this.執行翻譯(uncachedTexts[j], sourceLang, targetLangs);
+      const idx = uncachedMap[j];
+      results[idx] = translated;
+      // 寫入快取
+      await 寫入翻譯快取(sourceLang, uncachedTexts[j], translated);
+    }
+
+    return results as Record<string, string>[];
   }
 
   static 建立翻譯Service(c: Context) {

@@ -2,7 +2,7 @@
 import { Context } from 'hono';
 import { APIModule, RouteParams } from './index.ts';
 import { info, error } from '../../utils/logger.ts';
-import { 三層查詢管理器 } from '../../database/core/three-tier-query.ts';
+import { 資料池 } from '../../database/資料池.ts';
 import { 資料過濾器 } from '../../utils/資料過濾器.ts';
 import 配色 from '../../database/models/配色.ts';
 import { InnerAPI } from '../../services/index.ts';
@@ -60,7 +60,7 @@ async function 處理取得當前配色(c: Context): Promise<Response> {
 async function 處理取得單一配色(c: Context, id: string): Promise<Response> {
   try {
     // 🎯 嚴格透過大一統三層管理器進行資料精準查找
-    const 結果 = await 三層查詢管理器.查詢單一<配色>(c, id);
+    const 結果 = await 資料池.查詢單一<配色>(id);
     
     if (!結果.success || !結果.data) {
       return c.json({
@@ -91,7 +91,7 @@ async function 處理取得單一配色(c: Context, id: string): Promise<Respons
 async function 處理取得預設配色(c: Context): Promise<Response> {
   try {
     // 🎯 利用系統規範的固定種子代碼，向管理器發起查詢
-    const 結果 = await 三層查詢管理器.查詢單一<配色>(c, 'seed:配色:classic_blue');
+    const 結果 = await 資料池.查詢單一<配色>('seed:配色:classic_blue');
     
     if (!結果.success || !結果.data) {
       return c.json({

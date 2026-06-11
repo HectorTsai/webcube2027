@@ -5,7 +5,7 @@ import { AIPoolManager } from '../pool.ts';
 import { AITaskConfig, AI能力標籤 } from '../provider/adapter.ts';
 import AI對話 from '../../../database/models/AI對話.ts';
 import AI使用記錄 from '../../../database/models/AI使用記錄.ts';
-import { 三層查詢管理器 } from '../../../database/core/three-tier-query.ts';
+import { 資料池 } from '../../../database/資料池.ts';
 import { error } from '../../../utils/logger.ts';
 
 export const CS_TASK_CONFIG: AITaskConfig = {
@@ -36,14 +36,14 @@ export class CustomerService {
     try {
       let 對話: AI對話;
       if (對話ID) {
-        const 查詢結果 = await 三層查詢管理器.查詢單一<AI對話>(this.c, 對話ID);
+        const 查詢結果 = await 資料池.查詢單一<AI對話>(對話ID);
         if (!查詢結果.success || !查詢結果.data) throw new Error('對話不存在');
         對話 = 查詢結果.data;
       } else {
         對話 = new AI對話();
         對話.類型 = '客服';
         對話.標題 = `客服: ${問題.slice(0, 30)}...`;
-        對話.網站ID = this.c.get('tenant') as string;
+        對話.網站ID = this.c.get('host') as string;
       }
 
       對話.新增訊息('user', 問題);
@@ -62,7 +62,7 @@ export class CustomerService {
       對話.新增訊息('assistant', 回應.內容);
       對話.摘要 = 問題.slice(0, 100);
 
-      const 儲存結果 = await 三層查詢管理器.創建或更新<AI對話>(this.c, 'AI對話', 對話.toJSON());
+      const 儲存結果 = await 資料池.創建或更新<AI對話>('AI對話', 對話.toJSON());
       await this.記錄使用(serverID, providerType, 回應, 開始時間, true);
 
       return { 回答: 回應.內容, 對話ID: 儲存結果.data?.id ?? '' };
@@ -74,7 +74,7 @@ export class CustomerService {
 
   private async 取得網站內容(): Promise<string> {
     try {
-      const 頁面結果 = await 三層查詢管理器.查詢列表(this.c, '頁面', 20, 0);
+      const 頁面結果 = await 資料池.查詢列表('頁面', 20, 0);
       if (!頁面結果.success || !頁面結果.data) return '（尚無頁面內容）';
 
       const pages = 頁面結果.data as unknown as Array<Record<string, unknown>>;
@@ -91,14 +91,14 @@ export class CustomerService {
   private async 記錄使用(serverID: string, providerType: string, 回應: { 內容: string; token數: number; 耗時毫秒: number }, 開始時間: number, 成功: boolean) {
     try {
       const 記錄 = new AI使用記錄();
-      記錄.網站ID = this.c.get('tenant') as string;
+      記錄.網站ID = this.c.get('host') as string;
       記錄.使用類型 = '客服';
       記錄.provider = providerType;
       記錄.serverID = serverID;
       記錄.成功 = 成功;
       記錄.耗時毫秒 = 回應.耗時毫秒 || (Date.now() - 開始時間);
       記錄.token數 = 回應.token數;
-      await 三層查詢管理器.創建或更新<AI使用記錄>(this.c, 'AI使用記錄', 記錄.toJSON());
+      await 資料池.創建或更新<AI使用記錄>('AI使用記錄', 記錄.toJSON());
     } catch (err) {
       await error('CustomerService', `記錄使用失敗: ${err}`);
     }

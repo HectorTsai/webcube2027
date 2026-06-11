@@ -2,7 +2,7 @@
 import { Context } from 'hono';
 import { APIModule, RouteParams } from './index.ts';
 import { info, error } from '../../utils/logger.ts';
-import { 三層查詢管理器 } from '../../database/core/three-tier-query.ts';
+import { 資料池 } from '../../database/資料池.ts';
 import { 資料過濾器 } from '../../utils/資料過濾器.ts';
 import 頁面 from '../../database/models/頁面.ts';
 
@@ -58,7 +58,7 @@ export async function POST(c: Context, _params: RouteParams): Promise<Response> 
     const body = await c.req.json();
     // await info('頁面 API', '建立新頁面');
     
-    const 結果 = await 三層查詢管理器.創建或更新<頁面>(c, '頁面', {
+    const 結果 = await 資料池.創建或更新<頁面>('頁面', {
       ...body,
       標題: body.標題 || { 'zh-tw': '新頁面' },
       方塊: body.方塊 || '方塊:方塊:容器',
@@ -122,7 +122,7 @@ export async function PUT(c: Context, _params: RouteParams): Promise<Response> {
     // await info('頁面 API', `更新頁面: ${decodedId}`);
     
     // 先檢查頁面是否存在
-    const 現有資料 = await 三層查詢管理器.查詢單一<頁面>(c, decodedId);
+    const 現有資料 = await 資料池.查詢單一<頁面>(decodedId);
     if (!現有資料.success || !現有資料.data) {
       return c.json({
         success: false,
@@ -130,7 +130,7 @@ export async function PUT(c: Context, _params: RouteParams): Promise<Response> {
       }, 404);
     }
     
-    const 結果 = await 三層查詢管理器.創建或更新<頁面>(c, '頁面', { ...body, id: decodedId });
+    const 結果 = await 資料池.創建或更新<頁面>('頁面', { ...body, id: decodedId });
     
     if (!結果.success || !結果.data) {
       return c.json({
@@ -177,7 +177,7 @@ export async function DELETE(c: Context, _params: RouteParams): Promise<Response
     // await info('頁面 API', `刪除頁面: ${decodedId}`);
     
     // 先檢查頁面是否存在
-    const 現有資料 = await 三層查詢管理器.查詢單一<頁面>(c, decodedId);
+    const 現有資料 = await 資料池.查詢單一<頁面>(decodedId);
     if (!現有資料.success || !現有資料.data) {
       return c.json({
         success: false,
@@ -185,7 +185,7 @@ export async function DELETE(c: Context, _params: RouteParams): Promise<Response
       }, 404);
     }
     
-    const 結果 = await 三層查詢管理器.刪除(c, decodedId);
+    const 結果 = await 資料池.刪除(decodedId);
     
     if (!結果.success) {
       return c.json({
@@ -217,7 +217,7 @@ async function 處理根據路徑取得頁面(c: Context, route: string): Promis
     // await info('頁面 API', `根據路徑取得頁面: ${route}`);
     
     // 使用查詢列表來根據路徑查找頁面
-    const 結果 = await 三層查詢管理器.查詢列表<頁面>(c, '頁面', 100, 0);
+    const 結果 = await 資料池.查詢列表<頁面>('頁面', 100, 0);
     
     if (!結果.success || !結果.data) {
       return c.json({
@@ -262,7 +262,7 @@ async function 處理取得單一頁面(c: Context, id: string): Promise<Respons
   try {
     // await info('頁面 API', `取得單一頁面: ${id}`);
     
-    const 結果 = await 三層查詢管理器.查詢單一<頁面>(c, id);
+    const 結果 = await 資料池.查詢單一<頁面>(id);
     
     if (!結果.success || !結果.data) {
       return c.json({
@@ -300,7 +300,7 @@ async function 處理取得所有頁面(c: Context): Promise<Response> {
     const limit = parseInt(c.req.query('limit') || '10');
     const offset = parseInt(c.req.query('offset') || '0');
     
-    const 結果 = await 三層查詢管理器.查詢列表<頁面>(c, '頁面', limit, offset);
+    const 結果 = await 資料池.查詢列表<頁面>('頁面', limit, offset);
     
     // await info('頁面 API', `取得頁面列表: ${結果.data?.length || 0} 筆 (來源: ${結果.source})`);
     

@@ -1,9 +1,9 @@
-// MongoDB Adapter — 使用 npm:mongodb 實作 L3DatabaseAdapter 介面
+// MongoDB Adapter — 使用 npm:mongodb 實作 DatabaseAdapter 介面
 // 每個 model = 一個 collection，文件原生 JSON 儲存（無序列化開銷）
 // 適用於租戶自備 MongoDB 實例
 
 import { MongoClient, type Db, type Collection } from 'mongodb';
-import { L3DatabaseAdapter, 查詢選項 } from './adapter-interface.ts';
+import { DatabaseAdapter, 查詢選項, 欄位篩選 } from './adapter-interface.ts';
 import { info, error } from '../../utils/logger.ts';
 
 // MongoDB 文件型別 — _id 使用字串而非 ObjectId
@@ -12,7 +12,7 @@ interface WebCubeDoc {
   [key: string]: unknown;
 }
 
-export class MongoAdapter implements L3DatabaseAdapter {
+export class MongoAdapter implements DatabaseAdapter {
   readonly 類型 = 'mongodb';
   private 連線字串: string;
   private 資料庫名稱: string;
@@ -96,6 +96,16 @@ export class MongoAdapter implements L3DatabaseAdapter {
     } catch (err) {
       await error('MongoAdapter', `更新失敗: ${err}`);
       return dataWithId;
+    }
+  }
+
+  async 查詢依欄位(模型: string, 篩選: 欄位篩選): Promise<Record<string, unknown>[]> {
+    try {
+      const 集合 = await this.取得集合(模型);
+      const cursor = 集合.find({ [篩選.欄位]: 篩選.值 } as Record<string, unknown>).limit(1);
+      return await cursor.toArray() as Record<string, unknown>[];
+    } catch {
+      return [];
     }
   }
 

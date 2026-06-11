@@ -1,5 +1,5 @@
 // AI Provider 統一介面
-// 所有 provider（ollama/openai/anthropic/transformer/gemini）都實作此介面
+// 所有 provider（ollama/openai/anthropic/gemini）都實作此介面
 
 export interface AI聊天訊息 {
   角色: "system" | "user" | "assistant";

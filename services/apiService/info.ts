@@ -3,7 +3,7 @@ import { Context } from 'hono';
 import { RouteParams } from './index.ts';
 import { info, error } from '../../utils/logger.ts';
 import { 資料過濾器 } from '../../utils/資料過濾器.ts';
-import { 三層查詢管理器 } from '../../database/core/three-tier-query.ts';
+import { 資料池 } from '../../database/資料池.ts';
 import 網站資訊 from '../../database/models/網站資訊.ts';
 
 // 處理取得系統資訊
@@ -55,7 +55,7 @@ async function 處理取得網站資訊(c: Context, _params: RouteParams): Promi
     }
     
     // 2. 如果 context 中沒有，從資料庫查詢
-    const 結果 = await 三層查詢管理器.取得預設值<網站資訊>(c, '網站資訊');
+    const 結果 = await 資料池.取得預設值<網站資訊>('網站資訊');
     
     if (!結果.success || !結果.data) {
       return c.json({
