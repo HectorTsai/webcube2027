@@ -6,13 +6,19 @@
     "zh-tw": "Alpine.js 驅動的滑入式抽屜面板。支援上/下/左/右四方向、背景點擊關閉、自訂 state。內容透過 children 傳入。",
     "vi": "Ngăn kéo trượt được điều khiển bởi Alpine.js. Hỗ trợ bốn hướng, đóng khi nhấp nền, state tùy chỉnh. Nội dung truyền qua children."
   },
-  "from": "div",
-  "className": "fixed z-50 bg-base-100 shadow-lg transition-transform duration-300 overflow-y-auto pointer-events-auto",
+  "from": "方塊:方塊:容器",
+  "className": "fixed z-50 shadow-lg transition-transform duration-300 pointer-events-auto flex flex-col overflow-hidden !m-0",
   "args": {
     "state": {
       "type": "string",
       "description": "Alpine store 狀態名稱（$store.drawers.{state}）",
       "default": "drawerOpen"
+    },
+    "color": {
+      "type": "string",
+      "description": "色彩主題（來自容器）",
+      "default": "base",
+      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "base", "neutral"]
     },
     "position": {
       "type": "string",
@@ -21,7 +27,7 @@
       "options": ["left", "right", "top", "bottom"],
       "variants": {
         "left": {
-          "className": "left-0 inset-y-0 max-h-screen",
+          "className": "left-0 inset-y-0 h-screen",
           "style": { "width": "320px" },
           "alpine": {
             "attrs": {
@@ -31,7 +37,7 @@
           }
         },
         "right": {
-          "className": "right-0 inset-y-0 max-h-screen",
+          "className": "right-0 inset-y-0 h-screen",
           "style": { "width": "320px" },
           "alpine": {
             "attrs": {
@@ -65,7 +71,7 @@
   },
   "alpine": {
     "init": "$store.drawers = $store.drawers || {}",
-    "bind": { "show": "$store.drawers.{state}" }
+    "attrs": { "show": "$store.drawers.{state}" }
   },
   "on": {
     "click.stop": ""
@@ -75,11 +81,23 @@
       "from": "div",
       "className": "fixed inset-0 z-40 bg-neutral-900/50 pointer-events-auto transition-opacity duration-300",
       "alpine": {
-        "bind": { "show": "$store.drawers.{state}" }
+        "attrs": { "show": "$store.drawers.{state}" }
       },
       "on": {
         "click": "$store.drawers.{state} = false"
       }
+    },
+    "header": {
+      "from": "div",
+      "className": "shrink-0"
+    },
+    "content": {
+      "from": "div",
+      "className": "flex-1 overflow-y-auto"
+    },
+    "footer": {
+      "from": "div",
+      "className": "shrink-0"
     }
   },
   "可刪除": false

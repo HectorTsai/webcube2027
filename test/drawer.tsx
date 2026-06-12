@@ -1,433 +1,164 @@
-import Drawer, { DrawerTitle, DrawerFooter, DrawerProps } from '../components/Drawer/index.tsx';
-import Button from '../components/Button.tsx';
-import InputField from '../components/InputField.tsx';
-import Icon from '../components/Icon.tsx';
-import DatePicker from '../components/DatePicker.tsx';
-import TimePicker from '../components/TimePicker.tsx';
+// test/drawer.tsx — 抽屜方塊測試網頁
+//
+// 方塊定義由 Cube 自動從 DB 載入（透過 from + context），variant 自動合併。
+// 使用方式：
+//   <Cube from="方塊:方塊:抽屜" position="right" state="myDrawer" context={c}>...</Cube>
+import type { Context } from "hono";
+import Cube from '../components/方塊.tsx';
 
-export default async function DrawerTestPage() {
-  const variants: DrawerProps['variant'][] = [
-    "solid",
-    "outline",
-    "ghost",
-    "dot",
-    "dashed",
-    "double",
-    "glow",
-    "minimalist",
-    "crystal",
-    "diagonal-stripes",
-    "gradient-right",
-    "gradient-left",
-    "gradient-up",
-    "gradient-down",
-    "gradient-middle",
-    "gradient-diagonal",
-    "gradient-center",
-    "gradient-cone"
-  ];
-
-  const colors: DrawerProps['color'][] = [
-    "primary",
-    "secondary",
-    "accent",
-    "info",
-    "success",
-    "warning",
-    "error"
-  ];
-
-  const leftVariantItems = await Promise.all(variants.map(async (v, index) => {
-    const drawer = await Drawer({
-      state: `leftDrawer${index}`,
-      position: "left",
-      color: "primary",
-      variant: v,
-      children: (
-        <>
-          <DrawerTitle>{v!.charAt(0).toUpperCase() + v!.slice(1)} Drawer</DrawerTitle>
-          <p class="text-sm opacity-80 w-full">這是左側 {v} 樣式的 Drawer。</p>
-          <DrawerFooter>
-            <Button variant="solid" color="success" x-on:click={`$store.drawers.leftDrawer${index} = false`}>確定</Button>
-            <Button variant="outline" color="warning" x-on:click={`$store.drawers.leftDrawer${index} = false`}>取消</Button>
-          </DrawerFooter>
-        </>
-      )
-    });
-    return { variant: v, drawer, index };
-  }));
-
-  const rightVariantItems = await Promise.all(variants.map(async (v, index) => {
-    const drawer = await Drawer({
-      state: `rightDrawer${index}`,
-      position: "right",
-      color: "warning",
-      variant: v,
-      children: (
-        <>
-          <DrawerTitle>{v!.charAt(0).toUpperCase() + v!.slice(1)} Drawer</DrawerTitle>
-          <p class="text-sm opacity-80 w-full">這是右側 {v} 樣式的 Drawer。</p>
-          <DrawerFooter>
-            <Button variant="solid" color="success" x-on:click={`$store.drawers.rightDrawer${index} = false`}>確定</Button>
-            <Button variant="outline" color="warning" x-on:click={`$store.drawers.rightDrawer${index} = false`}>取消</Button>
-          </DrawerFooter>
-        </>
-      )
-    });
-    return { variant: v, drawer, index };
-  }));
-
-  const colorItems = await Promise.all(colors.map(async (c, index) => {
-    const drawer = await Drawer({
-      state: `colorDrawer${index}`,
-      position: "left",
-      color: c,
-      children: (
-        <>
-          <DrawerTitle>{c!.charAt(0).toUpperCase() + c!.slice(1)} Drawer</DrawerTitle>
-          <p class="text-sm opacity-80 w-full">這是 {c} 顏色的 Drawer。</p>
-          <DrawerFooter>
-            <Button variant="solid" color={c!} x-on:click={`$store.drawers.colorDrawer${index} = false`}>關閉</Button>
-          </DrawerFooter>
-        </>
-      )
-    });
-    return { color: c, drawer, index };
-  }));
-
-  const backdropOffDrawer = await Drawer({
-    state: "backdropOffDrawer",
-    position: "left",
-    color: "primary",
-    closeOnBackdrop: false,
-    children: (
-      <>
-        <DrawerTitle>點擊背景不關閉</DrawerTitle>
-        <p class="text-sm opacity-80 w-full">這個 Drawer 點擊背景不會關閉，只能按 ESC 或點擊按鈕關閉。</p>
-        <DrawerFooter>
-          <Button variant="solid" color="error" x-on:click="$store.drawers.backdropOffDrawer = false">關閉</Button>
-        </DrawerFooter>
-      </>
-    )
-  });
-
-  const escOffDrawer = await Drawer({
-    state: "escOffDrawer",
-    position: "right",
-    color: "secondary",
-    closeOnEsc: false,
-    children: (
-      <>
-        <DrawerTitle>ESC 不關閉</DrawerTitle>
-        <p class="text-sm opacity-80 w-full">這個 Drawer 按 ESC 不會關閉，只能點擊背景或按鈕關閉。</p>
-        <DrawerFooter>
-          <Button variant="solid" color="error" x-on:click="$store.drawers.escOffDrawer = false">關閉</Button>
-        </DrawerFooter>
-      </>
-    )
-  });
-
-  const bothOffDrawer = await Drawer({
-    state: "bothOffDrawer",
-    position: "left",
-    color: "accent",
-    closeOnBackdrop: false,
-    closeOnEsc: false,
-    children: (
-      <>
-        <DrawerTitle>只能按鈕關閉</DrawerTitle>
-        <p class="text-sm opacity-80 w-full">這個 Drawer 點擊背景和按 ESC 都不會關閉，只能點擊按鈕。</p>
-        <DrawerFooter>
-          <Button variant="solid" color="error" x-on:click="$store.drawers.bothOffDrawer = false">關閉</Button>
-        </DrawerFooter>
-      </>
-    )
-  });
-
-  const longContentDrawer = await Drawer({
-    state: "longContentDrawer",
-    position: "left",
-    color: "primary",
-    width: "md",
-    children: (
-      <>
-        <DrawerTitle>極限測試：超長內容</DrawerTitle>
-        <div class="w-full space-y-4">
-          <p class="text-sm opacity-80">這個 Drawer 包含超長內容，用來測試 max-h-screen 和 overflow-y-auto 是否正常運作。</p>
-          <p class="font-bold">第一章：開始</p>
-          <p>在很久很久以前，有一個王國，王國裡住著各種各樣的人。他們每天忙碌地生活著，從早到晚不停地工作。有些人種田，有些人打鐵，有些人經商，每個人都有自己的故事。</p>
-          <p>村莊裡有一位年輕的鐵匠，名叫阿明。他每天天還沒亮就起床，點燃爐火，開始一天的鍛造工作。他的手藝精湛，打造出的器具遠近聞名。</p>
-          <p class="font-bold">第二章：旅程</p>
-          <p>有一天，阿明收到了一封來自遠方的信。信上說，王國的公主被一條巨龍困在了高山上，需要一把特殊的劍才能解救她。阿明決定踏上旅程。</p>
-          <p>他走過了茂密的森林，森林裡的樹木高大得遮住了天空，陽光只能從縫隙中灑落。他聽到了各種鳥鳴和蟲叫，感受到了大自然的寧靜與神秘。</p>
-          <p>他翻過了陡峭的山嶺，山上的風很大，吹得他幾乎站不穩。但他沒有放棄，一步一步地往上爬。每當他覺得累了，就抬頭看看山頂，告訴自己再堅持一下。</p>
-          <p>他渡過了寬闊的河流，河水冰冷刺骨，但他依然奮力游到了對岸。在河的對岸，他遇到了一位老漁夫，老漁夫告訴他，巨龍的洞穴就在前方不遠處。</p>
-          <p class="font-bold">第三章：挑戰</p>
-          <p>阿明終於來到了巨龍的洞穴前。洞穴的入口散發著灼熱的氣息，地面上佈滿了焦黑的痕跡。他深吸一口氣，握緊了手中的劍，走了進去。</p>
-          <p>洞穴裡面比他想像的還要大，牆壁上閃爍著奇異的光芒。巨龍盤踞在洞穴深處，它的身體像一座小山，眼睛像兩團燃燒的火焰。</p>
-          <p>「你是誰？竟敢闖入我的領地！」巨龍發出了震耳欲聾的吼聲。</p>
-          <p>「我是鐵匠阿明，我來是為了救出公主！」阿明雖然害怕，但他的聲音依然堅定。</p>
-          <p class="font-bold">第四章：對決</p>
-          <p>巨龍噴出了一道火焰，阿明靈巧地閃開了。他用劍砍向巨龍，但巨龍的鱗片堅硬如鐵，劍刃在上面只留下了一道淺淺的痕跡。</p>
-          <p>阿明想起了老師傅曾經教過他的話：「真正的力量不在於劍的鋒利，而在於使用劍的人的心。」他閉上眼睛，讓自己的心平靜下來。</p>
-          <p>當他再次睜開眼睛時，他看到了巨龍的弱點——在它的左胸處，有一小片沒有鱗片覆蓋的地方。阿明集中全力，一劍刺了過去。</p>
-          <p class="font-bold">第五章：歸來</p>
-          <p>巨龍倒下了，公主得救了。公主感謝阿明的勇敢和堅持，兩人一起回到了王國。國王為阿明舉辦了盛大的慶典，全國的人民都為他歡呼。</p>
-          <p>從此以後，阿明不再只是個鐵匠，他成為了王國的英雄。但他依然每天早起，點燃爐火，打造著精美的器具。因為他知道，真正的幸福不在於榮耀，而在於做自己熱愛的事。</p>
-          <p class="font-bold">第六章：後記</p>
-          <p>如果你能看到這裡，代表我們的 Drawer 滾動功能運作正常！🎉</p>
-        </div>
-        <DrawerFooter>
-          <Button variant="solid" color="error" x-on:click="$store.drawers.longContentDrawer = false">關閉</Button>
-        </DrawerFooter>
-      </>
-    )
-  });
-
-  const rightDrawer = await Drawer({
-    state: "rightDrawer",
-    position: "right",
-    color: "info",
-    width: "md",
-    children: (
-      <>
-        <DrawerTitle>右側 Drawer</DrawerTitle>
-        <p class="text-sm opacity-80 w-full">這是從右側滑入的 Drawer，寬度為 md。</p>
-        <DrawerFooter>
-          <Button variant="solid" color="info" x-on:click="$store.drawers.rightDrawer = false">關閉</Button>
-        </DrawerFooter>
-      </>
-    )
-  });
-
-  const topDrawer = await Drawer({
-    state: "topDrawer",
-    position: "top",
-    color: "success",
-    children: (
-      <>
-        <DrawerTitle>頂部 Drawer</DrawerTitle>
-        <p class="text-sm opacity-80 w-full">這是從頂部滑入的 Drawer，適合通知列或搜尋欄。</p>
-        <DrawerFooter>
-          <Button variant="solid" color="success" x-on:click="$store.drawers.topDrawer = false">關閉</Button>
-        </DrawerFooter>
-      </>
-    )
-  });
-
-  const bottomDrawer = await Drawer({
-    state: "bottomDrawer",
-    position: "bottom",
-    color: "warning",
-    children: (
-      <>
-        <DrawerTitle>底部 Drawer</DrawerTitle>
-        <p class="text-sm opacity-80 w-full">這是從底部滑入的 Drawer，適合操作面板或篩選器。</p>
-        <DrawerFooter>
-          <Button variant="solid" color="warning" x-on:click="$store.drawers.bottomDrawer = false">關閉</Button>
-        </DrawerFooter>
-      </>
-    )
-  });
-
-  const storeData = `{${[
-    ...variants.map((_, i) => `leftDrawer${i}: false`),
-    ...variants.map((_, i) => `rightDrawer${i}: false`),
-    ...colors.map((_, i) => `colorDrawer${i}: false`),
-    'backdropOffDrawer: false',
-    'escOffDrawer: false',
-    'bothOffDrawer: false',
-    'longContentDrawer: false',
-    'rightDrawer: false',
-    'topDrawer: false',
-    'bottomDrawer: false',
-    'datePickerDrawer: false',
-    'timePickerDrawer: false',
-  ].join(', ')}}`;
-
+export default async function DrawerTestPage(c: Context) {
   return (
-    <div x-data x-init={`Alpine.store('drawers', ${storeData})`} class="container mx-auto p-6 space-y-8">
+    <div class="min-h-screen bg-slate-50/50 p-6 sm:p-10 font-sans antialiased">
+      <div class="max-w-4xl mx-auto space-y-12">
 
-      <section>
-        <h1 class="text-3xl font-bold mb-2">Drawer 組件測試</h1>
-        <p class="text-base-content/70">以下展示各種 Drawer 配置，點擊按鈕開啟側邊欄（使用 Alpine.js Store）</p>
-      </section>
+        {/* 頁首 */}
+        <header class="border-b border-slate-200 pb-6">
+          <a href="/test" class="inline-block text-sm text-slate-400 hover:text-slate-600 mb-2">&larr; 返回測試頁</a>
+          <h1 class="text-2xl font-black text-slate-900 tracking-tight">
+            抽屜（Drawer）渲染測試
+          </h1>
+          <p class="text-sm text-slate-500 mt-1">
+            只需 &lt;Cube from="方塊:方塊:抽屜" position="right" context={"{c}"}&gt; — Cube 自動從 DB 載入定義，context 自動傳播
+          </p>
+        </header>
 
-      <section>
-        <h2 class="text-2xl font-semibold mb-4">左側 Drawer（Variants）</h2>
-        <div class="flex flex-wrap gap-3">
-          {leftVariantItems.map(({ variant, index }) => (
-            <Button variant={variant!} color="primary" x-on:click={`$store.drawers.leftDrawer${index} = true`}>
-              ← {variant!.charAt(0).toUpperCase() + variant!.slice(1)}
-            </Button>
-          ))}
-        </div>
-        <div class="mt-4">
-          {leftVariantItems.map(({ drawer }) => drawer)}
-        </div>
-      </section>
-
-      <section>
-        <h2 class="text-2xl font-semibold mb-4">右側 Drawer（Variants）</h2>
-        <div class="flex flex-wrap gap-3">
-          {rightVariantItems.map(({ variant, index }) => (
-            <Button variant={variant!} color="warning" x-on:click={`$store.drawers.rightDrawer${index} = true`}>
-              {variant!.charAt(0).toUpperCase() + variant!.slice(1)} →
-            </Button>
-          ))}
-        </div>
-        <div class="mt-4">
-          {rightVariantItems.map(({ drawer }) => drawer)}
-        </div>
-      </section>
-
-      <section>
-        <h2 class="text-2xl font-semibold mb-4">顏色變化（Solid 變體）</h2>
-        <div class="flex flex-wrap gap-3">
-          {colorItems.map(({ color, index }) => (
-            <Button variant="solid" color={color!} x-on:click={`$store.drawers.colorDrawer${index} = true`}>
-              {color!.charAt(0).toUpperCase() + color!.slice(1)}
-            </Button>
-          ))}
-        </div>
-        <div class="mt-4">
-          {colorItems.map(({ drawer }) => drawer)}
-        </div>
-      </section>
-
-      <section>
-        <h2 class="text-2xl font-semibold mb-4">關閉行為測試</h2>
-        <div class="flex flex-wrap gap-3">
-          <Button variant="solid" color="primary" x-on:click="$store.drawers.backdropOffDrawer = true">
-            點擊背景不關閉
-          </Button>
-          <Button variant="solid" color="secondary" x-on:click="$store.drawers.escOffDrawer = true">
-            ESC 不關閉
-          </Button>
-          <Button variant="outline" color="accent" x-on:click="$store.drawers.bothOffDrawer = true">
-            只能按鈕關閉
-          </Button>
-        </div>
-        <div class="mt-4">
-          {backdropOffDrawer}
-          {escOffDrawer}
-          {bothOffDrawer}
-        </div>
-      </section>
-
-      <section>
-        <h2 class="text-2xl font-semibold mb-4">寬度與方向</h2>
-        <div class="flex flex-wrap gap-3">
-          <Button variant="solid" color="error" x-on:click="$store.drawers.longContentDrawer = true">
-            📜 超長內容測試
-          </Button>
-          <Button variant="solid" color="info" x-on:click="$store.drawers.rightDrawer = true">
-            右側寬版 →
-          </Button>
-        </div>
-        <div class="mt-4">
-          {longContentDrawer}
-          {rightDrawer}
-        </div>
-      </section>
-
-      <section>
-        <h2 class="text-2xl font-semibold mb-4">頂部與底部</h2>
-        <div class="flex flex-wrap gap-3">
-          <Button variant="solid" color="success" x-on:click="$store.drawers.topDrawer = true">
-            ↑ 頂部 Drawer
-          </Button>
-          <Button variant="solid" color="warning" x-on:click="$store.drawers.bottomDrawer = true">
-            ↓ 底部 Drawer
-          </Button>
-        </div>
-        <div class="mt-4">
-          {topDrawer}
-          {bottomDrawer}
-        </div>
-      </section>
-
-      <section>
-        <h2 class="text-2xl font-semibold mb-4">InputField + Drawer + DatePicker/TimePicker</h2>
-        <div class="space-y-4 max-w-md">
-          <div>
-            <InputField variant="outline" color="primary" className="w-full">
-              <span class="px-3 py-2 text-sm border-r border-gray-300">選擇日期</span>
-              <input 
-                id="drawerDateInput" 
-                type="text" 
-                value="2024-06-20"
-                placeholder="請選擇日期" 
-                class="flex-1 px-3 py-2 border-0 text-sm outline-none bg-transparent box-border"
-                readonly
-              />
-              <Button x-on:click="$store.drawers.datePickerDrawer = true">
-                <Icon name="calendar" size="sm" />
-              </Button>
-            </InputField>
+        {/* 區塊一：四方向測試 */}
+        <section class="space-y-4">
+          <h2 class="text-lg font-black text-slate-800 flex items-center gap-2">
+            <span class="w-2 h-5 bg-indigo-500 rounded-full inline-block" />
+            四方向滑入
+          </h2>
+          <div class="flex flex-wrap gap-3">
+            <button
+              type="button"
+              class="btn btn-primary"
+              x-on:click="$store.drawers.leftDrawer = true"
+            >&larr; 左側</button>
+            <button
+              type="button"
+              class="btn btn-info"
+              x-on:click="$store.drawers.rightDrawer = true"
+            >右側 &rarr;</button>
+            <button
+              type="button"
+              class="btn btn-success"
+              x-on:click="$store.drawers.topDrawer = true"
+            >&uarr; 頂部</button>
+            <button
+              type="button"
+              class="btn btn-warning"
+              x-on:click="$store.drawers.bottomDrawer = true"
+            >&darr; 底部</button>
           </div>
-          <div>
-            <InputField variant="outline" color="accent" className="w-full">
-              <span class="px-3 py-2 text-sm border-r border-gray-300">選擇時間</span>
-              <input 
-                id="drawerTimeInput" 
-                type="text" 
-                value="14:30"
-                placeholder="請選擇時間" 
-                class="flex-1 px-3 py-2 border-0 text-sm outline-none bg-transparent box-border"
-                readonly
-              />
-              <Button x-on:click="$store.drawers.timePickerDrawer = true">
-                <Icon name="clock" size="sm" />
-              </Button>
-            </InputField>
-          </div>
-        </div>
-        <div class="mt-4">
-          <Drawer state="datePickerDrawer" position="bottom" color="primary">
-            <DrawerTitle>選擇日期</DrawerTitle>
-            <DatePicker 
-              name="drawer_date" 
-              inputId="drawerDateInput"
-              size="md"
-              color="primary"
-            />
-          </Drawer>
-          <Drawer state="timePickerDrawer" position="bottom" color="accent">
-            <DrawerTitle>選擇時間</DrawerTitle>
-            <TimePicker 
-              name="drawer_time" 
-              inputId="drawerTimeInput"
-              size="md"
-              color="accent"
-              use24Hour={true}
-            />
-          </Drawer>
-        </div>
-      </section>
 
-      <section>
-        <h2 class="text-2xl font-semibold mb-4">使用說明</h2>
-        <div class="p-4 bg-base-200 rounded-lg">
-          <ul class="list-disc list-inside space-y-1 text-sm text-base-content/80">
-            <li><strong>store</strong>: Alpine.js Store 名稱，預設 "drawers"</li>
-            <li><strong>state</strong>: Store 中的狀態鍵名，預設 "drawerOpen"</li>
-            <li><strong>position</strong>: 滑出方向 "left" | "right" | "top" | "bottom"，預設 "left"</li>
-            <li><strong>closeOnBackdrop</strong>: 點擊背景是否關閉，預設 true</li>
-            <li><strong>closeOnEsc</strong>: 按 ESC 是否關閉，預設 true</li>
-            <li><strong>variant</strong>: Container 樣式變體</li>
-            <li><strong>color</strong>: 顏色主題</li>
-            <li><strong>width</strong>: 寬度設定，預設 "sm"</li>
-            <li><strong>rounded</strong>: 圓角，預設 "none"</li>
-            <li><strong>shadow</strong>: 陰影，預設 "lg"</li>
-            <li><strong>DrawerTitle</strong>: 標題子組件</li>
-            <li><strong>DrawerFooter</strong>: 底部按鈕區子組件（自動推到底部）</li>
-            <li>開啟：<code>x-on:click="$store.drawers.myDrawer = true"</code></li>
-            <li>關閉：<code>x-on:click="$store.drawers.myDrawer = false"</code></li>
-            <li>按鈕與 Drawer 不再需要 <code>x-data</code> 包裹，可放在頁面任意位置</li>
-          </ul>
-        </div>
-      </section>
+          {/* 左側抽屜 */}
+          <Cube from="方塊:方塊:抽屜" context={c} state="leftDrawer" position="left"
+            slots={{
+              header: <Cube from="div" context={c} className="p-4 text-lg font-bold border-b">左側 Drawer</Cube>,
+              footer: <Cube from="div" context={c} className="p-4 border-t">
+                <button type="button" class="btn btn-primary btn-sm" x-on:click="$store.drawers.leftDrawer = false">關閉</button>
+              </Cube>,
+            }}
+          >
+            <p class="px-4 py-4 text-sm opacity-80">這是從左側滑入的 Drawer。</p>
+          </Cube>
+
+          {/* 右側抽屜 */}
+          <Cube from="方塊:方塊:抽屜" context={c} state="rightDrawer" position="right"
+            slots={{
+              header: <Cube from="div" context={c} className="p-4 text-lg font-bold border-b">右側 Drawer</Cube>,
+              footer: <Cube from="div" context={c} className="p-4 border-t">
+                <button type="button" class="btn btn-info btn-sm" x-on:click="$store.drawers.rightDrawer = false">關閉</button>
+              </Cube>,
+            }}
+          >
+            <p class="px-4 py-4 text-sm opacity-80">這是從右側滑入的 Drawer。</p>
+          </Cube>
+
+          {/* 頂部抽屜 */}
+          <Cube from="方塊:方塊:抽屜" context={c} state="topDrawer" position="top"
+            slots={{
+              header: <Cube from="div" context={c} className="p-4 text-lg font-bold border-b">頂部 Drawer</Cube>,
+              footer: <Cube from="div" context={c} className="p-4 border-t">
+                <button type="button" class="btn btn-success btn-sm" x-on:click="$store.drawers.topDrawer = false">關閉</button>
+              </Cube>,
+            }}
+          >
+            <p class="px-4 py-4 text-sm opacity-80">這是從頂部滑入的 Drawer，適合通知列或搜尋欄。</p>
+          </Cube>
+
+          {/* 底部抽屜 */}
+          <Cube from="方塊:方塊:抽屜" context={c} state="bottomDrawer" position="bottom"
+            slots={{
+              header: <Cube from="div" context={c} className="p-4 text-lg font-bold border-b">底部 Drawer</Cube>,
+              footer: <Cube from="div" context={c} className="p-4 border-t">
+                <button type="button" class="btn btn-warning btn-sm" x-on:click="$store.drawers.bottomDrawer = false">關閉</button>
+              </Cube>,
+            }}
+          >
+            <p class="px-4 py-4 text-sm opacity-80">這是從底部滑入的 Drawer，適合操作面板或篩選器。</p>
+          </Cube>
+        </section>
+
+        {/* 區塊二：超長內容測試 */}
+        <section class="space-y-4">
+          <h2 class="text-lg font-black text-slate-800 flex items-center gap-2">
+            <span class="w-2 h-5 bg-rose-500 rounded-full inline-block" />
+            超長內容（overflow-y-auto 測試）
+          </h2>
+          <button type="button" class="btn btn-error" x-on:click="$store.drawers.longContent = true">超長內容測試</button>
+
+          <Cube from="方塊:方塊:抽屜" context={c} state="longContent" position="left"
+            slots={{
+              header: <Cube from="div" context={c} className="p-4 text-lg font-bold border-b">極限測試</Cube>,
+              footer: <Cube from="div" context={c} className="p-4 border-t">
+                <button type="button" class="btn btn-error btn-sm" x-on:click="$store.drawers.longContent = false">關閉</button>
+              </Cube>,
+            }}
+          >
+            <div class="space-y-3 p-4">
+              <p class="text-sm opacity-80">這個 Drawer 包含超長內容，用來測試 overflow-y-auto 是否正常運作。</p>
+              <p class="font-bold text-sm">第一章：開始</p>
+              <p class="text-sm">在很久很久以前，有一個王國，王國裡住著各種各樣的人。他們每天忙碌地生活著，從早到晚不停地工作。</p>
+              <p class="text-sm">村莊裡有一位年輕的鐵匠，名叫阿明。他每天天還沒亮就起床，點燃爐火，開始一天的鍛造工作。</p>
+              <p class="font-bold text-sm">第二章：旅程</p>
+              <p class="text-sm">有一天，阿明收到了一封來自遠方的信。信上說，王國的公主被一條巨龍困在了高山上。</p>
+              <p class="text-sm">他走過了茂密的森林，翻過了陡峭的山嶺，渡過了寬闊的河流。</p>
+              <p class="font-bold text-sm">第三章：挑戰</p>
+              <p class="text-sm">阿明終於來到了巨龍的洞穴前。洞穴的入口散發著灼熱的氣息。</p>
+              <p class="text-sm">巨龍盤踞在洞穴深處，它的身體像一座小山，眼睛像兩團燃燒的火焰。</p>
+              <p class="font-bold text-sm">第四章：對決</p>
+              <p class="text-sm">阿明集中全力，一劍刺向巨龍左胸沒有鱗片覆蓋的地方。</p>
+              <p class="font-bold text-sm">第五章：歸來</p>
+              <p class="text-sm">巨龍倒下了，公主得救了。從此以後，阿明成為了王國的英雄。</p>
+              <p class="font-bold text-sm">第六章：後記</p>
+              <p class="text-sm">如果你能看到這裡，代表我們的 Drawer 滾動功能運作正常！</p>
+            </div>
+          </Cube>
+        </section>
+
+        {/* 區塊三：使用說明 */}
+        <section class="space-y-4">
+          <h2 class="text-lg font-black text-slate-800 flex items-center gap-2">
+            <span class="w-2 h-5 bg-sky-500 rounded-full inline-block" />
+            使用說明
+          </h2>
+          <div class="p-4 bg-slate-100 rounded-lg">
+            <ul class="list-disc list-inside space-y-1 text-sm text-slate-600">
+              <li><strong>from</strong>: "方塊:方塊:抽屜" — Cube 自動從 DB 載入定義，variant 自動合併</li>
+              <li><strong>state</strong>: Alpine store 狀態名稱（{'$store.drawers.{state}'}），每個抽屜需有唯一 state</li>
+              <li><strong>position</strong>: "left" | "right" | "top" | "bottom" — 透過 variant 自動調整樣式與動畫</li>
+              <li><strong>slots.header</strong>: 頂部區域（shrink-0）</li>
+              <li><strong>JSX children</strong>: 自動流入 content slot（flex-1 overflow-y-auto）</li>
+              <li><strong>slots.footer</strong>: 底部區域（shrink-0）</li>
+              <li>背景遮罩由 slots.backdrop 自動處理，點擊遮罩即關閉</li>
+              <li>開啟：<code>x-on:click="$store.drawers.myDrawer = true"</code></li>
+              <li>關閉：<code>x-on:click="$store.drawers.myDrawer = false"</code></li>
+            </ul>
+          </div>
+        </section>
+
+      </div>
     </div>
   );
 }

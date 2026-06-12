@@ -1,5 +1,5 @@
 // 圖片.tsx (2026 新版 — 方塊:方塊:圖片 fallback)
-// id 模式：從 /medias/image/{id} 抓圖片
+// id 模式：從 /media/v1/image/{id} 抓圖片
 // src 模式：直接用 src
 // 皆渲染原生 <img>
 import { jsx } from "hono/jsx/jsx-runtime";
@@ -13,14 +13,17 @@ export default async function 圖片(props: Record<string, unknown>) {
     className, ...rest
   } = props;
 
+  const imgStyle: Record<string, string> = {
+    maxWidth: "100%",
+    objectFit: (objectFit as string) || "cover",
+  };
+  // 只在明確傳入 width/height 時才設 style，避免覆蓋 className（如 w-full h-48）
+  if (width) imgStyle.width = String(width);
+  if (height) imgStyle.height = String(height);
+
   const imgProps: Record<string, unknown> = {
     alt, loading, className: className || "image",
-    style: {
-      width: width || "auto",
-      height: height || "auto",
-      maxWidth: "100%",
-      objectFit: objectFit || "cover",
-    },
+    style: imgStyle,
     ...rest,
   };
 
@@ -35,7 +38,7 @@ export default async function 圖片(props: Record<string, unknown>) {
 
   // 有 id + context → 從 media API 載入
   if (id) {
-    imgProps.src = `/medias/image/${id}`;
+    imgProps.src = `/media/v1/image/${id}`;
     return jsx("img", imgProps);
   }
 

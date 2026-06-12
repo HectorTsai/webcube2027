@@ -1,5 +1,5 @@
 // 圖示.tsx (2026 新版 — 方塊:方塊:圖示 fallback)
-// id 模式：從 /medias/icon/{id} 抓 SVG，抽取外層屬性為預設值，args 可覆蓋
+// id 模式：從 /media/v1/icon/{id} 抓 SVG，抽取外層屬性為預設值，args 可覆蓋
 // 無 id 模式：用 definition.children 靜態渲染 SVG
 import { jsx } from "hono/jsx/jsx-runtime";
 import { raw } from "hono/utils/html";
@@ -38,7 +38,7 @@ export default async function 圖示(props: Record<string, unknown>) {
   // 有 id + context → 從資料庫載入 SVG
   if (id && context) {
     try {
-      const res = await InnerAPI(context as Context, `/medias/icon/${id}`);
+      const res = await InnerAPI(context as Context, `/media/v1/icon/${id}`);
       if (res.ok) {
         const svgText = await res.text();
         if (svgText.trim().startsWith("<svg")) {
