@@ -39,7 +39,7 @@ export default async function DrawerTestPage(c: Context) {
                   x-on:click={`$store.drawers.${state} = true`}
                 >開啟{label}抽屜</button>
 
-                <Cube from="方塊:方塊:抽屜" context={c} state={state} position={position}
+                <Cube from="方塊:方塊:抽屜" context={c} state={state} position={position} color={color}
                   slots={{
                     header: (
                       <Cube from="div" className="p-4 text-lg font-bold border-b">
@@ -163,7 +163,49 @@ export default async function DrawerTestPage(c: Context) {
           </Cube>
         </section>
 
-        {/* 區塊五：使用說明 */}
+        {/* 區塊五：色彩主題示範 */}
+        <section class="space-y-4">
+          <h2 class="text-lg font-black text-slate-800 flex items-center gap-2">
+            <span class="w-2 h-5 bg-purple-500 rounded-full inline-block" />
+            色彩主題示範（color prop）
+          </h2>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[
+              { color: "primary", label: "Primary" },
+              { color: "secondary", label: "Secondary" },
+              { color: "accent", label: "Accent" },
+              { color: "info", label: "Info" },
+              { color: "success", label: "Success" },
+              { color: "warning", label: "Warning" },
+              { color: "error", label: "Error" },
+              { color: "neutral", label: "Neutral" },
+            ].map(({ color, label }, i) => (
+              <div class="space-y-2">
+                <div class={`text-xs font-bold tracking-wider text-${color}`}>{label}</div>
+                <button type="button" class={`btn btn-${color} btn-sm w-full`}
+                  x-on:click={`$store.drawers.color${i} = true`}>開啟</button>
+
+                <Cube from="方塊:方塊:抽屜" context={c} state={`color${i}`} position="right" color={color}
+                  slots={{
+                    header: <Cube from="div" className="p-4 font-bold border-b">{label}</Cube>,
+                    footer: (
+                      <Cube from="div" className="p-4 border-t">
+                        <button type="button" class={`btn btn-${color} btn-sm w-full`}
+                          x-on:click={`$store.drawers.color${i} = false`}>關閉</button>
+                      </Cube>
+                    ),
+                  }}
+                >
+                  <p class="px-4 py-4 text-sm opacity-80">
+                    color="{color}" — 抽屜本體用 Container 的 {label} 主題。
+                  </p>
+                </Cube>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 區塊六：使用說明 */}
         <section class="space-y-4">
           <h2 class="text-lg font-black text-slate-800 flex items-center gap-2">
             <span class="w-2 h-5 bg-sky-500 rounded-full inline-block" />

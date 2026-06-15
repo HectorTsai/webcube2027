@@ -39,7 +39,7 @@ async function generateNonCurrentCSS(
   const { css } = await generator.generate(input, { preflights: false, minify: true });
   if (!css.trim()) return '';
   // 只在 rule 開頭（^ 或 } 之後）匹配 class selector，避開 CSS 值中的 .05 等浮點數
-  return css.replace(/(^|})(\.\w[\w:-]*)(?=\{)/g, (_m: string, sep: string, _cls: string) => {
+  return css.replace(/(^|})(\.\w[\w:\\/%-]*)(?=\{)/g, (_m: string, sep: string, _cls: string) => {
     // sep 是 ''（開頭）或 '}'（銜接上條 rule），需要保留以免吃掉分隔符
     return sep + selector;
   }) + '\n';
@@ -59,7 +59,7 @@ export function getSystemRules(
       /^c-style-apply$/,
       () => {
         let css = `.c-style-apply {\n  transition: background-color 0.2s ease-out, color 0.2s ease-out, border-color 0.2s ease-out, box-shadow 0.2s ease-out;\n}\n`;
-        css += buildCurrentCSS(activeCurrent, '.c-style-apply');
+        css += buildCurrentCSS(activeCurrent, '.c-style-apply[data-active="true"]');
         const cleanHover = hoverCurrent.map(cls => cls.replace(/^hover:/, ''));
         css += buildCurrentCSS(cleanHover, '.c-style-apply[data-active="true"][data-hover="true"]:hover');
         const cleanInactive = inactiveCurrent.map(cls => cls.replace(/^inactive:/, ''));

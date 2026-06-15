@@ -1,14 +1,15 @@
 {
-  "id": "方塊:方塊:超連結",
-  "名稱": { "en": "Link", "zh-tw": "超連結", "vi": "Liên kết" },
+  "id": "方塊:方塊:按鈕",
+  "名稱": { "en": "Button", "zh-tw": "按鈕", "vi": "Nút" },
   "描述": {
-    "en": "Link cube built on Container. Supports color themes, sizes, disabled state, and href prop.",
-    "zh-tw": "超連結方塊，基於容器建構。無底線、支援色彩主題、尺寸、禁用狀態。",
-    "vi": "Khối liên kết, xây dựng trên Container."
+    "en": "Button cube built on Container. Supports color themes, sizes, disabled state, and hover effect.",
+    "zh-tw": "按鈕方塊，基於容器建構。支援色彩主題、尺寸、禁用狀態、懸停效果。",
+    "vi": "Khối nút, xây dựng trên Container."
   },
   "from": "方塊:方塊:容器",
-  "tag": "a",
-  "className": "cursor-pointer inline-flex items-center justify-center border-0 p-0 bg-transparent select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-current/30 no-underline",
+  "tag": "button",
+  "attrs": { "type": "button" },
+  "className": "cursor-pointer inline-flex items-center justify-center border-0 p-0 bg-transparent select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-current/30 disabled:cursor-default",
   "args": {
     "color": {
       "type": "string",
@@ -18,7 +19,7 @@
     },
     "size": {
       "type": "string",
-      "description": "連結尺寸（控制內距與字級）",
+      "description": "按鈕尺寸（控制內距與字級）",
       "default": "md",
       "options": ["xs", "sm", "md", "lg", "xl"],
       "variants": {
@@ -44,6 +45,9 @@
       "description": "允許懸停效果",
       "default": true
     }
+  },
+  "alpine": {
+    "bind": { "disabled": "{disabled}" }
   },
   "可刪除": false
 }

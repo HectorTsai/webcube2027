@@ -1,0 +1,54 @@
+{
+  "id": "方塊:方塊:列表",
+  "名稱": { "en": "List", "zh-tw": "列表", "vi": "Danh sách" },
+  "描述": {
+    "en": "List cube built on Container. Supports column/row direction, divider, alternating row stripes, and optional title. Items are passed as <li> children.",
+    "zh-tw": "列表方塊，基於容器建構。支援垂直/水平排列、分隔線、斑馬紋、可選標題。項目以 <li> children 傳入。",
+    "vi": "Khối danh sách."
+  },
+  "from": "方塊:方塊:容器",
+  "args": {
+    "color": {
+      "type": "string", "description": "色彩主題",
+      "default": "base",
+      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "base", "neutral"]
+    },
+    "active": { "type": "boolean", "description": "供電狀態", "default": true },
+    "hover": { "type": "boolean", "description": "允許懸停效果", "default": false },
+    "direction": {
+      "type": "string", "description": "排列方向",
+      "default": "column",
+      "options": ["column", "row"],
+      "variants": {
+        "column": { "wrapClassName": "flex-col" },
+        "row": { "wrapClassName": "flex-row" }
+      }
+    },
+    "divider": {
+      "type": "boolean", "description": "項目之間顯示分隔線",
+      "default": false,
+      "variants": {
+        "true": { "wrapClassName": "divide-y divide-base-content/15" }
+      }
+    },
+    "stripe": { "type": "boolean", "description": "偶數列半透明背景（斑馬紋）", "default": false },
+    "title": { "type": "string", "description": "可選標題（顯示在列表上方）", "default": "" }
+  },
+  "wrap": {
+    "from": "ul",
+    "className": "flex w-full",
+    "style": { "list-style": "none", "padding": "0", "margin": "0" }
+  },
+  "prepend": [
+    {
+      "if": "title",
+      "from": "div",
+      "className": "px-4 py-2 text-center opacity-60 text-sm font-medium tracking-wide",
+      "children": ["{title}"]
+    }
+  ],
+  "styleConditions": {
+    "stripe": "li:nth-child(even){background-color:color-mix(in oklch,var(--c-current-content) 5%,transparent)}"
+  },
+  "可刪除": false
+}

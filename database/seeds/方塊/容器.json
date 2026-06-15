@@ -28,7 +28,15 @@
       "type": "string",
       "description": "Padding 尺寸",
       "default": "md",
-      "options": ["none", "xs", "sm", "md", "lg", "xl"]
+      "options": ["none", "xs", "sm", "md", "lg", "xl"],
+      "variants": {
+        "none": { "className": "p-0" },
+        "xs":   { "className": "p-1" },
+        "sm":   { "className": "p-2" },
+        "md":   { "className": "p-4" },
+        "lg":   { "className": "p-6" },
+        "xl":   { "className": "p-8" }
+      }
     },
     "active": {
       "type": "boolean",

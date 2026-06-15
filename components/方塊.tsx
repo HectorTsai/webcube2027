@@ -63,6 +63,33 @@ const NATIVE_TAGS = new Set([
   "i", "b", "strong", "em", "small", "sub", "sup",
 ]);
 
+// 每個 tag 允許透傳的 HTML 屬性白名單（防止非法屬性洩漏）
+const TAG_ATTR_WHITELIST: Record<string, Set<string>> = {
+  a: new Set(["href", "target", "rel", "download", "hreflang", "ping", "referrerpolicy", "download"]),
+  img: new Set(["src", "alt", "crossorigin", "decoding", "loading", "referrerpolicy", "sizes", "srcset"]),
+  input: new Set(["type", "placeholder", "value", "name", "disabled", "readonly", "required", "min", "max", "step", "maxlength", "pattern", "autocomplete", "autofocus"]),
+  button: new Set(["type", "disabled", "name", "value", "autofocus"]),
+  form: new Set(["action", "method", "target", "enctype", "novalidate", "autocomplete"]),
+  label: new Set(["for"]),
+  textarea: new Set(["placeholder", "rows", "cols", "maxlength", "readonly", "disabled"]),
+  select: new Set(["disabled", "multiple", "name", "required"]),
+  video: new Set(["src", "poster", "controls", "autoplay", "loop", "muted", "width", "height"]),
+  audio: new Set(["src", "controls", "autoplay", "loop", "muted"]),
+};
+
+// HTML 全域屬性（所有 tag 都允許），不受 per-tag 白名單限制
+const GLOBAL_ATTRS = new Set(["id", "title", "tabindex", "role", "aria-label", "aria-hidden", "lang", "dir"]);
+
+function isAttrAllowed(tag: string, attr: string): boolean {
+  const attrLower = attr.toLowerCase();
+  // 全域屬性或無障礙 aria-* 直接放行
+  if (GLOBAL_ATTRS.has(attrLower) || attrLower.startsWith("aria-")) return true;
+  const allowed = TAG_ATTR_WHITELIST[tag.toLowerCase()];
+  if (allowed) return allowed.has(attrLower);
+  // 非特定 tag（如 div/span/section）只接受 data-*、x-* 和全域屬性，不接受其他裸屬性
+  return false;
+}
+
 function isNativeTag(tag: string): boolean {
   return NATIVE_TAGS.has(tag.toLowerCase());
 }
@@ -73,7 +100,7 @@ function isVoidElement(tag: string): boolean {
 
 // ---------- 模板替代 ----------
 function substitute(value: string, args: Record<string, unknown>): string {
-  return value.replace(/\{(\w+)\}/g, (_, key: string) => {
+  return value.replace(/\{([\w\-\.]+)\}/g, (_, key: string) => {
     const val = args[key];
     return val !== undefined && val !== null ? String(val) : `{${key}}`;
   });
@@ -133,8 +160,17 @@ function renderCubeChildren(
   return nodes;
 }
 
-// ---------- 載入方塊定義（非同步，僅 cubeId 模式使用）----------
+// ── 載入方塊定義（非同步，僅 cubeId 模式使用）──
+// 使用 Hono Context 存放請求級別快取，避免跨請求全域污染與記憶體洩漏
 export async function 載入方塊定義(cubeId: string, c: Context): Promise<Partial<方塊> | null> {
+  let reqCache = c.get("cube_request_cache") as Map<string, Partial<方塊>> | undefined;
+  if (!reqCache) {
+    reqCache = new Map();
+    c.set("cube_request_cache", reqCache);
+  }
+  const cached = reqCache.get(cubeId);
+  if (cached) return cached;
+
   try {
     const response = await InnerAPI(c, `/api/v1/cubes/${cubeId}`);
     const result = await response.json();
@@ -149,7 +185,9 @@ export async function 載入方塊定義(cubeId: string, c: Context): Promise<Pa
       } else {
         result.data = 安全過濾Cube(result.data);
       }
-      return new 方塊(result.data) as Partial<方塊>;
+      const definition = new 方塊(result.data) as Partial<方塊>;
+      reqCache.set(cubeId, definition);
+      return definition;
     }
   } catch {
     // 失敗回傳 null
@@ -269,9 +307,12 @@ export default async function Cube(props: CubeProps): Promise<any> {
   // ── className（初始來自 definition）──
   let finalClassName = definition.className || "";
 
-  // ── variant 合併（args 中有 variants 定義時，依目前值合併 className/style/alpine/on/data）──
-  // 無論 native 或 fallback 都先處理，確保變體效果一致
+  // ── variant 合併（不修改 definition，使用局部變數防止渲染實例互相污染）──
   let variantAlpine: Record<string, unknown> | undefined;
+  let variantContainerCls = "";
+  let variantWrapCls = "";
+  const finalOn: Record<string, string> = { ...definition.on };
+  const finalData: Record<string, string> = { ...definition.data };
   if (definition.args) {
     for (const [key, argDef] of Object.entries(definition.args)) {
       if (argDef.variants) {
@@ -279,9 +320,10 @@ export default async function Cube(props: CubeProps): Promise<any> {
         const v = argDef.variants[val];
         if (v) {
           if (v.className) finalClassName = finalClassName ? `${finalClassName} ${v.className}` : v.className;
+          if (v.containerClassName) variantContainerCls = variantContainerCls ? `${variantContainerCls} ${v.containerClassName}` : v.containerClassName;
+          if (v.wrapClassName) variantWrapCls = variantWrapCls ? `${variantWrapCls} ${v.wrapClassName}` : v.wrapClassName;
           if (v.style) Object.assign(finalStyle, v.style);
           if (v.alpine) {
-            // 合併 variant alpine（尤其是 attrs），避免覆蓋 definition 的 alpine
             if (!variantAlpine) variantAlpine = {};
             for (const [ak, av] of Object.entries(v.alpine)) {
               if (ak === "attrs" && av && variantAlpine.attrs) {
@@ -291,11 +333,89 @@ export default async function Cube(props: CubeProps): Promise<any> {
               }
             }
           }
-          if (v.on) Object.assign(definition.on ??= {}, v.on);
-          if (v.data) Object.assign(definition.data ??= {}, v.data);
+          if (v.on) Object.assign(finalOn, v.on);
+          if (v.data) Object.assign(finalData, v.data);
         }
       }
     }
+  }
+
+  // ── wrap / prepend / append / styleConditions（通用擴充，純 JSON 描述）──
+  // 所有方塊都支援此擴充：children 先用 wrap.from 包裹，再於前後附加 prepend/append。
+  // prepend/append 支援條件式 { if: "argName" } — 對應 arg 為 truthy 時才渲染。
+  // styleConditions[argName] 在 arg 為 truthy 時於 wrap 內注入 <style>。
+  const childArray = Array.isArray(childrenProp) ? childrenProp : [childrenProp];
+
+  const prependNodes: unknown[] = [];
+  const appendNodes: unknown[] = [];
+
+  function renderAffix(affixDef: Record<string, unknown>): unknown {
+    const tag = (affixDef.from as string) || "div";
+    const cls = affixDef.className ? substitute(affixDef.className as string, mergedArgs) : "";
+    const st = affixDef.style as Record<string, string> | undefined;
+    const affixStyle: Record<string, string> = {};
+    if (st) for (const [k, v] of Object.entries(st)) affixStyle[k] = substitute(v, mergedArgs);
+    const props: Record<string, unknown> = {};
+    if (cls) props.class = cls;
+    if (Object.keys(affixStyle).length) props.style = affixStyle;
+    const affixChildren = affixDef.children as (string | Record<string, unknown>)[] | undefined;
+    if (affixChildren) {
+      props.children = affixChildren.map(c =>
+        typeof c === "string" ? substitute(c, mergedArgs) : jsx(Cube, { definition: c as Partial<方塊>, args: mergedArgs, depth: depth + 1, context })
+      );
+    }
+    return jsx(tag, props as any);
+  }
+
+   if (definition.prepend) {
+     for (const p of (definition.prepend as unknown as Record<string, unknown>[])) {
+      const cond = p.if as string | undefined;
+      if (cond && !mergedArgs[cond]) continue;
+      prependNodes.push(renderAffix(p));
+    }
+  }
+  if (definition.append) {
+    for (const a of (definition.append as unknown as Record<string, unknown>[])) {
+      const cond = a.if as string | undefined;
+      if (cond && !mergedArgs[cond]) continue;
+      appendNodes.push(renderAffix(a));
+    }
+  }
+
+  if (definition.wrap) {
+    const w = definition.wrap as unknown as Record<string, unknown>;
+    const wrapTag = w.from as string || "div";
+    const wrapCls = [w.className ? substitute(w.className as string, mergedArgs) : "", variantWrapCls].filter(Boolean).join(" ");
+    const wst = w.style as Record<string, string> | undefined;
+    const wrapStyle: Record<string, string> = {};
+    if (wst) for (const [k, v] of Object.entries(wst)) wrapStyle[k] = substitute(v, mergedArgs);
+    const wrapProps: Record<string, unknown> = {};
+    if (wrapCls) wrapProps.class = wrapCls;
+    if (Object.keys(wrapStyle).length) wrapProps.style = wrapStyle;
+
+    const wrapInner: unknown[] = [];
+    // styleConditions 注入（放在 wrap 內部、children 前面）
+    if (definition.styleConditions) {
+      const scMap = definition.styleConditions as Record<string, string>;
+      for (const [argName, cssText] of Object.entries(scMap)) {
+        const argVal = mergedArgs[argName];
+        if (argVal) {
+          wrapInner.push(jsx("style", { children: cssText } as Record<string, unknown>));
+        }
+      }
+    }
+    wrapInner.push(...childArray);
+
+    const wrapped = w.void
+      ? jsx(wrapTag, wrapProps as any)
+      : jsx(wrapTag, { ...wrapProps, children: wrapInner } as any);
+    childrenProp = [...prependNodes, wrapped, ...appendNodes];
+  } else {
+    childrenProp = [...prependNodes, ...childArray, ...appendNodes];
+  }
+
+  if (Array.isArray(childrenProp) && childrenProp.length === 1) {
+    childrenProp = childrenProp[0];
   }
 
   // ── 解析 from ──
@@ -308,13 +428,23 @@ export default async function Cube(props: CubeProps): Promise<any> {
     if (fallbackFn) {
       const cubeClassName = [finalClassName, mergedArgs.className].filter(Boolean).join(" ");
 
-      // 若 definition 帶有 alpine / on / style — 用 wrapper div 承接（如抽屜的 x-show / click.stop）
-      const hasWrapperAttrs = !!(definition.alpine || definition.on || Object.keys(finalStyle).length);
+      // 若 definition 帶有 alpine / on / style / tag — 用 wrapper 承接
+      // tag 允許指定包裝標籤（如 "button" 讓 Container 有按鈕行為）
+      const hasWrapperAttrs = !!(definition.alpine || Object.keys(finalOn).length > 0 || Object.keys(finalStyle).length || definition.tag);
       if (hasWrapperAttrs) {
-        // 包裝 div ：className + alpine + on + style 都在外層
-        // Container 只吃 color / active 等內容參數，填入 h-full 以撐滿包裝高度
-        const wrapperAttrs: Record<string, string> = {};
-        if (cubeClassName) wrapperAttrs.class = cubeClassName;
+        const wrapperTag = definition.tag || "div";
+        const wrapperAttrs: Record<string, any> = {};
+        // <a> 沒有 :disabled pseudo-class，disabled 時手動覆蓋 cursor
+        let wrapperClass = cubeClassName;
+        if (wrapperTag === "a" && mergedArgs.disabled) {
+          wrapperClass = wrapperClass.replace(/\bcursor-pointer\b/g, "cursor-default");
+        }
+        if (wrapperClass) wrapperAttrs.class = wrapperClass;
+
+        // 靜態 HTML 屬性（如 type="button"）
+        if (definition.attrs) {
+          for (const [k, v] of Object.entries(definition.attrs)) wrapperAttrs[k] = v;
+        }
 
         const effectiveAlpine = variantAlpine
           ? {
@@ -333,16 +463,62 @@ export default async function Cube(props: CubeProps): Promise<any> {
           if (effectiveAlpine.model) wrapperAttrs["x-model"] = substitute(effectiveAlpine.model as string, mergedArgs);
         }
 
-        if (definition.on) {
-          for (const [k, v] of Object.entries(definition.on)) wrapperAttrs[`x-on:${k}`] = substitute(v, mergedArgs);
+        if (Object.keys(finalOn).length > 0) {
+          for (const [k, v] of Object.entries(finalOn)) wrapperAttrs[`x-on:${k}`] = substitute(v, mergedArgs);
+        }
+
+        // 透傳 runtime 傳入的 Alpine 屬性（如 x-on:click, x-bind:disabled）
+        for (const [k, v] of Object.entries(mergedArgs)) {
+          if (typeof k === "string" && (k.startsWith("x-") || k.startsWith("@")) && typeof v === "string") {
+            wrapperAttrs[k] = v;
+          }
+        }
+
+        // 透傳 runtime 傳入的一般 HTML 屬性（如 href, target, rel, download, disabled, required），
+        // 跳過設計系統保留字、Alpine 屬性、已被 wrapper build 階段設定過的屬性。
+        // 依 wrapperTag 白名單過濾，防止 <div href="/about"> 等非法屬性洩漏。
+        // 型別放寬支援 boolean，Hono JSX 會自動處理 disabled={true} → disabled。
+        const RESERVED = new Set(['color','size','disabled','active','hover','width','height','padding','className','style','context','children','definition','from','args','depth','fallbacks','slots']);
+        for (const [k, v] of Object.entries(mergedArgs)) {
+          if (typeof k === "string" && !k.startsWith("x-") && !k.startsWith("@") && !k.startsWith("data-") && !RESERVED.has(k) && !(k in wrapperAttrs) && (typeof v === "string" || typeof v === "number" || typeof v === "boolean")) {
+            if (isAttrAllowed(wrapperTag, k)) {
+              wrapperAttrs[k] = v;
+            }
+          }
         }
 
         if (Object.keys(finalStyle).length) {
           wrapperAttrs.style = Object.entries(finalStyle).map(([k, v]) => `${k}:${v}`).join(";");
         }
 
-        const result = fallbackFn({ ...mergedArgs, context, children: childrenProp, className: 'flex flex-col flex-1 w-full' });
-        return jsx("div", { ...wrapperAttrs, children: result });
+        const containerCls = ['flex flex-col flex-1 w-full', definition.containerClassName, variantContainerCls].filter(Boolean).join(" ");
+        // 只對容器元件過濾 prop，避免 href/title/stripe 等洩漏到內部 div。
+        // 其他 fallback（如圖示、圖片）需完整保留參數才能正常運作。
+        const fromCube = definition.from ?? "";
+        const fallbackArgs: Record<string, unknown> = {};
+        if (fromCube === "方塊:方塊:容器") {
+          const CONTAINER_KEYS = new Set(['color','active','activeStateName','hover','padding','width','height','style']);
+          for (const k of CONTAINER_KEYS) {
+            if (k in mergedArgs) fallbackArgs[k] = mergedArgs[k];
+          }
+          if (mergedArgs.disabled) fallbackArgs.active = false;
+        } else {
+          // 非容器元件（如圖示、圖片）完整透傳 runtime 參數
+          Object.assign(fallbackArgs, mergedArgs);
+        }
+
+        // 動態 disabled（x-bind:disabled="locked"）→ Container 也需動態斷電
+        // c-div-inactive[data-active="false"] 自帶灰階色，無需動 CSS 變數，只切 data-active 即可
+        const dynDisabledExpr = wrapperAttrs["x-bind:disabled"];
+        if (dynDisabledExpr && dynDisabledExpr !== "true" && dynDisabledExpr !== "false") {
+          const patchExpr = `let _d=(${dynDisabledExpr});$el.style.cursor=_d?'default':'';const _a=$el.querySelector('[data-active]');if(_a)_a.setAttribute('data-active',_d?'false':'true')`;
+          wrapperAttrs["x-effect"] = wrapperAttrs["x-effect"]
+            ? `${wrapperAttrs["x-effect"]}; ${patchExpr}`
+            : patchExpr;
+        }
+
+        const result = fallbackFn({ ...fallbackArgs, context, children: childrenProp, className: containerCls });
+        return jsx(wrapperTag, { ...wrapperAttrs, children: result });
       }
 
       const result = fallbackFn({ ...mergedArgs, context, children: childrenProp, className: cubeClassName });
@@ -353,8 +529,8 @@ export default async function Cube(props: CubeProps): Promise<any> {
 
   // ── 以下為原生標籤渲染 ──
 
-  // 組裝屬性
-  const attrs: Record<string, string> = {};
+  // 組裝屬性（型別 any 以相容 JSX 布林值）
+  const attrs: Record<string, any> = {};
 
   // alpine bind（含 variant 覆寫）
   const effectiveAlpine = variantAlpine
@@ -388,25 +564,41 @@ export default async function Cube(props: CubeProps): Promise<any> {
     }
   }
 
-  // events
-  if (definition.on) {
-    for (const [key, value] of Object.entries(definition.on)) {
+  if (Object.keys(finalOn).length > 0) {
+    for (const [key, value] of Object.entries(finalOn)) {
       attrs[`x-on:${key}`] = substitute(value, mergedArgs);
     }
   }
-
-  // data attributes（通用機制，由方塊定義自行宣告）
-  if (definition.data) {
-    for (const [key, value] of Object.entries(definition.data)) {
+  if (Object.keys(finalData).length > 0) {
+    for (const [key, value] of Object.entries(finalData)) {
       attrs[`data-${key}`] = substitute(value, mergedArgs);
     }
   }
 
+  // [原生標籤短路徑] 透傳 runtime 參數（如 placeholder, src, alt, required, disabled…）
+  // 當 from 是原生標籤時，definition.args 為空，必須從 mergedArgs 補回屬性。
+  const NATIVE_RESERVED = new Set(['className','style','context','children','definition','from','args','depth','fallbacks','slots']);
+  for (const [k, v] of Object.entries(mergedArgs)) {
+    if (
+      typeof k === "string" &&
+      !k.startsWith("x-") && !k.startsWith("@") && !k.startsWith("data-") &&
+      !NATIVE_RESERVED.has(k) && !(k in attrs) &&
+      (typeof v === "string" || typeof v === "number" || typeof v === "boolean")
+    ) {
+      if (isAttrAllowed(from, k)) {
+        attrs[k] = v;
+      }
+    }
+  }
+
   // args → HTML 屬性（string 型別的 arg 直接輸出為 HTML 屬性，如 viewBox、xmlns）
+  // 依 from 白名單過濾，防止 <div href="/about"> 等非法屬性
   if (definition.args) {
     for (const [key, argDef] of Object.entries(definition.args)) {
       if (argDef.type === "string" && mergedArgs[key] !== undefined && mergedArgs[key] !== null) {
-        attrs[key] = substitute(String(mergedArgs[key]), mergedArgs);
+        if (isAttrAllowed(from, key)) {
+          attrs[key] = substitute(String(mergedArgs[key]), mergedArgs);
+        }
       }
     }
   }

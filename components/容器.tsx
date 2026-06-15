@@ -10,6 +10,9 @@ export interface 容器Props extends BaseComponentProps {
 }
 
 export default function 容器(props: 容器Props) {
+  const PADDING_MAP: Record<string, string> = {
+    none: "p-0", xs: "p-1", sm: "p-2", md: "p-4", lg: "p-6", xl: "p-8",
+  };
   const { 
     color = "primary", 
     active = true, 
@@ -21,6 +24,7 @@ export default function 容器(props: 容器Props) {
     context, 
     width,     
     height,
+    padding,
   } = props;
 
   const 實際供電色彩 = (!active && !activeStateName) ? "neutral" : color;
@@ -36,13 +40,15 @@ export default function 容器(props: 容器Props) {
 
     '--c-width': width || 'auto',
     '--c-height': height || 'auto',
+    ...(width ? { width } : {}),
+    ...(height ? { height } : {}),
 
     ...style 
   };
 
   const 智慧分發Children = processChildren(children, { context: { ...context, color: 實際供電色彩, active, activeStateName, hover } });
 
-  const 最終盲倒Class = `c-style-apply c-div-active c-div-hover c-div-inactive ${className}`.trim().replace(/\s+/g, ' ');
+  const 最終盲倒Class = ['c-style-apply c-div-active c-div-hover c-div-inactive', className, padding && PADDING_MAP[padding]].filter(Boolean).join(" ").replace(/\s+/g, ' ');
 
   if (activeStateName) {
     return (
@@ -50,8 +56,7 @@ export default function 容器(props: 容器Props) {
         class={最終盲倒Class}
         style={scopedStyles}
         x-init={`if(!Alpine.store('Container')){Alpine.store('Container',{})}if(Alpine.store('Container').${activeStateName}===undefined){Alpine.store('Container').${activeStateName}=${active}}`}
-        x-bind:data-active={`($store.Container?.${activeStateName} ?? ${active}) ? 'true' : 'false'`}
-        x-bind:style={`!($store.Container?.${activeStateName} ?? ${active}) ? '--c-current: var(--color-neutral-raw); --c-current-content: var(--color-neutral-content-raw); --c-current-50: var(--color-neutral-50-raw); --c-current-70: var(--color-neutral-70-raw); --c-current-90: var(--color-neutral-90-raw);' : ''`}
+        x-effect={`$el.setAttribute('data-active',$store.Container.${activeStateName}?'true':'false')`}
         data-hover={hover ? "true" : "false"} 
         {...過濾無效Props(props)} 
       >

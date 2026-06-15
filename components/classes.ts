@@ -66,9 +66,16 @@ export function 過濾無效Props(props: Record<string, any>): Record<string, an
     // 扣留：已被元件自身解構與手動融合完畢的通用參數（防重複鬧雙胞）
     className, style, children,
 
-    // 放行：其餘原生 HTML 屬性與事件
+    // 放行：其餘原生 HTML 屬性與事件（含 Alpine x-* / @*，但會被過濾掉）
     ...domSafeRest 
   } = props;
   
-  return domSafeRest;
+  // 過濾 Alpine 屬性：x-*、@* 只應由 wrapper 標籤承接，不該洩漏到內部元素
+  const domSafe: Record<string, any> = {};
+  for (const [k, v] of Object.entries(domSafeRest)) {
+    if (!k.startsWith("x-") && !k.startsWith("@")) {
+      domSafe[k] = v;
+    }
+  }
+  return domSafe;
 }

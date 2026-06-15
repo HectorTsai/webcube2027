@@ -52,16 +52,14 @@ export default function ContainerTestPage() {
                 </div>
                 <div class="flex flex-wrap gap-4 items-start">
                   {colors.map((color) => (
-                    <div style={{ width: scenario.width, height: scenario.height, boxSizing: "border-box" }}>
-                      <Cube
-                        from="方塊:方塊:容器"
-                        color={color} padding={scenario.padding} width="100%" height="100%" active hover
-                      >
+                    <Cube
+                      from="方塊:方塊:容器"
+                      color={color} padding={scenario.padding} width={scenario.width} height={scenario.height} active hover
+                    >
                         <Cube from="div" className="text-center">
                           <span class="text-sm font-black tracking-tight capitalize">{color}</span>
                         </Cube>
                       </Cube>
-                    </div>
                   ))}
                 </div>
               </div>
@@ -126,7 +124,7 @@ export default function ContainerTestPage() {
 
               <div class="space-y-2">
                 <div class="text-xs font-bold text-slate-400">Alpine 動態響應組</div>
-                <Cube from="方塊:方塊:容器" color="primary" className="p-sm rounded-lg" active activeStateName="btn_active_toggle" hover={false}>
+                <Cube from="方塊:方塊:容器" color="primary" className="p-sm rounded-lg" active hover activeStateName="btn_active_toggle">
                   <span class="font-bold">點擊右方按鈕切換我</span>
                 </Cube>
               </div>

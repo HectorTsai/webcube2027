@@ -48,7 +48,7 @@ export class UnoCSS生成器 {
     }
     
     const jsonActive = this.風格?.配置?.active || "bg-current text-current-content border border-solid border-current-30 shadow-sm";     
-    const jsonInactive = this.風格?.配置?.inactive || "bg-base-50 text-base-50-content border border-solid border-base-50/20 shadow-none"; 
+    const jsonInactive = this.風格?.配置?.inactive || "bg-base-50 text-base-content border border-solid border-base-50/20 shadow-none"; 
     const jsonHover = this.風格?.配置?.hover || "bg-current-70";
     const jsonLayout = (this.骨架 as any)?.配置字串 || "";
 

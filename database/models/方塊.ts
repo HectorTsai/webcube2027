@@ -19,11 +19,35 @@ export interface ArgDef {
   /** 每個 option 值對應的 className/style/alpine/on/data 覆寫 */
   variants?: Record<string, {
     className?: string;
+    /** 傳給內部 fallback（如 Container）的 className，不跟 wrapper 合併 */
+    containerClassName?: string;
+    /** 傳給 definition.wrap 元素（如 <ul>）的 className */
+    wrapClassName?: string;
     style?: Record<string, string>;
     alpine?: Record<string, unknown>;
     on?: Record<string, string>;
     data?: Record<string, string>;
   }>;
+}
+
+/** 包裹層定義 — children 先用此 from 包起來再傳給 from 元件 */
+export interface WrapDef {
+  from: string;
+  className?: string;
+  style?: Record<string, string>;
+  /** void element（如 input）不接 children，直接 self-close */
+  void?: boolean;
+}
+
+/** prepend/append 項目定義 — 放在 from 元件內部、children 前後的條件式元素 */
+export interface AffixDef {
+  from: string;
+  className?: string;
+  style?: Record<string, string>;
+  /** arg 名 — 該 arg 為 truthy 時才渲染；不設則始終渲染 */
+  if?: string;
+  /** 替代字串（"{argName}" 替換為 arg 值）或用 from 指向子方塊 */
+  children?: (string | Record<string, unknown>)[];
 }
 
 // ---------- 預設值 ----------
@@ -44,6 +68,12 @@ export default class 方塊 extends 資料 {
   public 名稱: MultilingualString;
   public 描述: MultilingualString;
   public from: string;
+  /** 當 from 非原生標籤時，包裝用的 HTML 標籤（例如 "button" 讓 Container 有按鈕行為） */
+  public tag: string | undefined;
+  /** 包裝標籤的靜態 HTML 屬性（例如 type="button"） */
+  public attrs: Record<string, string> | undefined;
+  /** 傳給內部 fallback（如 Container）的 className */
+  public containerClassName: string | undefined;
   public args: Record<string, ArgDef>;
   public alpine: Record<string, unknown> | undefined;
   public on: Record<string, string> | undefined;
@@ -52,6 +82,14 @@ export default class 方塊 extends 資料 {
   public className: string;
   public slots: Record<string, unknown> | undefined;
   public children: (Record<string, unknown> | string)[] | undefined;
+  /** children 包裹層 */
+  public wrap: WrapDef | undefined;
+  /** from 元件內部、children 之前的條件式元素 */
+  public prepend: AffixDef[] | undefined;
+  /** from 元件內部、children 之後的條件式元素 */
+  public append: AffixDef[] | undefined;
+  /** key = arg 名，arg 為 truthy 時注入對應 CSS */
+  public styleConditions: Record<string, string> | undefined;
   public 售價: number;
   /** SHA-256 完整性雜湊，AI 審查通過後寫入，渲染前驗證 */
   public 已檢驗: string;
@@ -61,6 +99,9 @@ export default class 方塊 extends 資料 {
     this.名稱 = new MultilingualString(data?.名稱 as Record<string, string> | undefined ?? DEFAULT_VALUES.名稱);
     this.描述 = new MultilingualString(data?.描述 as Record<string, string> | undefined ?? DEFAULT_VALUES.描述);
     this.from = (data?.from as string) ?? DEFAULT_VALUES.from;
+    this.tag = (data?.tag as string | undefined) ?? undefined;
+    this.attrs = (data?.attrs as Record<string, string> | undefined) ?? undefined;
+    this.containerClassName = (data?.containerClassName as string | undefined) ?? undefined;
     this.args = (data?.args as Record<string, ArgDef>) ?? { ...DEFAULT_VALUES.args };
     this.alpine = (data?.alpine as Record<string, unknown> | undefined) ?? undefined;
     this.on = (data?.on as Record<string, string> | undefined) ?? undefined;
@@ -69,6 +110,10 @@ export default class 方塊 extends 資料 {
     this.className = (data?.className as string) ?? DEFAULT_VALUES.className;
     this.slots = (data?.slots as Record<string, unknown> | undefined) ?? undefined;
     this.children = (data?.children as (Record<string, unknown> | string)[] | null | undefined) ?? undefined;
+    this.wrap = (data?.wrap as WrapDef | undefined) ?? undefined;
+    this.prepend = (data?.prepend as AffixDef[] | undefined) ?? undefined;
+    this.append = (data?.append as AffixDef[] | undefined) ?? undefined;
+    this.styleConditions = (data?.styleConditions as Record<string, string> | undefined) ?? undefined;
     this.售價 = (data?.售價 as number) ?? DEFAULT_VALUES.售價;
     this.已檢驗 = (data?.已檢驗 as string) ?? '';
   }
@@ -79,6 +124,9 @@ export default class 方塊 extends 資料 {
       名稱: this.名稱.toJSON(),
       描述: this.描述.toJSON(),
       from: this.from,
+      tag: this.tag,
+      attrs: this.attrs,
+      containerClassName: this.containerClassName,
       args: this.args,
       alpine: this.alpine,
       on: this.on,
@@ -87,6 +135,10 @@ export default class 方塊 extends 資料 {
       className: this.className,
       slots: this.slots,
       children: this.children,
+      wrap: this.wrap,
+      prepend: this.prepend,
+      append: this.append,
+      styleConditions: this.styleConditions,
       售價: this.售價,
       已檢驗: this.已檢驗,
     };
