@@ -60,7 +60,7 @@
           "from": "方塊:方塊:抽屜",
           "color": "{color}",
           "state": "{drawerState}",
-          "position": "left"
+          "position": "right"
         }
       },
   "children": [
