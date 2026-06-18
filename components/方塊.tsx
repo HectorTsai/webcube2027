@@ -312,8 +312,6 @@ export default async function Cube(props: CubeProps): Promise<any> {
     return result.length === 1 ? result[0] : result;
   }
 
-  // 執行解構
-  const 最終解構後的Children = jsxChildren !== undefined ? 解構插槽與樣板(實際待渲染節點) : undefined;
   // ═══════════════════════════════════════════════════════════════════════════
 
   // ── 深度上限 ──
@@ -362,6 +360,9 @@ export default async function Cube(props: CubeProps): Promise<any> {
     }
   }
   Object.assign(mergedArgs, runtimeArgs, restArgs);
+
+  // 執行 Template/Slot 解構（此時 mergedArgs 已定義）
+  const 最終解構後的Children = jsxChildren !== undefined ? 解構插槽與樣板(實際待渲染節點) : undefined;
 
   // ── Slot 掃描 ──
   // 此時所有 <Slot template="xxx" /> 已在階段二解構完畢。
