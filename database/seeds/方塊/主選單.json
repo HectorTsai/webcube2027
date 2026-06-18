@@ -48,22 +48,21 @@
     "init": "$store.drawers = $store.drawers || {}"
   },
   "slots": {
-    "brand": {
-      "from": "div",
-      "className": "flex items-center shrink-0"
-    },
-    "content": {
-      "from": "div",
-      "className": "hidden md:flex items-center flex-1 gap-4"
-    },
-    "drawer": {
-      "shareChildren": true,
-      "from": "方塊:方塊:抽屜",
-      "color": "{color}",
-      "state": "{drawerState}",
-      "position": "left"
-    }
-  },
+        "brand": {
+          "from": "div",
+          "className": "flex items-center shrink-0"
+        },
+        "content": {
+          "from": "div",
+          "className": "hidden md:flex items-center flex-1 gap-4"
+        },
+        "drawer": {
+          "from": "方塊:方塊:抽屜",
+          "color": "{color}",
+          "state": "{drawerState}",
+          "position": "left"
+        }
+      },
   "children": [
     {
       "from": "div",

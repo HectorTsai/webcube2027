@@ -284,9 +284,15 @@ export default async function Cube(props: CubeProps): Promise<any> {
 
       // 🛡️ 如果解構出來的子節點是 Cube 且缺少 context，立刻注入當前外層 Cube 的 context
       // 否則它稍後非同步執行時無法存取 InnerAPI 與資料庫
+      // 同時注入 color（如果 child 沒有指定的話），讓 Template 內的 Cube 也能接收外層 color
       let nextProps = { ...((child as any).props || {}) };
-      if (isCubeComponent && nextProps.context === undefined) {
-        nextProps.context = context;
+      if (isCubeComponent) {
+        if (nextProps.context === undefined) {
+          nextProps.context = context;
+        }
+        if (nextProps.color === undefined && mergedArgs.color !== undefined) {
+          nextProps.color = mergedArgs.color;
+        }
       }
 
       if (hasChildren) {

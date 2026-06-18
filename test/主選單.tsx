@@ -51,7 +51,7 @@ export default async function MenuBarTest(c: Context) {
             </Template>
             <Slot name="brand" template="Brand" />
             <Slot name="drawer" template="Drawer" />
-            <Slot template="NavLinks" />
+            <Slot name="content" template="NavLinks" />
           </Cube>
         </div>
       </div>

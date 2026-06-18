@@ -3,8 +3,7 @@ import Container from "../Container/index.tsx";
 import { processChildren } from "../index.ts";
 
 export default function List({
-  color = "base",
-  variant = "solid",
+  color,
   children,
   divider = false,
   compact = false,
@@ -25,10 +24,10 @@ export default function List({
 
   const classes = finalClasses.filter(Boolean).join(" ");
 
-  // 處理 children，自動傳遞 color/variant/context
-  const processedChildren = processChildren(children, { color, variant, context });
+  // 處理 children，自動傳遞 color/context
+  const processedChildren = processChildren(children, { color, context });
 
-  return <Container variant={variant} color={color} padding="none" width="full" context={context}>
+  return <Container color={color} padding="none" width="full" context={context}>
     <ul class={classes} {...restProps}>{processedChildren}</ul>
   </Container>;
 }
