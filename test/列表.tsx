@@ -123,7 +123,7 @@ export default async function ListTestPage(c: Context) {
           </h2>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Cube from="方塊:方塊:列表" context={c} color="info" divider stripe title="通知中心">
-              <li class="px-4 py-3 flex justify-between items-center">
+              <li class="px-4 py-3 flex justify-between items-center" onclick="alert('xxxx')">
                 <span>系統更新</span>
                 <span class="text-xs opacity-50">10 分鐘前</span>
               </li>
@@ -244,7 +244,40 @@ export default async function ListTestPage(c: Context) {
           </div>
         </section>
 
-        {/* 區塊八：使用說明 */}
+        {/* 區塊八：role="separator" 分隔線 */}
+        <section class="space-y-4">
+          <h2 class="text-lg font-black text-slate-800 flex items-center gap-2">
+            <span class="w-2 h-5 bg-orange-500 rounded-full inline-block" />
+            separator 分隔線（{'<li role="separator">'})
+          </h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1">
+              <div class="text-xs text-slate-400 font-medium">divider + separator（分隔線在 separator 處斷開）</div>
+              <Cube from="方塊:方塊:列表" context={c} color="primary" divider>
+                <li class="px-4 py-3">個人檔案</li>
+                <li class="px-4 py-3">帳號安全</li>
+                <li class="px-4 py-3">通知設定</li>
+                <li role="separator"><hr class="border-current/15" /></li>
+                <li class="px-4 py-3">關於我們</li>
+                <li class="px-4 py-3">聯絡客服</li>
+                <li class="px-4 py-3">版本資訊</li>
+              </Cube>
+            </div>
+            <div class="space-y-1">
+              <div class="text-xs text-slate-400 font-medium">divider + stripe + separator</div>
+              <Cube from="方塊:方塊:列表" context={c} color="success" divider stripe>
+                <li class="px-4 py-3">水果</li>
+                <li class="px-4 py-3">蔬菜</li>
+                <li role="separator"><hr class="border-current/15" /></li>
+                <li class="px-4 py-3">肉類</li>
+                <li class="px-4 py-3">海鮮</li>
+                <li class="px-4 py-3">乳製品</li>
+              </Cube>
+            </div>
+          </div>
+        </section>
+
+        {/* 區塊九：使用說明 */}
         <section class="space-y-4">
           <h2 class="text-lg font-black text-slate-800 flex items-center gap-2">
             <span class="w-2 h-5 bg-sky-500 rounded-full inline-block" />
@@ -261,7 +294,8 @@ export default async function ListTestPage(c: Context) {
               <li><strong>active</strong>: true / false — 供電狀態</li>
               <li><strong>hover</strong>: true / false — 懸停效果</li>
               <li>項目使用 <strong>&lt;li&gt;</strong> 傳入，可自由控制每個項目的樣式與內容</li>
-              <li>水平模式搭配 divider 時分隔線會自動切換為直線（divide-x）</li>
+              <li>在列表中插入 <strong>&lt;li role="separator"&gt;&lt;hr /&gt;&lt;/li&gt;</strong> 作為群組分隔線，divider 會自動在此處斷開</li>
+              <li>水平模式搭配 divider 時分隔線會自動切換為直線（border-left）</li>
             </ul>
           </div>
         </section>

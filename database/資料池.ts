@@ -278,6 +278,12 @@ class 資料池核心 {
     const model = this.解析Model(id);
     if (!model) return { data: false, source: 'L1', success: false, error: 'ID 格式錯誤' };
 
+    // 檢查是否可刪除：先查詢現有資料
+    const 現有 = await this.查詢單一(id, host);
+    if (現有.success && (現有.data as any)?.可刪除 === false) {
+      return { data: false, source: 現有.source, success: false, error: '此資料不可刪除（系統預設資料）' };
+    }
+
     const key = this.寫入層級(host);
     const db = this.連線池.get(key);
     if (!db) return { data: false, source: 'L1', success: false, error: '無可用的寫入資料庫' };

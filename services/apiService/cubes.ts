@@ -6,26 +6,16 @@ import { 資料池 } from '../../database/資料池.ts';
 import { 資料過濾器 } from '../../utils/資料過濾器.ts';
 import 方塊 from '../../database/models/方塊.ts';
 
-// 內部 API 調用輔助函數
-import { InnerAPI } from '../../services/index.ts';
-
-// GET - 取得方塊 (/api/v1/cube/all 或 /api/v1/cube/id 或 /api/v1/cube)
+// GET - 取得方塊 (/api/v1/cubes 取得全部，/api/v1/cubes/:id 取得單一)
 export async function GET(c: Context, params: RouteParams): Promise<Response> {
   try {
-    // await info('方塊 API', '處理取得方塊請求');
-    
-    // 優先檢查路徑參數 (智能回退機制)
-    if (params.id === 'all') {
-      return await 處理取得所有方塊(c);
-    }
-    
-    // 如果有路徑參數且不是 'all'，當作 ID 處理
+    // 有路徑參數 → 取得單一方塊
     if (params.id) {
       return await 處理取得單一方塊(c, params.id);
     }
     
-    // 無參數，取得當前方塊
-    return await 處理取得當前方塊(c);
+    // 無參數 → 取得所有方塊列表
+    return await 處理取得所有方塊(c);
     
   } catch (錯誤) {
     await error('方塊 API', `GET 請求失敗: ${錯誤}`);
@@ -36,7 +26,7 @@ export async function GET(c: Context, params: RouteParams): Promise<Response> {
   }
 }
 
-// POST - 創建新方塊 (/api/v1/cube)
+// POST - 創建新方塊 (/api/v1/cubes)
 export async function POST(c: Context, _params: RouteParams): Promise<Response> {
   try {
     const body = await c.req.json();
@@ -70,7 +60,7 @@ export async function POST(c: Context, _params: RouteParams): Promise<Response> 
   }
 }
 
-// PUT - 更新方塊 (/api/v1/cube?id=xxx)
+// PUT - 更新方塊 (/api/v1/cubes?id=xxx)
 export async function PUT(c: Context, _params: RouteParams): Promise<Response> {
   try {
     // 從 query string 取得參數
@@ -124,7 +114,7 @@ export async function PUT(c: Context, _params: RouteParams): Promise<Response> {
   }
 }
 
-// DELETE - 刪除方塊 (/api/v1/cube?id=xxx)
+// DELETE - 刪除方塊 (/api/v1/cubes?id=xxx)
 export async function DELETE(c: Context, _params: RouteParams): Promise<Response> {
   try {
     // 從 query string 取得參數
@@ -152,8 +142,8 @@ export async function DELETE(c: Context, _params: RouteParams): Promise<Response
     if (!結果.success) {
       return c.json({
         success: false,
-        error: { code: 'DELETE_FAILED', message: '刪除方塊失敗' }
-      }, 500);
+        error: { code: 'DELETE_FAILED', message: 結果.error || '刪除方塊失敗' }
+      }, 400);
     }
     
     // await info('方塊 API', `刪除方塊成功: ${decodedId}`);
@@ -169,61 +159,6 @@ export async function DELETE(c: Context, _params: RouteParams): Promise<Response
     return c.json({
       success: false,
       error: { code: 'INTERNAL_ERROR', message: '刪除方塊失敗' }
-    }, 500);
-  }
-}
-
-// 處理取得當前方塊
-async function 處理取得當前方塊(c: Context): Promise<Response> {
-  try {
-    // await info('方塊 API', '取得當前方塊');
-    
-    // 從系統資訊取得當前方塊設定
-    const 系統資訊回應 = await InnerAPI(c, '/api/v1/info');
-    const 系統資訊資料 = await 系統資訊回應.json();
-    
-    if (!系統資訊資料.success) {
-      return c.json({
-        success: false,
-        error: { code: 'NO_SYSTEM_INFO', message: '無法取得系統資訊' }
-      }, 500);
-    }
-    
-    const 當前方塊ID = 系統資訊資料.data?.當前方塊;
-    if (!當前方塊ID) {
-      return c.json({
-        success: false,
-        error: { code: 'NO_CURRENT_CUBE', message: '未設定當前方塊' }
-      }, 404);
-    }
-    
-    // 取得當前方塊資料
-    const 結果 = await 資料池.查詢單一<方塊>(當前方塊ID);
-    
-    if (!結果.success || !結果.data) {
-      return c.json({
-        success: false,
-        error: { code: 'NOT_FOUND', message: '當前方塊不存在' }
-      }, 404);
-    }
-    
-    // await info('方塊 API', `成功取得當前方塊: ${當前方塊ID}`);
-    
-    // 使用資料過濾器處理多國語言和安全欄位
-    const language = c.get('語言') || 'zh-tw';
-    const 回應資料 = await 資料過濾器.一般過濾(結果.data, language);
-
-    return c.json({
-      success: true,
-      data: 回應資料,
-      source: 結果.source
-    });
-    
-  } catch (錯誤) {
-    await error('方塊 API', `取得當前方塊失敗: ${錯誤}`);
-    return c.json({
-      success: false,
-      error: { code: 'INTERNAL_ERROR', message: '取得當前方塊失敗' }
     }, 500);
   }
 }

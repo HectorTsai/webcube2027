@@ -6,10 +6,10 @@ const DEFAULT_VALUES = {
   名稱: { en: "classic", "zh-tw": "經典", vi: "cổ điển" },
   描述: { en: "Agnostic layout skeleton", "zh-tw": "萬能變數驅動骨架", vi: "Cấu trúc cổ điển" },
   影像: "",
-  佈局: "方塊:方塊:basic-layout",
+  佈局: "方塊:方塊:基礎佈局",
   圖示: "外框", 
   書本樣式: "經典",
-  選單按鈕: "圖示:圖示:menu2",
+  選單按鈕: "圖示:圖示:選單",
   開始動畫: "Buildings",
   載入器: "spinner",
   

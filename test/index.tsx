@@ -11,6 +11,8 @@ export default async function TestIndex(c: Context) {
     { name: "按鈕測試", path: "/test/按鈕" },
     { name: "超連結測試", path: "/test/超連結" },
     { name: "列表測試", path: "/test/列表" },
+    { name: "頁尾測試", path: "/test/頁尾" },
+    { name: "主選單測試", path: "/test/主選單" },
   ];
 
   return (

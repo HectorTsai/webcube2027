@@ -22,18 +22,34 @@ export function processChildren(
   
   return Children.toArray(children as any).map((child, index) => {
     if (child && typeof child === 'object' && 'props' in child) {
+      const childType = (child as any).type ?? (child as any).tag;
+
+      // 🛡️ 終極防火牆 A：原生 HTML 元素（tag 為字串，如 "div", "ul"）不需傳遞 baseProps
+      if (typeof childType === 'string') return child;
+
+      // 🛡️ 終極防火牆 B：如果子組件是我們的非同步渲染核心 Cube、或是 Variant 封裝組件
+      // 由於上游已經完全對齊並注入完畢，絕對禁止對其執行 cloneElement，防止 Hono 非同步 VNode 肉體損壞變字串
+      const tagName = childType?.name;
+      if (tagName === 'Cube' || tagName === 'VariantComponent' || childType?.toString().includes('Cube')) {
+        return child;
+      }
+
       const extraProps = extraPropsFn ? extraPropsFn(child, index) : {};
       const newProps: Record<string, any> = {};
-      
+
       // 只在子元件沒有指定的情況下才傳入 baseProps
       Object.entries(baseProps).forEach(([key, value]) => {
         if (child.props[key] === undefined) {
           newProps[key] = value;
         }
       });
-      
+
       // 合併 extraProps
       Object.assign(newProps, extraProps);
+
+      // 沒有新屬性時回傳原 child（避免無謂的 cloneElement 可能影響 JSX 內部屬性）
+      if (Object.keys(newProps).length === 0) return child;
+
       return cloneElement(child, newProps);
     }
     return child;

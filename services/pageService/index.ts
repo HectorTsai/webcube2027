@@ -1,10 +1,8 @@
 import { MultilingualString } from "@dui/smartmultilingual";
 import 動態方塊JSX解析器 from "./動態方塊JSX解析器.ts";
 import 頁面 from "../../database/models/頁面.ts";
-import 方塊 from "../../database/models/方塊.ts";
 import { info, error } from "../../utils/logger.ts";
-import { 資料池 } from '../../database/資料池.ts';
-import { 資料過濾器 } from '../../utils/資料過濾器.ts';
+import { 安全過濾 } from "../../utils/安全過濾器.ts";
 import { InnerAPI } from "../index.ts";
 import { Context } from "hono";
 import languageService from "../languageService/index.ts";
@@ -79,12 +77,15 @@ export default class PageService {
       // 3. 進行非同步 MultilingualString 轉換（此步驟會完美執行內部 toStringAsync 並返回對應語系字串）
       const 語言 = c?.get('語言') || 'zh-tw';
       const 轉換後內容 = await this.轉換MultilingualString(MultilingualString內容, 語言);
+
+      // 3.5 安全過濾：遞迴過濾所有 string 值，移除 script/inline event/危險 URI
+      const 安全內容 = this.安全過濾內容(轉換後內容);
       
       // 6. 取得當前骨架的佈局設定
       const 佈局方塊ID = await this.取得佈局方塊ID(c);
       
       // 7. 將方塊結構轉換為 JSX 元件 (正確帶入初始深度 0 傳遞給遞迴函數)
-      const childrenJSX = await this.渲染方塊結構為JSX(轉換後內容, c, 0);
+      const childrenJSX = await this.渲染方塊結構為JSX(安全內容, c, 0);
       
       // 8. 取得網站資訊並處理佈局資料
       const { InnerAPI } = await import('../../services/index.ts');
@@ -95,7 +96,7 @@ export default class PageService {
       const menuItems = [];
       for (const 頁面ID of 網站資訊.data?.主選單 || []) {
         try {
-          const 頁面Response = await InnerAPI(c!, `/api/v1/cube/${頁面ID}`);
+          const 頁面Response = await InnerAPI(c!, `/api/v1/cubes/${頁面ID}`);
           const 頁面資料 = await 頁面Response.json();
           menuItems.push({
             label: 頁面資料.data?.標題,  
@@ -137,7 +138,7 @@ export default class PageService {
    */
   private static async 取得佈局方塊ID(c?: Context): Promise<string> {
     try {
-      const 預設佈局 = '方塊:方塊:cube-網站-經典';
+      const 預設佈局 = '方塊:方塊:基礎佈局';
       return 預設佈局;
     } catch (err: any) {
       await error('PageService', `取得佈局方塊ID失敗: ${err.message}`);
@@ -299,6 +300,20 @@ export default class PageService {
         <pre>${err.stack}</pre>
       </div>
     `;
+  }
+
+  /**
+   * 遞迴安全過濾頁面內容中的所有 string 值
+   */
+  private static 安全過濾內容(內容: any): any {
+    if (typeof 內容 === "string") return 安全過濾(內容);
+    if (!內容 || typeof 內容 !== "object") return 內容;
+    if (Array.isArray(內容)) return 內容.map((v) => this.安全過濾內容(v));
+    const result: any = {};
+    for (const [k, v] of Object.entries(內容)) {
+      result[k] = this.安全過濾內容(v);
+    }
+    return result;
   }
 
   /**

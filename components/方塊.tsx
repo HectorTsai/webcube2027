@@ -18,6 +18,11 @@ import 方塊 from "../database/models/方塊.ts";
 import 容器 from "./容器.tsx";
 import 圖示 from "./圖示.tsx";
 import 圖片 from "./圖片.tsx";
+import Slot from "./Slot.tsx";
+import Template from "./Template.tsx";
+
+/** styleConditions CSS 作用域計數器，確保不同實例的 <style> 不會互相污染 */
+let styleScopeId = 0;
 
 // ---------- 全域 fallback 註冊表 ----------
 // 方塊 ID → FallbackComponent。使用者可透過 registerFallback() 註冊自訂方塊，
@@ -87,6 +92,7 @@ function isAttrAllowed(tag: string, attr: string): boolean {
   const allowed = TAG_ATTR_WHITELIST[tag.toLowerCase()];
   if (allowed) return allowed.has(attrLower);
   // 非特定 tag（如 div/span/section）只接受 data-*、x-* 和全域屬性，不接受其他裸屬性
+  // 注意：SVG 元素不在此處支援，請使用 方塊:方塊:圖示 統一處理
   return false;
 }
 
@@ -204,6 +210,106 @@ export async function 載入方塊定義(cubeId: string, c: Context): Promise<Pa
 export default async function Cube(props: CubeProps): Promise<any> {
   const { definition: staticDefinition, from: cubeId, args: runtimeArgs = {}, depth = 0, context, fallbacks, slots: externalSlots = {}, children: jsxChildren, ...restArgs } = props;
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // 👑 區域範疇圖紙解構引擎 (Scoped Blueprint Engine) - 完全體
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // 階段一：收集當前 Cube 作用域內的所有 Template 藍圖
+  const 區域樣板庫: Record<string, unknown> = {};
+  const 實際待渲染節點: unknown[] = [];
+
+  if (jsxChildren !== undefined) {
+    // 確保使用平坦化陣列處理，防止巢狀 children 漏勾
+    const rawArr = Array.isArray(jsxChildren) ? jsxChildren : [jsxChildren];
+    for (const child of rawArr) {
+      if (child && typeof child === 'object' && (child as any).tag?.name === 'Template') {
+        區域樣板庫[(child as any).props?.name] = (child as any).children ?? (child as any).props?.children;
+      } else {
+        實際待渲染節點.push(child);
+      }
+    }
+  }
+
+  // 階段二：遞迴解構函數 — 使用安全物件操作 (Spread)，防止 Hono 渲染器吞節點
+  function 解構插槽與樣板(nodes: unknown): unknown {
+    if (!nodes) return nodes;
+    
+    // 如果是已被 Hono 預先渲染好的 HtmlEscapedString 死字串，直接放行
+    if (typeof nodes !== 'object') return nodes;
+
+    const arr = Array.isArray(nodes) ? nodes : [nodes];
+    const result: unknown[] = [];
+
+    for (const child of arr) {
+      if (!child || typeof child !== 'object') {
+        result.push(child);
+        continue;
+      }
+
+      // 🎯 偵測 Slot 元件
+      if ((child as any).tag?.name === 'Slot') {
+        const { name, template } = (child as any).props || {};
+        if (!template) { result.push(child); continue; }
+
+        const 樣板內容 = 區域樣板庫[template];
+        if (!樣板內容) continue; // 找不到樣板則剔除 (Fallback to null)
+
+        // 核心：無論如何，樣板內容本身可能含有深層 Slot，必須遞迴解開
+        const 解開後的內容 = 解構插槽與樣板(樣板內容);
+
+        if (!name) {
+          // A. 無 name → 內聯展開 (Inline Macro)，直接打平塞入
+          if (Array.isArray(解開後的內容)) {
+            result.push(...(解開後的內容 as unknown[]));
+          } else {
+            result.push(解開後的內容);
+          }
+        } else {
+          // B. 有 name → 保留 Slot 殼子。改用安全 Spread 語法，防禦 props 缺失
+          result.push({
+            ...(child as any),
+            props: {
+              ...((child as any).props || {}),
+              template: undefined, // 消除標記，避免下游重複解構
+              children: 解開後的內容
+            }
+          });
+        }
+        continue;
+      }
+
+      // 🎯 常規節點：遞迴處理其內部 children 屬性
+      const hasChildren = (child as any).props?.children;
+      const isCubeComponent = (child as any).tag?.name === 'Cube';
+
+      // 🛡️ 如果解構出來的子節點是 Cube 且缺少 context，立刻注入當前外層 Cube 的 context
+      // 否則它稍後非同步執行時無法存取 InnerAPI 與資料庫
+      let nextProps = { ...((child as any).props || {}) };
+      if (isCubeComponent && nextProps.context === undefined) {
+        nextProps.context = context;
+      }
+
+      if (hasChildren) {
+        const newChildren = 解構插槽與樣板((child as any).props.children);
+        nextProps.children = Array.isArray(newChildren) && (newChildren as unknown[]).length === 1 ? (newChildren as unknown[])[0] : newChildren;
+
+        // 使用 jsx() 建立真正的 Hono VNode（spread 的 plain object 會被 Hono toString() → [object Object]）
+        result.push(jsx((child as any).tag, nextProps as any));
+      } else if (isCubeComponent) {
+        // 即使沒有 children，Cube 也要換上補了 context 的 props
+        result.push(jsx((child as any).tag, nextProps as any));
+      } else {
+        result.push(child);
+      }
+    }
+
+    return result.length === 1 ? result[0] : result;
+  }
+
+  // 執行解構
+  const 最終解構後的Children = jsxChildren !== undefined ? 解構插槽與樣板(實際待渲染節點) : undefined;
+  // ═══════════════════════════════════════════════════════════════════════════
+
   // ── 深度上限 ──
   if (depth > 10) return null;
 
@@ -226,11 +332,21 @@ export default async function Cube(props: CubeProps): Promise<any> {
     }
   }
 
+  // slot 定義有 from 指向其他 Cube 時，從 DB 載入並合併（如抽屜 slot）
+  if (definition && definition.from && !isNativeTag(definition.from) && !fallbackRegistry[definition.from] && context) {
+    const loaded = await 載入方塊定義(definition.from, context);
+    if (loaded) {
+      // 合併：DB 定義為基底，slot 定義的屬性覆蓋
+      definition = { ...loaded, ...definition, from: loaded.from || definition.from };
+    }
+  }
+
   if (!definition) {
     return <div class="cube-error">Cube: 需要 definition 或 from</div>;
   }
 
   // ── 合併參數（defaults → args prop → rest props）──
+  // processChildren 會將 mergedArgs 注入子元件中，因此全量保留
   const mergedArgs: Record<string, unknown> = {};
   if (definition.args) {
     for (const [key, argDef] of Object.entries(definition.args)) {
@@ -240,6 +356,37 @@ export default async function Cube(props: CubeProps): Promise<any> {
     }
   }
   Object.assign(mergedArgs, runtimeArgs, restArgs);
+
+  // ── Slot 掃描 ──
+  // 此時所有 <Slot template="xxx" /> 已在階段二解構完畢。
+  // 剩下的 Slot 只有兩種：
+  let effectiveJsxChildren = 最終解構後的Children;
+  const effectiveExtSlots: Record<string, unknown> = { ...(externalSlots as Record<string, unknown>) };
+
+  if (最終解構後的Children !== undefined) {
+    const childrenArray = Array.isArray(最終解構後的Children) ? 最終解構後的Children : [最終解構後的Children as any];
+    const regularChildren: unknown[] = [];
+
+    for (const child of childrenArray) {
+      if (child && typeof child === 'object' && ('type' in (child as any) || 'tag' in (child as any))) {
+        const node = child as any;
+        const nodeType = node.type || node.tag;
+
+        // <Slot name="xxx"> → collect into externalSlots
+        if (nodeType === Slot) {
+          const slotName = node.props?.name || '';
+          effectiveExtSlots[slotName] = node.props?.children ?? (node as any).children;
+          continue;
+        }
+
+        // 防禦性：Template 已在階段一沒收，不應出現於此
+        if (nodeType === Template) continue;
+      }
+      regularChildren.push(child);
+    }
+
+    effectiveJsxChildren = regularChildren.length === 1 ? regularChildren[0] : regularChildren;
+  }
 
   // ── 決定 children ──
   // 當 definition.slots 存在時，使用 slot-based 渲染：
@@ -254,14 +401,30 @@ export default async function Cube(props: CubeProps): Promise<any> {
     let jsxChildrenConsumed = false;
 
     for (const [slotName, slotDef] of Object.entries(definition.slots)) {
-      let slotContent = externalSlots[slotName];
+      // 從 slotDef 提取額外屬性並做模板替換，合併到子 Cube 的 args（color, state, position...）
+      const META = new Set(["from", "className", "style", "alpine", "on", "children", "slots", "shareChildren", "args", "data", "wrap", "prepend", "append", "styleConditions", "containerClassName", "tag", "attrs"]);
+      const slotArgOverrides: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(slotDef as Record<string, unknown>)) {
+        if (!META.has(k) && v !== undefined) {
+          slotArgOverrides[k] = typeof v === "string" ? substitute(v as string, mergedArgs) : v;
+        }
+      }
+      // processChildren 會將 args 傳播給子元件，slotArgOverrides 覆蓋特定值
+      const childArgs = Object.keys(slotArgOverrides).length ? { ...mergedArgs, ...slotArgOverrides } : mergedArgs;
+
+      let slotContent = effectiveExtSlots[slotName];
 
       // 自動將 JSX children 放入第一個符合的 slot（依慣例 "body" 或 "content"）
-      if (!slotContent && !jsxChildrenConsumed && jsxChildren !== undefined) {
+      if (!slotContent && !jsxChildrenConsumed && effectiveJsxChildren !== undefined) {
         if (slotName === "body" || slotName === "content") {
-          slotContent = jsxChildren;
+          slotContent = effectiveJsxChildren;
           jsxChildrenConsumed = true;
         }
+      }
+
+      // shareChildren：多個 slot 共享同一份 JSX children（如主選單桌面版 + 抽屜）
+      if (!slotContent && effectiveJsxChildren !== undefined && (slotDef as any).shareChildren) {
+        slotContent = effectiveJsxChildren;
       }
 
       // 無外部內容的 slot：若 slot 定義本身有 from，還是渲染（如 backdrop 的 alpine / on）
@@ -270,29 +433,35 @@ export default async function Cube(props: CubeProps): Promise<any> {
         const sd = slotDef as Partial<方塊>;
         if (!sd.from || (sd.from === "div" && !sd.className && !sd.alpine && !sd.on)) continue;
         // 渲染 slot 定義本身（無 children）
-        slotNodes.push(jsx(Cube, { definition: sd, args: mergedArgs, depth: depth + 1, context }));
+        slotNodes.push(jsx(Cube, { definition: sd, args: childArgs, depth: depth + 1, context }));
         continue;
       }
 
       const contentArray = Array.isArray(slotContent) ? slotContent : [slotContent];
       slotNodes.push(jsx(Cube, {
         definition: slotDef as Partial<方塊>,
-        args: mergedArgs, depth: depth + 1, context,
+        args: childArgs, depth: depth + 1, context,
         children: contentArray,
       }));
     }
 
     // 沒有 body/content slot 但有 JSX children → 附加在 slots 之後
-    if (!jsxChildrenConsumed && jsxChildren !== undefined) {
-      const childrenArray = Array.isArray(jsxChildren) ? jsxChildren : [jsxChildren];
+    if (!jsxChildrenConsumed && effectiveJsxChildren !== undefined) {
+      const childrenArray = Array.isArray(effectiveJsxChildren) ? effectiveJsxChildren : [effectiveJsxChildren];
       slotNodes.push(...childrenArray);
+    }
+
+    // seed 定義的 children（如主選單的漢堡按鈕）也一併渲染
+    if (definition.children) {
+      const seedChildren = renderCubeChildren(definition, mergedArgs, depth, context);
+      slotNodes.push(...seedChildren);
     }
 
     childrenProp = slotNodes.length === 1 ? slotNodes[0] : slotNodes;
   } else {
     // 舊邏輯：JSX 優先，否則從 definition.children 取得
-    childrenProp = jsxChildren !== undefined
-      ? (Array.isArray(jsxChildren) ? jsxChildren : [jsxChildren])
+    childrenProp = effectiveJsxChildren !== undefined
+      ? (Array.isArray(effectiveJsxChildren) ? effectiveJsxChildren : [effectiveJsxChildren])
       : renderCubeChildren(definition, mergedArgs, depth, context);
   }
 
@@ -394,13 +563,22 @@ export default async function Cube(props: CubeProps): Promise<any> {
     if (Object.keys(wrapStyle).length) wrapProps.style = wrapStyle;
 
     const wrapInner: unknown[] = [];
-    // styleConditions 注入（放在 wrap 內部、children 前面）
+    // styleConditions 注入 — 放在 wrap 外面當兄弟節點，透過作用域 class 避免污染其他實例
+    const styleNodes: unknown[] = [];
+    let scopeClass = "";
     if (definition.styleConditions) {
       const scMap = definition.styleConditions as Record<string, string>;
       for (const [argName, cssText] of Object.entries(scMap)) {
         const argVal = mergedArgs[argName];
         if (argVal) {
-          wrapInner.push(jsx("style", { children: cssText } as Record<string, unknown>));
+          if (!scopeClass) {
+            scopeClass = `sc-${styleScopeId++}`;
+            // 加入 wrap 的 class，讓 CSS 只作用於這個 wrap
+            const existingWrapCls = (wrapProps.class as string) || "";
+            wrapProps.class = existingWrapCls ? `${existingWrapCls} ${scopeClass}` : scopeClass;
+          }
+          const scopedCss = `.${scopeClass} ${cssText}`;
+          styleNodes.push(jsx("style", { children: scopedCss } as Record<string, unknown>));
         }
       }
     }
@@ -409,7 +587,7 @@ export default async function Cube(props: CubeProps): Promise<any> {
     const wrapped = w.void
       ? jsx(wrapTag, wrapProps as any)
       : jsx(wrapTag, { ...wrapProps, children: wrapInner } as any);
-    childrenProp = [...prependNodes, wrapped, ...appendNodes];
+    childrenProp = [...prependNodes, ...styleNodes, wrapped, ...appendNodes];
   } else {
     childrenProp = [...prependNodes, ...childArray, ...appendNodes];
   }
@@ -491,7 +669,7 @@ export default async function Cube(props: CubeProps): Promise<any> {
           wrapperAttrs.style = Object.entries(finalStyle).map(([k, v]) => `${k}:${v}`).join(";");
         }
 
-        const containerCls = ['flex flex-col flex-1 w-full', definition.containerClassName, variantContainerCls].filter(Boolean).join(" ");
+        const containerCls = ['flex flex-col flex-1 w-full', definition.containerClassName, variantContainerCls, mergedArgs.className].filter(Boolean).join(" ");
         // 只對容器元件過濾 prop，避免 href/title/stripe 等洩漏到內部 div。
         // 其他 fallback（如圖示、圖片）需完整保留參數才能正常運作。
         const fromCube = definition.from ?? "";
@@ -609,7 +787,13 @@ export default async function Cube(props: CubeProps): Promise<any> {
   }
 
   // ── 最終渲染 ──
-  const processed = processChildren(Array.isArray(childrenProp) ? childrenProp : [childrenProp], { context } as Record<string, unknown>);
+  // 🛡️ 核心安全性修正：將 childrenProp 澈底打平成一維陣列
+  // 防止像 Template 展開後產生的 [ [VNode, VNode] ] 結構觸發 processChildren 的 [object Object] 轉字串 Bug
+  const flatChildrenProp = Array.isArray(childrenProp)
+    ? childrenProp.flat(Infinity)
+    : [childrenProp];
+
+  const processed = processChildren(flatChildrenProp, { ...mergedArgs, context } as Record<string, unknown>);
   const nativeChildren = processed.length === 1 ? processed[0] : processed;
   return jsx(from, {
     style: finalStyle,

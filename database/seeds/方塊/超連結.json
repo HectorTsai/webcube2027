@@ -8,7 +8,7 @@
   },
   "from": "方塊:方塊:容器",
   "tag": "a",
-  "className": "cursor-pointer inline-flex items-center justify-center border-0 p-0 bg-transparent select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-current/30 no-underline",
+  "className": "cursor-pointer inline-flex items-center justify-center p-0 bg-transparent select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-current/30 no-underline",
   "args": {
     "color": {
       "type": "string",

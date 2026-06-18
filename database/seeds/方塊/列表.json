@@ -26,10 +26,7 @@
     },
     "divider": {
       "type": "boolean", "description": "項目之間顯示分隔線",
-      "default": false,
-      "variants": {
-        "true": { "wrapClassName": "divide-y divide-base-content/15" }
-      }
+      "default": false
     },
     "stripe": { "type": "boolean", "description": "偶數列半透明背景（斑馬紋）", "default": false },
     "title": { "type": "string", "description": "可選標題（顯示在列表上方）", "default": "" }
@@ -48,7 +45,8 @@
     }
   ],
   "styleConditions": {
-    "stripe": "li:nth-child(even){background-color:color-mix(in oklch,var(--c-current-content) 5%,transparent)}"
+    "stripe": "li:not([role]):nth-child(even){background-color:oklch(var(--c-current-90))}",
+    "divider": "li:not([role])+li:not([role]){border-width:0;border-style:solid;border-color:oklch(var(--c-current-content)/0.15)}.flex-col li:not([role])+li:not([role]){border-top-width:1px}.flex-row li:not([role])+li:not([role]){border-left-width:1px}"
   },
   "可刪除": false
 }
