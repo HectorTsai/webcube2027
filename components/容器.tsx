@@ -48,7 +48,7 @@ export default function 容器(props: 容器Props) {
 
   const 智慧分發Children = processChildren(children, { context: { ...context, color: 實際供電色彩, active, activeStateName, hover } });
 
-  const 最終盲倒Class = ['c-style-apply c-div-active c-div-hover c-div-inactive', className, padding && PADDING_MAP[padding]].filter(Boolean).join(" ").replace(/\s+/g, ' ');
+  const 最終盲倒Class = ['c-style-apply c-div-active c-div-hover c-div-inactive box-border', className, padding && PADDING_MAP[padding]].filter(Boolean).join(" ").replace(/\s+/g, ' ');
 
   if (activeStateName) {
     return (
