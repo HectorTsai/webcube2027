@@ -522,6 +522,22 @@ export default async function Cube(props: CubeProps): Promise<any> {
   // styleConditions[argName] 在 arg 為 truthy 時於 wrap 內注入 <style>。
   const childArray = Array.isArray(childrenProp) ? childrenProp : [childrenProp];
 
+  // wrapChild：用指定標籤（如 <li>）包裝每個 child
+  const wrappedChildArray = definition.wrapChild
+    ? childArray.map(child => {
+        const w = definition.wrapChild! as unknown as Record<string, unknown>;
+        const wTag = w.from as string || "div";
+        const wCls = w.className ? substitute(w.className as string, mergedArgs) : "";
+        const wst = w.style as Record<string, string> | undefined;
+        const wStyle: Record<string, string> = {};
+        if (wst) for (const [k, v] of Object.entries(wst)) wStyle[k] = substitute(v, mergedArgs);
+        const wProps: Record<string, unknown> = {};
+        if (wCls) wProps.class = wCls;
+        if (Object.keys(wStyle).length) wProps.style = wStyle;
+        return jsx(wTag, { ...wProps, children: child } as any);
+      })
+    : childArray;
+
   const prependNodes: unknown[] = [];
   const appendNodes: unknown[] = [];
 
@@ -589,14 +605,14 @@ export default async function Cube(props: CubeProps): Promise<any> {
         }
       }
     }
-    wrapInner.push(...childArray);
+    wrapInner.push(...wrappedChildArray);
 
     const wrapped = w.void
       ? jsx(wrapTag, wrapProps as any)
       : jsx(wrapTag, { ...wrapProps, children: wrapInner } as any);
     childrenProp = [...prependNodes, ...styleNodes, wrapped, ...appendNodes];
   } else {
-    childrenProp = [...prependNodes, ...childArray, ...appendNodes];
+    childrenProp = [...prependNodes, ...wrappedChildArray, ...appendNodes];
   }
 
   if (Array.isArray(childrenProp) && childrenProp.length === 1) {

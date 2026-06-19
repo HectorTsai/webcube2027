@@ -84,6 +84,8 @@ export default class 方塊 extends 資料 {
   public children: (Record<string, unknown> | string)[] | undefined;
   /** children 包裹層 */
   public wrap: WrapDef | undefined;
+  /** 每個 child 的包裹層（如 <li> 包裹列表項） */
+  public wrapChild: WrapDef | undefined;
   /** from 元件內部、children 之前的條件式元素 */
   public prepend: AffixDef[] | undefined;
   /** from 元件內部、children 之後的條件式元素 */
@@ -111,6 +113,7 @@ export default class 方塊 extends 資料 {
     this.slots = (data?.slots as Record<string, unknown> | undefined) ?? undefined;
     this.children = (data?.children as (Record<string, unknown> | string)[] | null | undefined) ?? undefined;
     this.wrap = (data?.wrap as WrapDef | undefined) ?? undefined;
+    this.wrapChild = (data?.wrapChild as WrapDef | undefined) ?? undefined;
     this.prepend = (data?.prepend as AffixDef[] | undefined) ?? undefined;
     this.append = (data?.append as AffixDef[] | undefined) ?? undefined;
     this.styleConditions = (data?.styleConditions as Record<string, string> | undefined) ?? undefined;
@@ -136,6 +139,7 @@ export default class 方塊 extends 資料 {
       slots: this.slots,
       children: this.children,
       wrap: this.wrap,
+      wrapChild: this.wrapChild,
       prepend: this.prepend,
       append: this.append,
       styleConditions: this.styleConditions,

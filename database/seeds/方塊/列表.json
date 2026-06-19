@@ -36,6 +36,9 @@
     "className": "flex w-full",
     "style": { "list-style": "none", "padding": "0", "margin": "0" }
   },
+  "wrapChild": {
+    "from": "li"
+  },
   "prepend": [
     {
       "if": "title",

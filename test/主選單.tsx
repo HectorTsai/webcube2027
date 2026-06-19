@@ -17,9 +17,9 @@ export default async function MenuBarTest(c: Context) {
           {colors.map(color => (
             <Cube from="方塊:方塊:主選單" context={c} color={color} drawerState={color}>
               <Slot name="brand"><span class="font-bold text-lg mr-4">{color}</span></Slot>
-              <Cube from="方塊:方塊:超連結" context={c} href="/" size="sm" className="!border-none !shadow-none">首頁</Cube>
-              <Cube from="方塊:方塊:超連結" context={c} href="/about" size="sm" className="!border-none !shadow-none">關於</Cube>
-              <Cube from="方塊:方塊:超連結" context={c} href="/services" size="sm" className="!border-none !shadow-none">服務</Cube>
+              <Cube from="方塊:方塊:超連結" href="/" size="sm" className="!border-none !shadow-none">首頁</Cube>
+              <Cube from="方塊:方塊:超連結" href="/about" size="sm" className="!border-none !shadow-none">關於</Cube>
+              <Cube from="方塊:方塊:超連結" href="/services" size="sm" className="!border-none !shadow-none">服務</Cube>
             </Cube>
           ))}
         </div>
@@ -28,9 +28,9 @@ export default async function MenuBarTest(c: Context) {
         <div class="mt-4">
           <Cube from="方塊:方塊:主選單" context={c} color="secondary" drawerState="tplMenu">
             <Template name="NavLinks">
-              <Cube from="方塊:方塊:超連結" context={c} href="/" size="sm" className="!border-none !shadow-none w-full">首頁</Cube>
-              <Cube from="方塊:方塊:超連結" context={c} href="/about" size="sm" className="!border-none !shadow-none w-full">關於</Cube>
-              <Cube from="方塊:方塊:超連結" context={c} href="/docs" size="sm" className="!border-none !shadow-none w-full">文件</Cube>
+              <Cube from="方塊:方塊:超連結" href="/" size="sm" className="!border-none !shadow-none w-full">首頁</Cube>
+              <Cube from="方塊:方塊:超連結" href="/about" size="sm" className="!border-none !shadow-none w-full">關於</Cube>
+              <Cube from="方塊:方塊:超連結" href="/docs" size="sm" className="!border-none !shadow-none w-full">文件</Cube>
             </Template>
             <Template name="Brand">
               <Cube from="span" className="font-bold text-lg">Template Demo</Cube>
