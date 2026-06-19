@@ -93,7 +93,7 @@
     },
     "content": {
       "from": "div",
-      "className": "flex-1 flex-shrink overflow-y-auto relative z-10 flex flex-col box-border"
+      "className": "flex-1 flex-shrink overflow-y-auto relative z-10 flex flex-col box-border min-w-0"
     },
     "footer": {
       "from": "div",
