@@ -93,6 +93,8 @@ export default class 方塊 extends 資料 {
   /** key = arg 名，arg 為 truthy 時注入對應 CSS */
   public styleConditions: Record<string, string> | undefined;
   public 售價: number;
+  /** 動態參數定義：key = 變數名，value = @api/... 規格字串 */
+  public mergedArgs: Record<string, string> | undefined;
   /** SHA-256 完整性雜湊，AI 審查通過後寫入，渲染前驗證 */
   public 已檢驗: string;
 
@@ -117,6 +119,7 @@ export default class 方塊 extends 資料 {
     this.prepend = (data?.prepend as AffixDef[] | undefined) ?? undefined;
     this.append = (data?.append as AffixDef[] | undefined) ?? undefined;
     this.styleConditions = (data?.styleConditions as Record<string, string> | undefined) ?? undefined;
+    this.mergedArgs = (data?.mergedArgs as Record<string, string> | undefined) ?? undefined;
     this.售價 = (data?.售價 as number) ?? DEFAULT_VALUES.售價;
     this.已檢驗 = (data?.已檢驗 as string) ?? '';
   }
@@ -143,6 +146,7 @@ export default class 方塊 extends 資料 {
       prepend: this.prepend,
       append: this.append,
       styleConditions: this.styleConditions,
+      mergedArgs: this.mergedArgs,
       售價: this.售價,
       已檢驗: this.已檢驗,
     };

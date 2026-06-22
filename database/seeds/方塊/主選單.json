@@ -41,6 +41,11 @@
       "type": "string",
       "description": "額外的 CSS 類別（如 sticky top-0 z-50）",
       "default": ""
+    },
+    "items": {
+      "type": "array",
+      "description": "菜單項目數組，每個項目為頁面 ID（如 頁面:頁面:home）",
+      "default": []
     }
   },
   "alpine": {
@@ -77,6 +82,24 @@
       "children": [
         { "from": "方塊:方塊:圖示", "id": "選單", "size": "md" }
       ]
+    },
+    {
+      "from": "方塊:方塊:超連結",
+      "slot": "content",
+      "repeat": "{items}",
+      "href": "/page/{item}",
+      "children": [{ "from": "span", "text": "{item}" }]
+    },
+    {
+      "from": "方塊:方塊:超連結",
+      "slot": "drawer",
+      "repeat": "{items}",
+      "href": "/page/{item}",
+      "className": "block text-left",
+      "on": {
+        "click": "$store.drawers.{drawerState} = false"
+      },
+      "children": [{ "from": "span", "text": "{item}" }]
     }
   ],
   "可刪除": false

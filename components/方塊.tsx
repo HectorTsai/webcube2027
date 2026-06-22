@@ -105,10 +105,73 @@ function isVoidElement(tag: string): boolean {
 }
 
 function substitute(value: string, args: Record<string, unknown>): string {
-  return value.replace(/\{([\w\-\.]+)\}/g, (_, key: string) => {
-    const val = args[key];
+  return value.replace(/\{([\w\-\.\u4e00-\u9fa5]+)\}/g, (_, key: string) => {
+    // 支持嵌套属性访问，如 {copyright.開始年份}
+    const keys = key.split('.');
+    let val: unknown = args;
+    for (const k of keys) {
+      if (val && typeof val === 'object' && k in (val as Record<string, unknown>)) {
+        val = (val as Record<string, unknown>)[k];
+      } else {
+        val = undefined;
+        break;
+      }
+    }
     return val !== undefined && val !== null ? String(val) : `{${key}}`;
   });
+}
+
+// ── $api 語法解析器 ──
+// 支持在 JSON 中使用 { "$api": { "path": "/api/v1/info", "field": "商標" } }
+// 或簡寫 { "$api": "商標" }（預設 path 為 /api/v1/info）
+async function resolveApiReferences(
+  obj: unknown,
+  context: Context | undefined
+): Promise<unknown> {
+  if (!obj || typeof obj !== 'object') return obj;
+  
+  // 處理 $api 標記（檢查是否是單獨的 $api 物件）
+  if (Array.isArray(obj)) {
+    return Promise.all(obj.map(item => resolveApiReferences(item, context)));
+  }
+  
+  const objRecord = obj as Record<string, unknown>;
+  
+  // 如果這是一個 $api 物件（只有 $api 屬性），直接解析
+  if ('$api' in objRecord && Object.keys(objRecord).length === 1) {
+    const apiConfig = objRecord.$api;
+    const path = typeof apiConfig === 'string' ? '/api/v1/info' : (apiConfig as Record<string, unknown>).path as string || '/api/v1/info';
+    const field = typeof apiConfig === 'string' ? apiConfig : (apiConfig as Record<string, unknown>).field as string;
+    
+    if (context && field) {
+      try {
+        const response = await InnerAPI(context, path);
+        const data = await response.json();
+        if (data.success && data.data) {
+          // 支援巢狀欄位，如 "版權資料.公司"
+          const fieldParts = field.split('.');
+          let current: any = data.data;
+          for (const part of fieldParts) {
+            current = current?.[part];
+            if (current === undefined) break;
+          }
+          // 返回 API 結果
+          return current;
+        }
+      } catch {
+        // 保持原來的 $api 標記
+        return obj;
+      }
+    }
+    return obj;
+  }
+  
+  // 否則遞歸處理物件的屬性
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(objRecord)) {
+    result[key] = await resolveApiReferences(value, context);
+  }
+  return result;
 }
 
 export type FallbackComponent = (props: Record<string, unknown>) => any;
@@ -125,12 +188,12 @@ export interface CubeProps {
   [key: string]: unknown;
 }
 
-function renderCubeChildren(
+async function renderCubeChildren(
   definition: Partial<方塊>,
   mergedArgs: Record<string, unknown>,
   depth: number,
   context?: Context,
-): unknown[] {
+): Promise<unknown[]> {
   const nodes: unknown[] = [];
   if (definition.slots) {
     for (const slotDef of Object.values(definition.slots)) {
@@ -146,17 +209,58 @@ function renderCubeChildren(
       if (typeof child === 'string') {
         nodes.push(child);
       } else if (child !== null && child !== undefined) {
-        const childObj = child as Record<string, unknown>;
+        let childObj = child as Record<string, unknown>;
+        
+        // 解析 childObj 中的 $api 引用
+        if (context) {
+          childObj = await resolveApiReferences(childObj, context) as Record<string, unknown>;
+        }
+        
+        // 先收集 childObj 的屬性作為 overrides（包含陣列和物件）
         const overrides: Record<string, unknown> = {};
         for (const [k, v] of Object.entries(childObj)) {
-          if ((!CUBE_META.has(k) || (k === 'id' && !!childObj.from)) && (typeof v === "string" || typeof v === "number" || typeof v === "boolean")) {
-            overrides[k] = v;
+          // CUBE_META 的 key 預設跳過，但 className / style / containerClassName 需要傳給 fallback
+          const 需穿透 = k === 'className' || k === 'style' || k === 'containerClassName';
+          if (!CUBE_META.has(k) || (k === 'id' && !!childObj.from) || 需穿透) {
+            if (typeof v === "string") {
+              overrides[k] = substitute(v, mergedArgs);
+            } else if (typeof v === "number" || typeof v === "boolean" || Array.isArray(v) || typeof v === "object") {
+              overrides[k] = v;
+            }
           }
         }
+        // 建立 childArgs（包含 childObj 的屬性）
         const childArgs = Object.keys(overrides).length ? { ...mergedArgs, ...overrides } : mergedArgs;
         if (childObj.color === undefined && mergedArgs.color !== undefined) {
           childArgs.color = mergedArgs.color;
         }
+        
+        // 處理 repeat 屬性（現在可以從 childArgs 中查找）
+        const repeatExpr = childObj.repeat as string | undefined;
+        if (repeatExpr) {
+          // 解析 repeat 值，如 "{items}" -> "items"
+          const match = repeatExpr.match(/^\{([\w\-\.]+)\}$/);
+          if (match) {
+            const repeatKey = match[1];
+            const repeatArray = childArgs[repeatKey] as unknown[];
+            if (Array.isArray(repeatArray)) {
+              for (const item of repeatArray) {
+                // 創建帶有 item 變數的 args
+                const itemArgs = { ...childArgs, item };
+                const repeatOverrides: Record<string, unknown> = {};
+                for (const [k, v] of Object.entries(childObj)) {
+                  if (k !== 'repeat' && (!CUBE_META.has(k) || (k === 'id' && !!childObj.from)) && (typeof v === "string" || typeof v === "number" || typeof v === "boolean")) {
+                    repeatOverrides[k] = typeof v === "string" ? substitute(v, itemArgs) : v;
+                  }
+                }
+                const finalArgs = Object.keys(repeatOverrides).length ? { ...itemArgs, ...repeatOverrides } : itemArgs;
+                nodes.push(jsx(Cube, { definition: childObj as Partial<方塊>, args: finalArgs, depth: depth + 1, context }));
+              }
+              continue; // 跳過正常渲染
+            }
+          }
+        }
+        
         nodes.push(jsx(Cube, { definition: childObj as Partial<方塊>, args: childArgs, depth: depth + 1, context }));
       }
     }
@@ -196,6 +300,27 @@ export async function 載入方塊定義(cubeId: string, c: Context): Promise<Pa
   }
   reqCache.set(cubeId, undefined as any);
   return null;
+}
+
+// 解析 mergedArgs 定義中的 @api/... 規格
+async function resolveMergedArgsDef(
+  mergedArgsDef: Record<string, string>,
+  context: Context,
+): Promise<Record<string, unknown>> {
+  const resolved: Record<string, unknown> = {};
+  for (const [key, spec] of Object.entries(mergedArgsDef)) {
+    if (spec.startsWith('@api/')) {
+      const apiPath = spec.replace('@api/', '/api/');
+      try {
+        const response = await InnerAPI(context, apiPath);
+        const data = await response.json();
+        resolved[key] = data.success ? data.data : undefined;
+      } catch {
+        resolved[key] = undefined;
+      }
+    }
+  }
+  return resolved;
 }
 
 export default async function Cube(props: CubeProps): Promise<any> {
@@ -272,6 +397,7 @@ export default async function Cube(props: CubeProps): Promise<any> {
   if (depth > 10) return null;
 
   let definition: Partial<方塊> | undefined = staticDefinition;
+  let 定義層動態參數: Record<string, unknown> = {};
   if (!definition && cubeId) {
     if (isNativeTag(cubeId) || fallbackRegistry[cubeId]) {
       definition = { from: cubeId };
@@ -291,12 +417,46 @@ export default async function Cube(props: CubeProps): Promise<any> {
 
   if (!definition) return null;
 
+  // 解析 definition 中的 $api 引用
+  if (context) {
+    if (definition.children) {
+      definition.children = await resolveApiReferences(definition.children, context) as any[];
+    }
+    if (definition.slots) {
+      definition.slots = await resolveApiReferences(definition.slots, context) as Record<string, any>;
+    }
+    // 解析 runtimeArgs 中的 $api 引用
+    if (runtimeArgs) {
+      for (const key of Object.keys(runtimeArgs)) {
+        if (runtimeArgs[key] && typeof runtimeArgs[key] === 'object') {
+          runtimeArgs[key] = await resolveApiReferences(runtimeArgs[key], context);
+        }
+      }
+    }
+    // 解析 restArgs 中的 $api 引用
+    if (restArgs) {
+      for (const key of Object.keys(restArgs)) {
+        if (restArgs[key] && typeof restArgs[key] === 'object') {
+          restArgs[key] = await resolveApiReferences(restArgs[key], context);
+        }
+      }
+    }
+    // 解析 definition.mergedArgs（@api/... 規格）
+    if (definition.mergedArgs) {
+      定義層動態參數 = await resolveMergedArgsDef(definition.mergedArgs, context);
+    }
+  }
+
   const mergedArgs: Record<string, unknown> = {};
   if (definition.args) {
     for (const [key, argDef] of Object.entries(definition.args)) {
       if (argDef.default !== undefined) mergedArgs[key] = argDef.default;
     }
   }
+  // 全域變數（後續可由 definition.mergedArgs 覆蓋）
+  mergedArgs.currentYear = new Date().getFullYear();
+  // 合併定義層動態參數（來自 @api/... 解析）
+  Object.assign(mergedArgs, 定義層動態參數);
   Object.assign(mergedArgs, runtimeArgs, restArgs);
 
   const 最終解構後的Children = jsxChildren !== undefined ? 解構插槽與樣板(實際待渲染節點) : undefined;
@@ -358,14 +518,14 @@ export default async function Cube(props: CubeProps): Promise<any> {
       slotNodes.push(...(Children.toArray(effectiveJsxChildren as any) as unknown[]).flat(Infinity));
     }
     if (definition.children) {
-      const seedChildren = renderCubeChildren(definition, mergedArgs, depth, context);
+      const seedChildren = await renderCubeChildren(definition, mergedArgs, depth, context);
       slotNodes.push(...seedChildren);
     }
     childrenProp = slotNodes.length === 1 ? slotNodes[0] : slotNodes;
   } else {
     childrenProp = effectiveJsxChildren !== undefined
       ? (Children.toArray(effectiveJsxChildren as any) as unknown[]).flat(Infinity)
-      : renderCubeChildren(definition, mergedArgs, depth, context);
+      : await renderCubeChildren(definition, mergedArgs, depth, context);
   }
 
   const finalStyle: Record<string, string> = {};
@@ -656,8 +816,16 @@ export default async function Cube(props: CubeProps): Promise<any> {
 
   if (isVoidElement(from)) return jsx(from, { style: finalStyle, class: finalClassName, ...attrs });
 
-  const flatChildrenProp = Array.isArray(childrenProp) ? childrenProp.flat(Infinity) : [childrenProp];
-  const processed = processChildren(flatChildrenProp, { ...mergedArgs, context } as Record<string, unknown>);
-  const nativeChildren = processed.length === 1 ? processed[0] : processed;
+  let nativeChildren: unknown;
+  const defText = (definition as Record<string, unknown>).text as string | undefined;
+  if (defText) {
+    // 处理 text 属性，作为元素的文本内容
+    const textContent = substitute(defText, mergedArgs);
+    nativeChildren = textContent;
+  } else {
+    const flatChildrenProp = Array.isArray(childrenProp) ? childrenProp.flat(Infinity) : [childrenProp];
+    const processed = processChildren(flatChildrenProp, { ...mergedArgs, context } as Record<string, unknown>);
+    nativeChildren = processed.length === 1 ? processed[0] : processed;
+  }
   return jsx(from, { style: finalStyle, class: finalClassName, ...attrs, children: nativeChildren });
 }

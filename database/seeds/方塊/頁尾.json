@@ -7,6 +7,11 @@
     "vi": "Phần chân trang dựa trên Container. Bố cục cột căn giữa với màu sắc, biến thể, đệm và khoảng cách có thể cấu hình. Nội dung được truyền qua children."
   },
   "from": "方塊:方塊:容器",
+  "mergedArgs": {
+    "currentYear": "@api/v1/temporal/fullYear",
+    "prefix": "@api/v1/translate/Copyright",
+    "suffix": "@api/v1/translate/All Rights Reserved"
+  },
   "args": {
     "color": {
       "type": "string",
@@ -57,8 +62,40 @@
       "type": "string",
       "description": "額外的 CSS 類別（如 items-center justify-center text-sm）",
       "default": "items-center justify-center text-sm"
+    },
+    "copyright": {
+      "type": "object",
+      "description": "版權資訊物件，包含 公司、網址、開始年份 等欄位",
+      "default": {}
     }
   },
-  "children": [],
+  "children": [
+    {
+      "from": "div",
+      "className": "flex flex-row items-center justify-center gap-1 text-center text-sm",
+      "children": [
+        {
+          "from": "span",
+          "text": "{prefix} \u00a9 {copyright.開始年份}-{currentYear} "
+        },
+        {
+          "from": "方塊:方塊:超連結",
+          "href": "{copyright.網址}",
+          "target": "_blank",
+          "className": "!border-none !shadow-none",
+          "children": [
+            {
+              "from": "span",
+              "text": "{copyright.公司}"
+            }
+          ]
+        },
+        {
+          "from": "span",
+          "text": ". {suffix}."
+        }
+      ]
+    }
+  ],
   "可刪除": false
 }

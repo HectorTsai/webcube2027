@@ -2,52 +2,24 @@
   "id": "方塊:方塊:基礎佈局",
   "名稱": { "en": "Basic Layout", "zh-tw": "基礎佈局", "vi": "Bố cục cơ bản" },
   "描述": {
-    "en": "Full-height page layout built on Container. Uses flex column with min-h-screen for sticky footer behavior. Top section for menu, middle fills remaining space, bottom for footer. Pass children as three content areas.",
-    "zh-tw": "基於 Container 的滿版頁面佈局。使用 flex column + min-h-screen 實現頁尾固定底部效果。上方選單區、中間填滿、下方頁尾。children 作為三個內容區傳入。",
-    "vi": "Bố cục trang toàn chiều cao dựa trên Container. Sử dụng flex column + min-h-screen để có hiệu ứng chân trang cố định. Phần trên cho menu, phần giữa mở rộng, phần dưới cho chân trang. Truyền children làm ba khu vực nội dung."
+    "en": "Full-height page layout with fixed header (主選單) and footer (頁尾). Content area fills remaining space via flex-1.",
+    "zh-tw": "滿版頁面佈局，固定頂部主選單與底部頁尾，內容區自動充滿剩餘空間。",
+    "vi": "Bố cục trang toàn chiều cao với header và footer cố định. Vùng nội dung tự lấp đầy."
   },
-  "from": "方塊:方塊:容器",
-  "args": {
-    "direction": {
-      "type": "string",
-      "description": "排列方向",
-      "default": "column"
-    },
-    "width": {
-      "type": "string",
-      "description": "寬度",
-      "default": "full"
-    },
-    "padding": {
-      "type": "string",
-      "description": "內距",
-      "default": "none",
-      "options": ["none", "xs", "sm", "md", "lg", "xl", "2xl"]
-    },
-    "gap": {
-      "type": "string",
-      "description": "間距",
-      "default": "none",
-      "options": ["none", "xs", "sm", "md", "lg", "xl"]
-    },
-    "rounded": {
-      "type": "string",
-      "description": "圓角",
-      "default": "none",
-      "options": ["none", "sm", "md", "lg"]
-    },
-    "shadow": {
-      "type": "string",
-      "description": "陰影",
-      "default": "none",
-      "options": ["none", "sm", "md", "lg"]
-    },
-    "className": {
-      "type": "string",
-      "description": "額外的 CSS 類別（如 min-h-screen）",
-      "default": "min-h-screen"
-    }
+  "from": "div",
+  "className": "flex flex-col min-h-screen",
+  "mergedArgs": {
+    "copyright": "@api/v1/info/版權資料"
   },
-  "children": [],
+  "slots": {
+    "header": { "from": "div" },
+    "content": { "from": "div", "className": "flex-1 min-h-0" },
+    "footer": { "from": "div" }
+  },
+  "children": [
+    { "from": "方塊:方塊:主選單", "color": "primary", "items": { "$api": "主選單" } },
+    { "from": "div", "slot": "content" },
+    { "from": "方塊:方塊:頁尾", "color": "primary" }
+  ],
   "可刪除": false
 }

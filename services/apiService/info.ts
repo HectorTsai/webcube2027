@@ -82,46 +82,37 @@ async function 處理取得網站資訊(c: Context, _params: RouteParams): Promi
   }
 }
 
+// 共用：從 context 取得統一資訊資料（優先網站資訊，回退系統資訊）
+async function 取得資訊資料(c: Context): Promise<{ data?: Record<string, unknown>; source?: string; error?: { code: string; message: string } }> {
+  const language = c.get('語言') || 'zh-tw';
+
+  // 1. 網站資訊
+  const 網站資訊 = c.get('網站資訊');
+  if (網站資訊) {
+    const 過濾後資料 = await 資料過濾器.一般過濾(網站資訊, language);
+    return { data: 過濾後資料 as Record<string, unknown>, source: 'website' };
+  }
+
+  // 2. 系統資訊
+  const 系統資訊 = c.get('系統資訊');
+  if (系統資訊) {
+    const 過濾後資料 = await 資料過濾器.一般過濾(系統資訊, language);
+    return { data: 過濾後資料 as Record<string, unknown>, source: 'system' };
+  }
+
+  return { error: { code: 'NOT_FOUND', message: '無法取得任何資訊' } };
+}
+
 // 處理取得統一資訊 (預設：優先網站資訊，回退系統資訊)
 async function 處理取得統一資訊(c: Context, _params: RouteParams): Promise<Response> {
   try {
-    // await info('統一資訊 API', '處理取得統一資訊請求');
-    
-    const language = c.get('語言') || 'zh-tw';
-    
-    // 1. 先嘗試從 context 取得網站資訊
-    const 網站資訊 = c.get('網站資訊');
-    if (網站資訊) {
-      // await info('統一資訊 API', '從 context 取得網站資訊');
-      // 使用資料過濾器處理多國語言字串
-      const 過濾後資料 = await 資料過濾器.一般過濾(網站資訊, language);
-      return c.json({
-        success: true,
-        data: 過濾後資料,
-        source: 'website'
-      });
+    const { data, source, error: err } = await 取得資訊資料(c);
+    if (err || !data) {
+      await error('統一資訊 API', 'context 中沒有任何資訊');
+      return c.json({ success: false, error: err }, 404);
     }
-    
-    // 2. 如果網站資訊不存在，從 context 取得系統資訊
-    const 系統資訊 = c.get('系統資訊');
-    if (系統資訊) {
-      // await info('統一資訊 API', '從 context 取得系統資訊');
-      // 使用資料過濾器處理多國語言字串
-      const 過濾後資料 = await 資料過濾器.一般過濾(系統資訊, language);
-      return c.json({
-        success: true,
-        data: 過濾後資料,
-        source: 'system'
-      });
-    }
-    
-    // 3. 都沒有的話返回錯誤
-    await error('統一資訊 API', 'context 中沒有任何資訊');
-    return c.json({
-      success: false,
-      error: { code: 'NOT_FOUND', message: '無法取得任何資訊' }
-    }, 404);
-    
+
+    return c.json({ success: true, data, source });
   } catch (錯誤) {
     await error('統一資訊 API', `取得統一資訊失敗: ${錯誤}`);
     return c.json({
@@ -131,22 +122,44 @@ async function 處理取得統一資訊(c: Context, _params: RouteParams): Promi
   }
 }
 
-// GET - 取得資訊 (/api/v1/info/system 或 /api/v1/info/website 或 /api/v1/info)
+// GET - 取得資訊 (/api/v1/info/system 或 /api/v1/info/website 或 /api/v1/info 或 /api/v1/info/巢狀/欄位)
 export async function GET(c: Context, params: RouteParams): Promise<Response> {
   try {
-    // await info('統一資訊 API', '處理取得資訊請求');
-    
-    // 優先檢查路徑參數 (智能回退機制)
+
+    // 1. 已知路由：system / website
     if (params.id === 'system') {
       return await 處理取得系統資訊(c, params);
     }
-    
+
     if (params.id === 'website') {
       return await 處理取得網站資訊(c, params);
     }
-    
-    // 無參數，預設行為：優先網站資訊，回退系統資訊
-    return await 處理取得統一資訊(c, params);
+
+    // 2. 無參數：預設行為（優先網站資訊，回退系統資訊）
+    if (!params.id) {
+      return await 處理取得統一資訊(c, params);
+    }
+
+    // 3. 巢狀欄位存取：先取得完整資訊，再逐層取值
+    const { data, error: unifiedErr } = await 取得資訊資料(c);
+    if (unifiedErr || !data) {
+      return c.json({ success: false, error: unifiedErr }, 404);
+    }
+
+    const fieldParts = params.id.split('/');
+    let current: unknown = data;
+    for (const part of fieldParts) {
+      if (current && typeof current === 'object' && part in (current as Record<string, unknown>)) {
+        current = (current as Record<string, unknown>)[part];
+      } else {
+        return c.json({
+          success: false,
+          error: { code: 'NOT_FOUND', message: `欄位 '${params.id}' 不存在` },
+        }, 404);
+      }
+    }
+
+    return c.json({ success: true, data: current });
     
   } catch (錯誤) {
     await error('統一資訊 API', `GET 請求失敗: ${錯誤}`);
