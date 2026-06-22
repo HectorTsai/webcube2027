@@ -4,6 +4,7 @@ import { AITaskConfig, AI能力標籤 } from '../provider/adapter.ts';
 import { 資料池 } from '../../../database/資料池.ts';
 import { 計算完整性雜湊 } from '../../../utils/安全過濾器.ts';
 import { 聊天並解析JSON } from '../../../utils/AI重試.ts';
+import { 載入提示詞 } from './提示詞載入器.ts';
 import 方塊 from '../../../database/models/方塊.ts';
 import { info, error } from '../../../utils/logger.ts';
 
@@ -13,7 +14,7 @@ export const REVIEW_TASK_CONFIG: AITaskConfig = {
   需求能力: [AI能力標籤.代碼審核],
 };
 
-const REVIEW_PROMPT = `你是 webcube 平台的安全審查專家。
+const DEFAULT_REVIEW_PROMPT = `你是 webcube 平台的安全審查專家。
 審查方塊(Cube) JSON 中的安全問題。
 
 檢查項目：
@@ -76,9 +77,10 @@ export class CodeReview {
         };
 
         // 使用自動重試機制：審查回應 JSON 解析失敗時自動重試一次
+        const prompt = await 載入提示詞(this.c, 'AI提示詞:AI提示詞:code-review', DEFAULT_REVIEW_PROMPT);
         const { json } = await 聊天並解析JSON(
           this.c,
-          REVIEW_PROMPT,
+          prompt,
           [{ 角色: 'user', 內容: `審查這個方塊 JSON：\n${JSON.stringify(方塊JSON, null, 2)}` }],
           REVIEW_TASK_CONFIG,
           { 重試提示: '請只回傳 JSON 物件，不要包含任何其他文字' },

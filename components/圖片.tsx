@@ -10,7 +10,9 @@ export default async function 圖片(props: Record<string, unknown>) {
     children, context, id, src,
     alt = "Image", width, height,
     loading = "lazy", objectFit = "cover",
-    className, ...rest
+    className, color: _color, padding: _pad, gap: _gap, 
+    drawerState: _ds, active: _act, hover: _hov, disabled: _dis,
+    style: _sty, ...rest
   } = props;
 
   const imgStyle: Record<string, string> = {

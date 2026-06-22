@@ -57,11 +57,16 @@ async function 處理MediaV1請求(c: Context): Promise<Response> {
     const moduleName = pathParts[0]; // 提取 'image' | 'icon' | 'script'
     const resourceId = pathParts.slice(1).join('/'); // 後續所有路徑作為 ID
     
-    if (!moduleName || !resourceId) {
+    if (!moduleName) {
       return await 處理Media404(c);
     }
     
-    const routeParams: RouteParams = { id: resourceId };
+    // icon 允許無 resourceId（回傳網站/系統商標），其他模組仍須 ID
+    if (!resourceId && moduleName !== 'icon') {
+      return await 處理Media404(c);
+    }
+    
+    const routeParams: RouteParams = { id: resourceId || undefined };
     let mediaModule: MediaModule | undefined;
     
     // 動態路由分流映射

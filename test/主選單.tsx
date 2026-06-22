@@ -1,4 +1,5 @@
 // test/主選單.tsx — 主選單方塊測試網頁
+// Template/Slot 作用域規則請見 components/方塊.tsx 的「區域範疇圖紙解構引擎」註解區塊
 import type { Context } from 'hono';
 import Cube from '../components/方塊.tsx';
 import Slot from '../components/Slot.tsx';
@@ -12,14 +13,35 @@ export default async function MenuBarTest(c: Context) {
 
       {/* 固定在頁面頂部的主選單 demo */}
       <div class="sticky top-0 z-40 space-y-0">
-        {/* 色彩主題展示 — 每個獨立主選單，children 自動同步到桌面版 + 抽屜 */}
+        {/* 色彩主題展示 — 同 Template 展示結構，用 DrawerTitle / DrawerContext / Drawer 三層嵌套 */}
         <div>
           {colors.map(color => (
             <Cube from="方塊:方塊:主選單" context={c} color={color} drawerState={color}>
-              <Slot name="brand"><span class="font-bold text-lg mr-4">{color}</span></Slot>
-              <Cube from="方塊:方塊:超連結" href="/" size="sm" className="!border-none !shadow-none">首頁</Cube>
-              <Cube from="方塊:方塊:超連結" href="/about" size="sm" className="!border-none !shadow-none">關於</Cube>
-              <Cube from="方塊:方塊:超連結" href="/services" size="sm" className="!border-none !shadow-none">服務</Cube>
+              <Template name="Links">
+                <Cube from="方塊:方塊:超連結" href="/" size="sm" className="!border-none !shadow-none">首頁</Cube>
+                <Cube from="方塊:方塊:超連結" href="/about" size="sm" className="!border-none !shadow-none">關於</Cube>
+                <Cube from="方塊:方塊:超連結" href="/services" size="sm" className="!border-none !shadow-none">服務</Cube>
+              </Template>
+              <Template name="Brand">
+                <Cube from="span" className="font-bold text-lg">{color}</Cube>
+              </Template>
+              <Template name="DrawerTitle">
+                <Cube from="div" className="px-4 py-3">
+                  <Slot template="Brand" />
+                </Cube>
+              </Template>
+              <Template name="DrawerContext">
+                <Cube from="方塊:方塊:列表" className="!border-none">
+                  <Slot template="Links" />
+                </Cube>
+              </Template>
+              <Template name="Drawer">
+                <Slot name="header" template="DrawerTitle" />
+                <Slot name="content" template="DrawerContext" />
+              </Template>
+              <Slot name="brand" template="Brand" />
+              <Slot name="drawer" template="Drawer" />
+              <Slot name="content" template="Links" />
             </Cube>
           ))}
         </div>
@@ -28,20 +50,21 @@ export default async function MenuBarTest(c: Context) {
         <div class="mt-4">
           <Cube from="方塊:方塊:主選單" context={c} color="secondary" drawerState="tplMenu">
             <Template name="NavLinks">
-              <Cube from="方塊:方塊:超連結" href="/" size="sm" className="!border-none !shadow-none w-full">首頁</Cube>
-              <Cube from="方塊:方塊:超連結" href="/about" size="sm" className="!border-none !shadow-none w-full">關於</Cube>
-              <Cube from="方塊:方塊:超連結" href="/docs" size="sm" className="!border-none !shadow-none w-full">文件</Cube>
+              <Cube from="方塊:方塊:超連結" href="/" size="sm" className="!border-none !shadow-none">首頁</Cube>
+              <Cube from="方塊:方塊:超連結" href="/about" size="sm" className="!border-none !shadow-none">關於</Cube>
+              <Cube from="方塊:方塊:超連結" href="/docs" size="sm" className="!border-none !shadow-none">文件</Cube>
             </Template>
             <Template name="Brand">
+              <Cube from="方塊:方塊:圖示" />
               <Cube from="span" className="font-bold text-lg">Template Demo</Cube>
             </Template>
             <Template name="DrawerTitle">
-                <Cube from="div" className="px-4 py-3 border-b border-base-200">
+                <Cube from="div" className="px-4 py-3">
                   <Slot template="Brand" />
                 </Cube>
             </Template>
             <Template name="DrawerContext">
-                <Cube from="方塊:方塊:列表">
+                <Cube from="方塊:方塊:列表" className="!border-none">
                   <Slot template="NavLinks" />
                 </Cube>
             </Template>

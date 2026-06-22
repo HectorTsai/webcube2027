@@ -7,6 +7,7 @@ import AI使用記錄 from '../../../database/models/AI使用記錄.ts';
 import { 資料池 } from '../../../database/資料池.ts';
 import { error } from '../../../utils/logger.ts';
 import { 聊天並解析JSON } from '../../../utils/AI重試.ts';
+import { 載入提示詞 } from './提示詞載入器.ts';
 
 export const STYLE_TASK_CONFIG: AITaskConfig = {
   類型: '風格生成',
@@ -14,7 +15,7 @@ export const STYLE_TASK_CONFIG: AITaskConfig = {
   需求能力: [AI能力標籤.文本生成, AI能力標籤.CSS與設計, AI能力標籤.結構化輸出],
 };
 
-const PROMPT = `你是 webcube 平台的 CSS 風格生成專家。
+const DEFAULT_PROMPT = `你是 webcube 平台的 CSS 風格生成專家。
 風格是一組 CSS 變數組合拳，儲存在「配置」物件中。
 
 支援的 CSS 變數 key（但不限於）：
@@ -46,9 +47,10 @@ export class StyleGenerator {
       對話.網站ID = this.c.get('host') as string;
       對話.新增訊息('user', `生成風格（儲存於${儲存目標}）: ${描述}`);
 
+      const prompt = await 載入提示詞(this.c, 'AI提示詞:AI提示詞:style-generator', DEFAULT_PROMPT);
       const { json, 原始回應, serverID, providerType } = await 聊天並解析JSON(
         this.c,
-        PROMPT,
+        prompt,
         [{ 角色: 'user', 內容: `請生成一個風格: ${描述}` }],
         STYLE_TASK_CONFIG,
         { 重試提示: '請只回傳 JSON 物件，不要包含任何其他文字' },

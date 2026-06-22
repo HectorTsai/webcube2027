@@ -7,6 +7,7 @@ import { AIPoolManager } from '../pool.ts';
 import { AITaskConfig, AI能力標籤 } from '../provider/adapter.ts';
 import { 查詢翻譯快取, 寫入翻譯快取 } from '../翻譯快取.ts';
 import { error, info } from '../../../utils/logger.ts';
+import { 載入提示詞 } from './提示詞載入器.ts';
 
 export const TRANSLATE_TASK_CONFIG: AITaskConfig = {
   類型: '翻譯',
@@ -14,7 +15,7 @@ export const TRANSLATE_TASK_CONFIG: AITaskConfig = {
   需求能力: [AI能力標籤.翻譯, AI能力標籤.多語言],
 };
 
-const PROMPT = `你是翻譯專家。只回傳 JSON，不要任何其他文字。
+const DEFAULT_PROMPT = `你是翻譯專家。只回傳 JSON，不要任何其他文字。
 格式：{ "語言代碼": "翻譯結果" }
 保持原文標記符號不變。`;
 
@@ -47,9 +48,10 @@ export class Translator {
     const pool = new AIPoolManager(this.c);
 
     try {
+      const prompt = await 載入提示詞(this.c, 'AI提示詞:AI提示詞:translator', DEFAULT_PROMPT);
       const langList = targetLangs.join(', ');
       const { 回應 } = await pool.聊天(
-        PROMPT,
+        prompt,
         [{ 角色: 'user', 內容: `將以下 ${sourceLang} 文字翻譯成 ${langList}:\n"${text}"` }],
         TRANSLATE_TASK_CONFIG,
         { maxTokens: 1024, temperature: 0.3 },

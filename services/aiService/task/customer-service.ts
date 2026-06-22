@@ -7,6 +7,7 @@ import AI對話 from '../../../database/models/AI對話.ts';
 import AI使用記錄 from '../../../database/models/AI使用記錄.ts';
 import { 資料池 } from '../../../database/資料池.ts';
 import { error } from '../../../utils/logger.ts';
+import { 載入提示詞 } from './提示詞載入器.ts';
 
 export const CS_TASK_CONFIG: AITaskConfig = {
   類型: '客服',
@@ -14,7 +15,7 @@ export const CS_TASK_CONFIG: AITaskConfig = {
   需求能力: [AI能力標籤.文本生成, AI能力標籤.多語言],
 };
 
-const PROMPT = `你是這個網站的客服助手。
+const DEFAULT_PROMPT = `你是這個網站的客服助手。
 請根據以下網站內容來回答使用者的問題。
 
 網站資訊：
@@ -49,7 +50,8 @@ export class CustomerService {
       對話.新增訊息('user', 問題);
 
       const 網站內容 = await this.取得網站內容();
-      const prompt = PROMPT.replace('{網站內容}', 網站內容);
+      const dbPrompt = await 載入提示詞(this.c, 'AI提示詞:AI提示詞:customer-service', DEFAULT_PROMPT);
+      const prompt = dbPrompt.replace('{網站內容}', 網站內容);
 
       const 歷史 = 對話.對話記錄.slice(-10).map(m => ({
         角色: m.角色 as 'user' | 'assistant', 內容: m.內容,

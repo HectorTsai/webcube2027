@@ -7,6 +7,7 @@ import AI使用記錄 from '../../../database/models/AI使用記錄.ts';
 import { 資料池 } from '../../../database/資料池.ts';
 import { error } from '../../../utils/logger.ts';
 import { 聊天並解析JSON } from '../../../utils/AI重試.ts';
+import { 載入提示詞 } from './提示詞載入器.ts';
 
 export const PAGE_TASK_CONFIG: AITaskConfig = {
   類型: '頁面生成',
@@ -14,7 +15,7 @@ export const PAGE_TASK_CONFIG: AITaskConfig = {
   需求能力: [AI能力標籤.文本生成, AI能力標籤.代碼生成, AI能力標籤.結構化輸出],
 };
 
-const PROMPT = `你是 webcube 平台的頁面生成專家。
+const DEFAULT_PROMPT = `你是 webcube 平台的頁面生成專家。
 你的任務是根據使用者需求，生成網頁內容並組合成方塊(Cube)結構。
 
 網站使用以下模型：
@@ -27,7 +28,31 @@ const PROMPT = `你是 webcube 平台的頁面生成專家。
 3. 如果方塊欄位為空，則由 renderer 使用預設元件渲染內容
 4. 回傳 JSON：{ 標題: { "zh-tw": "", en: "" }, 內容: {}, 建議路徑: "/..." }
 5. 內容中的方塊結構應為 Cube JSON 陣列
-6. 多國語言內容同時提供 zh-tw 和 en`;
+6. 多國語言內容同時提供 zh-tw 和 en
+
+═══ Template / Slot 作用域規則 ═══
+當你需要用 Template/Slot 組合多個方塊時（例如主選單 + 抽屜共享內容），請遵守：
+1. 所有 <Template name="X"> 必須定義在同一個 <Cube> 層級，因為模板收集只在當前 Cube 進行。
+2. Template 內部可以用 <Slot template="Y" /> 引用另一個 Template（嵌套 Template）。
+3. 最終用 <Slot name="抽屜" template="Drawer" /> 這類寫法將模板注入 seed 的 slot。
+4. ❌ 錯誤：把 Template 塞到子 Cube 的 children 裡 → 外層的 Slot 找不到。
+5. ❌ 錯誤：跨 Cube 邊界引用 Template → 作用域不穿透。
+
+正確範例（以主選單為例）：
+<Cube from="方塊:方塊:主選單">
+  <Template name="Links"> ...連結... </Template>
+  <Template name="Brand"> ...標題... </Template>
+  <Template name="DrawerTitle">
+    <div><Slot template="Brand" /></div>
+  </Template>
+  <Template name="Drawer">
+    <Slot name="header" template="DrawerTitle" />
+    <Slot name="content" template="Links" />
+  </Template>
+  <Slot name="brand" template="Brand" />
+  <Slot name="drawer" template="Drawer" />
+  <Slot name="content" template="Links" />
+</Cube>`;
 
 export class PageGenerator {
   constructor(private c: Context) {}
@@ -42,9 +67,10 @@ export class PageGenerator {
       對話.網站ID = this.c.get('host') as string;
       對話.新增訊息('user', 描述);
 
+      const prompt = await 載入提示詞(this.c, 'AI提示詞:AI提示詞:page-generator', DEFAULT_PROMPT);
       const { json, 原始回應, serverID, providerType } = await 聊天並解析JSON(
         this.c,
-        PROMPT,
+        prompt,
         [{ 角色: 'user', 內容: `使用者需求（語言: ${語言}）:\n${描述}` }],
         PAGE_TASK_CONFIG,
         { 重試提示: '請只回傳 JSON 物件，不要包含任何其他文字' },
@@ -86,9 +112,10 @@ export class PageGenerator {
       角色: m.角色 as 'user' | 'assistant', 內容: m.內容,
     }));
 
+    const prompt = await 載入提示詞(this.c, 'AI提示詞:AI提示詞:page-generator', DEFAULT_PROMPT);
     const { json, 原始回應, serverID, providerType } = await 聊天並解析JSON(
       this.c,
-      PROMPT,
+      prompt,
       歷史,
       PAGE_TASK_CONFIG,
       { 重試提示: '請只回傳 JSON 物件，不要包含任何其他文字' },

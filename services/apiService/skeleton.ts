@@ -33,11 +33,11 @@ async function 處理取得當前骨架(c: Context): Promise<Response> {
     }
     
     const 主題資料 = await 主題回應.json();
-    if (!主題資料.success || !主題資料.data || !主題資料.data.骨架Id) {
+    if (!主題資料.success || !主題資料.data || !主題資料.data.骨架) {
       return await 處理取得預設骨架(c);
     }
     
-    return await 處理取得單一骨架(c, 主題資料.data.骨架Id);
+    return await 處理取得單一骨架(c, 主題資料.data.骨架);
     
   } catch (錯誤) {
     await error('骨架 API', `取得當前骨架失敗，切換至預設: ${錯誤}`);
