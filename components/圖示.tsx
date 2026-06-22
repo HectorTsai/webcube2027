@@ -1,6 +1,6 @@
 // 圖示.tsx (2026 新版 — 方塊:方塊:圖示 fallback)
 // id 模式：從 /media/v1/icon/{id} 抓 SVG，抽取外層屬性為預設值，args 可覆蓋
-// 無 id 但有 context：透過 系統資訊 → 骨架 → 骨架.選單按鈕 取得預設圖示
+// 無 id 但有 context：走 mediaService，預設回傳 Logo（網站/系統商標）
 // 無 id 無 context：用 children 靜態渲染 SVG
 import { jsx } from "hono/jsx/jsx-runtime";
 import { raw } from "hono/utils/html";
@@ -25,47 +25,40 @@ function parseSvgAttrs(svgText: string): Record<string, string> {
   return attrs;
 }
 
-/** 透過 context 取得系統骨架的選單按鈕圖示 ID（預設 "圖示:圖示:選單"） */
-async function 取得預設圖示ID(context: Context): Promise<string | null> {
-  try {
-    const 系統資訊 = context.get('系統資訊') as Record<string, unknown> | null;
-    const 骨架ID = 系統資訊?.骨架 as string;
-    if (!骨架ID) return null;
-    const res = await InnerAPI(context, `/api/v1/cubes/${骨架ID}`);
-    if (!res.ok) return null;
-    const data = await res.json() as any;
-    return data?.data?.選單按鈕 || "圖示:圖示:選單";
-  } catch {
-    return "圖示:圖示:選單";
-  }
-}
-
 /** 從 media API 載入 SVG 並渲染 */
-async function 渲染SVG(props: Record<string, unknown>, iconId: string) {
+async function 渲染SVG(props: Record<string, unknown>, iconId?: string) {
   const {
     children: _children, context: _context, id: _id,
     xmlns: argXmlns, viewBox: argViewBox,
     fill: argFill, stroke: argStroke,
     strokeWidth: argStrokeWidth, strokeLinecap: argStrokeLinecap, strokeLinejoin: argStrokeLinejoin,
-    size = "md", className, context, ...rest
+    size = "md", className, context, color, padding: _pad, width: _w, height: _h,
+    gap: _gap, drawerState: _ds, active: _act, hover: _hov, activeStateName: _asn,
+    style: _sty, disabled: _dis, ...rest
   } = props;
 
   const sizeClass = sizeClasses[size as string] || sizeClasses.md;
-  const res = await InnerAPI(context as Context, `/media/v1/icon/${iconId}`);
+  const url = iconId ? `/media/v1/icon/${iconId}` : `/media/v1/icon`;
+  const res = await InnerAPI(context as Context, url);
   if (res.ok) {
     const svgText = await res.text();
     if (svgText.trim().startsWith("<svg")) {
       const dbAttrs = parseSvgAttrs(svgText);
       const m = svgText.match(/<svg[^>]*>([\s\S]*)<\/svg>/i);
       const innerHtml = m ? m[1].trim() : "";
+
+      // 只保留原始 SVG 有、或使用者明確指定的屬性；不硬加 fallback（避免覆蓋內部元素的自訂顏色）
+      const resolve = (argVal: unknown, dbVal: string | undefined) =>
+        (typeof argVal === 'string' ? argVal : undefined) ?? dbVal;
+
       return jsx("svg", {
         xmlns: argXmlns || dbAttrs.xmlns || "http://www.w3.org/2000/svg",
         viewBox: argViewBox || dbAttrs.viewBox || "0 0 24 24",
-        fill: argFill || dbAttrs.fill || "none",
-        stroke: argStroke || dbAttrs.stroke || "currentColor",
-        "stroke-width": argStrokeWidth || dbAttrs["stroke-width"] || "2",
-        "stroke-linecap": argStrokeLinecap || dbAttrs["stroke-linecap"] || "round",
-        "stroke-linejoin": argStrokeLinejoin || dbAttrs["stroke-linejoin"] || "round",
+        fill: resolve(argFill, dbAttrs.fill),
+        stroke: resolve(argStroke, dbAttrs.stroke),
+        "stroke-width": resolve(argStrokeWidth, dbAttrs["stroke-width"]),
+        "stroke-linecap": resolve(argStrokeLinecap, dbAttrs["stroke-linecap"]),
+        "stroke-linejoin": resolve(argStrokeLinejoin, dbAttrs["stroke-linejoin"]),
         class: className ? `${sizeClass} ${className}` : sizeClass,
         ...rest,
         children: raw(innerHtml),
@@ -78,19 +71,11 @@ async function 渲染SVG(props: Record<string, unknown>, iconId: string) {
 export default async function 圖示(props: Record<string, unknown>) {
   const { children, context, id } = props;
 
-  // 有 context + 明確 id → 走 media API 載入
-  if (id && context) {
-    const svg = await 渲染SVG(props, id as string);
+  // 有 context → 走 media API 載入（無 id 時 mediaService 預設回傳 Logo）
+  if (context) {
+    const resolvedId = id ? String(id) : undefined;
+    const svg = await 渲染SVG(props, resolvedId);
     if (svg) return svg;
-  }
-
-  // 無 id 但有 context → 從骨架取得選單按鈕圖示
-  if (!id && context) {
-    const 預設ID = await 取得預設圖示ID(context as Context);
-    if (預設ID) {
-      const svg = await 渲染SVG(props, 預設ID);
-      if (svg) return svg;
-    }
   }
 
   // 最終 fallback：靜態模式用 children（或只是一個空 SVG shell）
@@ -98,7 +83,9 @@ export default async function 圖示(props: Record<string, unknown>) {
     xmlns: argXmlns, viewBox: argViewBox,
     fill: argFill, stroke: argStroke,
     strokeWidth: argStrokeWidth, strokeLinecap: argStrokeLinecap, strokeLinejoin: argStrokeLinejoin,
-    size = "md", className, ...rest
+    size = "md", className, context: _ctx, color: _color, padding: _pad, width: _w, height: _h,
+    gap: _gap, drawerState: _ds, active: _act, hover: _hov, activeStateName: _asn,
+    style: _sty, disabled: _dis, ...rest
   } = props;
   const sizeClass = sizeClasses[size as string] || sizeClasses.md;
 

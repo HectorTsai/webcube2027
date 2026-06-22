@@ -7,7 +7,7 @@
     "vi": "Ngăn kéo trượt được điều khiển bởi Alpine.js. Hỗ trợ bốn hướng, đóng khi nhấp nền, state tùy chỉnh. Nội dung truyền qua children."
   },
   "from": "方塊:方塊:容器",
-  "className": "fixed z-50 shadow-lg transition-transform duration-300 pointer-events-auto flex flex-col overflow-hidden !m-0 max-w-full box-border",
+  "className": "fixed z-50 shadow-lg transition-transform duration-300 pointer-events-auto flex flex-col",
   "args": {
     "state": {
       "type": "string",
@@ -88,16 +88,14 @@
       }
     },
     "header": {
-      "from": "div",
-      "className": "shrink-0 flex-shrink-0"
+      "from": "div"
     },
     "content": {
       "from": "div",
-      "className": "flex-1 flex-shrink overflow-y-auto relative z-10 flex flex-col box-border min-w-0"
+      "className": "flex-1 overflow-y-auto relative z-10 flex flex-col [&_a]:w-full"
     },
     "footer": {
-      "from": "div",
-      "className": "shrink-0 flex-shrink-0"
+      "from": "div"
     }
   },
   "可刪除": false

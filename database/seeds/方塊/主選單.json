@@ -7,8 +7,7 @@
     "vi": "Thanh menu điều hướng đáp ứng dựa trên Container. Phiên bản desktop: bố cục row ngang. Phiên bản di động: thu gọn thành nút hamburger, chuyển đổi ngăn kéo qua Alpine.js. Hỗ trợ chủ đề màu sắc của Container."
   },
   "from": "方塊:方塊:容器",
-  "className": "box-border",
-  "containerClassName": "box-border !flex-row items-center",
+  "containerClassName": "!flex-row items-center",
   "args": {
     "color": {
       "type": "string",
@@ -50,7 +49,7 @@
   "slots": {
         "brand": {
           "from": "div",
-          "className": "flex items-center shrink-0"
+          "className": "flex items-center pr-1 shrink-0"
         },
         "content": {
           "from": "div",
@@ -61,23 +60,22 @@
           "color": "{color}",
           "state": "{drawerState}",
           "position": "right"
+        },
+        "footer": {
+          "from": "div",
+          "className": "hidden md:flex items-center shrink-0 gap-2"
         }
       },
   "children": [
     {
-      "from": "div",
-      "className": "md:hidden ml-auto",
+      "from": "方塊:方塊:按鈕",
+      "size": "xs",
+      "className": "md:hidden ml-auto !rounded-md",
+      "on": {
+        "click": "$store.drawers.{drawerState} = !$store.drawers.{drawerState}"
+      },
       "children": [
-        {
-          "from": "button",
-          "className": "p-2 rounded-md hover:bg-base-200 transition-colors",
-          "on": {
-            "click": "$store.drawers.{drawerState} = !$store.drawers.{drawerState}"
-          },
-          "children": [
-            { "from": "方塊:方塊:圖示", "size": "md" }
-          ]
-        }
+        { "from": "方塊:方塊:圖示", "id": "選單", "size": "md" }
       ]
     }
   ],

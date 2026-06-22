@@ -100,6 +100,14 @@ function isNativeTag(tag: string): boolean {
   return NATIVE_TAGS.has(tag.toLowerCase());
 }
 
+// ── 方塊定義的渲染中繼資料鍵（非 arg、非 child 內容）──
+// 自動從 Model 欄位推導，加上 slot 專用 / 編輯器輔助欄位
+const CUBE_META = new Set([
+  ...Object.keys(new 方塊().toJSON()),
+  "shareChildren",   // slot 共用 children 標記
+  "slot", "comment", "if", "__editor",  // editor / seed 輔助
+]);
+
 function isVoidElement(tag: string): boolean {
   return VOID_ELEMENTS.has(tag.toLowerCase());
 }
@@ -139,6 +147,7 @@ export interface CubeProps {
 }
 
 // ---------- 渲染 children 的共用邏輯 ----------
+// seed JSON 中非 CUBE_META 的屬性（如 size: "xs"）視為 arg 覆寫
 function renderCubeChildren(
   definition: Partial<方塊>,
   mergedArgs: Record<string, unknown>,
@@ -158,7 +167,15 @@ function renderCubeChildren(
       if (typeof child === 'string') {
         nodes.push(child);
       } else if (child !== null && child !== undefined) {
-        nodes.push(jsx(Cube, { definition: child as Partial<方塊>, args: mergedArgs, depth: depth + 1, context }));
+        const childObj = child as Record<string, unknown>;
+        const overrides: Record<string, unknown> = {};
+        for (const [k, v] of Object.entries(childObj)) {
+          if ((!CUBE_META.has(k) || (k === 'id' && !!childObj.from)) && (typeof v === "string" || typeof v === "number" || typeof v === "boolean")) {
+            overrides[k] = v;
+          }
+        }
+        const childArgs = Object.keys(overrides).length ? { ...mergedArgs, ...overrides } : mergedArgs;
+        nodes.push(jsx(Cube, { definition: childObj as Partial<方塊>, args: childArgs, depth: depth + 1, context }));
       }
     }
   }
@@ -213,7 +230,27 @@ export default async function Cube(props: CubeProps): Promise<any> {
   // ═══════════════════════════════════════════════════════════════════════════
   // 👑 區域範疇圖紙解構引擎 (Scoped Blueprint Engine) - 完全體
   // ═══════════════════════════════════════════════════════════════════════════
-
+  //
+  // Template / Slot 作用域規則（重要！AI 生成程式碼前必讀）
+  // ──────────────────────────────────────────────────────
+  // 1. 階段一（本段）：掃描「當前 Cube 層級」的所有 <Template name="X">
+  //    存入 區域樣板庫，移除 Template 節點。
+  // 2. 階段二（解構插槽與樣板）：遍歷剩餘節點，Slot 的 template="X" 從
+  //    區域樣板庫取出對應內容替換。
+  // 3. 作用域邊界：區域樣板庫只在「當前 Cube 層級」可見，不會傳遞給子 Cube。
+  //    → 所有互相引用的 Template 必須定義在同一個 <Cube> 的 children 裡！
+  // 4. 正確用法（以主選單為例）：
+  //    <Cube from="方塊:方塊:主選單">
+  //      <Template name="Links"> ...連結... </Template>
+  //      <Template name="Brand"> ...標題... </Template>
+  //      <Template name="DrawerTitle"><Slot template="Brand" /></Template>
+  //      <Template name="Drawer"><Slot name="header" template="DrawerTitle" /></Template>
+  //      <Slot name="brand" template="Brand" />
+  //      <Slot name="drawer" template="Drawer" />
+  //    </Cube>
+  // 5. 錯誤用法：把 Template 塞到 <Slot name="drawer"> 的子節點裡 → 找不到。
+  //    Template 嵌套只能在 Template 彼此之間，不能跨 Slot/子 Cube 邊界。
+  //
   // 階段一：收集當前 Cube 作用域內的所有 Template 藍圖
   const 區域樣板庫: Record<string, unknown> = {};
   const 實際待渲染節點: unknown[] = [];
@@ -223,7 +260,7 @@ export default async function Cube(props: CubeProps): Promise<any> {
     const rawArr = Array.isArray(jsxChildren) ? jsxChildren : [jsxChildren];
     for (const child of rawArr) {
       if (child && typeof child === 'object' && (child as any).tag?.name === 'Template') {
-        區域樣板庫[(child as any).props?.name] = (child as any).children ?? (child as any).props?.children;
+        區域樣板庫[(child as any).props?.name] = (child as any).props?.children;
       } else {
         實際待渲染節點.push(child);
       }
@@ -340,8 +377,10 @@ export default async function Cube(props: CubeProps): Promise<any> {
   if (definition && definition.from && !isNativeTag(definition.from) && !fallbackRegistry[definition.from] && context) {
     const loaded = await 載入方塊定義(definition.from, context);
     if (loaded) {
-      // 合併：DB 定義為基底，slot 定義的屬性覆蓋
-      definition = { ...loaded, ...definition, from: loaded.from || definition.from };
+      // 合併：DB 定義為基底，slot/child 定義的 className/style 串聯而非取代
+      const mergedClassName = [loaded.className, definition.className].filter(Boolean).join(" ");
+      const mergedStyle = { ...(loaded.style || {}), ...(definition.style || {}) };
+      definition = { ...loaded, ...definition, className: mergedClassName, style: mergedStyle, from: loaded.from || definition.from };
     }
   }
 
@@ -409,10 +448,9 @@ export default async function Cube(props: CubeProps): Promise<any> {
 
     for (const [slotName, slotDef] of Object.entries(definition.slots)) {
       // 從 slotDef 提取額外屬性並做模板替換，合併到子 Cube 的 args（color, state, position...）
-      const META = new Set(["from", "className", "style", "alpine", "on", "children", "slots", "shareChildren", "args", "data", "wrap", "prepend", "append", "styleConditions", "containerClassName", "tag", "attrs"]);
       const slotArgOverrides: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(slotDef as Record<string, unknown>)) {
-        if (!META.has(k) && v !== undefined) {
+        if (!CUBE_META.has(k) && v !== undefined) {
           slotArgOverrides[k] = typeof v === "string" ? substitute(v as string, mergedArgs) : v;
         }
       }
@@ -514,6 +552,11 @@ export default async function Cube(props: CubeProps): Promise<any> {
         }
       }
     }
+  }
+
+  // 將 prop 傳入的 className 也合併到最終 className（適用於所有路徑）
+  if (mergedArgs.className) {
+    finalClassName = [finalClassName, mergedArgs.className as string].filter(Boolean).join(" ");
   }
 
   // ── wrap / prepend / append / styleConditions（通用擴充，純 JSON 描述）──
@@ -627,7 +670,7 @@ export default async function Cube(props: CubeProps): Promise<any> {
     // 方塊 ID：檢查 props.fallbacks → 全域 registry → 顯示佔位
     const fallbackFn = fallbacks?.[from] ?? fallbackRegistry[from];
     if (fallbackFn) {
-      const cubeClassName = [finalClassName, mergedArgs.className].filter(Boolean).join(" ");
+      const cubeClassName = finalClassName;
 
       // 若 definition 帶有 alpine / on / style / tag — 用 wrapper 承接
       // tag 允許指定包裝標籤（如 "button" 讓 Container 有按鈕行為）
@@ -704,8 +747,11 @@ export default async function Cube(props: CubeProps): Promise<any> {
           }
           if (mergedArgs.disabled) fallbackArgs.active = false;
         } else {
-          // 非容器元件（如圖示、圖片）完整透傳 runtime 參數
-          Object.assign(fallbackArgs, mergedArgs);
+          // 非容器元件（如圖示、圖片）：排除內部保留字後才傳給 fallback
+          const FALLBACK_FILTER = new Set(['context','children','definition','from','args','depth','fallbacks','slots','className']);
+          for (const [k, v] of Object.entries(mergedArgs)) {
+            if (!FALLBACK_FILTER.has(k)) fallbackArgs[k] = v;
+          }
         }
 
         // 動態 disabled（x-bind:disabled="locked"）→ Container 也需動態斷電

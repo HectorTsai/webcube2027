@@ -4,6 +4,7 @@ import { error } from '../../utils/logger.ts';
 import { MediaModule, RouteParams } from './index.ts';
 import 圖示 from "../../database/models/圖示.ts";
 import { 資料池 } from '../../database/資料池.ts';
+import { InnerAPI } from "../index.ts";
 
 /**
  * 從三層資料庫載入圖示 (優化點：補上長效強快取與正則編碼優化)
@@ -87,11 +88,40 @@ async function 從外部URL載入圖示(url: string): Promise<Response | null> {
   }
 }
 
+/**
+ * 解析「選單」→ 從骨架設定取得選單按鈕圖示 ID
+ */
+async function 解析選單圖示ID(c: Context): Promise<string | null> {
+  try {
+    const 系統資訊 = c.get('系統資訊') as Record<string, unknown> | null;
+    const 骨架ID = 系統資訊?.骨架 as string;
+    if (!骨架ID) return null;
+    const res = await InnerAPI(c, `/api/v1/cubes/${骨架ID}`);
+    if (!res.ok) return null;
+    const data = await res.json() as any;
+    return (data?.data?.選單按鈕 as string) || null;
+  } catch {
+    return null;
+  }
+}
+
 const icon: MediaModule = {
   GET: async (c: Context, params: RouteParams): Promise<Response> => {
     try {
-      const iconId = params.id;
-      if (!iconId) return new Response('Missing icon ID', { status: 400 });
+      let iconId = params.id;
+      
+      // 無 id → 回傳網站商標，再 fallback 到系統商標
+      if (!iconId) {
+        const 網站 = c.get('網站資訊') as Record<string, unknown> | null;
+        const 系統 = c.get('系統資訊') as Record<string, unknown> | null;
+        iconId = (網站?.商標 as string) || (系統?.商標 as string) || '圖示:圖示:web_cube';
+      }
+
+      // 「選單」→ 從骨架設定取得選單按鈕圖示
+      if (iconId === '選單') {
+        const 選單圖示ID = await 解析選單圖示ID(c);
+        if (選單圖示ID) iconId = 選單圖示ID;
+      }
       
       let response: Response | null = null;
       
