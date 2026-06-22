@@ -39,7 +39,7 @@
   },
   "wrapChild": {
     "from": "li",
-    "className": "flex flex-col w-full"
+    "className": "flex flex-col"
   },
   "prepend": [
     {
