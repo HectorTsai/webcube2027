@@ -64,7 +64,12 @@ export class SqliteAdapter implements DatabaseAdapter {
   }
 
   async 更新(模型: string, id: string, 資料: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const dataWithId = { ...資料, id, 最後修改: new Date().toISOString() };
+    // 防呆：若呼叫端傳入的是 Model 實例，自動呼叫 toJSON() 取完整資料
+    // 避免「只想改一個欄位卻覆蓋整筆」的 bug
+    const 序列化資料 = typeof (資料 as { toJSON?: () => Record<string, unknown> }).toJSON === 'function'
+      ? (資料 as { toJSON: () => Record<string, unknown> }).toJSON()
+      : 資料;
+    const dataWithId = { ...序列化資料, id, 最後修改: new Date().toISOString() };
     await this.確保資料表(模型);
     const stmt = this.db.prepare(
       `INSERT OR REPLACE INTO "${模型}" (id, data, 最後修改) VALUES (?, ?, ?);`

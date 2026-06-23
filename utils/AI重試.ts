@@ -68,19 +68,19 @@ export async function 聊天並解析JSON(
  * 嘗試從字串中擷取並解析 JSON（支援陣列和物件）
  */
 export function 嘗試解析JSON(內容: string): unknown | null {
-  // 先嘗試陣列
-  const arrMatch = 內容.match(/\[[\s\S]*\]/);
-  if (arrMatch) {
-    try {
-      return JSON.parse(arrMatch[0]);
-    } catch { /* fall through */ }
-  }
-
-  // 再嘗試物件
+  // 先嘗試物件（避免被內嵌的空陣列 "問題": [] 搶先匹配）
   const objMatch = 內容.match(/\{[\s\S]*\}/);
   if (objMatch) {
     try {
       return JSON.parse(objMatch[0]);
+    } catch { /* fall through */ }
+  }
+
+  // 再嘗試陣列
+  const arrMatch = 內容.match(/\[[\s\S]*\]/);
+  if (arrMatch) {
+    try {
+      return JSON.parse(arrMatch[0]);
     } catch { /* fall through */ }
   }
 

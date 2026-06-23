@@ -78,7 +78,7 @@ export class CodeReview {
 
         // 使用自動重試機制：審查回應 JSON 解析失敗時自動重試一次
         const prompt = await 載入提示詞(this.c, 'AI提示詞:AI提示詞:code-review', DEFAULT_REVIEW_PROMPT);
-        const { json } = await 聊天並解析JSON(
+        const { json, 原始回應 } = await 聊天並解析JSON(
           this.c,
           prompt,
           [{ 角色: 'user', 內容: `審查這個方塊 JSON：\n${JSON.stringify(方塊JSON, null, 2)}` }],

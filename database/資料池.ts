@@ -448,7 +448,11 @@ class 資料池核心 {
         // 從所有排程中找這筆，用它的 host 決定寫入目標
         const all = await this.查詢所有列表<排程記錄>('排程記錄', 1000, 0);
         const record = (all.data ?? []).find(r => r.id === id);
-        await this.創建或更新('排程記錄', { id, 最後執行: 時間 } as Partial<排程記錄>, record?.host ?? undefined);
+        if (!record) return;
+        // 先取完整序列化（避免 Adapter 全量替換時丟失其他欄位）
+        const 完整資料 = record.toJSON();
+        完整資料.最後執行 = 時間;
+        await this.創建或更新('排程記錄', 完整資料, record.host ?? undefined);
       },
       刪除排程: async (id) => {
         const all = await this.查詢所有列表<排程記錄>('排程記錄', 1000, 0);

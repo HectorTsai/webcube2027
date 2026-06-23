@@ -20,7 +20,7 @@ export interface 排程資料庫 {
   刪除排程(id: string): Promise<void>;
 }
 
-const CRON_NAME = '排程心跳';
+const CRON_NAME = 'scheduler-heartbeat';
 
 class 定時服務 {
   private 已停止 = false;
@@ -43,14 +43,50 @@ class 定時服務 {
     const tasks = await this.db.讀取所有排程();
     this.目前GCD = this.計算GCD(tasks);
 
-    const expr = this.目前GCD <= 1
-      ? '* * * * *'
-      : `*/${this.目前GCD} * * * *`;
+    const expr = this.GCD轉表達式(this.目前GCD);
 
     Deno.cron(CRON_NAME, expr, () => {
       if (this.已停止) return;
       this.執行到期任務();
     });
+  }
+
+  /**
+   * 將 GCD 分鐘數攤成時長，依整除性自動選用最合適的 cron 欄位
+   * 使用 Temporal.Duration 進行精準進位，避免「步進值 N=60」這類邊界錯誤，
+   * 優先以更高時間單位（時/日）表達
+   *
+   * 規則：
+   *   ≤ 1 分鐘            → 每分鐘
+   *   不到 1 小時整分鐘   → 每 N 分鐘（minute 欄位步進）
+   *   整小時               → 每 N 小時（hour 欄位步進）
+   *   整天數               → 每 N 天（day-of-month 欄位步進）
+   *   非整除（90/150 分鐘）→ fallback 每分鐘（由 callback 內判斷）
+   */
+  private GCD轉表達式(分鐘: number): string {
+    if (分鐘 <= 1) return '* * * * *';
+
+    const dur = Temporal.Duration.from({ minutes: 分鐘 });
+
+    // 整天數：進位到「天」後，時/分皆為 0
+    const asDays = dur.round({ largestUnit: 'days' });
+    if (asDays.days >= 1 && asDays.hours === 0 && asDays.minutes === 0) {
+      return `0 0 */${asDays.days} * *`;
+    }
+
+    // 整小時：進位到「小時」後，分為 0
+    const asHours = dur.round({ largestUnit: 'hours' });
+    if (asHours.hours >= 1 && asHours.minutes === 0) {
+      return `0 */${asHours.hours} * * *`;
+    }
+
+    // 不到 1 小時的整分鐘
+    if (asHours.hours === 0 && asHours.minutes >= 1) {
+      return `*/${分鐘} * * * *`;
+    }
+
+    // 非整除（如 90、150 分鐘）→ fallback
+    return '* * * * *';
   }
 
   /** 計算所有啟用排程 間隔分鐘 的最大公因數 */
