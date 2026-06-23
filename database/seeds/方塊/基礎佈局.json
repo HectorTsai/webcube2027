@@ -12,14 +12,20 @@
     "copyright": "@api/v1/info/版權資料"
   },
   "slots": {
-    "header": { "from": "div" },
-    "content": { "from": "div", "className": "flex-1 min-h-0" },
-    "footer": { "from": "div" }
+    "header": {
+      "from": "div",
+      "children": [
+        { "from": "方塊:方塊:主選單", "color": "primary", "items": { "$api": "主選單" } }
+      ]
+    },
+    "content": { "from": "div", "className": "flex-1 min-h-0 overflow-y-auto" },
+    "footer": {
+      "from": "div",
+      "children": [
+        { "from": "方塊:方塊:頁尾", "color": "primary" }
+      ]
+    }
   },
-  "children": [
-    { "from": "方塊:方塊:主選單", "color": "primary", "items": { "$api": "主選單" } },
-    { "from": "div", "slot": "content" },
-    { "from": "方塊:方塊:頁尾", "color": "primary" }
-  ],
+  "children": [],
   "可刪除": false
 }

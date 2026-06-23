@@ -96,7 +96,7 @@ export default class PageService {
       const menuItems = [];
       for (const 頁面ID of 網站資訊.data?.主選單 || []) {
         try {
-          const 頁面Response = await InnerAPI(c!, `/api/v1/cubes/${頁面ID}`);
+          const 頁面Response = await InnerAPI(c!, `/api/v1/cube/${頁面ID}`);
           const 頁面資料 = await 頁面Response.json();
           menuItems.push({
             label: 頁面資料.data?.標題,  

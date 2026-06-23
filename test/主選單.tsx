@@ -1,11 +1,9 @@
 // test/主選單.tsx — 主選單方塊測試網頁
-// Template/Slot 作用域規則請見 components/方塊.tsx 的「區域範疇圖紙解構引擎」註解區塊
 import type { Context } from 'hono';
 import Cube from '../components/方塊.tsx';
-import Slot from '../components/Slot.tsx';
-import Template from '../components/Template.tsx';
 
 const colors = ["primary", "secondary", "accent", "info", "success", "warning", "error", "base", "neutral"] as const;
+const testLinks = ["頁面:頁面:home", "關於", "服務"];
 
 export default async function MenuBarTest(c: Context) {
   return (
@@ -13,69 +11,11 @@ export default async function MenuBarTest(c: Context) {
 
       {/* 固定在頁面頂部的主選單 demo */}
       <div class="sticky top-0 z-40 space-y-0">
-        {/* 色彩主題展示 — 同 Template 展示結構，用 DrawerTitle / DrawerContext / Drawer 三層嵌套 */}
+        {/* 色彩主題展示 — 傳入 items 由 repeat 展開 */}
         <div>
           {colors.map(color => (
-            <Cube from="方塊:方塊:主選單" context={c} color={color} drawerState={color}>
-              <Template name="Links">
-                <Cube from="方塊:方塊:超連結" href="/" size="sm" className="!border-none !shadow-none">首頁</Cube>
-                <Cube from="方塊:方塊:超連結" href="/about" size="sm" className="!border-none !shadow-none">關於</Cube>
-                <Cube from="方塊:方塊:超連結" href="/services" size="sm" className="!border-none !shadow-none">服務</Cube>
-              </Template>
-              <Template name="Brand">
-                <Cube from="span" className="font-bold text-lg">{color}</Cube>
-              </Template>
-              <Template name="DrawerTitle">
-                <Cube from="div" className="px-4 py-3">
-                  <Slot template="Brand" />
-                </Cube>
-              </Template>
-              <Template name="DrawerContext">
-                <Cube from="方塊:方塊:列表" className="!border-none">
-                  <Slot template="Links" />
-                </Cube>
-              </Template>
-              <Template name="Drawer">
-                <Slot name="header" template="DrawerTitle" />
-                <Slot name="content" template="DrawerContext" />
-              </Template>
-              <Slot name="brand" template="Brand" />
-              <Slot name="drawer" template="Drawer" />
-              <Slot name="content" template="Links" />
-            </Cube>
+            <Cube from="方塊:方塊:主選單" context={c} color={color} drawerState={color} items={testLinks} />
           ))}
-        </div>
-
-        {/* Template 展示 — brand 進 drawer header，連結用列表包裹 */}
-        <div class="mt-4">
-          <Cube from="方塊:方塊:主選單" context={c} color="secondary" drawerState="tplMenu">
-            <Template name="NavLinks">
-              <Cube from="方塊:方塊:超連結" href="/" size="sm" className="!border-none !shadow-none">首頁</Cube>
-              <Cube from="方塊:方塊:超連結" href="/about" size="sm" className="!border-none !shadow-none">關於</Cube>
-              <Cube from="方塊:方塊:超連結" href="/docs" size="sm" className="!border-none !shadow-none">文件</Cube>
-            </Template>
-            <Template name="Brand">
-              <Cube from="方塊:方塊:圖示" />
-              <Cube from="span" className="font-bold text-lg">Template Demo</Cube>
-            </Template>
-            <Template name="DrawerTitle">
-                <Cube from="div" className="px-4 py-3">
-                  <Slot template="Brand" />
-                </Cube>
-            </Template>
-            <Template name="DrawerContext">
-                <Cube from="方塊:方塊:列表" className="!border-none">
-                  <Slot template="NavLinks" />
-                </Cube>
-            </Template>
-            <Template name="Drawer">
-              <Slot name="header" template="DrawerTitle" />
-              <Slot name="content" template="DrawerContext" />
-            </Template>
-            <Slot name="brand" template="Brand" />
-            <Slot name="drawer" template="Drawer" />
-            <Slot name="content" template="NavLinks" />
-          </Cube>
         </div>
       </div>
 
@@ -85,7 +25,7 @@ export default async function MenuBarTest(c: Context) {
           <Cube from="方塊:方塊:超連結" context={c} href="/test" size="xs" className="!border-none !shadow-none">&larr; 返回測試頁</Cube>
           <h1 class="text-2xl font-black text-slate-900 tracking-tight">主選單（MenuBar）渲染測試</h1>
           <p class="text-sm text-slate-500 mt-1">
-            {'<Cube from="方塊:方塊:主選單" context={c} color="primary">'} — 響應式導航列，桌面水平排列，行動版漢堡選單 + 抽屜
+            {'<Cube from="方塊:方塊:主選單" context={c} color="primary" items={links}>'} — 響應式導航列，桌面水平排列，行動版漢堡選單 + 抽屜
           </p>
         </header>
 
@@ -97,7 +37,8 @@ export default async function MenuBarTest(c: Context) {
           </h2>
           <div class="p-8 bg-white rounded-lg border border-slate-200 space-y-4 text-sm text-slate-500">
             <p>主選單位於頁面頂部，使用 <code class="bg-slate-100 px-1 rounded">sticky top-0</code> 固定在畫面上方。</p>
-            <p>行動版（寬度 &lt; 768px）時：導航內容隱藏，改為漢堡選單按鈕。點擊按鈕後從左側滑入抽屜。</p>
+            <p>行動版（寬度 &lt; 768px）時：導航內容隱藏，改為漢堡選單按鈕。點擊按鈕後從右側滑入抽屜。</p>
+            <p>品牌（brand）預設使用 mergedArgs 從 API 取得 logo + 名稱，抽屜無 header 內容。</p>
             <div class="h-64 bg-slate-50 rounded flex items-center justify-center text-slate-300">捲動空間</div>
             <div class="h-64 bg-slate-50 rounded flex items-center justify-center text-slate-300">更多捲動空間</div>
           </div>
@@ -113,10 +54,11 @@ export default async function MenuBarTest(c: Context) {
             <ul class="list-disc list-inside space-y-1 text-sm text-slate-600">
               <li><strong>from</strong>: "方塊:方塊:主選單"</li>
               <li><strong>color</strong>: primary / secondary / accent / info / success / warning / error / base / neutral</li>
-              <li>桌面版（md+）：導航內容水平排列</li>
-              <li>行動版（&lt;md）：自動切換為漢堡選單按鈕</li>
-              <li><strong>搭配使用</strong>：無需手動放置抽屜，內建於 seed 的 <code>drawer</code> slot（shareChildren）</li>
-              <li>兩者透過 Alpine.js <code>$store.drawers.menuDrawer</code> 連動</li>
+              <li><strong>items</strong>: 字串陣列，傳入後由 seed JSON 的 <code>repeat</code> 自動展開</li>
+              <li>桌面版（md+）：brand | content 導航連結 | footer</li>
+              <li>行動版（&lt;md）：brand | 漢堡選單按鈕，點擊後右側 Drawer 滑入</li>
+              <li>品牌（brand）預設使用 <code>mergedArgs</code> 從 API 取得 logo + 名稱</li>
+              <li>抽屜內連結點擊後自動關閉</li>
               <li>可搭配 <strong>className="sticky top-0 z-50"</strong> 固定在頁面頂部</li>
             </ul>
           </div>

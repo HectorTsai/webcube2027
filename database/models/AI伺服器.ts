@@ -50,6 +50,10 @@ export default class AI伺服器 extends 資料 {
     return Math.max(...this.模型列表.map(m => m.能力值));
   }
 
+  public override async 初始化(): Promise<void> {
+    await this.apiKey.process();
+  }
+
   public override toJSON(): Record<string, unknown> {
     return {
       ...super.toJSON(),

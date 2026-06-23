@@ -51,26 +51,61 @@
   "alpine": {
     "init": "$store.drawers = $store.drawers || {}"
   },
+  "mergedArgs": {
+    "logo": "@api/v1/info/商標",
+    "name": "@api/v1/info/名稱"
+  },
   "slots": {
-        "brand": {
-          "from": "div",
-          "className": "flex items-center pr-1 shrink-0"
-        },
-        "content": {
-          "from": "div",
-          "className": "hidden md:flex items-center flex-1 gap-4"
-        },
-        "drawer": {
-          "from": "方塊:方塊:抽屜",
-          "color": "{color}",
-          "state": "{drawerState}",
-          "position": "right"
-        },
-        "footer": {
-          "from": "div",
-          "className": "hidden md:flex items-center shrink-0 gap-2"
+    "brand": {
+      "from": "div",
+      "className": "flex items-center pr-1 shrink-0 gap-2",
+      "children": [
+        { "from": "方塊:方塊:圖示", "id": "{logo}", "alt": "{name}", "width": "32", "height": "32" },
+        { "from": "span", "className": "font-bold text-lg", "text": "{name}" }
+      ]
+    },
+    "content": {
+      "from": "div",
+      "className": "hidden md:flex items-center flex-1 gap-4",
+      "children": [
+        {
+          "from": "方塊:方塊:超連結",
+          "repeat": "{items}",
+          "href": "/page/{item}",
+          "className": "!border-none",
+          "children": [{ "from": "span", "text": { "$api": { "path": "/api/v1/page/{item}", "field": "標題" } } }]
         }
+      ]
+    },
+    "drawer": {
+      "from": "方塊:方塊:抽屜",
+      "color": "{color}",
+      "state": "{drawerState}",
+      "position": "right",
+      "mergedArgs": {
+        "title": "@api/v1/translate/main menu"
       },
+      "slots": {
+        "header": { "from": "div", "className": "text-center font-bold text-lg", "text": "{title}" }
+      },
+      "children": [
+        {
+          "from": "方塊:方塊:超連結",
+          "repeat": "{items}",
+          "href": "/page/{item}",
+          "className": "block text-left !border-none !shadow-none",
+          "on": {
+            "click": "$store.drawers.{drawerState} = false"
+          },
+          "children": [{ "from": "span", "text": { "$api": { "path": "/api/v1/page/{item}", "field": "標題" } } }]
+        }
+      ]
+    },
+    "footer": {
+      "from": "div",
+      "className": "hidden md:flex items-center shrink-0 gap-2"
+    }
+  },
   "children": [
     {
       "from": "方塊:方塊:按鈕",
@@ -82,24 +117,6 @@
       "children": [
         { "from": "方塊:方塊:圖示", "id": "選單", "size": "md" }
       ]
-    },
-    {
-      "from": "方塊:方塊:超連結",
-      "slot": "content",
-      "repeat": "{items}",
-      "href": "/page/{item}",
-      "children": [{ "from": "span", "text": "{item}" }]
-    },
-    {
-      "from": "方塊:方塊:超連結",
-      "slot": "drawer",
-      "repeat": "{items}",
-      "href": "/page/{item}",
-      "className": "block text-left",
-      "on": {
-        "click": "$store.drawers.{drawerState} = false"
-      },
-      "children": [{ "from": "span", "text": "{item}" }]
     }
   ],
   "可刪除": false

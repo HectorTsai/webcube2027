@@ -96,7 +96,7 @@ async function 解析選單圖示ID(c: Context): Promise<string | null> {
     const 系統資訊 = c.get('系統資訊') as Record<string, unknown> | null;
     const 骨架ID = 系統資訊?.骨架 as string;
     if (!骨架ID) return null;
-    const res = await InnerAPI(c, `/api/v1/cubes/${骨架ID}`);
+    const res = await InnerAPI(c, `/api/v1/cube/${骨架ID}`);
     if (!res.ok) return null;
     const data = await res.json() as any;
     return (data?.data?.選單按鈕 as string) || null;

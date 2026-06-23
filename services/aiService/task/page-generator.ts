@@ -30,29 +30,20 @@ const DEFAULT_PROMPT = `你是 webcube 平台的頁面生成專家。
 5. 內容中的方塊結構應為 Cube JSON 陣列
 6. 多國語言內容同時提供 zh-tw 和 en
 
-═══ Template / Slot 作用域規則 ═══
-當你需要用 Template/Slot 組合多個方塊時（例如主選單 + 抽屜共享內容），請遵守：
-1. 所有 <Template name="X"> 必須定義在同一個 <Cube> 層級，因為模板收集只在當前 Cube 進行。
-2. Template 內部可以用 <Slot template="Y" /> 引用另一個 Template（嵌套 Template）。
-3. 最終用 <Slot name="抽屜" template="Drawer" /> 這類寫法將模板注入 seed 的 slot。
-4. ❌ 錯誤：把 Template 塞到子 Cube 的 children 裡 → 外層的 Slot 找不到。
-5. ❌ 錯誤：跨 Cube 邊界引用 Template → 作用域不穿透。
+═══ Slot / repeat 作用域規則 ═══
+Seed JSON 透過 children 的 slot 屬性映射到具名 slot，並用 repeat 展開陣列資料：
+1. 頂層 children 中帶 "slot": "xxx" 的項目會自動注入對應 slot 的預設內容。
+2. 無 "slot" 屬性的 children 會直接渲染在方塊內部（與 slot 平行）。
+3. 若使用者傳入 <Slot name="xxx"> 外部內容，會覆蓋 seed 的 slot 預設值。
+4. 使用 "repeat": "{items}" 搭配傳入 items 陣列 props，自動展開 N 個元素。
+5. 例：<Cube from="方塊:方塊:主選單" items={["首頁","關於","服務"]} /> — repeat 自動展開
 
 正確範例（以主選單為例）：
-<Cube from="方塊:方塊:主選單">
-  <Template name="Links"> ...連結... </Template>
-  <Template name="Brand"> ...標題... </Template>
-  <Template name="DrawerTitle">
-    <div><Slot template="Brand" /></div>
-  </Template>
-  <Template name="Drawer">
-    <Slot name="header" template="DrawerTitle" />
-    <Slot name="content" template="Links" />
-  </Template>
-  <Slot name="brand" template="Brand" />
-  <Slot name="drawer" template="Drawer" />
-  <Slot name="content" template="Links" />
-</Cube>`;
+在基礎佈局中：
+<Cube from="方塊:方塊:基礎佈局" context={c} /> — items 由 mergedArgs 從 $api 取得，repeat 自動展開
+
+在測試頁中：
+<Cube from="方塊:方塊:主選單" context={c} color="primary" items={["首頁","關於","服務"]} />`;
 
 export class PageGenerator {
   constructor(private c: Context) {}

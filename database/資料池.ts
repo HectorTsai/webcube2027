@@ -61,25 +61,9 @@ class 資料池核心 {
   private async 初始化L1(): Promise<void> {
     const 路徑 = Deno.env.get('L1_DB_PATH') || './data/webcube.db';
 
-    let l1: DatabaseAdapter;
-    try {
-      const { KVAdapter } = await import('./adapter/kv.ts');
-      let kv: Deno.Kv;
-      if (typeof (Deno as any).openKv === 'function') {
-        kv = await (Deno as any).openKv(路徑);
-      } else if (typeof (Deno as any).__unstable_openKv === 'function') {
-        kv = await (Deno as any).__unstable_openKv(路徑);
-      } else {
-        throw new Error('Deno KV 不可用');
-      }
-      l1 = new KVAdapter(kv);
-      await info('資料池', `L1 連線成功 — KV (${路徑})`);
-    } catch {
-      await error('資料池', 'KV 連線失敗，改用 SQLite');
-      const { SqliteAdapter } = await import('./adapter/sqlite.ts');
-      l1 = new SqliteAdapter(路徑);
-      await info('資料池', `L1 連線成功 — SQLite (${路徑})`);
-    }
+    const { SqliteAdapter } = await import('./adapter/sqlite.ts');
+    const l1 = new SqliteAdapter(路徑);
+    await info('資料池', `L1 連線成功 — SQLite (${路徑})`);
 
     this.連線池.set('BASE', l1);
 

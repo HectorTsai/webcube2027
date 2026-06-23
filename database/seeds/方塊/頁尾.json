@@ -9,8 +9,8 @@
   "from": "方塊:方塊:容器",
   "mergedArgs": {
     "currentYear": "@api/v1/temporal/fullYear",
-    "prefix": "@api/v1/translate/Copyright",
-    "suffix": "@api/v1/translate/All Rights Reserved"
+    "prefix": "@api/v1/translate/copyright",
+    "suffix": "@api/v1/translate/all rights reserved"
   },
   "args": {
     "color": {
@@ -76,7 +76,7 @@
       "children": [
         {
           "from": "span",
-          "text": "{prefix} \u00a9 {copyright.開始年份}-{currentYear} "
+          "text": "{prefix} \u00a9 {copyright.開始年份}-{currentYear}"
         },
         {
           "from": "方塊:方塊:超連結",
@@ -92,7 +92,7 @@
         },
         {
           "from": "span",
-          "text": ". {suffix}."
+          "text": "{suffix}."
         }
       ]
     }

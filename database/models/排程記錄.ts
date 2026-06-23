@@ -8,7 +8,8 @@ export default class 排程記錄 extends 資料 {
   public host: string | null;    // null=系統級，有值=網站級
   public 命令: string = '';       // API 路徑，如 "/api/v1/system/words/clear-expired"
   public 最後執行: Date;
-  public 間隔毫秒: number;       // 多久執行一次（一次性任務為 0）
+  public 建立時間: Date;         // 記錄寫入時間，一次性任務從此開始倒數
+  public 間隔分鐘: number;       // 循環=多久執行一次，一次性=多久後執行
   public 循環: boolean = true;    // true=定時重複，false=只跑一次
   public 啟用: boolean;
 
@@ -19,7 +20,9 @@ export default class 排程記錄 extends 資料 {
     this.命令 = (data?.命令 as string) ?? '';
     const last = data?.最後執行 as string | number | Date | undefined;
     this.最後執行 = last ? new Date(last) : new Date(0); // epoch 表示從未執行
-    this.間隔毫秒 = (data?.間隔毫秒 as number) ?? 0;
+    const created = data?.建立時間 as string | number | Date | undefined;
+    this.建立時間 = created ? new Date(created) : new Date();
+    this.間隔分鐘 = (data?.間隔分鐘 as number) ?? 0;
     this.循環 = (data?.循環 as boolean) ?? true;
     this.啟用 = (data?.啟用 as boolean) ?? true;
   }
@@ -31,7 +34,8 @@ export default class 排程記錄 extends 資料 {
       host: this.host,
       命令: this.命令,
       最後執行: this.最後執行,
-      間隔毫秒: this.間隔毫秒,
+      建立時間: this.建立時間,
+      間隔分鐘: this.間隔分鐘,
       循環: this.循環,
       啟用: this.啟用,
     };

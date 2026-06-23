@@ -6,7 +6,7 @@ import { 資料池 } from '../../database/資料池.ts';
 import { 資料過濾器 } from '../../utils/資料過濾器.ts';
 import 頁面 from '../../database/models/頁面.ts';
 
-// GET - 取得頁面 (/api/v1/page?id=xxx 或 /api/v1/page?route=/en/home 或 /api/v1/page/all)
+// GET - 取得頁面 (/api/v1/page?id=xxx 或 /api/v1/page?route=/en/home 或 /api/v1/page/all 或 /api/v1/page/{id} 或 /api/v1/page/{id}/標題)
 export async function GET(c: Context, params: RouteParams): Promise<Response> {
   try {
     // await info('頁面 API', '處理取得頁面請求');
@@ -16,8 +16,14 @@ export async function GET(c: Context, params: RouteParams): Promise<Response> {
       return await 處理取得所有頁面(c);
     }
     
-    // 如果有路徑參數且不是 'all'，當作 ID 處理
+    // 如果有路徑參數，支援巢狀欄位：頁面:頁面:home/標題 → id=頁面:頁面:home, field=標題
     if (params.id) {
+      const slashIndex = params.id.indexOf('/');
+      if (slashIndex !== -1) {
+        const pageId = params.id.slice(0, slashIndex);
+        const fieldPath = params.id.slice(slashIndex + 1);
+        return await 處理取得頁面欄位(c, pageId, fieldPath);
+      }
       return await 處理取得單一頁面(c, params.id);
     }
     
@@ -288,6 +294,47 @@ async function 處理取得單一頁面(c: Context, id: string): Promise<Respons
     return c.json({
       success: false,
       error: { code: 'INTERNAL_ERROR', message: '取得單一頁面失敗' }
+    }, 500);
+  }
+}
+
+// 處理取得頁面巢狀欄位 (/api/v1/page/{id}/標題)
+async function 處理取得頁面欄位(c: Context, pageId: string, fieldPath: string): Promise<Response> {
+  try {
+    const 結果 = await 資料池.查詢單一<頁面>(pageId);
+    
+    if (!結果.success || !結果.data) {
+      return c.json({
+        success: false,
+        error: { code: 'NOT_FOUND', message: '頁面不存在' }
+      }, 404);
+    }
+    
+    // 過濾後再取欄位（確保多國語言已解析）
+    const language = c.get('語言') || 'zh-tw';
+    const 回應資料 = await 資料過濾器.一般過濾(結果.data, language);
+    
+    // 逐層取值（如 標題 或 內容.xxx）
+    const fieldParts = fieldPath.split('/');
+    let current: unknown = 回應資料;
+    for (const part of fieldParts) {
+      if (current && typeof current === 'object' && part in (current as Record<string, unknown>)) {
+        current = (current as Record<string, unknown>)[part];
+      } else {
+        return c.json({
+          success: false,
+          error: { code: 'NOT_FOUND', message: `欄位 '${fieldPath}' 不存在` },
+        }, 404);
+      }
+    }
+    
+    return c.json({ success: true, data: current });
+    
+  } catch (錯誤) {
+    await error('頁面 API', `取得頁面欄位失敗: ${錯誤}`);
+    return c.json({
+      success: false,
+      error: { code: 'INTERNAL_ERROR', message: '取得頁面欄位失敗' }
     }, 500);
   }
 }

@@ -11,7 +11,6 @@ import 容器 from "./容器.tsx";
 import 圖示 from "./圖示.tsx";
 import 圖片 from "./圖片.tsx";
 import Slot from "./Slot.tsx";
-import Template from "./Template.tsx";
 
 /** styleConditions CSS 作用域計數器，確保不同實例的 <style> 不會互相污染 */
 let styleScopeId = 0;
@@ -97,14 +96,15 @@ function isNativeTag(tag: string): boolean {
 
 const CUBE_META = new Set([
   ...Object.keys(new 方塊().toJSON()),
-  "shareChildren", "slot", "comment", "if", "__editor",
+  "shareChildren", "comment", "if", "__editor",
 ]);
 
 function isVoidElement(tag: string): boolean {
   return VOID_ELEMENTS.has(tag.toLowerCase());
 }
 
-function substitute(value: string, args: Record<string, unknown>): string {
+function substitute(value: unknown, args: Record<string, unknown>): string {
+  if (typeof value !== 'string') return '';
   return value.replace(/\{([\w\-\.\u4e00-\u9fa5]+)\}/g, (_, key: string) => {
     // 支持嵌套属性访问，如 {copyright.開始年份}
     const keys = key.split('.');
@@ -121,18 +121,47 @@ function substitute(value: string, args: Record<string, unknown>): string {
   });
 }
 
+// ── API 快取（雙層：模組層級跨請求 + Context 層級請求內） ──
+interface ApiCacheEntry { json: unknown; ts: number; }
+const _apiGlobalCache = new Map<string, ApiCacheEntry>();
+const GLOBAL_CACHE_TTL_MS = 60_000; // 1 分鐘，避免翻譯 API 等昂貴呼叫重複打
+
+async function cachedInnerAPI(c: Context, path: string): Promise<ApiCacheEntry> {
+  // 1. 先查全域快取（跨請求共享）
+  const globalEntry = _apiGlobalCache.get(path);
+  if (globalEntry && (Date.now() - globalEntry.ts) < GLOBAL_CACHE_TTL_MS) {
+    return globalEntry;
+  }
+  // 2. 再查請求層級快取
+  let cache = c.get("api_cache") as Map<string, ApiCacheEntry> | undefined;
+  if (!cache) {
+    cache = new Map();
+    c.set("api_cache", cache);
+  }
+  if (cache.has(path)) return cache.get(path)!;
+  
+  const response = await InnerAPI(c, path);
+  const data = await response.json();
+  const entry: ApiCacheEntry = { json: data, ts: Date.now() };
+  cache.set(path, entry);
+  _apiGlobalCache.set(path, entry);
+  return entry;
+}
+
 // ── $api 語法解析器 ──
 // 支持在 JSON 中使用 { "$api": { "path": "/api/v1/info", "field": "商標" } }
 // 或簡寫 { "$api": "商標" }（預設 path 為 /api/v1/info）
+// args 參數用於 {variable} 插值：field/path 中的 {item} 會被替換為 args.item
 async function resolveApiReferences(
   obj: unknown,
-  context: Context | undefined
+  context: Context | undefined,
+  args?: Record<string, unknown>
 ): Promise<unknown> {
   if (!obj || typeof obj !== 'object') return obj;
   
   // 處理 $api 標記（檢查是否是單獨的 $api 物件）
   if (Array.isArray(obj)) {
-    return Promise.all(obj.map(item => resolveApiReferences(item, context)));
+    return Promise.all(obj.map(item => resolveApiReferences(item, context, args)));
   }
   
   const objRecord = obj as Record<string, unknown>;
@@ -140,13 +169,17 @@ async function resolveApiReferences(
   // 如果這是一個 $api 物件（只有 $api 屬性），直接解析
   if ('$api' in objRecord && Object.keys(objRecord).length === 1) {
     const apiConfig = objRecord.$api;
-    const path = typeof apiConfig === 'string' ? '/api/v1/info' : (apiConfig as Record<string, unknown>).path as string || '/api/v1/info';
-    const field = typeof apiConfig === 'string' ? apiConfig : (apiConfig as Record<string, unknown>).field as string;
+    const rawPath = typeof apiConfig === 'string' ? '/api/v1/info' : (apiConfig as Record<string, unknown>).path as string || '/api/v1/info';
+    const rawField = typeof apiConfig === 'string' ? apiConfig : (apiConfig as Record<string, unknown>).field as string;
+    
+    // 支援 {variable} 插值（如 {item}/標題）
+    const path = args ? substitute(rawPath, args) : rawPath;
+    const field = args ? substitute(rawField, args) : rawField;
     
     if (context && field) {
       try {
-        const response = await InnerAPI(context, path);
-        const data = await response.json();
+        const entry = await cachedInnerAPI(context, path);
+        const data = entry.json as any;
         if (data.success && data.data) {
           // 支援巢狀欄位，如 "版權資料.公司"
           const fieldParts = field.split('.');
@@ -159,17 +192,20 @@ async function resolveApiReferences(
           return current;
         }
       } catch {
-        // 保持原來的 $api 標記
+        // API 失敗 → 回退到 args.item（repeat 場景）或原始物件
+        if (args && args.item !== undefined) return String(args.item);
         return obj;
       }
     }
+    // 無 context 或無 field → 回退
+    if (args && args.item !== undefined) return String(args.item);
     return obj;
   }
   
   // 否則遞歸處理物件的屬性
   const result: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(objRecord)) {
-    result[key] = await resolveApiReferences(value, context);
+    result[key] = await resolveApiReferences(value, context, args);
   }
   return result;
 }
@@ -195,15 +231,6 @@ async function renderCubeChildren(
   context?: Context,
 ): Promise<unknown[]> {
   const nodes: unknown[] = [];
-  if (definition.slots) {
-    for (const slotDef of Object.values(definition.slots)) {
-      const slotArgs = { ...mergedArgs };
-      if ((slotDef as Record<string, unknown>).color === undefined && mergedArgs.color !== undefined) {
-        slotArgs.color = mergedArgs.color;
-      }
-      nodes.push(jsx(Cube, { definition: slotDef as Partial<方塊>, args: slotArgs, depth: depth + 1, context }));
-    }
-  }
   if (definition.children) {
     for (const child of definition.children) {
       if (typeof child === 'string') {
@@ -247,14 +274,18 @@ async function renderCubeChildren(
               for (const item of repeatArray) {
                 // 創建帶有 item 變數的 args
                 const itemArgs = { ...childArgs, item };
+                // 用 itemArgs 重新解析 $api 引用（支援 {item} 插值於 field/path 中）
+                const itemResolved = context
+                  ? await resolveApiReferences(childObj, context, itemArgs) as Record<string, unknown>
+                  : childObj;
                 const repeatOverrides: Record<string, unknown> = {};
-                for (const [k, v] of Object.entries(childObj)) {
-                  if (k !== 'repeat' && (!CUBE_META.has(k) || (k === 'id' && !!childObj.from)) && (typeof v === "string" || typeof v === "number" || typeof v === "boolean")) {
+                for (const [k, v] of Object.entries(itemResolved)) {
+                  if (k !== 'repeat' && (!CUBE_META.has(k) || (k === 'id' && !!itemResolved.from)) && (typeof v === "string" || typeof v === "number" || typeof v === "boolean")) {
                     repeatOverrides[k] = typeof v === "string" ? substitute(v, itemArgs) : v;
                   }
                 }
                 const finalArgs = Object.keys(repeatOverrides).length ? { ...itemArgs, ...repeatOverrides } : itemArgs;
-                nodes.push(jsx(Cube, { definition: childObj as Partial<方塊>, args: finalArgs, depth: depth + 1, context }));
+                nodes.push(jsx(Cube, { definition: itemResolved as Partial<方塊>, args: finalArgs, depth: depth + 1, context }));
               }
               continue; // 跳過正常渲染
             }
@@ -278,7 +309,7 @@ export async function 載入方塊定義(cubeId: string, c: Context): Promise<Pa
   if (reqCache.has(cubeId)) return reqCache.get(cubeId) || null;
 
   try {
-    const response = await InnerAPI(c, `/api/v1/cubes/${cubeId}`); // 👈 原版非同步函數呼叫
+    const response = await InnerAPI(c, `/api/v1/cube/${cubeId}`); // 👈 原版非同步函數呼叫
     const result = await response.json();
     if (result.success && result.data) {
       const 已檢驗 = result.data.已檢驗 as string;
@@ -312,8 +343,8 @@ async function resolveMergedArgsDef(
     if (spec.startsWith('@api/')) {
       const apiPath = spec.replace('@api/', '/api/');
       try {
-        const response = await InnerAPI(context, apiPath);
-        const data = await response.json();
+        const entry = await cachedInnerAPI(context, apiPath);
+        const data = entry.json as any;
         resolved[key] = data.success ? data.data : undefined;
       } catch {
         resolved[key] = undefined;
@@ -326,75 +357,8 @@ async function resolveMergedArgsDef(
 export default async function Cube(props: CubeProps): Promise<any> {
   const { definition: staticDefinition, from: cubeId, args: runtimeArgs = {}, depth = 0, context, fallbacks, slots: externalSlots = {}, children: jsxChildren, ...restArgs } = props;
 
-  // 藍圖解構引擎
-  const 區域樣板庫: Record<string, unknown> = {};
-  const 實際待渲染節點: unknown[] = [];
-
-  if (jsxChildren !== undefined) {
-    const rawArr = Children.toArray(jsxChildren as any);
-    for (const child of rawArr) {
-      if (child && typeof child === 'object' && (child as any).tag?.name === 'Template') {
-        區域樣板庫[(child as any).props?.name] = (child as any).props?.children;
-      } else {
-        實際待渲染節點.push(child);
-      }
-    }
-  }
-
-  function 解構插槽與樣板(nodes: unknown): unknown {
-    if (!nodes) return nodes;
-    if (typeof nodes !== 'object') return nodes;
-    const arr = Array.isArray(nodes) ? nodes : [nodes];
-    const result: unknown[] = [];
-
-    for (const child of arr) {
-      if (!child || typeof child !== 'object') {
-        result.push(child);
-        continue;
-      }
-      if ((child as any).tag?.name === 'Slot') {
-        const { name, template } = (child as any).props || {};
-        if (!template) { result.push(child); continue; }
-        const 樣板內容 = 區域樣板庫[template];
-        if (!樣板內容) continue;
-        const 解開後的內容 = 解構插槽與樣板(樣板內容);
-        if (!name) {
-          if (Array.isArray(解開後的內容)) {
-            result.push(...(解開後的內容 as unknown[]));
-          } else {
-            result.push(解開後的內容);
-          }
-        } else {
-          result.push({
-            ...(child as any),
-            props: { ...((child as any).props || {}), template: undefined, children: 解開後的內容 }
-          });
-        }
-        continue;
-      }
-
-      const hasChildren = (child as any).props?.children;
-      const isCubeComponent = (child as any).tag?.name === 'Cube';
-      let nextProps = { ...((child as any).props || {}) };
-      if (isCubeComponent) {
-        if (nextProps.context === undefined) nextProps.context = context;
-        if (nextProps.color === undefined && mergedArgs.color !== undefined) nextProps.color = mergedArgs.color;
-      }
-
-      if (hasChildren) {
-        const newChildren = 解構插槽與樣板((child as any).props.children);
-        nextProps.children = Array.isArray(newChildren) && (newChildren as unknown[]).length === 1 ? (newChildren as unknown[])[0] : newChildren;
-        result.push(jsx((child as any).tag, nextProps as any));
-      } else if (isCubeComponent) {
-        result.push(jsx((child as any).tag, nextProps as any));
-      } else {
-        result.push(child);
-      }
-    }
-    return result.length === 1 ? result[0] : result;
-  }
-
-  if (depth > 10) return null;
+  // 處理 JSX children
+  const 最終解構後的Children = jsxChildren;
 
   let definition: Partial<方塊> | undefined = staticDefinition;
   let 定義層動態參數: Record<string, unknown> = {};
@@ -411,7 +375,23 @@ export default async function Cube(props: CubeProps): Promise<any> {
     if (loaded) {
       const mergedClassName = [loaded.className, definition.className].filter(Boolean).join(" ");
       const mergedStyle = { ...(loaded.style || {}), ...(definition.style || {}) };
-      definition = { ...loaded, ...definition, className: mergedClassName, style: mergedStyle, from: loaded.from || definition.from };
+      // 深合併 slots：inline 定義只覆蓋同名 slot，保留其他
+      const mergedSlots = loaded.slots || definition.slots
+        ? { ...(loaded.slots || {}), ...(definition.slots || {}) }
+        : undefined;
+      // 深合併 mergedArgs
+      const mergedMergedArgs = loaded.mergedArgs || definition.mergedArgs
+        ? { ...(loaded.mergedArgs || {}), ...(definition.mergedArgs || {}) }
+        : undefined;
+      definition = {
+        ...loaded,
+        ...definition,
+        className: mergedClassName,
+        style: mergedStyle,
+        from: loaded.from || definition.from,
+        slots: mergedSlots,
+        mergedArgs: mergedMergedArgs,
+      };
     }
   }
 
@@ -459,10 +439,8 @@ export default async function Cube(props: CubeProps): Promise<any> {
   Object.assign(mergedArgs, 定義層動態參數);
   Object.assign(mergedArgs, runtimeArgs, restArgs);
 
-  const 最終解構後的Children = jsxChildren !== undefined ? 解構插槽與樣板(實際待渲染節點) : undefined;
-
-  let effectiveJsxChildren = 最終解構後的Children;
   const effectiveExtSlots: Record<string, unknown> = { ...(externalSlots as Record<string, unknown>) };
+  let effectiveJsxChildren = 最終解構後的Children;
 
   if (最終解構後的Children !== undefined) {
     const childrenArray = Children.toArray(最終解構後的Children as any);
@@ -476,7 +454,6 @@ export default async function Cube(props: CubeProps): Promise<any> {
           effectiveExtSlots[slotName] = node.props?.children ?? (node as any).children;
           continue;
         }
-        if (nodeType === Template) continue;
       }
       regularChildren.push(child);
     }
@@ -506,9 +483,21 @@ export default async function Cube(props: CubeProps): Promise<any> {
         slotContent = effectiveJsxChildren;
       }
       if (slotContent === undefined) {
-        const sd = slotDef as Partial<方塊>;
-        if (!sd.from || (sd.from === "div" && !sd.className && !sd.alpine && !sd.on)) continue;
-        slotNodes.push(jsx(Cube, { definition: sd, args: childArgs, depth: depth + 1, context }));
+        const sd = slotDef as Record<string, unknown>;
+        // 提取 slot 自身的 children 定義（若有），透過 renderCubeChildren 渲染成 JSX
+        const { children: slotOwnChildren, ...sdRest } = sd;
+        if (!sd.from || (sd.from === "div" && !sd.className && !sd.alpine && !sd.on)) {
+          if (!slotOwnChildren) continue;
+          const rendered = await renderCubeChildren({ children: slotOwnChildren } as Partial<方塊>, childArgs, depth + 1, context);
+          slotNodes.push(...rendered);
+          continue;
+        }
+        if (slotOwnChildren) {
+          const renderedChildren = await renderCubeChildren({ children: slotOwnChildren } as Partial<方塊>, childArgs, depth + 1, context);
+          slotNodes.push(jsx(Cube, { definition: sdRest as Partial<方塊>, args: childArgs, depth: depth + 1, context, children: renderedChildren }));
+        } else {
+          slotNodes.push(jsx(Cube, { definition: sdRest as Partial<方塊>, args: childArgs, depth: depth + 1, context }));
+        }
         continue;
       }
       const contentArray = Array.isArray(slotContent) ? slotContent : [slotContent];
@@ -517,6 +506,7 @@ export default async function Cube(props: CubeProps): Promise<any> {
     if (!jsxChildrenConsumed && effectiveJsxChildren !== undefined) {
       slotNodes.push(...(Children.toArray(effectiveJsxChildren as any) as unknown[]).flat(Infinity));
     }
+    // 渲染頂層 children
     if (definition.children) {
       const seedChildren = await renderCubeChildren(definition, mergedArgs, depth, context);
       slotNodes.push(...seedChildren);
@@ -818,7 +808,7 @@ export default async function Cube(props: CubeProps): Promise<any> {
 
   let nativeChildren: unknown;
   const defText = (definition as Record<string, unknown>).text as string | undefined;
-  if (defText) {
+  if (defText && typeof defText === 'string') {
     // 处理 text 属性，作为元素的文本内容
     const textContent = substitute(defText, mergedArgs);
     nativeChildren = textContent;

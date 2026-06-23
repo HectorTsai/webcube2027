@@ -1,17 +1,14 @@
-// 定時服務 — 根據資料庫中的排程記錄，用 setTimeout 鍵控執行命令
+// 定時服務 — Deno.cron 心跳模式，定時掃描資料庫排程記錄並執行到期任務
 //
 // 架構：
-//   啟動時：資料庫初始化完成 → 定時器.排程(排程資料庫)
-//   執行期：後台/API 新增排程時 → 定時器.新增排程(record, db)
-//     → setTimeout 依間隔觸發
-//     → 觸發時：更新最後執行 → fetch(baseUrl + record.命令) → 循環 vs 刪除
-//   排程來源：從 record.host 決定
-//     host=null → 系統級，固定 http://localhost:8000
-//     host=域名 → 網站級，http://{host}
+//   啟動時：資料池初始化完成 → 定時器.排程(排程資料庫) → 計算 GCD → 註冊 Deno.cron
+//   執行期：心跳觸發 → 掃描所有啟用排程 → 到期者執行
+//     循環任務：最後執行 + 間隔分鐘 >= now → 執行，更新最後執行
+//     一次性任務：建立時間 + 間隔分鐘 >= now 且尚未執行（最後執行 = epoch） → 執行，刪除
+//   動態調整：每次心跳後重算 GCD，若有變更則同名覆蓋 Deno.cron
 //
 // 如何新增排程：
-//   1. 寫入資料庫一筆 排程記錄（設定 命令 + host 欄位）
-//   2. 呼叫 定時器.新增排程(record, db)
+//   寫入資料庫一筆排程記錄即可，下一次心跳自然會偵測並執行
 
 import 排程記錄 from '../../database/models/排程記錄.ts';
 import { info, error } from '../../utils/logger.ts';
@@ -23,120 +20,144 @@ export interface 排程資料庫 {
   刪除排程(id: string): Promise<void>;
 }
 
+const CRON_NAME = '排程心跳';
+
 class 定時服務 {
-  private 計時器 = new Map<string, ReturnType<typeof setTimeout>>();
+  private 已停止 = false;
+  private 執行中 = new Set<string>();
+  private db: 排程資料庫 | null = null;
+  private 目前GCD = 1;
 
   /**
-   * 從給定的資料庫載入排程記錄並啟動所有排程
+   * 從給定的資料庫載入排程記錄，計算 GCD 後註冊 Deno.cron 心跳
    */
   async 排程(db: 排程資料庫): Promise<void> {
-    const tasks = await db.讀取所有排程();
+    this.db = db;
+    await this.註冊心跳();
+    await info('定時服務', `Deno.cron 心跳已啟動（GCD: ${this.目前GCD} 分鐘）`);
+  }
 
-    let 已排程 = 0;
+  /** 計算 GCD 並註冊/更新 Deno.cron，同名自動覆蓋舊排程 */
+  private async 註冊心跳(): Promise<void> {
+    if (!this.db) return;
+    const tasks = await this.db.讀取所有排程();
+    this.目前GCD = this.計算GCD(tasks);
+
+    const expr = this.目前GCD <= 1
+      ? '* * * * *'
+      : `*/${this.目前GCD} * * * *`;
+
+    Deno.cron(CRON_NAME, expr, () => {
+      if (this.已停止) return;
+      this.執行到期任務();
+    });
+  }
+
+  /** 計算所有啟用排程 間隔分鐘 的最大公因數 */
+  private 計算GCD(tasks: 排程記錄[]): number {
+    const 分鐘 = tasks
+      .filter(t => t.啟用)
+      .map(t => t.間隔分鐘)
+      .filter(m => m > 0);
+
+    if (分鐘.length === 0) return 1;
+
+    const gcd2 = (a: number, b: number): number =>
+      b === 0 ? a : gcd2(b, a % b);
+    return 分鐘.reduce(gcd2);
+  }
+
+  /** 心跳觸發：掃描所有啟用排程，執行到期任務 */
+  private async 執行到期任務(): Promise<void> {
+    if (!this.db) return;
+    const now = Date.now();
+    const tasks = await this.db.讀取所有排程();
+
+    let 已執行 = 0;
     let 已刪除 = 0;
 
-    for (const record of tasks) {
-      if (!record.啟用) continue;
+    for (const task of tasks) {
+      if (!task.啟用 || this.執行中.has(task.id)) continue;
 
-      if (record.循環) {
-        this.安排循環(db, record);
-        已排程++;
+      const lastRun = task.最後執行.getTime();
+
+      if (task.循環) {
+        const nextRun = lastRun + task.間隔分鐘 * 60000;
+        if (now >= nextRun) {
+          await this.執行循環任務(task);
+          已執行++;
+        }
       } else {
-        if (record.最後執行.getTime() === 0) {
-          this.安排一次性(db, record);
-        } else {
-          await db.刪除排程(record.id);
-          已刪除++;
+        // 一次性任務：尚未執行（epoch）且已到排定時間
+        if (lastRun === 0) {
+          const runAt = task.建立時間.getTime() + task.間隔分鐘 * 60000;
+          if (now >= runAt) {
+            await this.執行一次性任務(task);
+            已執行++;
+            已刪除++;
+          }
         }
       }
     }
 
-    await info('定時服務', `已排程 ${已排程} 個任務（${已刪除} 個一次性已清理）`);
-  }
+    if (已執行 > 0) {
+      await info('定時服務', `本輪執行 ${已執行} 個任務（${已刪除} 個一次性已刪除）`);
+    }
 
-  /**
-   * 執行期新增一筆排程（供後台/API 呼叫）
-   * 需先寫入資料庫後再呼叫此方法，才會即時生效
-   */
-  新增排程(record: 排程記錄, db: 排程資料庫): void {
-    const key = this.任務Key(record);
-    if (this.計時器.has(key)) clearTimeout(this.計時器.get(key));
-
-    if (record.循環) {
-      this.安排循環(db, record);
-    } else if (record.最後執行.getTime() === 0) {
-      this.安排一次性(db, record);
+    // 重算 GCD，若有變更則重新註冊（同名覆蓋）
+    const newGcd = this.計算GCD(tasks);
+    if (newGcd !== this.目前GCD) {
+      await info('定時服務', `GCD 變更: ${this.目前GCD} → ${newGcd}，更新心跳間隔`);
+      await this.註冊心跳();
     }
   }
 
-  /** 安排循環任務 */
-  private 安排循環(db: 排程資料庫, record: 排程記錄): void {
-    const key = this.任務Key(record);
-    if (this.計時器.has(key)) clearTimeout(this.計時器.get(key));
-
-    const lastRun = record.最後執行.getTime();
-    const nextRun = lastRun > 0
-      ? Math.max(lastRun + record.間隔毫秒, Date.now() + 1000)
-      : Date.now() + 1000;
-
-    const delay = nextRun - Date.now();
-
-    this.計時器.set(key, setTimeout(async () => {
-      try {
-        await info('定時服務', `執行: "${record.名稱}" → ${record.命令}`);
-        await db.更新最後執行(record.id, new Date());
-        await this.執行命令(record);
-        await info('定時服務', `完成: "${record.名稱}"`);
-      } catch (err) {
-        await error('定時服務', `"${record.名稱}" 失敗: ${err}`);
-      }
-      // 重新排程下一次
-      record.最後執行 = new Date();
-      this.安排循環(db, record);
-    }, delay));
+  private async 執行循環任務(task: 排程記錄): Promise<void> {
+    if (!this.db) return;
+    this.執行中.add(task.id);
+    try {
+      await info('定時服務', `執行: "${task.名稱}" → ${task.命令}`);
+      await this.db.更新最後執行(task.id, new Date());
+      await this.執行命令(task);
+      await info('定時服務', `完成: "${task.名稱}"`);
+    } catch (err) {
+      await error('定時服務', `"${task.名稱}" 失敗: ${err}`);
+    } finally {
+      this.執行中.delete(task.id);
+    }
   }
 
-  /** 安排一次性任務（只跑一次，跑完刪除） */
-  private 安排一次性(db: 排程資料庫, record: 排程記錄): void {
-    const key = this.任務Key(record);
-
-    this.計時器.set(key, setTimeout(async () => {
-      try {
-        await info('定時服務', `一次性: "${record.名稱}" → ${record.命令}`);
-        await db.更新最後執行(record.id, new Date());
-        await this.執行命令(record);
-        await info('定時服務', `一次性完成: "${record.名稱}"，自我銷毀`);
-
-        await db.刪除排程(record.id);
-        this.計時器.delete(key);
-      } catch (err) {
-        await error('定時服務', `一次性 "${record.名稱}" 失敗: ${err}`);
-      }
-    }, 1000));
+  private async 執行一次性任務(task: 排程記錄): Promise<void> {
+    if (!this.db) return;
+    this.執行中.add(task.id);
+    try {
+      await info('定時服務', `一次性: "${task.名稱}" → ${task.命令}`);
+      await this.db.更新最後執行(task.id, new Date());
+      await this.執行命令(task);
+      await info('定時服務', `一次性完成: "${task.名稱}"，自我銷毀`);
+      await this.db.刪除排程(task.id);
+    } catch (err) {
+      await error('定時服務', `一次性 "${task.名稱}" 失敗: ${err}`);
+    } finally {
+      this.執行中.delete(task.id);
+    }
   }
 
-  /** 從 record.host 建構 baseUrl 並 fetch */
-  private async 執行命令(record: 排程記錄): Promise<void> {
-    const baseUrl = record.host
-      ? `http://${record.host}`
+  /** 從 task.host 建構 baseUrl 並 fetch */
+  private async 執行命令(task: 排程記錄): Promise<void> {
+    const baseUrl = task.host
+      ? `http://${task.host}`
       : 'http://localhost:8000';
-    const url = `${baseUrl}${record.命令}`;
+    const url = `${baseUrl}${task.命令}`;
     const resp = await fetch(url, { method: 'POST' });
     if (!resp.ok) {
       throw new Error(`API ${url} 回傳 ${resp.status}`);
     }
   }
 
-  private 任務Key(record: 排程記錄): string {
-    return `${record.名稱}:${record.host ?? ''}`;
-  }
-
-  /** 停止所有排程 */
+  /** 停止所有排程（設定旗標，心跳中斷執行） */
   停止(): void {
-    for (const timer of this.計時器.values()) {
-      clearTimeout(timer);
-    }
-    this.計時器.clear();
+    this.已停止 = true;
   }
 }
 

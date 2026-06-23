@@ -96,12 +96,17 @@ export class TranslationAdapter implements TranslationInterface {
     try {
       const id = cacheId(sourceLang, text);
       const result = await 資料池.查詢單一<{ id: string; 資料?: Record<string, unknown> }>(id);
-      if (!result.success || !result.data?.資料) return null;
+      if (!result.success || !result.data) return null;
+
+      // result.data 是 單字 model 實例，資料欄位為 MultilingualString，需透過 toJSON() 取得純物件
+      const raw: Record<string, unknown> = (result.data as unknown as { toJSON(): Record<string, unknown> }).toJSON?.() ?? {};
+      const translations = raw.資料 as Record<string, string> | undefined;
+      if (!translations) return null;
 
       // 更新最後讀取時間
       await 資料池.創建或更新('單字', { id, 最後讀取: new Date() });
 
-      return (result.data.資料[targetLang] as string) ?? null;
+      return translations[targetLang] ?? null;
     } catch {
       return null;
     }
@@ -113,9 +118,13 @@ export class TranslationAdapter implements TranslationInterface {
       const result = await 資料池.查詢單一<{ id: string; 資料?: Record<string, unknown> }>(id);
 
       const 合併資料: Record<string, string> = {};
-      if (result.success && result.data?.資料) {
-        for (const [lang, val] of Object.entries(result.data.資料)) {
-          if (val) 合併資料[lang] = val as string;
+      if (result.success && result.data) {
+        const raw: Record<string, unknown> = (result.data as unknown as { toJSON(): Record<string, unknown> }).toJSON?.() ?? {};
+        const existing = raw.資料 as Record<string, string> | undefined;
+        if (existing) {
+          for (const [lang, val] of Object.entries(existing)) {
+            if (val) 合併資料[lang] = val as string;
+          }
         }
       }
       合併資料[sourceLang] = text;

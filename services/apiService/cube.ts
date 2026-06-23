@@ -6,7 +6,7 @@ import { 資料池 } from '../../database/資料池.ts';
 import { 資料過濾器 } from '../../utils/資料過濾器.ts';
 import 方塊 from '../../database/models/方塊.ts';
 
-// GET - 取得方塊 (/api/v1/cubes 取得全部，/api/v1/cubes/:id 取得單一)
+// GET - 取得方塊 (/api/v1/cube 取得全部，/api/v1/cube/:id 取得單一)
 export async function GET(c: Context, params: RouteParams): Promise<Response> {
   try {
     // 有路徑參數 → 取得單一方塊
@@ -26,7 +26,7 @@ export async function GET(c: Context, params: RouteParams): Promise<Response> {
   }
 }
 
-// POST - 創建新方塊 (/api/v1/cubes)
+// POST - 創建新方塊 (/api/v1/cube)
 export async function POST(c: Context, _params: RouteParams): Promise<Response> {
   try {
     const body = await c.req.json();
@@ -60,7 +60,7 @@ export async function POST(c: Context, _params: RouteParams): Promise<Response> 
   }
 }
 
-// PUT - 更新方塊 (/api/v1/cubes?id=xxx)
+// PUT - 更新方塊 (/api/v1/cube?id=xxx)
 export async function PUT(c: Context, _params: RouteParams): Promise<Response> {
   try {
     // 從 query string 取得參數
@@ -114,7 +114,7 @@ export async function PUT(c: Context, _params: RouteParams): Promise<Response> {
   }
 }
 
-// DELETE - 刪除方塊 (/api/v1/cubes?id=xxx)
+// DELETE - 刪除方塊 (/api/v1/cube?id=xxx)
 export async function DELETE(c: Context, _params: RouteParams): Promise<Response> {
   try {
     // 從 query string 取得參數
