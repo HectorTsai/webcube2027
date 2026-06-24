@@ -165,15 +165,7 @@ async function 生成完整HTML(
           --font-base: ${骨架實例?.配置?.['font-base'] || '1rem'};
         }
 
-        /* 您的高級全自動材質選取器編織 (若 UnoCSS 沒處理，我們在測試沙盒幫它拉一條引線) */
-        .c-style-apply[data-active="true"] {
-          background-color: oklch(var(--c-current));
-          color: oklch(var(--c-current-content));
-          border-radius: var(--radius-md);
-          transition: all 0.2s ease;
-        }
-
-        /* 注入 UnoCSS 產生的其餘門禁樣式 */
+        /* 注入 UnoCSS 產生的門禁樣式 */
         ${css}        
       </style>
     </head>

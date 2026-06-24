@@ -7,7 +7,13 @@
     "vi": "Thanh menu điều hướng đáp ứng dựa trên Container. Phiên bản desktop: bố cục row ngang. Phiên bản di động: thu gọn thành nút hamburger, chuyển đổi ngăn kéo qua Alpine.js. Hỗ trợ chủ đề màu sắc của Container."
   },
   "from": "方塊:方塊:容器",
-  "containerClassName": "!flex-row items-center !border-none !shadow-none !rounded-none",
+  "defaults": {
+    "border": "none",
+    "shadow": "none",
+    "rounded": "none",
+    "direction": "row",
+    "width": "full"
+  },
   "args": {
     "color": {
       "type": "string",
@@ -71,7 +77,7 @@
         {
           "from": "方塊:方塊:超連結",
           "repeat": "{items}",
-          "href": "/page/{item}",
+          "href": { "$api": { "path": "/api/v1/page/{item}", "field": "路徑" } },
           "className": "!border-none",
           "children": [{ "from": "span", "text": { "$api": { "path": "/api/v1/page/{item}", "field": "標題" } } }]
         }

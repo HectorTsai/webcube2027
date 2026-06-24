@@ -72,8 +72,6 @@ export default class 方塊 extends 資料 {
   public tag: string | undefined;
   /** 包裝標籤的靜態 HTML 屬性（例如 type="button"） */
   public attrs: Record<string, string> | undefined;
-  /** 傳給內部 fallback（如 Container）的 className */
-  public containerClassName: string | undefined;
   public args: Record<string, ArgDef>;
   public alpine: Record<string, unknown> | undefined;
   public on: Record<string, string> | undefined;
@@ -95,6 +93,8 @@ export default class 方塊 extends 資料 {
   public 售價: number;
   /** 動態參數定義：key = 變數名，value = @api/... 規格字串 */
   public mergedArgs: Record<string, string> | undefined;
+  /** 內部鎖定參數，最後套用至 mergedArgs，不受外部 runtimeArgs 覆蓋 */
+  public defaults: Record<string, unknown> | undefined;
   /** SHA-256 完整性雜湊，AI 審查通過後寫入，渲染前驗證 */
   public 已檢驗: string;
 
@@ -105,7 +105,6 @@ export default class 方塊 extends 資料 {
     this.from = (data?.from as string) ?? DEFAULT_VALUES.from;
     this.tag = (data?.tag as string | undefined) ?? undefined;
     this.attrs = (data?.attrs as Record<string, string> | undefined) ?? undefined;
-    this.containerClassName = (data?.containerClassName as string | undefined) ?? undefined;
     this.args = (data?.args as Record<string, ArgDef>) ?? { ...DEFAULT_VALUES.args };
     this.alpine = (data?.alpine as Record<string, unknown> | undefined) ?? undefined;
     this.on = (data?.on as Record<string, string> | undefined) ?? undefined;
@@ -120,6 +119,7 @@ export default class 方塊 extends 資料 {
     this.append = (data?.append as AffixDef[] | undefined) ?? undefined;
     this.styleConditions = (data?.styleConditions as Record<string, string> | undefined) ?? undefined;
     this.mergedArgs = (data?.mergedArgs as Record<string, string> | undefined) ?? undefined;
+    this.defaults = (data?.defaults as Record<string, unknown> | undefined) ?? undefined;
     this.售價 = (data?.售價 as number) ?? DEFAULT_VALUES.售價;
     this.已檢驗 = (data?.已檢驗 as string) ?? '';
   }
@@ -132,7 +132,6 @@ export default class 方塊 extends 資料 {
       from: this.from,
       tag: this.tag,
       attrs: this.attrs,
-      containerClassName: this.containerClassName,
       args: this.args,
       alpine: this.alpine,
       on: this.on,
@@ -147,6 +146,7 @@ export default class 方塊 extends 資料 {
       append: this.append,
       styleConditions: this.styleConditions,
       mergedArgs: this.mergedArgs,
+      defaults: this.defaults,
       售價: this.售價,
       已檢驗: this.已檢驗,
     };

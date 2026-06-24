@@ -23,6 +23,7 @@ const DEFAULT_REVIEW_PROMPT = `你是 webcube 平台的安全審查專家。
 3. Inline 事件處理器：onerror, onclick, onload, onmouseover 等
 4. dangerouslySetInnerHTML 或類似危險 API 的使用
 5. 過深的巢狀結構（超過 10 層）
+6. ⚠️ defaults 與 args 的 key 不得重疊：若同一 key 同時出現在 defaults 和 args 中，回報為錯誤，要求 AI 修正
 
 回傳 JSON：
 {

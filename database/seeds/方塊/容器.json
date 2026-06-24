@@ -38,6 +38,30 @@
         "xl":   { "className": "p-8" }
       }
     },
+    "border": {
+      "type": "string",
+      "description": "邊框樣式",
+      "default": "solid",
+      "options": ["none", "solid", "dashed", "dotted", "double"]
+    },
+    "shadow": {
+      "type": "string",
+      "description": "陰影尺寸",
+      "default": "sm",
+      "options": ["none", "sm", "md", "lg", "xl"]
+    },
+    "rounded": {
+      "type": "string",
+      "description": "圓角尺寸",
+      "default": "md",
+      "options": ["none", "sm", "md", "lg", "xl"]
+    },
+    "direction": {
+      "type": "string",
+      "description": "Flex 排列方向",
+      "default": "col",
+      "options": ["col", "row"]
+    },
     "active": {
       "type": "boolean",
       "description": "供電狀態",

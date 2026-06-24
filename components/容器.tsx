@@ -6,7 +6,11 @@ import { jsx } from "hono/jsx/jsx-runtime";
 export interface 容器Props extends BaseComponentProps {
   hover?: boolean;
   active?: boolean;
-  activeStateName?: string; 
+  activeStateName?: string;
+  border?: string;
+  shadow?: string;
+  rounded?: string;
+  direction?: string;
   /** 來自列表等子方塊的 wrapChild 定義，在 processChildren 展開後逐項於 Runtime 進行獨立包裝 */
   wrapChild?: { from: string; className?: string; style?: Record<string, string> };
 }
@@ -28,6 +32,15 @@ export default function 容器(props: 容器Props) {
   const PADDING_MAP: Record<string, string> = {
     none: "p-0", xs: "p-1", sm: "p-2", md: "p-4", lg: "p-6", xl: "p-8",
   };
+  const BORDER_MAP: Record<string, string> = {
+    none: "!border-0", solid: "", dashed: "!border-dashed", dotted: "!border-dotted", double: "!border-double",
+  };
+  const SHADOW_MAP: Record<string, string> = {
+    none: "shadow-none", sm: "shadow-sm", md: "shadow-md", lg: "shadow-lg", xl: "shadow-xl",
+  };
+  const ROUNDED_MAP: Record<string, string> = {
+    none: "rounded-none", sm: "rounded-sm", md: "rounded-md", lg: "rounded-lg", xl: "rounded-xl",
+  };
   const { 
     color = "primary", 
     active = true, 
@@ -40,6 +53,10 @@ export default function 容器(props: 容器Props) {
     width,     
     height,
     padding,
+    border = "solid",
+    shadow = "sm",
+    rounded = "md",
+    direction = "col",
     wrapChild
   } = props;
 
@@ -89,7 +106,12 @@ export default function 容器(props: 容器Props) {
     }) as any;
   }
 
-  const 最終盲倒Class = ['c-style-apply c-div-active c-div-hover c-div-inactive box-border', className, padding && PADDING_MAP[padding]].filter(Boolean).join(" ").replace(/\\s+/g, ' ');
+  const 邊框覆蓋 = BORDER_MAP[border] || "";
+  const 陰影覆蓋 = shadow !== "sm" ? `!${SHADOW_MAP[shadow]}` : "";
+  const 圓角值 = ROUNDED_MAP[rounded] || "";
+  const 方向值 = direction === "row" ? "!flex-row" : "";
+
+  const 最終盲倒Class = ['c-style-apply c-div-active c-div-hover c-div-inactive box-border', 邊框覆蓋, 陰影覆蓋, 圓角值, 方向值, className, padding && PADDING_MAP[padding]].filter(Boolean).join(" ").replace(/\\s+/g, ' ');
 
   if (activeStateName) {
     return (

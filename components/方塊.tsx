@@ -6,6 +6,7 @@ import { Children } from "hono/jsx";
 import { Context } from "hono";
 import { InnerAPI } from "../services/index.ts"; // 👈 完美保留原版函數式導入
 import { 驗證完整性, 安全過濾Cube } from "../utils/安全過濾器.ts";
+import { warn } from "../utils/logger.ts";
 import 方塊 from "../database/models/方塊.ts";
 import 容器 from "./容器.tsx";
 import 圖示 from "./圖示.tsx";
@@ -246,8 +247,8 @@ async function renderCubeChildren(
         // 先收集 childObj 的屬性作為 overrides（包含陣列和物件）
         const overrides: Record<string, unknown> = {};
         for (const [k, v] of Object.entries(childObj)) {
-          // CUBE_META 的 key 預設跳過，但 className / style / containerClassName 需要傳給 fallback
-          const 需穿透 = k === 'className' || k === 'style' || k === 'containerClassName';
+          // CUBE_META 的 key 預設跳過，但 className / style 需要傳給 fallback
+          const 需穿透 = k === 'className' || k === 'style';
           if (!CUBE_META.has(k) || (k === 'id' && !!childObj.from) || 需穿透) {
             if (typeof v === "string") {
               overrides[k] = substitute(v, mergedArgs);
@@ -443,6 +444,14 @@ export default async function Cube(props: CubeProps): Promise<any> {
   // 合併定義層動態參數（來自 @api/... 解析）
   Object.assign(mergedArgs, 定義層動態參數);
   Object.assign(mergedArgs, runtimeArgs, restArgs);
+  // defaults 最後套用，鎖定內部參數不受外部覆蓋
+  if (definition.defaults && definition.args) {
+    const 重疊keys = Object.keys(definition.defaults).filter(k => k in definition.args!);
+    if (重疊keys.length > 0) {
+      await warn('Cube', `方塊「${definition.from || cubeId || '(未知)'}」的 defaults 與 args key 重疊：${重疊keys.join(', ')}。defaults 將勝出。`);
+    }
+  }
+  Object.assign(mergedArgs, definition.defaults ?? {});
 
   const effectiveExtSlots: Record<string, unknown> = { ...(externalSlots as Record<string, unknown>) };
   let effectiveJsxChildren = 最終解構後的Children;
@@ -748,11 +757,11 @@ export default async function Cube(props: CubeProps): Promise<any> {
         }
         if (Object.keys(finalStyle).length) wrapperAttrs.style = finalStyle;
 
-        const containerCls = ['flex flex-col flex-1 w-full', definition.containerClassName, variantContainerCls, mergedArgs.className].filter(Boolean).join(" ");
+        const containerCls = ['flex flex-col flex-1 w-full', variantContainerCls, mergedArgs.className].filter(Boolean).join(" ");
         const fromCube = definition.from ?? "";
         const fallbackArgs: Record<string, unknown> = {};
         if (fromCube === "方塊:方塊:容器") {
-          const CONTAINER_KEYS = new Set(['color','active','activeStateName','hover','padding','width','height','style']);
+          const CONTAINER_KEYS = new Set(['color','active','activeStateName','hover','padding','width','height','style','border','shadow','rounded','direction']);
           for (const k of CONTAINER_KEYS) {
             if (k in mergedArgs) fallbackArgs[k] = mergedArgs[k];
           }

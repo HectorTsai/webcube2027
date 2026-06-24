@@ -61,7 +61,7 @@ export function 過濾無效Props(props: Record<string, any>): Record<string, an
     // 扣留：設計系統專用參數
     size, color, variant, hover, active, activeStateName, 
     風格模型, 裝飾模型, 骨架模型, 配色模型,
-    direction, width, height, padding, margin, gap, rounded, shadow,
+    direction, width, height, padding, margin, gap, rounded, shadow, border,
 
     // 扣留：已被元件自身解構與手動融合完畢的通用參數（防重複鬧雙胞）
     className, style, children,
