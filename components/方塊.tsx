@@ -383,6 +383,10 @@ export default async function Cube(props: CubeProps): Promise<any> {
       const mergedMergedArgs = loaded.mergedArgs || definition.mergedArgs
         ? { ...(loaded.mergedArgs || {}), ...(definition.mergedArgs || {}) }
         : undefined;
+      // 深合併 alpine（init/attrs/bind/model）
+      const mergedAlpine = loaded.alpine || definition.alpine
+        ? { ...(loaded.alpine || {}), ...(definition.alpine || {}), attrs: { ...(loaded.alpine?.attrs as Record<string, unknown> || {}), ...(definition.alpine?.attrs as Record<string, unknown> || {}) } }
+        : undefined;
       definition = {
         ...loaded,
         ...definition,
@@ -391,6 +395,7 @@ export default async function Cube(props: CubeProps): Promise<any> {
         from: loaded.from || definition.from,
         slots: mergedSlots,
         mergedArgs: mergedMergedArgs,
+        alpine: mergedAlpine,
       };
     }
   }

@@ -1,0 +1,31 @@
+{
+  "id": "頁面:頁面:user-profile",
+  "路徑": "/users",
+  "路徑模式": "/users/{username}",
+  "標題": { "en": "User Profile", "zh-tw": "使用者資料", "vi": "Hồ sơ người dùng" },
+  "方塊": "方塊:方塊:容器",
+  "內容": {
+    "direction": "column",
+    "gap": "lg",
+    "children": [
+      {
+        "from": "方塊:方塊:卡片",
+        "variant": "default",
+        "shadow": true,
+        "children": [
+          { "from": "h3", "className": "text-lg font-bold mb-1", "text": { "en": "User Information", "zh-tw": "使用者資訊", "vi": "Thông tin người dùng" } },
+          { "from": "p", "className": "text-sm text-base-content/70 mb-3", "text": { "en": "Profile for user: {username}", "zh-tw": "使用者 {username} 的資料", "vi": "Hồ sơ cho người dùng: {username}" } }
+        ]
+      },
+      {
+        "from": "方塊:方塊:容器",
+        "padding": "md",
+        "children": [
+          { "from": "p", "text": { "en": "Additional user content and features will be displayed here.", "zh-tw": "額外的使用者內容和功能將在這裡顯示。", "vi": "Nội dung và tính năng bổ sung của người dùng sẽ được hiển thị tại đây." } }
+        ]
+      }
+    ]
+  },
+  "狀態": "PUBLISHED",
+  "可刪除": false
+}

@@ -1,0 +1,15 @@
+{
+  "id": "頁面:頁面:contact",
+  "路徑": "/contact",
+  "標題": { "en": "Contact Us", "zh-tw": "聯絡我們", "vi": "Liên hệ chúng tôi" },
+  "方塊": "方塊:方塊:容器",
+  "內容": {
+    "direction": "column",
+    "gap": "md",
+    "children": [
+      { "from": "p", "text": { "en": "Get in touch with us for any questions or support.", "zh-tw": "如有任何問題或需要支援，請與我們聯絡。", "vi": "Liên hệ với chúng tôi cho bất kỳ câu hỏi hoặc hỗ trợ nào." } }
+    ]
+  },
+  "狀態": "PUBLISHED",
+  "可刪除": false
+}

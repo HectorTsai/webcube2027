@@ -1,5 +1,6 @@
 import { Context } from 'hono';
-import 動態方塊JSX解析器 from '../services/pageService/動態方塊JSX解析器.ts';
+import { jsx } from "hono/jsx";
+import Cube from '../components/方塊.tsx';
 import Card from '../components/Card/index.tsx';
 
 const cubes = [
@@ -403,7 +404,7 @@ export default async function CubeTestPage(ctx: Context) {
   let error = null;
 
   try {
-    cubeResult = await 動態方塊JSX解析器.解析(cubeId, params, ctx, 0);
+    cubeResult = jsx(Cube as any, { from: cubeId, args: params, context: ctx, depth: 0 } as any);
   } catch (e: any) {
     error = e.message;
   }

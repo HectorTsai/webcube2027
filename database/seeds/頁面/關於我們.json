@@ -1,0 +1,16 @@
+{
+  "id": "頁面:頁面:about",
+  "路徑": "/about",
+  "標題": { "en": "About Us", "zh-tw": "關於我們", "vi": "Về chúng tôi" },
+  "方塊": "方塊:方塊:容器",
+  "內容": {
+    "direction": "column",
+    "gap": "lg",
+    "padding": "lg",
+    "children": [
+      { "from": "p", "text": { "en": "We are building the next generation of website creation tools, powered by AI and designed for everyone.", "zh-tw": "我們正在建立下一代網站創建工具，由 AI 驅動，為每個人設計。", "vi": "Chúng tôi đang xây dựng các công cụ tạo trang web thế hệ tiếp theo, được cung cấp bởi AI và được thiết kế cho tất cả mọi người." } }
+    ]
+  },
+  "狀態": "PUBLISHED",
+  "可刪除": false
+}

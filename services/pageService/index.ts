@@ -1,5 +1,6 @@
 import { MultilingualString } from "@dui/smartmultilingual";
-import 動態方塊JSX解析器 from "./動態方塊JSX解析器.ts";
+import { jsx } from "hono/jsx";
+import Cube from "../../components/方塊.tsx";
 import 頁面 from "../../database/models/頁面.ts";
 import { info, error } from "../../utils/logger.ts";
 import { 安全過濾 } from "../../utils/安全過濾器.ts";
@@ -64,7 +65,7 @@ export default class PageService {
 
   /**
    * 渲染頁面 - 主要入口點
-   * 修正：完美對接深度參數防禦，並優化多語言異步生命週期順序
+   * 直接對接 Cube 系統，消滅中間層動態解析器
    */
   static async renderPage(頁面實例: any, 路由參數: any, c: any): Promise<string> {
     try {
@@ -81,50 +82,29 @@ export default class PageService {
       // 3.5 安全過濾：遞迴過濾所有 string 值，移除 script/inline event/危險 URI
       const 安全內容 = this.安全過濾內容(轉換後內容);
       
-      // 6. 取得當前骨架的佈局設定
+      // 4. 取得當前骨架的佈局方塊ID
       const 佈局方塊ID = await this.取得佈局方塊ID(c);
       
-      // 7. 將方塊結構轉換為 JSX 元件 (正確帶入初始深度 0 傳遞給遞迴函數)
-      const childrenJSX = await this.渲染方塊結構為JSX(安全內容, c, 0);
-      
-      // 8. 取得網站資訊並處理佈局資料
-      const { InnerAPI } = await import('../../services/index.ts');
-      const 網站資訊Response = await InnerAPI(c!, "/api/v1/info");
-      const 網站資訊 = await 網站資訊Response.json();
-      
-      // 9. 處理主選單
-      const menuItems = [];
-      for (const 頁面ID of 網站資訊.data?.主選單 || []) {
-        try {
-          const 頁面Response = await InnerAPI(c!, `/api/v1/cube/${頁面ID}`);
-          const 頁面資料 = await 頁面Response.json();
-          menuItems.push({
-            label: 頁面資料.data?.標題,  
-            href: 頁面資料.data?.路徑 || '/'
-          });
-        } catch (err: any) {
-          return this.渲染錯誤頁面(err);
-        }
-      }
-      
-      // 10. 處理版權資料
-      const 版權資料 = 網站資訊.data?.版權資料 || {};
-      const companyName = 版權資料.公司 || "WebCube 2027";
-      const companyUrl = 版權資料.網址 || "";
-      const logo = 網站資訊.data?.商標 || "";
-      const siteName = 網站資訊.data?.名稱 || "WebCube";
-      
-      // 11. 組合佈局參數
-      const 佈局參數 = {
-        children: childrenJSX,
+      // 5. 分離 children 與其他 args，建構頁面 JSX
+      //    內容格式已對齊 Cube：{ direction, gap, children: [{ from:..., title: ..., ...}, ...] }
+      const { children: 頁面children, ...頁面args } = 安全內容;
+      const 頁面Root方塊ID = 頁面實例.方塊 || '方塊:方塊:容器';
+      const 頁面JSX = jsx(Cube as any, {
+        definition: { from: 頁面Root方塊ID, children: 頁面children } as Partial<typeof Cube>,
+        args: 頁面args,
+        depth: 0,
         context: c
-      };
+      } as any);
       
-      // 渲染外部佈局方塊 (佈局作為最頂層，傳入初始深度 0)
-      const 佈局JSX = await 動態方塊JSX解析器.解析(佈局方塊ID, 佈局參數, c, 0);
+      // 6. 將頁面 JSX 注入佈局的 content slot（對齊 test/基礎佈局.tsx 用法）
+      const 佈局JSX = jsx(Cube as any, {
+        from: 佈局方塊ID,
+        slots: { content: 頁面JSX },
+        context: c
+      } as any);
       
-      // 將最終 JSX 轉為 HTML
-      const html = 佈局JSX.toString();
+      // 7. 將最終 JSX 轉為 HTML
+      const html = (佈局JSX as any)?.toString() ?? '';
       
       return html;
     } catch (err: any) {
@@ -135,14 +115,35 @@ export default class PageService {
 
   /**
    * 取得當前骨架的佈局方塊ID
+   * 從主題 → 骨架 → 佈局欄位，依序查詢，任一環節失敗則回退到基礎佈局
    */
   private static async 取得佈局方塊ID(c?: Context): Promise<string> {
     try {
-      const 預設佈局 = '方塊:方塊:基礎佈局';
-      return 預設佈局;
+      if (!c) return '方塊:方塊:基礎佈局';
+      
+      const { InnerAPI } = await import('../../services/index.ts');
+      
+      // 1. 取得當前佈景主題
+      const 主題回應 = await InnerAPI(c, '/api/v1/theme');
+      if (!主題回應.ok) return '方塊:方塊:基礎佈局';
+      
+      const 主題資料 = await 主題回應.json();
+      if (!主題資料.success || !主題資料.data?.骨架) return '方塊:方塊:基礎佈局';
+      
+      // 2. 取得骨架完整資料
+      const 骨架回應 = await InnerAPI(c, `/api/v1/skeleton?id=${encodeURIComponent(主題資料.data.骨架)}`);
+      if (!骨架回應.ok) return '方塊:方塊:基礎佈局';
+      
+      const 骨架資料 = await 骨架回應.json();
+      if (!骨架資料.success || !骨架資料.data) return '方塊:方塊:基礎佈局';
+      
+      // 3. 回傳骨架的佈局方塊 ID
+      const 佈局ID = 骨架資料.data.佈局 || '方塊:方塊:基礎佈局';
+      return 佈局ID;
+      
     } catch (err: any) {
       await error('PageService', `取得佈局方塊ID失敗: ${err.message}`);
-      return '方塊:方塊:容器';
+      return '方塊:方塊:基礎佈局';
     }
   }
 
@@ -371,42 +372,5 @@ export default class PageService {
     }
     
     return 參數;
-  }
-
-  /**
-   * 將方塊結構渲染為 JSX
-   * 修正：加入 深度 參數，與「動態方塊JSX解析器」的安全防禦防線完美對接
-   */
-  private static async 渲染方塊結構為JSX(結構: any, c: any, 深度: number = 0): Promise<any> {
-    try {
-      if (!結構 || typeof 結構 !== 'object') {
-        return String(結構 || '');
-      }
-
-      if (typeof 結構 === 'string') {
-        return 結構;
-      }
-
-      if (Array.isArray(結構)) {
-        const jsx陣列 = await Promise.all(
-          結構.map(item => this.渲染方塊結構為JSX(item, c, 深度))
-        );
-        return jsx陣列;
-      }
-
-      if (結構.方塊) {
-        return await 動態方塊JSX解析器.解析(結構.方塊, 結構.內容, c, 深度);
-      }
-
-      const 新物件: any = {};
-      for (const [key, value] of Object.entries(結構)) {
-        新物件[key] = await this.渲染方塊結構為JSX(value, c, 深度);
-      }
-      return 新物件;
-
-    } catch (err: any) {
-      await error('PageService', `渲染方塊結構為JSX失敗: ${err.message}`);
-      return String(結構 || '');
-    }
   }
 }

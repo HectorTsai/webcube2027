@@ -21,29 +21,42 @@ const DEFAULT_PROMPT = `你是 webcube 平台的頁面生成專家。
 網站使用以下模型：
 - 頁面結構: { 路徑: string, 標題: MultilingualString, 內容: any, 方塊: string }
 - 方塊(Cube): { from: "div"|"span"|... | "方塊:方塊:id", className: string, style: object, args: object, children: Cube[] }
+- 頁面內容格式（直接對齊 Cube）：{ direction: "column"|"row", gap: "sm"|"md"|"lg", children: Cube[] }
+  children 中每個項目即為一個 Cube 物件，使用 from 指定方塊 ID，其餘屬性為該方塊的 args
 
 規則：
-1. 內容欄位直接存你要顯示的內容（文字、列表等）
-2. 方塊欄位是可選的，指向預定義方塊 ID
-3. 如果方塊欄位為空，則由 renderer 使用預設元件渲染內容
-4. 回傳 JSON：{ 標題: { "zh-tw": "", en: "" }, 內容: {}, 建議路徑: "/..." }
-5. 內容中的方塊結構應為 Cube JSON 陣列
-6. 多國語言內容同時提供 zh-tw 和 en
+1. 頁面內容格式為 { direction, gap, padding?, children: Cube[] }，children 陣列中每個項目必有 from
+2. 方塊欄位指向頁面根容器（預設 "方塊:方塊:容器"）
+3. **Card 方塊**有 body slot，內容必須用 children 傳入（children 自動注入 body slot）：
+   { "from": "方塊:方塊:卡片", "variant": "elevated", "children": [{ "from": "h3", "text": {...} }, { "from": "p", "text": {...} }] }
+4. **不要**把 title / content 放在 Card 的頂層屬性 — 那是無效的，必須用 children + from 表達
+5. 多國語言內容同時提供 zh-tw 和 en
+6. 回傳 JSON：{ 標題: { "zh-tw": "", en: "" }, 內容: {...}, 建議路徑: "/..." }
+
+正確範例：
+{
+  "標題": { "zh-tw": "首頁", "en": "Home" },
+  "內容": {
+    "direction": "column",
+    "gap": "lg",
+    "children": [
+      {
+        "from": "方塊:方塊:卡片",
+        "variant": "elevated",
+        "children": [
+          { "from": "h3", "className": "text-lg font-bold mb-1", "text": { "zh-tw": "歡迎來到我的網站", "en": "Welcome to my site" } },
+          { "from": "p", "className": "text-sm text-base-content/70", "text": { "zh-tw": "這是一個 AI 驅動的網站", "en": "An AI-driven website" } }
+        ]
+      }
+    ]
+  },
+  "建議路徑": "/my-page"
+}
 
 ═══ Slot / repeat 作用域規則 ═══
-Seed JSON 透過 children 的 slot 屬性映射到具名 slot，並用 repeat 展開陣列資料：
 1. 頂層 children 中帶 "slot": "xxx" 的項目會自動注入對應 slot 的預設內容。
 2. 無 "slot" 屬性的 children 會直接渲染在方塊內部（與 slot 平行）。
-3. 若使用者傳入 <Slot name="xxx"> 外部內容，會覆蓋 seed 的 slot 預設值。
-4. 使用 "repeat": "{items}" 搭配傳入 items 陣列 props，自動展開 N 個元素。
-5. 例：<Cube from="方塊:方塊:主選單" items={["首頁","關於","服務"]} /> — repeat 自動展開
-
-正確範例（以主選單為例）：
-在基礎佈局中：
-<Cube from="方塊:方塊:基礎佈局" context={c} /> — items 由 mergedArgs 從 $api 取得，repeat 自動展開
-
-在測試頁中：
-<Cube from="方塊:方塊:主選單" context={c} color="primary" items={["首頁","關於","服務"]} />`;
+3. 使用 "repeat": "{items}" 搭配傳入 items 陣列 props，自動展開 N 個元素。`;
 
 export class PageGenerator {
   constructor(private c: Context) {}
