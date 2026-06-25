@@ -1,5 +1,6 @@
 // Cube 生成 Task — Agent 架構：支援初次生成 + 多輪連續對話修改
 // 管理員可以像 Cursor/Trae 一樣反覆對話調整方塊外觀，AI 記住歷史並精準修改
+import { 取得域名 } from '../../../services/index.ts';
 
 import { Context } from 'hono';
 import { AITaskConfig, AI能力標籤 } from '../provider/adapter.ts';
@@ -46,7 +47,7 @@ export class CubeGenerator {
       const 對話 = new AI對話();
       對話.類型 = 'Cube生成';
       對話.標題 = `Cube: ${描述.slice(0, 30)}...`;
-      對話.網站ID = this.c.get('host') as string;
+      對話.網站ID = 取得域名(this.c);
       對話.新增訊息('user', `生成方塊（儲存於${儲存目標}）: ${描述}`);
 
       const prompt = await 載入提示詞(this.c, 'AI提示詞:AI提示詞:cube-generator', DEFAULT_PROMPT);
@@ -96,13 +97,13 @@ export class CubeGenerator {
           // 對話不存在就開新的
           對話 = new AI對話();
           對話.類型 = 'Cube生成';
-          對話.網站ID = this.c.get('host') as string;
+          對話.網站ID = 取得域名(this.c);
           對話.標題 = `Cube: ${管理員指令.slice(0, 30)}...`;
         }
       } else {
         對話 = new AI對話();
         對話.類型 = 'Cube生成';
-        對話.網站ID = this.c.get('host') as string;
+        對話.網站ID = 取得域名(this.c);
         對話.標題 = `Cube: ${管理員指令.slice(0, 30)}...`;
       }
 
@@ -155,7 +156,7 @@ export class CubeGenerator {
       const 儲存方塊 = await 資料池.創建或更新('方塊', {
         id: 方塊ID || `方塊:方塊:${crypto.randomUUID()}`,
         ...最終JSON,
-      }, this.c.get('host') as string);
+      }, 取得域名(this.c));
 
       // 8. 將 AI 的回應記錄回歷史，保持記憶連續
       對話.新增訊息('assistant', 原始回應);
@@ -184,7 +185,7 @@ export class CubeGenerator {
   private async 記錄使用(serverID: string, providerType: string, 回應: { 內容: string; token數: number; 耗時毫秒: number }, 開始時間: number, 成功: boolean) {
     try {
       const 記錄 = new AI使用記錄();
-      記錄.網站ID = this.c.get('host') as string;
+      記錄.網站ID = 取得域名(this.c);
       記錄.使用類型 = 'Cube生成';
       記錄.provider = providerType;
       記錄.serverID = serverID;

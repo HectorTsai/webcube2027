@@ -4,9 +4,12 @@ import Cube from "../../components/方塊.tsx";
 import 頁面 from "../../database/models/頁面.ts";
 import { info, error } from "../../utils/logger.ts";
 import { 安全過濾 } from "../../utils/安全過濾器.ts";
-import { InnerAPI } from "../index.ts";
+import { InnerAPI, 取得語言 } from "../index.ts";
 import { Context } from "hono";
 import languageService from "../languageService/index.ts";
+
+// 🎯 效能優化：正則表達式提升至模組頂層，編譯一次終身複用
+const LANG_PREFIX_RE = /^\/([a-z]{2}(?:-[a-z]{2})?)(\/.*)?$/;
 
 /**
  * 頁面渲染服務
@@ -22,7 +25,7 @@ export default class PageService {
       const 支援語言 = await languageService.取得支援語言(c);
       
       // 2. 檢查是否是語言前綴格式
-      const match = path.match(/^\/([a-z]{2}(?:-[a-z]{2})?)(\/.*)?$/);
+      const match = path.match(LANG_PREFIX_RE);
       if (match) {
         const [, 語言前綴, 頁面路徑部分] = match;
         const 頁面路徑 = 頁面路徑部分 || '/';
@@ -47,8 +50,7 @@ export default class PageService {
       }
       
       // 4. 没有語言前綴，使用預設語言
-      const 系統資訊 = c.get('系統資訊');
-      const 預設語言 = 系統資訊?.預設語言 || 'zh-tw';
+      const 預設語言 = await 取得語言(c);
       
       if (支援語言.includes(預設語言)) {
         return { 語言: 預設語言, 頁面路徑: path };
@@ -120,8 +122,6 @@ export default class PageService {
   private static async 取得佈局方塊ID(c?: Context): Promise<string> {
     try {
       if (!c) return '方塊:方塊:基礎佈局';
-      
-      const { InnerAPI } = await import('../../services/index.ts');
       
       // 1. 取得當前佈景主題
       const 主題回應 = await InnerAPI(c, '/api/v1/theme');
@@ -324,7 +324,7 @@ export default class PageService {
     try {
       let 實際頁面路徑 = path;
       
-      const match = path.match(/^\/([a-z]{2}(?:-[a-z]{2})?)(\/.*)?$/);
+      const match = path.match(LANG_PREFIX_RE);
       if (match) {
         const [, _語言前綴, 頁面路徑部分] = match;
         實際頁面路徑 = 頁面路徑部分 || '/';

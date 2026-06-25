@@ -1,5 +1,6 @@
 // 客服 Task — 限定網站內容的 RAG 問答
 
+import { 取得域名 } from '../../../services/index.ts';
 import { Context } from 'hono';
 import { AIPoolManager } from '../pool.ts';
 import { AITaskConfig, AI能力標籤 } from '../provider/adapter.ts';
@@ -44,7 +45,7 @@ export class CustomerService {
         對話 = new AI對話();
         對話.類型 = '客服';
         對話.標題 = `客服: ${問題.slice(0, 30)}...`;
-        對話.網站ID = this.c.get('host') as string;
+        對話.網站ID = 取得域名(this.c);
       }
 
       對話.新增訊息('user', 問題);
@@ -93,7 +94,7 @@ export class CustomerService {
   private async 記錄使用(serverID: string, providerType: string, 回應: { 內容: string; token數: number; 耗時毫秒: number }, 開始時間: number, 成功: boolean) {
     try {
       const 記錄 = new AI使用記錄();
-      記錄.網站ID = this.c.get('host') as string;
+      記錄.網站ID = 取得域名(this.c);
       記錄.使用類型 = '客服';
       記錄.provider = providerType;
       記錄.serverID = serverID;

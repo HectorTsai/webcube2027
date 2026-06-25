@@ -1,5 +1,6 @@
 // 頁面 API 模組
 import { Context } from 'hono';
+import { 取得語言 } from '../index.ts';
 import { APIModule, RouteParams } from './index.ts';
 import { info, error } from '../../utils/logger.ts';
 import { 資料池 } from '../../database/資料池.ts';
@@ -92,7 +93,7 @@ export async function POST(c: Context, _params: RouteParams): Promise<Response> 
     // await info('頁面 API', `建立頁面成功: ${結果.data.id} (來源: ${結果.source})`);
     
     // 使用資料過濾器處理多國語言和安全欄位
-    const language = c.get('語言') || 'zh-tw';
+    const language = await 取得語言(c);
     const 回應資料 = await 資料過濾器.一般過濾(結果.data, language);
 
     return c.json({
@@ -148,7 +149,7 @@ export async function PUT(c: Context, _params: RouteParams): Promise<Response> {
     // await info('頁面 API', `更新頁面成功: ${結果.data.id} (來源: ${結果.source})`);
     
     // 使用資料過濾器處理多國語言和安全欄位
-    const language = c.get('語言') || 'zh-tw';
+    const language = await 取得語言(c);
     const 回應資料 = await 資料過濾器.一般過濾(結果.data, language);
 
     return c.json({
@@ -245,7 +246,7 @@ async function 處理根據路徑取得頁面(c: Context, route: string): Promis
     // await info('頁面 API', `成功根據路徑取得頁面: ${route} (來源: ${結果.source})`);
     
     // 使用資料過濾器處理多國語言和安全欄位
-    const language = c.get('語言') || 'zh-tw';
+    const language = await 取得語言(c);
     const 回應資料 = await 資料過濾器.一般過濾(匹配頁面, language);
 
     return c.json({
@@ -280,7 +281,7 @@ async function 處理取得單一頁面(c: Context, id: string): Promise<Respons
     // await info('頁面 API', `成功取得頁面: ${id} (來源: ${結果.source})`);
     
     // 使用資料過濾器處理多國語言和安全欄位
-    const language = c.get('語言') || 'zh-tw';
+    const language = await 取得語言(c);
     const 回應資料 = await 資料過濾器.一般過濾(結果.data, language);
 
     return c.json({
@@ -311,7 +312,7 @@ async function 處理取得頁面欄位(c: Context, pageId: string, fieldPath: s
     }
     
     // 過濾後再取欄位（確保多國語言已解析）
-    const language = c.get('語言') || 'zh-tw';
+    const language = await 取得語言(c);
     const 回應資料 = await 資料過濾器.一般過濾(結果.data, language);
     
     // 逐層取值（如 標題 或 內容.xxx）
@@ -352,7 +353,7 @@ async function 處理取得所有頁面(c: Context): Promise<Response> {
     // await info('頁面 API', `取得頁面列表: ${結果.data?.length || 0} 筆 (來源: ${結果.source})`);
     
     // 使用資料過濾器處理多國語言和安全欄位 - 精簡列表
-    const language = c.get('語言') || 'zh-tw';
+    const language = await 取得語言(c);
     const 過濾資料 = 結果.data ? await 資料過濾器.列表過濾(結果.data, language, 'simple') : [];
     
     return c.json({

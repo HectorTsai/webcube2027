@@ -1,13 +1,9 @@
 // deno-lint-ignore-file no-explicit-any
 import { Hono } from "hono";
-import { jsx } from "hono/jsx";
-import { 初始化UnoCSS, 產生樣式 } from './unocss/unocss.ts';
+import { 初始化UnoCSS } from './unocss/unocss.ts';
 import { info, error } from './utils/logger.ts';
-import { 加密, 解密 } from './utils/密碼方法.ts';
-import { 資料庫解析器, 清理資料庫連線 } from './middleware/db-resolver.ts';
-import { 資訊載入器 } from './middleware/info-loader.ts';
-import { 語言解析器 } from './middleware/language-resolver.ts';
 import { 資料池 } from './database/資料池.ts';
+import { 設定App } from "./services/index.ts";
 import { 處理API請求 } from "./services/apiService/index.ts";
 import { 處理Media請求 } from "./services/mediaService/index.ts";
 import { 處理Renderer請求 } from './services/rendererService/index.ts';
@@ -16,44 +12,16 @@ import { 處理AI請求 } from './services/aiService/index.ts';
 import { registerTranslation } from '@dui/smartmultilingual';
 import { TranslationAdapter } from './services/aiService/translation-adapter.ts';
 
-// API 透過動態路由分發器處理，無需直接導入
-
 const app = new Hono();
 
-// 全域中間件：設定 app 實例到 context (必須要有)
-app.use('*', (c, next) => {
-  (c as any).set('app', app);
-  return next();
-});
-
-// 全域中間件：資料庫解析器（必須在資訊載入器之前）
-app.use('*', 資料庫解析器);
-
-// 全域中間件：資訊載入器（預先載入系統資訊和網站資訊）
-app.use('*', 資訊載入器);
-
-// 全域中間件：語言解析器（必須在資訊載入器之後）
-app.use('*', 語言解析器);
-
-// API 路由由動態路由分發器處理
-
-// 全局错误处理中间件
-app.use('*', async (c, next) => {
-  try {
-    await next();
-  } catch (error) {
-    await error('全局错误处理', `未捕获的错误: ${error}`);
-    return c.json({
-      success: false,
-      message: '服务器内部错误',
-      error: (error as Error).toString()
-    }, 500);
-  }
-});
-
-// 全域請求攔截器
-app.all('*', (c, next) => {
-  return next();
+// ── Hono 原生錯誤處理（替代 middleware try/catch）──
+app.onError((err, c) => {
+  error('全域錯誤', String(err));
+  return c.json({
+    success: false,
+    message: '伺服器內部錯誤',
+    error: err instanceof Error ? err.message : String(err)
+  }, 500);
 });
 
 // 健康檢查
@@ -61,80 +29,59 @@ app.get('/health', (c) => {
   return c.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// 動態路由分發器 - 第三階段核心功能 (必須是最後一個路由)
+// ── 動態路由分發器 ──
 app.all('*', async (c) => {
   const path = c.req.path;
-  const method = c.req.method;
-  
-  
-  // 記錄路由日誌
-  // await info('路由分發器', `${method} ${path}`);
-  
+
   try {
-    // await info('路由分發器', `服務處理器導入完成`);
-    
-    // 路由分發邏輯
     switch (true) {
       case path.startsWith('/test'):
-        // 測試服務
-        // await info('路由分發器', `分發到測試服務: ${path}`);
         return await 處理測試請求(c);
       case path.startsWith('/api/v1/ai'):
         return await 處理AI請求(c);
       case path.startsWith('/api'):
-        // API 服務
-        // await info('路由分發器', `分發到 API 服務: ${path}`);
         return await 處理API請求(c);
       case path.startsWith('/media'):
-        // Media 服務 (包含 /media/v1/, /media/script/, /medias/)
-        // await info('路由分發器', `分發到 Media 服務: ${path}`);
         return await 處理Media請求(c);
       default:
-        // Renderer 服務 (處理所有其他請求)
-        // await info('路由分發器', `分發到 Renderer 服務: ${path}`);
         return await 處理Renderer請求(c);
     }
-    
-  } catch (錯誤) {
-    await error('路由分發器', `路由分發失敗: ${錯誤}`);
+  } catch (err) {
+    await error('路由分發器', `路由分發失敗: ${err}`);
     return c.json({
       success: false,
       message: '路由分發失敗',
-      error: (錯誤 as Error).toString()
+      error: (err as Error).toString()
     }, 500);
   }
 });
 
-// 初始化並啟動伺服器
+// ── 啟動伺服器 ──
 async function 啟動伺服器() {
   try {
-    // 初始化資料池（L1 連線 + 種子 + 定時器）
-    await 資料池.初始化();
+    // 1. 資料庫初始化（L1 + L2）
+    await 資料池.初始化();    // L1 連線 + seed + 定時器
+    await 資料池.初始化L2();  // L2 連線（從 L1 讀取連線資訊）
+    // L3 懶載入：資料池內部自動在首次查詢時初始化
 
-    // 註冊自訂翻譯服務（KV 快取 + Google fallback），取代內建 Google 翻譯
+    // 2. InnerAPI 內部路由依賴（模組層級注入，替代 middleware c.set('app')）
+    設定App(app);
+
+    // 3. 註冊翻譯服務
     registerTranslation(new TranslationAdapter());
 
-    // 初始化 UnoCSS
+    // 4. UnoCSS
     await 初始化UnoCSS();
-    // await info('伺服器', 'UnoCSS 初始化完成');
-    
-    // 啟動伺服器
-    const port = 8000;
-    // await info('伺服器', `伺服器啟動於 http://localhost:${port}`);
-    // await info('伺服器', `UnoCSS 測試頁面: http://localhost:${port}/test-unocss`);
-    // await info('伺服器', `內部調用測試頁面: http://localhost:${port}/test-internal-call`);
-    // await info('伺服器', `系統資訊 API: http://localhost:${port}/api/v1/system/info`);
-    // await info('伺服器', `三層查詢測試 API: http://localhost:${port}/api/v1/test/three-tier`);
-    
-    Deno.serve({ port }, app.fetch);
-    
-  } catch (錯誤) {
-    await error('伺服器', `伺服器啟動失敗: ${錯誤}`);
+
+    // 5. 啟動 HTTP 伺服器
+    Deno.serve({ port: 8000 }, app.fetch);
+
+  } catch (err) {
+    await error('伺服器', `啟動失敗: ${err}`);
     Deno.exit(1);
   }
 }
 
-// 如果直接執行此檔案，則啟動伺服器
 if (import.meta.main) {
   啟動伺服器();
 }

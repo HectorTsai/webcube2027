@@ -39,27 +39,35 @@ export async function 查詢翻譯快取(
 ): Promise<Record<string, string> | null> {
   if (!isCachable(text)) return null;
 
-  const id = cacheId(sourceLang, text);
-  const result = await 資料池.查詢單一<單字>(id);
-
+  // 遍歷所有層級單字表，找到原文匹配的記錄
+  // （不可用 hash ID 查詢，種子資料 ID 是手動命名，如 單字:單字:copyright）
+  const result = await 資料池.查詢所有列表<單字>('單字', 10000, 0);
   if (!result.success || !result.data) return null;
 
-  const cached: Record<string, string> = {};
-  let allFound = true;
-  for (const lang of targetLangs) {
-    const val = result.data.資料.getText(lang);
-    if (val) {
-      cached[lang] = val;
-    } else {
-      allFound = false;
-    }
-  }
+  for (const word of result.data) {
+    const 原文 = word.資料.getText(sourceLang);
+    if (原文 !== text) continue;
 
-  if (allFound) {
-    await info('翻譯快取', `命中: ${sourceLang} → ${targetLangs.join(',')} "${text}"`);
-    // 更新最後讀取時間
-    await 資料池.創建或更新('單字', { id, 最後讀取: new Date() });
-    return cached;
+    const cached: Record<string, string> = {};
+    let allFound = true;
+    for (const lang of targetLangs) {
+      const val = word.資料.getText(lang);
+      if (val) {
+        cached[lang] = val;
+      } else {
+        allFound = false;
+      }
+    }
+
+    if (allFound) {
+      await info('翻譯快取', `命中: ${sourceLang} → ${targetLangs.join(',')} "${text}"`);
+      // 寫回完整資料（非只更新最後讀取）
+      await 資料池.創建或更新('單字', { 
+        ...word.toJSON(),
+        最後讀取: new Date() 
+      } as unknown as Partial<單字>);
+      return cached;
+    }
   }
 
   return null;
@@ -76,21 +84,29 @@ export async function 寫入翻譯快取(
 ): Promise<void> {
   if (!isCachable(text)) return;
 
-  const id = cacheId(sourceLang, text);
-
   try {
-    // 查詢現有單字，合併後寫回
-    const existing = await 資料池.查詢單一<單字>(id);
-
+    // 遍歷所有層級單字表，找到原文匹配的記錄，合併後寫回
+    const result = await 資料池.查詢所有列表<單字>('單字', 10000, 0);
+    let existingId: string | null = null;
     const 合併資料: Record<string, string> = {};
-    if (existing.success && existing.data) {
-      for (const [lang, val] of Object.entries(existing.data.資料.toJSON())) {
-        if (val) 合併資料[lang] = val;
+
+    if (result.success && result.data) {
+      for (const word of result.data) {
+        const 原文 = word.資料.getText(sourceLang);
+        if (原文 === text) {
+          existingId = word.id;
+          for (const [lang, val] of Object.entries(word.資料.toJSON())) {
+            if (val) 合併資料[lang] = val;
+          }
+          break;
+        }
       }
     }
+
     合併資料[sourceLang] = text;
     Object.assign(合併資料, translations);
 
+    const id = existingId || cacheId(sourceLang, text);
     await 資料池.創建或更新<單字>('單字', {
       id,
       資料: 合併資料,

@@ -93,8 +93,9 @@ async function 從外部URL載入圖示(url: string): Promise<Response | null> {
  */
 async function 解析選單圖示ID(c: Context): Promise<string | null> {
   try {
-    const 系統資訊 = c.get('系統資訊') as Record<string, unknown> | null;
-    const 骨架ID = 系統資訊?.骨架 as string;
+    const sysRes = await InnerAPI(c, '/api/v1/info/system');
+    const sysData = await sysRes.json();
+    const 骨架ID = sysData?.data?.骨架 as string;
     if (!骨架ID) return null;
     const res = await InnerAPI(c, `/api/v1/cube/${骨架ID}`);
     if (!res.ok) return null;
@@ -112,9 +113,13 @@ const icon: MediaModule = {
       
       // 無 id → 回傳網站商標，再 fallback 到系統商標
       if (!iconId) {
-        const 網站 = c.get('網站資訊') as Record<string, unknown> | null;
-        const 系統 = c.get('系統資訊') as Record<string, unknown> | null;
-        iconId = (網站?.商標 as string) || (系統?.商標 as string) || '圖示:圖示:web_cube';
+        const siteRes = await InnerAPI(c, '/api/v1/info/website');
+        const siteData = await siteRes.json();
+        const siteIcon = siteData?.data?.商標 as string | undefined;
+        const sysRes = await InnerAPI(c, '/api/v1/info/system');
+        const sysData = await sysRes.json();
+        const sysIcon = sysData?.data?.商標 as string | undefined;
+        iconId = siteIcon || sysIcon || '圖示:圖示:web_cube';
       }
 
       // 「選單」→ 從骨架設定取得選單按鈕圖示

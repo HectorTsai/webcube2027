@@ -38,11 +38,13 @@ export function processChildren(
       const newProps: Record<string, any> = {};
 
       // 只在子元件沒有指定的情況下才傳入 baseProps
-      Object.entries(baseProps).forEach(([key, value]) => {
+      const baseKeys = Object.keys(baseProps);
+      for (let i = 0; i < baseKeys.length; i++) {
+        const key = baseKeys[i];
         if (child.props[key] === undefined) {
-          newProps[key] = value;
+          newProps[key] = baseProps[key];
         }
-      });
+      }
 
       // 合併 extraProps
       Object.assign(newProps, extraProps);

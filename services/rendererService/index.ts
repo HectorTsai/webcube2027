@@ -3,7 +3,7 @@
 import { Context } from 'hono';
 import { 產生樣式 } from '../../unocss/unocss.ts';
 import { info, error } from '../../utils/logger.ts';
-import { InnerAPI } from '../index.ts';
+import { InnerAPI, 取得語言 } from '../index.ts';
 import PageService from '../pageService/index.ts';
 import 骨架 from "../../database/models/骨架.ts";
 import 配色 from "../../database/models/配色.ts";
@@ -66,36 +66,79 @@ async function 渲染頁面(c: Context, path: string): Promise<Response> {
 }
 
 async function 取得完整主題設定(c: Context): Promise<[配色, 骨架, 風格, 裝飾, any]> {
-  let 最終配色 = new 配色(); let 最終骨架 = new 骨架(); let 最終風格 = new 風格(); let 最終裝飾 = new 裝飾(); let 最終動畫 = null;
+  let 最終配色 = new 配色(); 
+  let 最終骨架 = new 骨架(); 
+  let 最終風格 = new 風格(); 
+  let 最終裝飾 = new 裝飾(); 
+  let 最終動畫 = null;
+  
   try {
+    // 1. 先取得主題資料（必須先拿到 theme 才能併發子項目）
     const 主題回應 = await InnerAPI(c, '/api/v1/theme');
-    if (主題回應.ok) {
-      const 主題資料 = await 主題回應.json();
-      if (主題資料.success && 主題資料.data) {
-        const theme = 主題資料.data;
-        if (theme.配色) {
-          const res = await (await InnerAPI(c, `/api/v1/color?id=${encodeURIComponent(theme.配色)}`)).json();
-          if (res.success) 最終配色 = new 配色(res.data);
-        }
-        if (theme.骨架) {
-          const res = await (await InnerAPI(c, `/api/v1/skeleton?id=${encodeURIComponent(theme.骨架)}`)).json();
-          if (res.success) 最終骨架 = new 骨架(res.data);
-        }
-        if (theme.風格) {
-          const res = await (await InnerAPI(c, `/api/v1/style?id=${encodeURIComponent(theme.風格)}`)).json();
-          if (res.success) 最終風格 = new 風格(res.data);
-        }
-        if (theme.裝飾) {
-          const res = await (await InnerAPI(c, `/api/v1/ornament?id=${encodeURIComponent(theme.裝飾)}`)).json();
-          if (res.success) 最終裝飾 = new 裝飾(res.data);
-        }
-        if (theme.動畫) {
-          const res = await (await InnerAPI(c, `/api/v1/animate?id=${encodeURIComponent(theme.動畫)}`)).json();
-          if (res.success) 最終動畫 = res.data;
-        }
-      }
+    if (!主題回應.ok) return [最終配色, 最終骨架, 最終風格, 最終裝飾, 最終動畫];
+    
+    const 主題資料 = await 主題回應.json();
+    if (!主題資料.success || !主題資料.data) {
+      return [最終配色, 最終骨架, 最終風格, 最終裝飾, 最終動畫];
     }
-  } catch (e) {}
+    
+    const theme = 主題資料.data;
+    
+    // 🎯 效能優化：使用 Promise.all 併發請求所有子項目，消除序列等待
+    const promises: Promise<void>[] = [];
+    
+    if (theme.配色) {
+      promises.push(
+        InnerAPI(c, `/api/v1/color?id=${encodeURIComponent(theme.配色)}`)
+          .then(res => res.json())
+          .then(res => { if (res.success) 最終配色 = new 配色(res.data); })
+          .catch(() => {})
+      );
+    }
+    
+    if (theme.骨架) {
+      promises.push(
+        InnerAPI(c, `/api/v1/skeleton?id=${encodeURIComponent(theme.骨架)}`)
+          .then(res => res.json())
+          .then(res => { if (res.success) 最終骨架 = new 骨架(res.data); })
+          .catch(() => {})
+      );
+    }
+    
+    if (theme.風格) {
+      promises.push(
+        InnerAPI(c, `/api/v1/style?id=${encodeURIComponent(theme.風格)}`)
+          .then(res => res.json())
+          .then(res => { if (res.success) 最終風格 = new 風格(res.data); })
+          .catch(() => {})
+      );
+    }
+    
+    if (theme.裝飾) {
+      promises.push(
+        InnerAPI(c, `/api/v1/ornament?id=${encodeURIComponent(theme.裝飾)}`)
+          .then(res => res.json())
+          .then(res => { if (res.success) 最終裝飾 = new 裝飾(res.data); })
+          .catch(() => {})
+      );
+    }
+    
+    if (theme.動畫) {
+      promises.push(
+        InnerAPI(c, `/api/v1/animate?id=${encodeURIComponent(theme.動畫)}`)
+          .then(res => res.json())
+          .then(res => { if (res.success) 最終動畫 = res.data; })
+          .catch(() => {})
+      );
+    }
+    
+    // 等待所有併發請求完成
+    await Promise.all(promises);
+    
+  } catch (e) {
+    // 靜默處理錯誤，返回預設值
+  }
+  
   return [最終配色, 最終骨架, 最終風格, 最終裝飾, 最終動畫];
 }
 
@@ -116,7 +159,7 @@ async function 生成完整HTML(
   裝飾實例: 裝飾,
   動畫資料: any
 ): Promise<string> {
-  const lang = c.get('語言') || 'zh-tw';
+  const lang = await 取得語言(c);
   
   // 提取頁面標題（MultilingualString → 指定語言）
   let pageTitle = 'WebCube 2027';
@@ -151,18 +194,33 @@ async function 生成完整HTML(
       <script type="module" src="/media/v1/script/cally.js"></script>
       <style>
         /* 🎯 關鍵救星：定義全域變數，讓您的 c-style-apply 順利吸到源頭活水 */
+        /* 🛡️ 每個變數都有 OKLCH fallback，確保資料庫空值時樣式不崩潰 */
         :root {
           --color-primary-raw: ${主色};
-          --color-primary-content-raw: ${背景色}; /* 通常內容色會跟背景或中性對齊 */
+          --color-primary-content-raw: ${背景色};
           --color-primary-90-raw: ${主色} / 0.9;
           --color-primary-70-raw: ${主色} / 0.7;
           --color-primary-50-raw: ${主色} / 0.5;
           --color-primary-30-raw: ${主色} / 0.3;
           --color-primary-10-raw: ${主色} / 0.1;
           
-          /* 骨架物理變數注入 */
+          --color-secondary-raw: 55% 0.18 280;
+          --color-accent-raw: 70% 0.15 160;
+          --color-info-raw: ${資訊色};
+          --color-success-raw: ${成功色};
+          --color-warning-raw: ${警告色};
+          --color-error-raw: ${錯誤色};
+          --color-neutral-raw: 50% 0 0;
+          --color-base-raw: 98% 0 0;
+          --color-danger-raw: ${錯誤色};
+          
+          /* 骨架物理變數注入（含 fallback） */
           --radius-md: ${骨架實例?.配置?.['radius-md'] || '0.5rem'};
+          --radius-sm: ${骨架實例?.配置?.['radius-sm'] || '0.25rem'};
+          --radius-lg: ${骨架實例?.配置?.['radius-lg'] || '1rem'};
           --font-base: ${骨架實例?.配置?.['font-base'] || '1rem'};
+          --font-sm: ${骨架實例?.配置?.['font-sm'] || '0.875rem'};
+          --font-lg: ${骨架實例?.配置?.['font-lg'] || '1.125rem'};
         }
 
         /* 注入 UnoCSS 產生的門禁樣式 */

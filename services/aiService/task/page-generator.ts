@@ -1,5 +1,6 @@
 // 頁面生成 Task — 與 AI 對話生成頁面內容與 Cube 組合
 
+import { 取得域名 } from '../../../services/index.ts';
 import { Context } from 'hono';
 import { AITaskConfig, AI能力標籤 } from '../provider/adapter.ts';
 import AI對話 from '../../../database/models/AI對話.ts';
@@ -68,7 +69,7 @@ export class PageGenerator {
       const 對話 = new AI對話();
       對話.類型 = '頁面生成';
       對話.標題 = `頁面生成: ${描述.slice(0, 30)}...`;
-      對話.網站ID = this.c.get('host') as string;
+      對話.網站ID = 取得域名(this.c);
       對話.新增訊息('user', 描述);
 
       const prompt = await 載入提示詞(this.c, 'AI提示詞:AI提示詞:page-generator', DEFAULT_PROMPT);
@@ -140,7 +141,7 @@ export class PageGenerator {
   private async 記錄使用(serverID: string, providerType: string, 回應: { 內容: string; token數: number; 耗時毫秒: number }, 開始時間: number, 成功: boolean) {
     try {
       const 記錄 = new AI使用記錄();
-      記錄.網站ID = this.c.get('host') as string;
+      記錄.網站ID = 取得域名(this.c);
       記錄.使用類型 = '頁面生成';
       記錄.provider = providerType;
       記錄.serverID = serverID;

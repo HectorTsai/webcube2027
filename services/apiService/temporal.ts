@@ -1,5 +1,6 @@
 // temporal API 模組 - 提供日期時間查詢
 import { Context } from 'hono';
+import { 取得語言 } from '../index.ts';
 import { RouteParams } from './index.ts';
 
 // GET - 取得日期時間資訊
@@ -15,7 +16,7 @@ export async function GET(c: Context, params: RouteParams): Promise<Response> {
 
   // 無參數：回傳本地化日期字串
   if (!params.id) {
-    const language = (c.get('語言') as string) || 'zh-tw';
+    const language = await 取得語言(c);
     const locale = language === 'zh-tw' ? 'zh-TW' : language === 'vi' ? 'vi-VN' : 'en-US';
     const options: Intl.DateTimeFormatOptions = {
       year: 'numeric',

@@ -5,7 +5,7 @@ import { jsx } from "hono/jsx/jsx-runtime";
 import { Children } from "hono/jsx";
 import { Context } from "hono";
 import { InnerAPI } from "../services/index.ts"; // 👈 完美保留原版函數式導入
-import { 驗證完整性, 安全過濾Cube } from "../utils/安全過濾器.ts";
+import { 驗證完整性, 安全過濾Cube, 安全過濾CSS, substitute } from "../utils/安全過濾器.ts";
 import { warn } from "../utils/logger.ts";
 import 方塊 from "../database/models/方塊.ts";
 import 容器 from "./容器.tsx";
@@ -75,22 +75,6 @@ function isAttrAllowed(tag: string, attr: string): boolean {
   return false;
 }
 
-function flattenChildren(children: any): any[] {
-  if (children === undefined || children === null) return [];
-  if (Array.isArray(children)) {
-    return children.reduce((acc, el) => acc.concat(flattenChildren(el)), [] as any[]);
-  }
-  if (children && typeof children === 'object') {
-    if (children.tag === '' || children.tag === undefined) {
-      const innerChildren = children.props?.children || children.children;
-      if (innerChildren !== undefined) {
-        return flattenChildren(innerChildren);
-      }
-    }
-  }
-  return [children];
-}
-
 function isNativeTag(tag: string): boolean {
   return NATIVE_TAGS.has(tag.toLowerCase());
 }
@@ -102,51 +86,6 @@ const CUBE_META = new Set([
 
 function isVoidElement(tag: string): boolean {
   return VOID_ELEMENTS.has(tag.toLowerCase());
-}
-
-function substitute(value: unknown, args: Record<string, unknown>): string {
-  if (typeof value !== 'string') return '';
-  return value.replace(/\{([\w\-\.\u4e00-\u9fa5]+)\}/g, (_, key: string) => {
-    // 支持嵌套属性访问，如 {copyright.開始年份}
-    const keys = key.split('.');
-    let val: unknown = args;
-    for (const k of keys) {
-      if (val && typeof val === 'object' && k in (val as Record<string, unknown>)) {
-        val = (val as Record<string, unknown>)[k];
-      } else {
-        val = undefined;
-        break;
-      }
-    }
-    return val !== undefined && val !== null ? String(val) : `{${key}}`;
-  });
-}
-
-// ── API 快取（雙層：模組層級跨請求 + Context 層級請求內） ──
-interface ApiCacheEntry { json: unknown; ts: number; }
-const _apiGlobalCache = new Map<string, ApiCacheEntry>();
-const GLOBAL_CACHE_TTL_MS = 60_000; // 1 分鐘，避免翻譯 API 等昂貴呼叫重複打
-
-async function cachedInnerAPI(c: Context, path: string): Promise<ApiCacheEntry> {
-  // 1. 先查全域快取（跨請求共享）
-  const globalEntry = _apiGlobalCache.get(path);
-  if (globalEntry && (Date.now() - globalEntry.ts) < GLOBAL_CACHE_TTL_MS) {
-    return globalEntry;
-  }
-  // 2. 再查請求層級快取
-  let cache = c.get("api_cache") as Map<string, ApiCacheEntry> | undefined;
-  if (!cache) {
-    cache = new Map();
-    c.set("api_cache", cache);
-  }
-  if (cache.has(path)) return cache.get(path)!;
-  
-  const response = await InnerAPI(c, path);
-  const data = await response.json();
-  const entry: ApiCacheEntry = { json: data, ts: Date.now() };
-  cache.set(path, entry);
-  _apiGlobalCache.set(path, entry);
-  return entry;
 }
 
 // ── $api 語法解析器 ──
@@ -179,8 +118,8 @@ async function resolveApiReferences(
     
     if (context && field) {
       try {
-        const entry = await cachedInnerAPI(context, path);
-        const data = entry.json as any;
+        const response = await InnerAPI(context, path);
+        const data = await response.json() as any;
         if (data.success && data.data) {
           // 支援巢狀欄位，如 "版權資料.公司"
           const fieldParts = field.split('.');
@@ -302,15 +241,8 @@ async function renderCubeChildren(
 
 // ── 🎯 完美還原原汁原味非同步 InnerAPI(c, ...) 請求設計 ──
 export async function 載入方塊定義(cubeId: string, c: Context): Promise<Partial<方塊> | null> {
-  let reqCache = c.get("cube_request_cache") as Map<string, Partial<方塊>> | undefined;
-  if (!reqCache) {
-    reqCache = new Map();
-    c.set("cube_request_cache", reqCache);
-  }
-  if (reqCache.has(cubeId)) return reqCache.get(cubeId) || null;
-
   try {
-    const response = await InnerAPI(c, `/api/v1/cube/${cubeId}`); // 👈 原版非同步函數呼叫
+    const response = await InnerAPI(c, `/api/v1/cube/${cubeId}`);
     const result = await response.json();
     if (result.success && result.data) {
       const 已檢驗 = result.data.已檢驗 as string;
@@ -323,14 +255,11 @@ export async function 載入方塊定義(cubeId: string, c: Context): Promise<Pa
       } else {
         result.data = 安全過濾Cube(result.data);
       }
-      const definition = new 方塊(result.data) as Partial<方塊>;
-      reqCache.set(cubeId, definition);
-      return definition;
+      return new 方塊(result.data) as Partial<方塊>;
     }
   } catch {
     // 失敗保護
   }
-  reqCache.set(cubeId, undefined as any);
   return null;
 }
 
@@ -344,8 +273,8 @@ async function resolveMergedArgsDef(
     if (spec.startsWith('@api/')) {
       const apiPath = spec.replace('@api/', '/api/');
       try {
-        const entry = await cachedInnerAPI(context, apiPath);
-        const data = entry.json as any;
+        const response = await InnerAPI(context, apiPath);
+        const data = await response.json() as any;
         resolved[key] = data.success ? data.data : undefined;
       } catch {
         resolved[key] = undefined;
@@ -691,7 +620,10 @@ export default async function Cube(props: CubeProps): Promise<any> {
             const existingWrapCls = (wrapProps.class as string) || "";
             wrapProps.class = existingWrapCls ? `${existingWrapCls} ${scopeClass}` : scopeClass;
           }
-          const scopedCss = `.${scopeClass} ${cssText}`;
+          // 🛡️ 安全防護：對 CSS 內容執行安全過濾，防止 CSS 注入攻擊
+          const sanitizedCss = 安全過濾CSS(cssText);
+          // cssText 已經是完整的 CSS 規則（包含選擇器和屬性塊），直接使用
+          const scopedCss = sanitizedCss;
           styleNodes.push(jsx("style", { children: scopedCss } as Record<string, unknown>));
         }
       }

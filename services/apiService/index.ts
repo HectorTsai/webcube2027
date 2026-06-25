@@ -28,29 +28,26 @@ export async function 處理API請求(c: Context): Promise<Response> {
     const pathParts = path.replace('/api/v1/', '').split('/');
     const resourceName = pathParts[0];
     
-    // 動態載入模組 - 智能回退機制
+    // 動態載入模組 - 智能回退機制（一路退到底）
     let apiModule: APIModule | null = null;
     let modulePath: string;
     let routeParams: RouteParams = {};
-    
-    // 嘗試完整路徑到單一模組的回退
-    const fallbackAttempts = [
-      { path: pathParts.join('/'), params: {} },                    // ./xxx/yyy/zzz.ts
-      { path: pathParts.slice(0, -1).join('/'), params: { id: pathParts[pathParts.length - 1] } }, // ./xxx/yyy.ts + {id: 'zzz'}
-      { path: pathParts.slice(0, -2).join('/'), params: { id: pathParts.slice(-2).join('/') } }, // ./xxx.ts + {id: 'yyy/zzz'}
-    ];
-    
-    for (const attempt of fallbackAttempts) {
-      if (!attempt.path) continue; // 避免空路徑
-      
+
+    // 從完整路徑一路回退到只剩模組名稱：
+    //   skeleton/aaa/bbb/ccc → skeleton/aaa/bbb → skeleton/aaa → skeleton
+    for (let i = 0; i < pathParts.length; i++) {
+      const moduleParts = pathParts.slice(0, pathParts.length - i);
+      const idParts = pathParts.slice(pathParts.length - i);
+      const attemptPath = moduleParts.join('/');
+      if (!attemptPath) continue;
+
       try {
-        modulePath = `./${attempt.path}.ts`;
+        modulePath = `./${attemptPath}.ts`;
         const module = await import(modulePath);
         apiModule = module.default;
-        routeParams = attempt.params;
-        
-        break; // 成功載入，跳出迴圈
-      } catch (moduleError) {
+        routeParams = idParts.length > 0 ? { id: idParts.join('/') } : {};
+        break;
+      } catch {
         // 繼續下一個嘗試
       }
     }

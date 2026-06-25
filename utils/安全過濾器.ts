@@ -50,6 +50,74 @@ export function 安全過濾(html: string): string {
   return result;
 }
 
+// ── CSS 安全過濾（深度防禦）──
+
+// 5. CSS 注入攻擊模式：</style> 標籤閉合
+const CSS_STYLE_CLOSE_RE = /<\/style/gi;
+
+// 6. CSS 危險 URI（在 url() 中）
+const CSS_URL_DANGEROUS_RE = /url\s*\(\s*['"]?\s*(javascript|data|vbscript):/gi;
+
+// 7. CSS expression() 攻擊（IE 舊版漏洞）
+const CSS_EXPRESSION_RE = /expression\s*\(/gi;
+
+// 8. CSS -moz-binding（Firefox XUL 攻擊）
+const CSS_MOZ_BINDING_RE = /-moz-binding\s*:/gi;
+
+// 9. CSS behavior（IE HTC 攻擊）
+const CSS_BEHAVIOR_RE = /behavior\s*:/gi;
+
+/**
+ * CSS 內容安全過濾
+ * 用於 <style> 標籤內的 CSS 內容，防止 CSS 注入攻擊
+ */
+export function 安全過濾CSS(css: string): string {
+  let result = css;
+  // 移除 </style> 標籤閉合攻擊
+  result = result.replace(CSS_STYLE_CLOSE_RE, '');
+  // 移除危險 URI（javascript:, data:, vbscript:）
+  result = result.replace(CSS_URL_DANGEROUS_RE, 'url(about:blank)');
+  // 移除 expression() 攻擊
+  result = result.replace(CSS_EXPRESSION_RE, '');
+  // 移除 -moz-binding 攻擊
+  result = result.replace(CSS_MOZ_BINDING_RE, '');
+  // 移除 behavior 攻擊
+  result = result.replace(CSS_BEHAVIOR_RE, '');
+  return result;
+}
+
+// ── 字串變數替換（{variable} 插值）──
+
+/** 將字串中的 {key} 佔位符替換為 args 中對應的值 */
+export function substitute(value: unknown, args: Record<string, unknown>): string {
+  if (typeof value !== 'string') return '';
+  return value.replace(/\{([\w\-\.\u4e00-\u9fa5]+)\}/g, (_, key: string) => {
+    const keys = key.split('.');
+    let val: unknown = args;
+    for (const k of keys) {
+      if (val && typeof val === 'object' && k in (val as Record<string, unknown>)) {
+        val = (val as Record<string, unknown>)[k];
+      } else {
+        val = undefined;
+        break;
+      }
+    }
+    return val !== undefined && val !== null ? String(val) : `{${key}}`;
+  });
+}
+
+// ── CSS 上下文安全替換（substitute + 過濾一次完成）──
+
+/**
+ * CSS 上下文安全替換
+ * 用於 style/className 等 CSS 屬性值的 {variable} 插值。
+ * 先執行 substitute 替換，再對替換後的值進行 CSS 安全過濾，
+ * 防止惡意使用者透過變數值注入 CSS 或跳出上下文。
+ */
+export function substituteCSS(value: unknown, args: Record<string, unknown>): string {
+  return 安全過濾CSS(substitute(value, args));
+}
+
 // ── Cube JSON 遞迴安全過濾 ──
 
 /**

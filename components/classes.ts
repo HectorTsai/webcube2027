@@ -72,9 +72,11 @@ export function 過濾無效Props(props: Record<string, any>): Record<string, an
   
   // 過濾 Alpine 屬性：x-*、@* 只應由 wrapper 標籤承接，不該洩漏到內部元素
   const domSafe: Record<string, any> = {};
-  for (const [k, v] of Object.entries(domSafeRest)) {
+  const keys = Object.keys(domSafeRest);
+  for (let i = 0; i < keys.length; i++) {
+    const k = keys[i];
     if (!k.startsWith("x-") && !k.startsWith("@")) {
-      domSafe[k] = v;
+      domSafe[k] = domSafeRest[k];
     }
   }
   return domSafe;

@@ -34,46 +34,21 @@ class LanguageServiceImpl implements ILanguageService {
   
   /**
    * 取得支援的語言列表
-   * 優化：整合分散的 Context 欄位，並將 API 查詢結果回寫緩存，大幅提升重複調用效能
+   * 🎯 直接呼叫 InnerAPI（內建透明快取 + L2→L1 自動回退），無需手動檢查 Context
    */
   async 取得支援語言(c: Context): Promise<string[]> {
     try {
-      // 1. 優先從 Context 取得已快取的語言列表
-      const 快取語言 = c.get('支援語言列表');
-      if (快取語言 && Array.isArray(快取語言)) {
-        return 快取語言;
-      }
-
-      // 2. 降級相容：嘗試從現有的其他 Context 欄位提取
-      const 網站資訊 = c.get('網站資訊');
-      if (網站資訊?.語言 && Array.isArray(網站資訊.語言)) {
-        c.set('支援語言列表', 網站資訊.語言); // 補回快取
-        return 網站資訊.語言;
-      }
-      
-      const 系統資訊 = c.get('系統資訊');
-      if (系統資訊?.語言 && Array.isArray(系統資訊.語言)) {
-        c.set('支援語言列表', 系統資訊.語言); // 補回快取
-        return 系統資訊.語言;
-      }
-      
-      // 3. 若無快取，使用 InnerAPI 發送帶有完整使用者身分憑證的內部請求
       const 資訊回應 = await InnerAPI(c, '/api/v1/info');
       const 資訊 = await 資訊回應.json();
       
       if (資訊.success && 資訊.data?.語言 && Array.isArray(資訊.data.語言)) {
-        const 支援語言 = 資訊.data.語言 as string[];
-        // 將結果寫入 Context 緩存，供當次請求後續的所有核心 Service 直接複用
-        c.set('支援語言列表', 支援語言);
-        return 支援語言;
+        return 資訊.data.語言 as string[];
       }
       
-      // 4. 萬一 API 沒給陣列，回傳系統預設語系防線
       return ['zh-tw'];
-      
     } catch (err) {
       await error('語言服務', `取得支援語言失敗: ${err}`);
-      return ['zh-tw']; // 錯誤時回傳預設語言
+      return ['zh-tw'];
     }
   }
   
@@ -91,8 +66,9 @@ class LanguageServiceImpl implements ILanguageService {
       
       // 2. 如果不支援，取得預設語言
       const 支援語言 = await this.取得支援語言(c);
-      const 系統資訊 = c.get('系統資訊');
-      const 預設語言 = 系統資訊?.預設語言 || 'zh-tw';
+      const infoRes = await InnerAPI(c, '/api/v1/info/system');
+      const infoData = await infoRes.json();
+      const 預設語言 = infoData?.data?.預設語言 || 'zh-tw';
       
       // 如果預設語言在支援列表中，使用預設語言
       if (支援語言.includes(預設語言)) {

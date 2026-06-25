@@ -9,6 +9,7 @@ import { GeminiProvider } from './provider/gemini.ts';
 import { OllamaProvider } from './provider/ollama.ts';
 import { info, error } from '../../utils/logger.ts';
 import { 資料池 } from '../../database/資料池.ts';
+import { InnerAPI, 取得域名 } from '../index.ts';
 import AI伺服器 from '../../database/models/AI伺服器.ts';
 
 // ── Provider 路由表 ──
@@ -54,7 +55,9 @@ export class AIPoolManager {
   ): Promise<{ 回應: AI回應; serverID: string; providerType: string }> {
     const 最低能力值 = taskConfig?.最低能力值 ?? 0;
     const 需求能力 = taskConfig?.需求能力 ?? [];
-    const 系統資訊 = this.c.get('系統資訊') as Record<string, unknown> | null;
+    const sysRes = await InnerAPI(this.c, '/api/v1/info/system');
+    const sysData = await sysRes.json();
+    const 系統資訊 = sysData?.data as Record<string, unknown> | null;
 
     // 1. 載入 Pool（L2 系統級 + L3 網站自備）
     await this.確保Pool初始化(系統資訊);
@@ -63,7 +66,7 @@ export class AIPoolManager {
       .filter(s => s.啟用 && this.檢查有效日期(s));
 
     // 2. 網站自備 server（L3，排最前面）
-    const 網站ID = this.c.get('host') as string;
+    const 網站ID = 取得域名(this.c);
     const 網站自備 = 全部.filter(s => s.網站ID === 網站ID);
     const result = await this.匹配並執行(網站自備, 最低能力值, 需求能力, 系統提示, 對話歷史, options);
     if (result) return result;
@@ -89,7 +92,9 @@ export class AIPoolManager {
    * 手動觸發 Pool 載入（供除錯端點使用）
    */
   async 觸發Pool載入(): Promise<void> {
-    const 系統資訊 = this.c.get('系統資訊') as Record<string, unknown> | null;
+    const sysRes = await InnerAPI(this.c, '/api/v1/info/system');
+    const sysData = await sysRes.json();
+    const 系統資訊 = sysData?.data as Record<string, unknown> | null;
     await this.確保Pool初始化(系統資訊);
   }
 

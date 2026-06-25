@@ -1,5 +1,6 @@
 // 佈景主題 API 模組 - 大一統 info 智慧對齊版
 import { Context } from 'hono';
+import { 取得語言 } from '../index.ts';
 import { APIModule, RouteParams } from './index.ts';
 import { error, info } from '../../utils/logger.ts';
 import { 資料池 } from '../../database/資料池.ts';
@@ -7,10 +8,14 @@ import { 資料過濾器 } from '../../utils/資料過濾器.ts';
 import 佈景主題 from '../../database/models/佈景主題.ts';
 import { InnerAPI } from '../../services/index.ts';
 
-// GET - 取得佈景主題 (/api/v1/theme/id 或 /api/v1/theme)
+// GET - 取得佈景主題 (/api/v1/theme/id 或 /api/v1/theme/id/欄位)
 export async function GET(c: Context, params: RouteParams): Promise<Response> {
   try {
     if (params.id && params.id !== 'all') {
+      const slashIdx = params.id.indexOf('/');
+      if (slashIdx !== -1) {
+        return await 處理取得佈景主題欄位(c, params.id.slice(0, slashIdx), params.id.slice(slashIdx + 1));
+      }
       return await 處理取得單一佈景主題(c, params.id);
     }
     return await 處理取得當前佈景主題(c);
@@ -91,7 +96,7 @@ async function 處理取得預設保底佈景主題(c: Context): Promise<Respons
  * 統一包裝輸出格式，完美對齊全中文五大天王欄位
  */
 async function 包裝並回傳佈景主題(c: Context, data: 佈景主題, source: string): Promise<Response> {
-  const language = c.get('語言') || 'zh-tw';
+  const language = await 取得語言(c);
   const 基礎過濾資料 = await 資料過濾器.一般過濾(data, language);
 
   const 回應資料 = {
@@ -109,6 +114,37 @@ async function 包裝並回傳佈景主題(c: Context, data: 佈景主題, sourc
     data: 回應資料,
     source: source
   });
+}
+
+// 處理取得佈景主題的巢狀欄位
+async function 處理取得佈景主題欄位(c: Context, id: string, fieldPath: string): Promise<Response> {
+  try {
+    const 結果 = await 資料池.查詢單一<佈景主題>(id);
+    if (!結果.success || !結果.data) {
+      return c.json({ success: false, error: { code: 'NOT_FOUND', message: '佈景主題不存在' } }, 404);
+    }
+    const language = await 取得語言(c);
+    const 過濾後 = await 資料過濾器.一般過濾(結果.data, language);
+    const value = 取巢狀欄位(過濾後, fieldPath);
+    if (value === null) {
+      return c.json({ success: false, error: { code: 'NOT_FOUND', message: `欄位 '${fieldPath}' 不存在` } }, 404);
+    }
+    return c.json({ success: true, data: value });
+  } catch (錯誤) {
+    await error('佈景主題 API', `取得欄位失敗: ${錯誤}`);
+    return c.json({ success: false, error: { code: 'INTERNAL_ERROR', message: '取得佈景主題欄位失敗' } }, 500);
+  }
+}
+
+function 取巢狀欄位(obj: Record<string, unknown>, path: string): unknown | null {
+  const parts = path.split('/');
+  let current: unknown = obj;
+  for (const part of parts) {
+    if (current && typeof current === 'object' && part in (current as Record<string, unknown>)) {
+      current = (current as Record<string, unknown>)[part];
+    } else return null;
+  }
+  return current;
 }
 
 const 模組: APIModule = { GET };

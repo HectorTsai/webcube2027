@@ -1,5 +1,6 @@
 // 方塊 API 模組
 import { Context } from 'hono';
+import { 取得語言 } from '../index.ts';
 import { APIModule, RouteParams } from './index.ts';
 import { info, error } from '../../utils/logger.ts';
 import { 資料池 } from '../../database/資料池.ts';
@@ -42,7 +43,7 @@ export async function POST(c: Context, _params: RouteParams): Promise<Response> 
     // await info('方塊 API', `創建方塊成功: ${結果.data.id} (來源: ${結果.source})`);
     
     // 使用資料過濾器處理多國語言和安全欄位
-    const language = c.get('語言') || 'zh-tw';
+    const language = await 取得語言(c);
     const 回應資料 = await 資料過濾器.一般過濾(結果.data, language);
 
     return c.json({
@@ -96,7 +97,7 @@ export async function PUT(c: Context, _params: RouteParams): Promise<Response> {
     // await info('方塊 API', `更新方塊成功: ${結果.data.id} (來源: ${結果.source})`);
     
     // 使用資料過濾器處理多國語言和安全欄位
-    const language = c.get('語言') || 'zh-tw';
+    const language = await 取得語言(c);
     const 回應資料 = await 資料過濾器.一般過濾(結果.data, language);
 
     return c.json({
@@ -176,7 +177,7 @@ async function 處理取得所有方塊(c: Context): Promise<Response> {
     // await info('方塊 API', `取得方塊列表: ${結果.data?.length || 0} 筆 (來源: ${結果.source})`);
     
     // 使用資料過濾器處理多國語言和安全欄位 - 精簡列表
-    const language = c.get('語言') || 'zh-tw';
+    const language = await 取得語言(c);
     const 過濾資料 = 結果.data ? await 資料過濾器.列表過濾(結果.data, language, 'simple') : [];
 
     return c.json({
@@ -216,7 +217,7 @@ async function 處理取得單一方塊(c: Context, id: string): Promise<Respons
     // await info('方塊 API', `成功取得方塊: ${id}`);
     
     // 使用資料過濾器處理多國語言和安全欄位
-    const language = c.get('語言') || 'zh-tw';
+    const language = await 取得語言(c);
     const 回應資料 = await 資料過濾器.一般過濾(結果.data, language);
 
     return c.json({

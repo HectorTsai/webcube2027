@@ -2,6 +2,7 @@
 import { processChildren } from "./index.ts"; 
 import { BaseComponentProps, 過濾無效Props } from "./classes.ts";
 import { jsx } from "hono/jsx/jsx-runtime";
+import { Children } from "hono/jsx";
 
 export interface 容器Props extends BaseComponentProps {
   hover?: boolean;
@@ -13,19 +14,6 @@ export interface 容器Props extends BaseComponentProps {
   direction?: string;
   /** 來自列表等子方塊的 wrapChild 定義，在 processChildren 展開後逐項於 Runtime 進行獨立包裝 */
   wrapChild?: { from: string; className?: string; style?: Record<string, string> };
-}
-
-// 專門打平 Hono JSX children 的巢狀陣列（看穿 Hono Fragment 或者是執行期推入的陣列）
-function flattenChildren(arr: any): any[] {
-  if (arr === undefined || arr === null) return [];
-  if (Array.isArray(arr)) return arr.flatMap(flattenChildren);
-  if (arr && typeof arr === 'object') {
-    if (arr.tag === '' || arr.tag === undefined) {
-      const inner = arr.props?.children || arr.children;
-      if (inner !== undefined) return flattenChildren(inner);
-    }
-  }
-  return [arr];
 }
 
 export default function 容器(props: 容器Props) {
@@ -62,19 +50,18 @@ export default function 容器(props: 容器Props) {
 
   const 實際供電色彩 = (!active && !activeStateName) ? "neutral" : color;
 
-  const scopedStyles = {
+  const scopedStyles: Record<string, string> = {
     '--c-current': `var(--color-${實際供電色彩}-raw)`,
     '--c-current-content': `var(--color-${實際供電色彩}-content-raw)`,
-    
-    ...[10, 30, 50, 70, 90].reduce((acc, step) => {
-      acc[`--c-current-${step}`] = `var(--color-${實際供電色彩}-${step}-raw)`;
-      return acc;
-    }, {} as Record<string, string>),
+    '--c-current-10': `var(--color-${實際供電色彩}-10-raw)`,
+    '--c-current-30': `var(--color-${實際供電色彩}-30-raw)`,
+    '--c-current-50': `var(--color-${實際供電色彩}-50-raw)`,
+    '--c-current-70': `var(--color-${實際供電色彩}-70-raw)`,
+    '--c-current-90': `var(--color-${實際供電色彩}-90-raw)`,
     '--c-width': width || 'auto',
     '--c-height': height || 'auto',
     ...(width ? { width } : {}),
     ...(height ? { height } : {}),
-
     ...style 
   };
 
@@ -83,7 +70,7 @@ export default function 容器(props: 容器Props) {
 
   // 2. 🛡️ 核心守衛：如果帶有 wrapChild 定義，於 Runtime 對一維陣列逐項點名包裝
   if (wrapChild && 智慧分發Children !== undefined && 智慧分發Children !== null) {
-    const flatSubChildren = flattenChildren(智慧分發Children);
+    const flatSubChildren = (Children.toArray(智慧分發Children as any) as any[]).flat(Infinity) as any[];
     
     智慧分發Children = flatSubChildren.map(child => {
       if (child === undefined || child === null) return null;
@@ -94,11 +81,13 @@ export default function 容器(props: 容器Props) {
       if (wrapChild.style) wProps.style = wrapChild.style;
       
       // 提升子項目的角色或無障礙屬性（如 role="separator"）至外層包裝標籤 (如 <li>)
+      // 🎯 效能優化：精準提取 role 和 aria-* 屬性，避免遍歷整個 props 物件
       if (child && typeof child === 'object' && 'props' in child) {
         const cp = (child as any).props || {};
-        for (const [k, v] of Object.entries(cp)) {
-          if ((k === 'role' || k.startsWith('aria-')) && v !== undefined && v !== '') {
-            wProps[k] = v;
+        if (cp.role !== undefined && cp.role !== '') wProps.role = cp.role;
+        for (const k in cp) {
+          if (k.startsWith('aria-') && cp[k] !== undefined && cp[k] !== '') {
+            wProps[k] = cp[k];
           }
         }
       }

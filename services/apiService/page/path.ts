@@ -1,5 +1,6 @@
 // 頁面路徑 API 模組 - 處理 /api/v1/page/path/{path} 格式
 import { Context } from 'hono';
+import { 取得語言 } from '../../index.ts';
 import { APIModule, RouteParams } from '../index.ts';
 import { info, error } from '../../../utils/logger.ts';
 import { 資料池 } from '../../../database/資料池.ts';
@@ -49,7 +50,7 @@ export async function GET(c: Context, params: RouteParams): Promise<Response> {
       // await info('頁面路徑 API', `成功根據路徑取得頁面: ${normalizedPath} (來源: ${結果.source})`);
       
       // 使用資料過濾器處理多國語言和安全欄位
-      const language = c.get('語言') || 'zh-tw';
+      const language = await 取得語言(c);
       const 回應資料 = await 資料過濾器.一般過濾(匹配頁面, language);
 
       return c.json({

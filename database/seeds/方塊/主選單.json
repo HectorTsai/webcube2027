@@ -88,6 +88,7 @@
       "color": "{color}",
       "state": "{drawerState}",
       "position": "right",
+      "direction": "col",
       "mergedArgs": {
         "title": "@api/v1/translate/main menu"
       },

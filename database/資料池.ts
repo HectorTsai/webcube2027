@@ -140,7 +140,7 @@ class 資料池核心 {
     const model = this.解析Model(id);
     if (!model) return { data: null, source: 'L1', success: false, error: 'ID 格式錯誤' };
 
-    for (const key of this.路由層級(host)) {
+    for (const key of await this.路由層級(host)) {
       const db = this.連線池.get(key)!;
       try {
         const raw = await db.查詢單一(model, id);
@@ -160,7 +160,7 @@ class 資料池核心 {
     offset: number = 0,
     host?: string
   ): Promise<查詢結果<T[]>> {
-    for (const key of this.路由層級(host)) {
+    for (const key of await this.路由層級(host)) {
       const db = this.連線池.get(key)!;
       try {
         const rows = await db.查詢列表(model, { limit, offset });
@@ -188,7 +188,7 @@ class 資料池核心 {
     const 所有資料: T[] = [];
     const seen = new Set<string>();
 
-    for (const key of this.路由層級(host)) {
+    for (const key of await this.路由層級(host)) {
       const db = this.連線池.get(key)!;
       try {
         const rows = await db.查詢列表(model, { limit, offset });
@@ -294,8 +294,14 @@ class 資料池核心 {
 
   /**
    * 回傳當前可用的層級 key 列表：指定 host L3 優先 → 其他 L3 → L2 → L1
+   * 🎯 L3 懶載入：若 host 未初始化，自動觸發
    */
-  private 路由層級(host?: string): string[] {
+  private async 路由層級(host?: string): Promise<string[]> {
+    // 🎯 L3 懶載入：若 host 未在連線池中，自動初始化
+    if (host && !this.連線池.has(host)) {
+      await this.初始化L3(host);
+    }
+
     const keys: string[] = [];
 
     // 指定 host 的 L3 優先

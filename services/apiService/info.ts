@@ -1,180 +1,181 @@
 // 統一資訊 API 模組 - 處理 /api/v1/info/* 路由
 import { Context } from 'hono';
 import { RouteParams } from './index.ts';
-import { info, error } from '../../utils/logger.ts';
+import { error } from '../../utils/logger.ts';
 import { 資料過濾器 } from '../../utils/資料過濾器.ts';
 import { 資料池 } from '../../database/資料池.ts';
-import 網站資訊 from '../../database/models/網站資訊.ts';
+import { 資料 } from '../../database/index.ts';
+import { 取得語言, 取得域名 } from '../index.ts';
+import { MultilingualString } from '@dui/smartmultilingual';
 
-// 處理取得系統資訊
+// ── 輔助：取原始模型實例（不含過濾） ──
+
+async function 取原始系統資訊() {
+  const 結果 = await 資料池.查詢單一('系統資訊:系統資訊:預設');
+  if (!結果.success || !結果.data) return null;
+  return 結果.data as Record<string, unknown>;
+}
+
+async function 取原始網站資訊(c: Context) {
+  const host = 取得域名(c);
+  const 結果 = await 資料池.查詢列表('網站資訊', 1, 0, host);
+  if (!結果.success || !結果.data?.length) return null;
+  return 結果.data[0] as unknown as Record<string, unknown>;
+}
+
+// ── 輔助：取巢狀欄位（只對 MultilingualString 做 lazy 轉換） ──
+
+function 取巢狀欄位(raw: Record<string, unknown>, pathParts: string[]): unknown | null {
+  let value: unknown = raw;
+  for (const part of pathParts) {
+    if (value && typeof value === 'object' && part in (value as Record<string, unknown>)) {
+      value = (value as Record<string, unknown>)[part];
+    } else {
+      return null;
+    }
+  }
+  return value;
+}
+
+async function 過濾巢狀欄位值(c: Context, value: unknown): Promise<unknown> {
+  // 只有 MultilingualString 才需轉換，其他直接回傳原始值
+  if (value instanceof MultilingualString) {
+    const lang = await 取得語言(c);
+    return (value as MultilingualString).toStringAsync(lang);
+  }
+  return value;
+}
+
+// ── 處理取得系統資訊 ──
+
 async function 處理取得系統資訊(c: Context, _params: RouteParams): Promise<Response> {
   try {
-    
-    // 從 context 取得預先載入的系統資訊
-    const 系統資訊 = c.get('系統資訊');
-    
-    if (!系統資訊) {
-      return c.json({
-        success: false,
-        error: { code: 'NOT_FOUND', message: '系統資訊不存在' }
-      }, 404);
+    const raw = await 取原始系統資訊();
+    if (!raw) {
+      return c.json({ success: false, error: { code: 'NOT_FOUND', message: '系統資訊不存在' } }, 404);
     }
-    
-    const language = c.get('語言') || 'zh-tw';
-    const 過濾後資料 = await 資料過濾器.一般過濾(系統資訊, language);
-    
-    return c.json({
-      success: true,
-      data: 過濾後資料,
-      source: 'system'
-    });
-    
-  } catch (錯誤) {
-    await error('統一資訊 API', `取得系統資訊失敗: ${錯誤}`);
-    return c.json({
-      success: false,
-      error: { code: 'INTERNAL_ERROR', message: '取得系統資訊失敗' }
-    }, 500);
+    const lang = await 取得語言(c);
+    const 過濾後資料 = await 資料過濾器.一般過濾(raw as unknown as 資料, lang);
+    return c.json({ success: true, data: 過濾後資料, source: 'system' });
+  } catch (err) {
+    await error('統一資訊 API', `取得系統資訊失敗: ${err}`);
+    return c.json({ success: false, error: { code: 'INTERNAL_ERROR', message: '取得系統資訊失敗' } }, 500);
   }
 }
 
-// 處理取得網站資訊
+// ── 處理取得網站資訊 ──
+
 async function 處理取得網站資訊(c: Context, _params: RouteParams): Promise<Response> {
   try {
-    
-    // 1. 先嘗試從 context 取得網站資訊
-    const 網站資訊 = c.get('網站資訊');
-    if (網站資訊) {
-      const language = c.get('語言') || 'zh-tw';
-      const 過濾後資料 = await 資料過濾器.一般過濾(網站資訊, language);
-      return c.json({
-        success: true,
-        data: 過濾後資料,
-        source: 'website'
-      });
+    const raw = await 取原始網站資訊(c);
+    if (!raw) {
+      return c.json({ success: false, error: { code: 'NOT_FOUND', message: '網站資訊不存在' } }, 404);
     }
-    
-    // 2. 如果 context 中沒有，從資料庫查詢
-    const 結果 = await 資料池.取得預設值<網站資訊>('網站資訊');
-    
-    if (!結果.success || !結果.data) {
-      return c.json({
-        success: false,
-        error: { code: 'NOT_FOUND', message: '網站資訊不存在' }
-      }, 404);
-    }
-    
-    const language = c.get('語言') || 'zh-tw';
-    const 過濾後資料 = await 資料過濾器.一般過濾(結果.data, language);
-    
-    return c.json({
-      success: true,
-      data: 過濾後資料,
-      source: 結果.source
-    });
-    
-  } catch (錯誤) {
-    await error('統一資訊 API', `取得網站資訊失敗: ${錯誤}`);
-    return c.json({
-      success: false,
-      error: { code: 'INTERNAL_ERROR', message: '取得網站資訊失敗' }
-    }, 500);
+    const lang = await 取得語言(c);
+    const 過濾後資料 = await 資料過濾器.一般過濾(raw as unknown as 資料, lang);
+    return c.json({ success: true, data: 過濾後資料, source: 'website' });
+  } catch (err) {
+    await error('統一資訊 API', `取得網站資訊失敗: ${err}`);
+    return c.json({ success: false, error: { code: 'INTERNAL_ERROR', message: '取得網站資訊失敗' } }, 500);
   }
 }
 
-// 共用：從 context 取得統一資訊資料（優先網站資訊，回退系統資訊）
-async function 取得資訊資料(c: Context): Promise<{ data?: Record<string, unknown>; source?: string; error?: { code: string; message: string } }> {
-  const language = c.get('語言') || 'zh-tw';
+// ── 共用：取得統一資訊資料（優先網站資訊，回退系統資訊） ──
 
-  // 1. 網站資訊
-  const 網站資訊 = c.get('網站資訊');
-  if (網站資訊) {
-    const 過濾後資料 = await 資料過濾器.一般過濾(網站資訊, language);
+async function 取得資訊資料(c: Context): Promise<{ data?: Record<string, unknown>; source?: string; error?: { code: string; message: string } }> {
+  const lang = await 取得語言(c);
+
+  // 1. 嘗試網站資訊
+  const rawWebsite = await 取原始網站資訊(c);
+  if (rawWebsite) {
+    const 過濾後資料 = await 資料過濾器.一般過濾(rawWebsite as unknown as 資料, lang);
     return { data: 過濾後資料 as Record<string, unknown>, source: 'website' };
   }
 
-  // 2. 系統資訊
-  const 系統資訊 = c.get('系統資訊');
-  if (系統資訊) {
-    const 過濾後資料 = await 資料過濾器.一般過濾(系統資訊, language);
+  // 2. 回退系統資訊
+  const rawSystem = await 取原始系統資訊();
+  if (rawSystem) {
+    const 過濾後資料 = await 資料過濾器.一般過濾(rawSystem as unknown as 資料, lang);
     return { data: 過濾後資料 as Record<string, unknown>, source: 'system' };
   }
 
   return { error: { code: 'NOT_FOUND', message: '無法取得任何資訊' } };
 }
 
-// 處理取得統一資訊 (預設：優先網站資訊，回退系統資訊)
+// ── 處理取得統一資訊 (預設：優先網站資訊，回退系統資訊) ──
+
 async function 處理取得統一資訊(c: Context, _params: RouteParams): Promise<Response> {
   try {
     const { data, source, error: err } = await 取得資訊資料(c);
     if (err || !data) {
-      await error('統一資訊 API', 'context 中沒有任何資訊');
       return c.json({ success: false, error: err }, 404);
     }
-
     return c.json({ success: true, data, source });
-  } catch (錯誤) {
-    await error('統一資訊 API', `取得統一資訊失敗: ${錯誤}`);
-    return c.json({
-      success: false,
-      error: { code: 'INTERNAL_ERROR', message: '取得統一資訊時發生錯誤' }
-    }, 500);
+  } catch (err) {
+    await error('統一資訊 API', `取得統一資訊失敗: ${err}`);
+    return c.json({ success: false, error: { code: 'INTERNAL_ERROR', message: '取得統一資訊時發生錯誤' } }, 500);
   }
 }
 
-// GET - 取得資訊 (/api/v1/info/system 或 /api/v1/info/website 或 /api/v1/info 或 /api/v1/info/巢狀/欄位)
+// ── GET 主入口 ──
+
 export async function GET(c: Context, params: RouteParams): Promise<Response> {
   try {
+    // 特定端點：需要完整過濾
+    if (params.id === 'system') return await 處理取得系統資訊(c, params);
+    if (params.id === 'website') return await 處理取得網站資訊(c, params);
+    if (!params.id) return await 處理取得統一資訊(c, params);
 
-    // 1. 已知路由：system / website
-    if (params.id === 'system') {
-      return await 處理取得系統資訊(c, params);
-    }
-
-    if (params.id === 'website') {
-      return await 處理取得網站資訊(c, params);
-    }
-
-    // 2. 無參數：預設行為（優先網站資訊，回退系統資訊）
-    if (!params.id) {
-      return await 處理取得統一資訊(c, params);
-    }
-
-    // 3. 巢狀欄位存取：先取得完整資訊，再逐層取值
-    const { data, error: unifiedErr } = await 取得資訊資料(c);
-    if (unifiedErr || !data) {
-      return c.json({ success: false, error: unifiedErr }, 404);
-    }
-
+    // ── 巢狀欄位存取 ──
     const fieldParts = params.id.split('/');
-    let current: unknown = data;
-    for (const part of fieldParts) {
-      if (current && typeof current === 'object' && part in (current as Record<string, unknown>)) {
-        current = (current as Record<string, unknown>)[part];
-      } else {
-        return c.json({
-          success: false,
-          error: { code: 'NOT_FOUND', message: `欄位 '${params.id}' 不存在` },
-        }, 404);
+    const first = fieldParts[0];
+    const rest = fieldParts.slice(1);
+
+    // system/xxx → L1 直查，取得原始欄位（字串/陣列無需過濾；MultilingualString 才轉換）
+    if (first === 'system') {
+      const raw = await 取原始系統資訊();
+      if (!raw) return c.json({ success: false, error: { code: 'NOT_FOUND', message: '系統資訊不存在' } }, 404);
+      if (rest.length === 0) {
+        // `/info/system` → 完整過濾
+        const lang = await 取得語言(c);
+        const 過濾後 = await 資料過濾器.一般過濾(raw as unknown as 資料, lang);
+        return c.json({ success: true, data: 過濾後 });
       }
+      const value = 取巢狀欄位(raw, rest);
+      if (value === null) return c.json({ success: false, error: { code: 'NOT_FOUND', message: `欄位 '${rest.join('/')}' 不存在` } }, 404);
+      return c.json({ success: true, data: await 過濾巢狀欄位值(c, value) });
     }
 
-    return c.json({ success: true, data: current });
-    
-  } catch (錯誤) {
-    await error('統一資訊 API', `GET 請求失敗: ${錯誤}`);
-    return c.json({
-      success: false,
-      error: { code: 'INTERNAL_ERROR', message: '取得資訊失敗' }
-    }, 500);
+    // website/xxx → L3 直查，取得原始欄位
+    if (first === 'website') {
+      const raw = await 取原始網站資訊(c);
+      if (!raw) return c.json({ success: false, error: { code: 'NOT_FOUND', message: '網站資訊不存在' } }, 404);
+      if (rest.length === 0) {
+        const lang = await 取得語言(c);
+        const 過濾後 = await 資料過濾器.一般過濾(raw as unknown as 資料, lang);
+        return c.json({ success: true, data: 過濾後 });
+      }
+      const value = 取巢狀欄位(raw, rest);
+      if (value === null) return c.json({ success: false, error: { code: 'NOT_FOUND', message: `欄位 '${rest.join('/')}' 不存在` } }, 404);
+      return c.json({ success: true, data: await 過濾巢狀欄位值(c, value) });
+    }
+
+    // 一般巢狀：優先網站，回退系統
+    const rawWebsite = await 取原始網站資訊(c);
+    const rawSystem = await 取原始系統資訊();
+    const raw = rawWebsite || rawSystem;
+    if (!raw) return c.json({ success: false, error: { code: 'NOT_FOUND', message: '無法取得任何資訊' } }, 404);
+
+    const value = 取巢狀欄位(raw, fieldParts);
+    if (value === null) return c.json({ success: false, error: { code: 'NOT_FOUND', message: `欄位 '${params.id}' 不存在` } }, 404);
+    return c.json({ success: true, data: await 過濾巢狀欄位值(c, value) });
+
+  } catch (err) {
+    await error('統一資訊 API', `GET 請求失敗: ${err}`);
+    return c.json({ success: false, error: { code: 'INTERNAL_ERROR', message: '取得資訊失敗' } }, 500);
   }
 }
 
-// API 模組匯出
 import { APIModule } from './index.ts';
-
-const API: APIModule = {
-  GET: GET
-};
-
+const API: APIModule = { GET };
 export default API;

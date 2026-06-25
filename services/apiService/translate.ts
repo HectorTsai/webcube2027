@@ -1,5 +1,6 @@
 // translate API 模組 - 單字翻譯
 // /api/v1/translate/{key} → 將 {key} 翻譯成使用者語言
+import { 取得語言 } from '../index.ts';
 import { Context } from 'hono';
 import { RouteParams } from './index.ts';
 import { Translator } from '../aiService/task/translator.ts';
@@ -11,7 +12,7 @@ export async function GET(c: Context, params: RouteParams): Promise<Response> {
   }
 
   const sourceLang = 'en';
-  const targetLang = (c.get('語言') as string) || 'zh-tw';
+  const targetLang = await 取得語言(c);
 
   try {
     const translator = new Translator(c);
