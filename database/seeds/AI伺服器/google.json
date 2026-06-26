@@ -1,0 +1,42 @@
+{
+  "id": "AI伺服器:AI伺服器:google免費",
+  "名稱": "Google Gemini 免費",
+  "provider": "gemini",
+  "url": "https://generativelanguage.googleapis.com",
+  "apiKey": "AQ.Ab8RN6K9_xk9UJLtFaHtiuc3HzYSZTCeaPR6hD4yAEacDUUNAQ",
+  "模型列表": [
+    {
+      "名稱": "gemini-2.5-flash",
+      "能力值": 9,
+      "擅長能力": [
+        "文本生成", "翻譯", "多語言", "推理",
+        "工具調用", "代碼生成", "結構化輸出", "圖片理解"
+      ]
+    },
+    {
+      "名稱": "gemini-2.0-flash",
+      "能力值": 8,
+      "擅長能力": [
+        "文本生成", "翻譯", "多語言", "推理",
+        "工具調用", "代碼生成", "結構化輸出"
+      ]
+    }
+  ],
+  "硬體描述": "Google Gemini API 免費層",
+  "硬體分數": 9,
+  "收費": false,
+  "月次數上限": 45000,
+  "日次數上限": 1500,
+  "每分次數上限": 15,
+  "併發數上限": 2,
+  "冷卻秒數": 2,
+  "月Token上限": 30000000,
+  "每日Token上限": 1000000,
+  "每分Token上限": 1000000,
+  "有效日期": null,
+  "網站ID": null,
+  "啟用": true,
+  "可刪除": true,
+  "標籤集": ["系統預設", "開發測試"],
+  "備註": "Google Gemini 免費層：15 RPM、1,500 RPD，免費層 TPM 非常慷慨（約 1M）。支援多模態（圖片理解）。"
+}

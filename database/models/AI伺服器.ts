@@ -21,6 +21,13 @@ export default class AI伺服器 extends 資料 {
   public 硬體分數: number;             // AI 自評後快取（整台機器的基礎分，0=尚未評分）
   public 收費: boolean;
   public 月次數上限: number;           // 0 = 無限
+  public 日次數上限: number;           // 0 = 無限
+  public 每分次數上限: number;         // RPM，0 = 無限
+  public 併發數上限: number;           // 0 = 無限
+  public 冷卻秒數: number;             // 0 = 無冷卻
+  public 月Token上限: number;          // 0 = 無限
+  public 每日Token上限: number;        // 0 = 無限
+  public 每分Token上限: number;        // TPM，0 = 無限
   public 有效日期: string | null;      // ISO date string，null=永久；過期後 Pool 自動排除
   public 網站ID: string | null;        // null=系統級(L2)，有值=網站自備(L3)
   public 啟用: boolean;
@@ -39,6 +46,13 @@ export default class AI伺服器 extends 資料 {
     this.硬體分數 = (data?.硬體分數 as number) ?? 0;
     this.收費 = (data?.收費 as boolean) ?? false;
     this.月次數上限 = (data?.月次數上限 as number) ?? 0;
+    this.日次數上限 = (data?.日次數上限 as number) ?? 0;
+    this.每分次數上限 = (data?.每分次數上限 as number) ?? 0;
+    this.併發數上限 = (data?.併發數上限 as number) ?? 0;
+    this.冷卻秒數 = (data?.冷卻秒數 as number) ?? 0;
+    this.月Token上限 = (data?.月Token上限 as number) ?? 0;
+    this.每日Token上限 = (data?.每日Token上限 as number) ?? 0;
+    this.每分Token上限 = (data?.每分Token上限 as number) ?? 0;
     this.有效日期 = (data?.有效日期 as string) ?? null;
     this.網站ID = (data?.網站ID as string) ?? null;
     this.啟用 = (data?.啟用 as boolean) ?? true;
@@ -66,6 +80,13 @@ export default class AI伺服器 extends 資料 {
       硬體分數: this.硬體分數,
       收費: this.收費,
       月次數上限: this.月次數上限,
+      日次數上限: this.日次數上限,
+      每分次數上限: this.每分次數上限,
+      併發數上限: this.併發數上限,
+      冷卻秒數: this.冷卻秒數,
+      月Token上限: this.月Token上限,
+      每日Token上限: this.每日Token上限,
+      每分Token上限: this.每分Token上限,
       有效日期: this.有效日期,
       網站ID: this.網站ID,
       啟用: this.啟用,
