@@ -1,0 +1,16 @@
+{
+    "id": "影像:影像:surrealDB",
+    "名稱": {
+        "en": "surrealDB logo",
+        "zh-tw": "surrealDB 圖示",
+        "vi": "Biểu trưng surrealDB"
+    },
+    "資料": {
+        "format": "JPG",
+        "content": "file://images/surrealDB.jpg"
+    },
+    "標籤集": [
+        "影像:標籤:商標"
+    ],
+    "可刪除": false
+}

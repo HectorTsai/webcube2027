@@ -1,6 +1,7 @@
 {
   "id": "方塊:方塊:按鈕",
   "名稱": { "en": "Button", "zh-tw": "按鈕", "vi": "Nút" },
+  "標籤集": ["方塊:標籤:互動元素"],
   "描述": {
     "en": "Button cube built on Container. Supports color themes, sizes, disabled state, and hover effect.",
     "zh-tw": "按鈕方塊，基於容器建構。支援色彩主題、尺寸、禁用狀態、懸停效果。",

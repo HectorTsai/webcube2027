@@ -1,0 +1,16 @@
+{
+    "id": "圖示:圖示:中國",
+    "名稱": {
+        "en": "china",
+        "zh-tw": "中國",
+        "vi": "Trung Quốc"
+    },
+    "資料": {
+        "format": "SVG",
+        "content": "https://flagicons.lipis.dev/flags/4x3/cn.svg"
+    },
+    "標籤集": [
+        "圖示:標籤:旗幟"
+    ],
+    "可刪除": false
+}

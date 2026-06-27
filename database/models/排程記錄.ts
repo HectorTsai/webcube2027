@@ -2,9 +2,10 @@
 // host 為空 → 系統排程；有值 → 網站排程
 
 import { 資料 } from "../index.ts";
+import { MultilingualString } from "@dui/smartmultilingual";
 
 export default class 排程記錄 extends 資料 {
-  public 名稱: string;           // 任務名稱，如 "清理翻譯快取"
+  public 名稱: MultilingualString;  // 任務名稱，如 "清理翻譯快取"
   public host: string | null;    // null=系統級，有值=網站級
   public 命令: string = '';       // API 路徑，如 "/api/v1/system/words/clear-expired"
   public 最後執行: Date;
@@ -15,7 +16,7 @@ export default class 排程記錄 extends 資料 {
 
   constructor(data: Record<string, unknown> = {}, 可刪除 = true) {
     super(data, 可刪除);
-    this.名稱 = (data?.名稱 as string) ?? '';
+    this.名稱 = new MultilingualString(data?.名稱 as Record<string, string> | undefined);
     this.host = (data?.host as string) ?? null;
     this.命令 = (data?.命令 as string) ?? '';
     const last = data?.最後執行 as string | number | Date | undefined;
@@ -30,7 +31,7 @@ export default class 排程記錄 extends 資料 {
   public override toJSON(): Record<string, unknown> {
     return {
       ...super.toJSON(),
-      名稱: this.名稱,
+      名稱: this.名稱.toJSON(),
       host: this.host,
       命令: this.命令,
       最後執行: this.最後執行,

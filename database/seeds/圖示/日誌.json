@@ -1,0 +1,15 @@
+{
+    "id": "圖示:圖示:日誌",
+    "名稱": {
+        "en": "journal",
+        "zh-tw": "日誌",
+        "zh-cn": "日誌",
+        "vi": "bảng ghi"
+    },
+    "資料": {
+        "format": "SVG",
+        "content": "file://icons/journal.svg"
+    },
+    "標籤集": [],
+    "可刪除": false
+}

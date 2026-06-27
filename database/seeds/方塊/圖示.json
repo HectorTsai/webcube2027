@@ -1,6 +1,7 @@
 {
   "id": "方塊:方塊:圖示",
   "名稱": { "en": "Icon", "zh-tw": "圖示", "vi": "Biểu tượng" },
+  "標籤集": ["方塊:標籤:內容展示"],
   "描述": {
     "en": "SVG icon cube, renders as a native svg element. Pass SVG path children. Supports viewBox and xmlns configuration.",
     "zh-tw": "SVG 圖示方塊，渲染為原生 svg 元素。傳入 SVG path 作為 children。支援 viewBox 和 xmlns 設定。",

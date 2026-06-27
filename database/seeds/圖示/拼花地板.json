@@ -1,0 +1,16 @@
+{
+    "id": "圖示:圖示:拼花地板",
+    "名稱": {
+        "en": "Parkay Floor",
+        "zh-tw": "拼花地板",
+        "vi": "Sàn gỗ ghép thanh"
+    },
+    "資料": {
+        "format": "SVG",
+        "content": "file://icons/patterns/parkay-floor.svg"
+    },
+    "標籤集": [
+        "圖示:標籤:圖樣"
+    ],
+    "可刪除": false
+}

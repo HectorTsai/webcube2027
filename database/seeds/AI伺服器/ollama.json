@@ -1,32 +1,44 @@
 {
   "id": "AI伺服器:AI伺服器:ollama雲端",
-  "名稱": "Ollama Cloud 免費",
+  "名稱": { "en": "Ollama Cloud Free", "zh-tw": "Ollama Cloud 免費", "zh-cn": "Ollama Cloud 免费", "vi": "Ollama Cloud Miễn Phí" },
   "provider": "ollama",
   "url": "https://ollama.com",
   "apiKey": "a676108d89ea4b09a7852c3d5ca63328.cKCmEIxDz3q0_DaAgJOxYHir",
   "模型列表": [
     {
-      "名稱": "gpt-oss:120b",
+      "名稱": { "en": "gpt-oss:120b", "zh-tw": "gpt-oss:120b", "zh-cn": "gpt-oss:120b", "vi": "gpt-oss:120b" },
       "能力值": 7,
       "擅長能力": [
         "文本生成", "結構化輸出", "嵌入", "工具調用"
-      ]
+      ],
+      "每分次數上限": 2,
+      "每分Token上限": 0,
+      "併發數上限": 1,
+      "冷卻秒數": 5
     },
     {
-      "名稱": "gemma4:31b",
+      "名稱": { "en": "gemma4:31b", "zh-tw": "gemma4:31b", "zh-cn": "gemma4:31b", "vi": "gemma4:31b" },
       "能力值": 9,
       "擅長能力": [
         "翻譯", "多語言", "圖片理解", "CSS與設計",
         "文本生成", "推理", "代碼審核"
-      ]
+      ],
+      "每分次數上限": 2,
+      "每分Token上限": 0,
+      "併發數上限": 1,
+      "冷卻秒數": 5
     },
     {
-      "名稱": "qwen3-coder-next",
+      "名稱": { "en": "qwen3-coder-next", "zh-tw": "qwen3-coder-next", "zh-cn": "qwen3-coder-next", "vi": "qwen3-coder-next" },
       "能力值": 9,
       "擅長能力": [
         "代碼生成", "推理", "工具調用",
         "文本生成", "結構化輸出"
-      ]
+      ],
+      "每分次數上限": 2,
+      "每分Token上限": 0,
+      "併發數上限": 1,
+      "冷卻秒數": 5
     }
   ],
   "硬體描述": "Ollama Cloud API（直接存取 ollama.com）",
@@ -39,11 +51,11 @@
   "冷卻秒數": 3,
   "月Token上限": 4000000,
   "每日Token上限": 500000,
-  "每分Token上限": 20000,
+  "每分Token上限": 0,
   "有效日期": null,
   "網站ID": null,
   "啟用": true,
   "可刪除": true,
-  "標籤集": ["系統預設", "開發測試"],
+  "標籤集": ["AI伺服器:標籤:系統預設", "AI伺服器:標籤:開發測試"],
   "備註": "直接透過 ollama.com API 存取雲端模型。免費層限制：每 session 約 50 次、50 萬 Token，每週約 500 次、100 萬 Token，僅支援 1 併發。"
 }

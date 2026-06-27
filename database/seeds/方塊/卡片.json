@@ -5,6 +5,7 @@
     "zh-tw": "卡片",
     "vi": "Thẻ"
   },
+  "標籤集": ["方塊:標籤:內容展示"],
   "描述": {
     "en": "Card cube built on Container, following daisyUI structure: media slot (image, no padding) + body slot (content, padded). Direction variant switches column/row layout.",
     "zh-tw": "卡片方塊，基於容器建構，仿 daisyUI 結構：media slot（圖片，無 padding）+ body slot（內容，自動接收 JSX children）。Direction variant 切換 column/row 佈局。",

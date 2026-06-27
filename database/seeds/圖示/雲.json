@@ -1,0 +1,15 @@
+{
+    "id": "圖示:圖示:雲",
+    "名稱": {
+        "en": "cloud",
+        "zh-tw": "雲",
+        "zh-cn": "雲",
+        "vi": "đám mây"
+    },
+    "資料": {
+        "format": "SVG",
+        "content": "file://icons/cloud.svg"
+    },
+    "標籤集": [],
+    "可刪除": false
+}

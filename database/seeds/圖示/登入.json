@@ -1,0 +1,15 @@
+{
+    "id": "圖示:圖示:登入",
+    "名稱": {
+        "en": "login",
+        "zh-tw": "登入",
+        "zh-cn": "登入",
+        "vi": "đăng nhập"
+    },
+    "資料": {
+        "format": "SVG",
+        "content": "file://icons/login.svg"
+    },
+    "標籤集": [],
+    "可刪除": false
+}

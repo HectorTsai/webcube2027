@@ -1,0 +1,18 @@
+{
+    "id": "圖示:圖示:web_cube_banner",
+    "名稱": {
+        "en": "cubes",
+        "zh-tw": "方塊",
+        "zh-cn": "方塊",
+        "vi": "hình lập phương"
+    },
+    "資料": {
+        "format": "SVG",
+        "content": "file://icons/webcube_banner.svg"
+    },
+    "標籤集": [
+        "圖示:標籤:物件",
+        "圖示:標籤:實體"
+    ],
+    "可刪除": false
+}

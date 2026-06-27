@@ -1,6 +1,7 @@
 {
   "id": "方塊:方塊:列表",
   "名稱": { "en": "List", "zh-tw": "列表", "vi": "Danh sách" },
+  "標籤集": ["方塊:標籤:內容展示"],
   "描述": {
     "en": "List cube built on Container. Supports column/row direction, divider, alternating row stripes, and optional title. Items are passed as <li> children.",
     "zh-tw": "列表方塊，基於容器建構。支援垂直/水平排列、分隔線、斑馬紋、可選標題。項目以 <li> children 傳入。",

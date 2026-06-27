@@ -1,0 +1,15 @@
+{
+    "id": "圖示:圖示:資料庫",
+    "名稱": {
+        "en": "database",
+        "zh-tw": "資料庫",
+        "zh-cn": "資料庫",
+        "vi": "cơ sở dữ liệu"
+    },
+    "資料": {
+        "format": "SVG",
+        "content": "file://icons/database.svg"
+    },
+    "標籤集": [],
+    "可刪除": false
+}

@@ -1,6 +1,7 @@
 {
   "id": "方塊:方塊:抽屜",
   "名稱": { "en": "Drawer", "zh-tw": "抽屜", "vi": "Ngăn kéo" },
+  "標籤集": ["方塊:標籤:導覽"],
   "描述": {
     "en": "Alpine.js powered slide-in drawer. Supports left/right/top/bottom positions, backdrop close, and configurable state. Content passed as children.",
     "zh-tw": "Alpine.js 驅動的滑入式抽屜面板。支援上/下/左/右四方向、背景點擊關閉、自訂 state。內容透過 children 傳入。",

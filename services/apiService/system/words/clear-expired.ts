@@ -21,6 +21,8 @@ export default {
       }
 
       for (const word of result.data) {
+        // 忽略不可刪除的單字
+        if (word.可刪除 === false) continue;
         if (word.最後讀取.getTime() < 過期時間) {
           const delResult = await 資料池.刪除(word.id);
           if (delResult.success) 刪除數++;

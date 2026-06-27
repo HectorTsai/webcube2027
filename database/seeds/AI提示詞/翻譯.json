@@ -1,0 +1,16 @@
+{
+    "id": "AI提示詞:AI提示詞:translator",
+    "名稱": {
+        "en": "Translator",
+        "zh-tw": "翻譯"
+    },
+    "描述": {
+        "en": "Multi-language translation task",
+        "zh-tw": "多國語言翻譯任務"
+    },
+    "系統提示": "你是翻譯專家。只回傳 JSON，不要任何其他文字。\n格式：{ \"語言代碼\": \"翻譯結果\" }\n保持原文標記符號不變。",
+    "版本": 1,
+    "啟用": true,
+    "可修改": true,
+    "可刪除": false
+}

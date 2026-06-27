@@ -1,6 +1,7 @@
 {
   "id": "方塊:方塊:超連結",
   "名稱": { "en": "Link", "zh-tw": "超連結", "vi": "Liên kết" },
+  "標籤集": ["方塊:標籤:互動元素"],
   "描述": {
     "en": "Link cube built on Container. Supports color themes, sizes, disabled state, and href prop.",
     "zh-tw": "超連結方塊，基於容器建構。無底線、支援色彩主題、尺寸、禁用狀態。",

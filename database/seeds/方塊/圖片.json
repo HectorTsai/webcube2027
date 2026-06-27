@@ -1,6 +1,7 @@
 {
   "id": "方塊:方塊:圖片",
   "名稱": { "en": "Image", "zh-tw": "圖片", "vi": "Hình ảnh" },
+  "標籤集": ["方塊:標籤:內容展示"],
   "描述": {
     "en": "Image cube, renders as a native img element. Supports src, alt, width, height, object-fit and lazy loading.",
     "zh-tw": "圖片方塊，渲染為原生 img 元素。支援 src、alt、寬高、object-fit 及延遲載入。",

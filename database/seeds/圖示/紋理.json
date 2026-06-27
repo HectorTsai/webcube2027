@@ -1,0 +1,16 @@
+{
+    "id": "圖示:圖示:紋理",
+    "名稱": {
+        "en": "Texture",
+        "zh-tw": "紋理",
+        "vi": "Mãu sắc"
+    },
+    "資料": {
+        "format": "SVG",
+        "content": "file://icons/patterns/texture.svg"
+    },
+    "標籤集": [
+        "圖示:標籤:圖樣"
+    ],
+    "可刪除": false
+}

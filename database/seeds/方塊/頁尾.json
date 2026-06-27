@@ -1,6 +1,7 @@
 {
   "id": "方塊:方塊:頁尾",
   "名稱": { "en": "Footer", "zh-tw": "頁尾", "vi": "Chân trang" },
+  "標籤集": ["方塊:標籤:導覽"],
   "描述": {
     "en": "Page footer section built on Container. Centered column layout with configurable color, variant, padding, and gap. Content is passed as children.",
     "zh-tw": "基於 Container 的頁面頁尾區塊。置中欄佈局，可設定 color、variant、padding 與 gap。內容透過 children 傳入。",

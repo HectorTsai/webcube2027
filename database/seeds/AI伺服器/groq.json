@@ -1,32 +1,92 @@
 {
   "id": "AI伺服器:AI伺服器:groq免費",
-  "名稱": "Groq 免費",
+  "名稱": { "en": "Groq Free", "zh-tw": "Groq 免費", "zh-cn": "Groq 免费", "vi": "Groq Miễn Phí" },
   "provider": "groq",
   "url": "https://api.groq.com/openai/v1",
   "apiKey": "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",
   "模型列表": [
     {
-      "名稱": "llama-4-scout",
+      "名稱": { "en": "meta-llama/llama-4-scout-17b-16e-instruct", "zh-tw": "meta-llama/llama-4-scout-17b-16e-instruct", "zh-cn": "meta-llama/llama-4-scout-17b-16e-instruct", "vi": "meta-llama/llama-4-scout-17b-16e-instruct" },
       "能力值": 9,
       "擅長能力": [
         "文本生成", "推理", "翻譯", "多語言",
         "代碼生成", "結構化輸出", "圖片理解"
-      ]
+      ],
+      "每分次數上限": 12,
+      "每分Token上限": 0,
+      "併發數上限": 2,
+      "冷卻秒數": 2
     },
     {
-      "名稱": "qwen-3-70b",
+      "名稱": { "en": "qwen/qwen3-70b", "zh-tw": "qwen/qwen3-70b", "zh-cn": "qwen/qwen3-70b", "vi": "qwen/qwen3-70b" },
       "能力值": 9,
       "擅長能力": [
         "文本生成", "推理", "翻譯", "多語言",
         "代碼生成", "結構化輸出", "工具調用"
-      ]
+      ],
+      "每分次數上限": 12,
+      "每分Token上限": 0,
+      "併發數上限": 2,
+      "冷卻秒數": 2
     },
     {
-      "名稱": "deepseek-r1-distill-llama-70b",
+      "名稱": { "en": "deepseek-r1-distill-llama-70b", "zh-tw": "deepseek-r1-distill-llama-70b", "zh-cn": "deepseek-r1-distill-llama-70b", "vi": "deepseek-r1-distill-llama-70b" },
       "能力值": 8,
       "擅長能力": [
         "推理", "代碼生成", "代碼審核", "文本生成"
-      ]
+      ],
+      "每分次數上限": 10,
+      "每分Token上限": 0,
+      "併發數上限": 1,
+      "冷卻秒數": 5
+    },
+    {
+      "名稱": { "en": "llama-3.1-8b-instant", "zh-tw": "llama-3.1-8b-instant", "zh-cn": "llama-3.1-8b-instant", "vi": "llama-3.1-8b-instant" },
+      "能力值": 6,
+      "擅長能力": [
+        "文本生成", "翻譯", "多語言",
+        "結構化輸出", "嵌入"
+      ],
+      "每分次數上限": 28,
+      "每分Token上限": 0,
+      "併發數上限": 3,
+      "冷卻秒數": 1
+    },
+    {
+      "名稱": { "en": "llama-3.3-70b-versatile", "zh-tw": "llama-3.3-70b-versatile", "zh-cn": "llama-3.3-70b-versatile", "vi": "llama-3.3-70b-versatile" },
+      "能力值": 8,
+      "擅長能力": [
+        "文本生成", "推理", "翻譯", "多語言",
+        "代碼生成", "結構化輸出", "工具調用"
+      ],
+      "每分次數上限": 15,
+      "每分Token上限": 0,
+      "併發數上限": 2,
+      "冷卻秒數": 2
+    },
+    {
+      "名稱": { "en": "qwen/qwen3-32b", "zh-tw": "qwen/qwen3-32b", "zh-cn": "qwen/qwen3-32b", "vi": "qwen/qwen3-32b" },
+      "能力值": 8,
+      "擅長能力": [
+        "文本生成", "推理", "翻譯", "多語言",
+        "代碼生成", "結構化輸出", "工具調用"
+      ],
+      "每分次數上限": 20,
+      "每分Token上限": 0,
+      "併發數上限": 2,
+      "冷卻秒數": 2
+    },
+    {
+      "名稱": { "en": "openai/gpt-oss-20b", "zh-tw": "openai/gpt-oss-20b", "zh-cn": "openai/gpt-oss-20b", "vi": "openai/gpt-oss-20b" },
+      "能力值": 7,
+      "擅長能力": [
+        "文本生成", "推理", "代碼生成",
+        "結構化輸出", "工具調用"
+      ],
+      "每分次數上限": 20,
+      "每分Token上限": 0,
+      "併發數上限": 2,
+      "冷卻秒數": 2
     }
   ],
   "硬體描述": "Groq LPU 雲端推理引擎（超低延遲）",
@@ -39,11 +99,11 @@
   "冷卻秒數": 1,
   "月Token上限": 30000000,
   "每日Token上限": 1000000,
-  "每分Token上限": 20000,
+  "每分Token上限": 0,
   "有效日期": null,
   "網站ID": null,
   "啟用": true,
   "可刪除": true,
-  "標籤集": ["系統預設", "開發測試"],
-  "備註": "Groq 免費層：30 RPM，超低延遲 LPU 推理。OpenAI 相容 API。"
+  "標籤集": ["AI伺服器:標籤:系統預設", "AI伺服器:標籤:開發測試"],
+  "備註": "Groq 免費層：30 RPM，超低延遲 LPU 推理。精英層：Llama 4 Scout、Qwen3 70B、DeepSeek R1。備援層：Llama 3.1 8B（840 TPS 超快）、Llama 3.3 70B、Qwen3 32B（60 RPM 寬鬆）、GPT-OSS 20B。OpenAI 相容 API。"
 }

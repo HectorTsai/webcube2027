@@ -1,0 +1,16 @@
+{
+    "id": "圖示:圖示:對角線",
+    "名稱": {
+        "en": "Diagonal Lines",
+        "zh-tw": "對角線",
+        "vi": "Đường chéo"
+    },
+    "資料": {
+        "format": "SVG",
+        "content": "file://icons/patterns/linear-diagonal.svg"
+    },
+    "標籤集": [
+        "圖示:標籤:圖樣"
+    ],
+    "可刪除": false
+}

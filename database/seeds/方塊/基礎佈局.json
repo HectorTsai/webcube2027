@@ -1,6 +1,7 @@
 {
   "id": "方塊:方塊:基礎佈局",
   "名稱": { "en": "Basic Layout", "zh-tw": "基礎佈局", "vi": "Bố cục cơ bản" },
+  "標籤集": ["方塊:標籤:佈局結構"],
   "描述": {
     "en": "Full-height page layout with fixed header (主選單) and footer (頁尾). Content area fills remaining space via flex-1.",
     "zh-tw": "滿版頁面佈局，固定頂部主選單與底部頁尾，內容區自動充滿剩餘空間。",

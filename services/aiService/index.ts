@@ -107,8 +107,31 @@ export async function 處理AI請求(c: Context): Promise<Response> {
       // ── AI Server 列表 ──
       case method === 'GET' && aiPath === 'servers': {
         const pool = new AIPoolManager(c);
-        await pool.觸發Pool載入(); // 確保 Pool 已初始化
+        await pool.觸發Pool載入();
         return c.json({ success: true, data: AIPoolManager.列出Server() });
+      }
+
+      // ── AI Pool 自適應恢復（排程呼叫） ──
+      case method === 'POST' && aiPath === 'pool/restore': {
+        await AIPoolManager.自適應恢復();
+        return c.json({ success: true, data: { message: 'Pool 自適應恢復完成' } });
+      }
+
+      // ── AI Model 狀態大綱 ──
+      case method === 'GET' && aiPath === 'models': {
+        const pool = new AIPoolManager(c);
+        await pool.觸發Pool載入();
+        return c.json({ success: true, data: AIPoolManager.列出模型狀態() });
+      }
+
+      // ── AI Model 細節 ──
+      case method === 'GET' && aiPath.startsWith('models/'): {
+        const modelId = aiPath.replace('models/', '');
+        const pool = new AIPoolManager(c);
+        await pool.觸發Pool載入();
+        const detail = AIPoolManager.取得模型細節(modelId);
+        if (!detail) return c.json({ success: false, error: { code: 'NOT_FOUND', message: '模型不存在' } }, 404);
+        return c.json({ success: true, data: detail });
       }
 
       // ── AI 對話歷史 ──

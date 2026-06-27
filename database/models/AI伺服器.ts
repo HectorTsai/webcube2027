@@ -4,13 +4,14 @@
 import { 資料 } from "../index.ts";
 import SecretString from "../secretstring.ts";
 import { AI能力 } from "../../services/aiService/provider/adapter.ts";
+import { MultilingualString } from "@dui/smartmultilingual";
 
 /** * 模型級定義 (Model-level)
  * 管理員完全不用填！加入伺服器時，系統呼叫 AI 會自動根據平台規格填入「初始限制天花板」，
  * 隨後 Pool 會在「動態變數」上進行上下調諧。
  */
 export interface AI模型定義 {
-  名稱: string;              // 例如 "gpt-4o", "claude-3-5-sonnet"
+  名稱: MultilingualString;  // 例如 "gpt-4o", "claude-3-5-sonnet"
   能力值: number;            // 1-10（AI 自動評分帶入）
   擅長能力: AI能力[];        // 強型別防呆
 
@@ -34,7 +35,7 @@ export interface AI模型定義 {
 
 export default class AI伺服器 extends 資料 {
   // 管理員唯一需要手動選擇與輸入的 4 個欄位
-  public 名稱: string;
+  public 名稱: MultilingualString;
   public provider: string;
   public url: string;
   public apiKey: SecretString;
@@ -70,7 +71,7 @@ export default class AI伺服器 extends 資料 {
 
   constructor(data: Record<string, unknown> = {}, 可刪除 = true) {
     super(data, 可刪除);
-    this.名稱 = (data?.名稱 as string) ?? "";
+    this.名稱 = new MultilingualString(data?.名稱 as Record<string, string> | undefined);
     this.provider = (data?.provider as string) ?? "openai";
     this.url = (data?.url as string) ?? "";
     
@@ -86,7 +87,7 @@ export default class AI伺服器 extends 資料 {
       const tpm = (m.每分Token上限 as number) ?? 40000;
       const concurrency = (m.併發數上限 as number) ?? 3;
       return {
-        名稱: (m.名稱 as string) ?? "",
+        名稱: new MultilingualString(m.名稱 as Record<string, string> | undefined),
         能力值: (m.能力值 as number) ?? 0,
         擅長能力: ((m.擅長能力 as AI能力[]) ?? []),
         
@@ -138,12 +139,15 @@ export default class AI伺服器 extends 資料 {
   public override toJSON(): Record<string, unknown> {
     return {
       ...super.toJSON(),
-      名稱: this.名稱,
+      名稱: this.名稱.toJSON(),
       provider: this.provider,
       url: this.url,
       apiKey: this.apiKey.CipherText,
       // 🟢 序列化進 DB 時，剔除即時運行的狀態計數器與時間戳，但保留摸索出來的【動態上限】與【限制天花板】
-      模型列表: this.模型列表.map(({ 當前併發數, 連續成功次數, 連續失敗次數, 解禁時間戳, ...其餘欄位 }) => 其餘欄位),
+      模型列表: this.模型列表.map(({ 當前併發數, 連續成功次數, 連續失敗次數, 解禁時間戳, ...其餘欄位 }) => ({
+        ...其餘欄位,
+        名稱: 其餘欄位.名稱.toJSON()
+      })),
       併發數上限: this.併發數上限,
       動態全域併發上限: this.動態全域併發上限,
       冷卻秒數: this.冷卻秒數,

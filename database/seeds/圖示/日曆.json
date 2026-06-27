@@ -1,0 +1,15 @@
+{
+    "id": "圖示:圖示:日曆",
+    "名稱": {
+        "en": "calendar",
+        "zh-tw": "日曆",
+        "zh-cn": "日曆",
+        "vi": "lịch"
+    },
+    "資料": {
+        "format": "SVG",
+        "content": "file://icons/calendar.svg"
+    },
+    "標籤集": [],
+    "可刪除": false
+}

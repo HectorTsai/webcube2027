@@ -1,17 +1,21 @@
 {
   "id": "AI伺服器:AI伺服器:agnes免費",
-  "名稱": "Agnes AI 免費",
+  "名稱": { "en": "Agnes AI Free", "zh-tw": "Agnes AI 免費", "zh-cn": "Agnes AI 免费", "vi": "Agnes AI Miễn Phí" },
   "provider": "agnes",
   "url": "https://api.agnes-ai.com/v1",
   "apiKey": "sk-0s8MgSootSoOuNGMzkDfRyHEn7uvMNeTQVjEkiWJ1MqYVlWn",
   "模型列表": [
     {
-      "名稱": "agnes-2.0-flash",
+      "名稱": { "en": "agnes-2.0-flash", "zh-tw": "agnes-2.0-flash", "zh-cn": "agnes-2.0-flash", "vi": "agnes-2.0-flash" },
       "能力值": 9,
       "擅長能力": [
         "文本生成", "推理", "翻譯", "多語言",
         "代碼生成", "結構化輸出", "工具調用", "代碼審核"
-      ]
+      ],
+      "每分次數上限": 10,
+      "每分Token上限": 0,
+      "併發數上限": 5,
+      "冷卻秒數": 2
     }
   ],
   "硬體描述": "Agnes AI（Sapiens AI）全球 Top 10 AI Lab，全模態免費",
@@ -24,11 +28,11 @@
   "冷卻秒數": 1,
   "月Token上限": 15000000,
   "每日Token上限": 500000,
-  "每分Token上限": 200000,
+  "每分Token上限": 0,
   "有效日期": null,
   "網站ID": null,
   "啟用": true,
   "可刪除": true,
-  "標籤集": ["系統預設", "開發測試"],
+  "標籤集": ["AI伺服器:標籤:系統預設", "AI伺服器:標籤:開發測試"],
   "備註": "Agnes-2.0-Flash：1M context、150 TPS、支援 function calling / tool use。全模態（文字+圖片+影片）永久免費。OpenAI 相容 API。"
 }

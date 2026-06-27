@@ -1,6 +1,7 @@
 {
   "id": "方塊:方塊:主選單",
   "名稱": { "en": "Menu Bar", "zh-tw": "主選單", "vi": "Thanh menu" },
+  "標籤集": ["方塊:標籤:導覽"],
   "描述": {
     "en": "Responsive navigation menu bar built on Container. Desktop: horizontal row layout. Mobile: collapses to a hamburger button with Alpine.js drawer toggle. Supports color theming through Container.",
     "zh-tw": "基於 Container 的響應式導航選單列。桌面版：水平 row 佈局。行動版：收合為漢堡選單按鈕，透過 Alpine.js 切換抽屜。支援 Container 的 color 主題。",

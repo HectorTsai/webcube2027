@@ -1,6 +1,7 @@
 {
   "id": "方塊:方塊:容器",
   "名稱": {"en": "Container", "zh-tw": "容器", "vi": "Container"},
+  "標籤集": ["方塊:標籤:佈局結構"],
   "描述": {
     "en": "Universal container cube, supports active/hover states and color themes",
     "zh-tw": "通用容器方塊，支援 active/hover 狀態與色彩主題", 
