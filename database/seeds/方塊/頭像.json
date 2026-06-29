@@ -1,0 +1,40 @@
+{
+  "id": "方塊:方塊:頭像",
+  "名稱": { "en": "Avatar", "zh-tw": "頭像", "vi": "Hình đại diện" },
+  "標籤集": ["方塊:標籤:內容展示"],
+  "描述": {
+    "en": "Avatar cube built on Container. A circular container — pass icon, image, or any content as children directly.",
+    "zh-tw": "頭像方塊，基於容器建構。圓形容器，直接傳入圖示、圖片或任意內容作為 children。",
+    "vi": "Khối hình đại diện dựa trên Container. Vùng chứa tròn — truyền biểu tượng, hình ảnh hoặc nội dung bất kỳ làm children."
+  },
+  "from": "方塊:方塊:容器",
+  "className": "overflow-hidden flex flex-col items-center justify-center shrink-0",
+  "defaults": {
+    "padding": "none",
+    "direction": "column"
+  },
+  "args": {
+    "size": {
+      "type": "string",
+      "description": "頭像尺寸",
+      "default": "md",
+      "options": ["xs", "sm", "md", "lg", "xl", "2xl", "3xl"],
+      "variants": {
+        "xs":  { "className": "w-6 h-6", "rounded": "sm" },
+        "sm":  { "className": "w-8 h-8", "rounded": "sm" },
+        "md":  { "className": "w-10 h-10", "rounded": "md" },
+        "lg":  { "className": "w-12 h-12", "rounded": "lg" },
+        "xl":  { "className": "w-16 h-16", "rounded": "lg" },
+        "2xl": { "className": "w-20 h-20", "rounded": "lg" },
+        "3xl": { "className": "w-24 h-24", "rounded": "lg" }
+      }
+    },
+    "color": {
+      "type": "string",
+      "description": "色彩主題（套用於容器背景）",
+      "default": "primary",
+      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "base", "neutral"]
+    }
+  },
+  "可刪除": false
+}

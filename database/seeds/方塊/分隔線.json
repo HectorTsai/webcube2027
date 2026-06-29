@@ -1,0 +1,55 @@
+{
+  "id": "方塊:方塊:分隔線",
+  "名稱": { "en": "Divider", "zh-tw": "分隔線", "vi": "Dải phân cách" },
+  "標籤集": ["方塊:標籤:佈局結構"],
+  "描述": {
+    "en": "Horizontal or vertical divider with optional centered label.",
+    "zh-tw": "水平或垂直分隔線，可選置中文字標籤。",
+    "vi": "Dải phân cách ngang hoặc dọc với nhãn tùy chọn ở giữa."
+  },
+  "from": "div",
+  "可刪除": false,
+  "args": {
+    "color": {
+      "type": "string",
+      "description": "色彩主題",
+      "default": "neutral",
+      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "base", "neutral"]
+    },
+    "direction": {
+      "type": "string",
+      "description": "分隔線方向",
+      "default": "horizontal",
+      "options": ["horizontal", "vertical"],
+      "variants": {
+        "horizontal": {
+          "className": "flex flex-row items-center w-full [&_.line]:border-t-2 [&_.label]:mx-4"
+        },
+        "vertical": {
+          "className": "flex flex-col items-center h-full [&_.line]:border-l-2 [&_.label]:my-4"
+        }
+      }
+    },
+    "label": {
+      "type": "string",
+      "description": "分隔線中間的文字標籤，留空則為純線條",
+      "default": ""
+    }
+  },
+  "children": [
+    {
+      "from": "div",
+      "className": "line flex-1 border-current opacity-25 shrink-0"
+    },
+    {
+      "if": "label",
+      "from": "span",
+      "className": "label text-sm text-current-content opacity-60 shrink-0 whitespace-nowrap",
+      "children": ["{label}"]
+    },
+    {
+      "from": "div",
+      "className": "line flex-1 border-current opacity-25 shrink-0"
+    }
+  ]
+}

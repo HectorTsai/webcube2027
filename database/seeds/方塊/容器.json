@@ -4,10 +4,11 @@
   "標籤集": ["方塊:標籤:佈局結構"],
   "描述": {
     "en": "Universal container cube, supports active/hover states and color themes",
-    "zh-tw": "通用容器方塊，支援 active/hover 狀態與色彩主題", 
+    "zh-tw": "通用容器方塊，支援 active/hover 狀態與色彩主題",
     "vi": "Khối chứa phổ quát, hỗ trợ trạng thái active/hover và chủ đề màu sắc"
   },
-  "from": "方塊:方塊:容器",
+  "from": "div",
+  "className": "c-style-apply box-border flex",
   "args": {
     "color": {
       "type": "string",
@@ -43,25 +44,51 @@
       "type": "string",
       "description": "邊框樣式",
       "default": "solid",
-      "options": ["none", "solid", "dashed", "dotted", "double"]
+      "options": ["none", "solid", "dashed", "dotted", "double"],
+      "variants": {
+        "none":   { "className": "!border-0" },
+        "solid":  {},
+        "dashed": { "className": "!border-dashed" },
+        "dotted": { "className": "!border-dotted" },
+        "double": { "className": "!border-double" }
+      }
     },
     "shadow": {
       "type": "string",
       "description": "陰影尺寸",
       "default": "sm",
-      "options": ["none", "sm", "md", "lg", "xl"]
+      "options": ["none", "sm", "md", "lg", "xl"],
+      "variants": {
+        "none": { "className": "shadow-none" },
+        "sm":   {},
+        "md":   { "className": "shadow-md" },
+        "lg":   { "className": "shadow-lg" },
+        "xl":   { "className": "shadow-xl" }
+      }
     },
     "rounded": {
       "type": "string",
       "description": "圓角尺寸",
       "default": "md",
-      "options": ["none", "sm", "md", "lg", "xl"]
+      "options": ["none", "sm", "md", "lg", "xl", "full"],
+      "variants": {
+        "none": { "className": "rounded-none" },
+        "sm":   { "className": "rounded-sm" },
+        "md":   { "className": "rounded-md" },
+        "lg":   { "className": "rounded-lg" },
+        "xl":   { "className": "rounded-xl" },
+        "full": { "className": "!rounded-full" }
+      }
     },
     "direction": {
       "type": "string",
       "description": "Flex 排列方向",
       "default": "col",
-      "options": ["col", "row"]
+      "options": ["col", "row"],
+      "variants": {
+        "col": {},
+        "row": { "className": "!flex-row" }
+      }
     },
     "active": {
       "type": "boolean",

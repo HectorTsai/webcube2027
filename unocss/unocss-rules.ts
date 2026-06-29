@@ -54,6 +54,32 @@ export function getSystemRules(
   inactiveElse: string[] = [],
 ): Rule<any>[] {
   return [
+    // 0. 🎯 cube-color-{color} — 純供電：只注入 --c-current 變數，不附帶任何樣式
+    [
+      /^cube-color-(.+)$/,
+      ([, color]) => {
+        // 注入完整階梯變數（對齊容器.tsx 的 scopedStyles）
+        return {
+          '--c-current': `var(--color-${color}-raw)`,
+          '--c-current-content': `var(--color-${color}-content-raw)`,
+          '--c-current-10': `var(--color-${color}-10-raw)`,
+          '--c-current-30': `var(--color-${color}-30-raw)`,
+          '--c-current-50': `var(--color-${color}-50-raw)`,
+          '--c-current-70': `var(--color-${color}-70-raw)`,
+          '--c-current-90': `var(--color-${color}-90-raw)`,
+        };
+      },
+    ],
+
+    // 0a. 🎯 text-current — 獨立 utility，讀取 --c-current
+    ['text-current', { color: 'oklch(var(--c-current)) !important' }],
+    // 0b. 🎯 text-current-content — 獨立 utility，讀取 --c-current-content
+    ['text-current-content', { color: 'oklch(var(--c-current-content)) !important' }],
+    // 0c. 🎯 bg-current — 獨立 utility，讀取 --c-current
+    ['bg-current', { 'background-color': 'oklch(var(--c-current)) !important' }],
+    // 0d. 🎯 border-current — 獨立 utility，讀取 --c-current
+    ['border-current', { 'border-color': 'oklch(var(--c-current)) !important' }],
+
     // 1. c-style-apply — current token → CSS variable + transition
     [
       /^c-style-apply$/,

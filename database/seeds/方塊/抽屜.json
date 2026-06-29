@@ -8,7 +8,8 @@
     "vi": "Ngăn kéo trượt được điều khiển bởi Alpine.js. Hỗ trợ bốn hướng, đóng khi nhấp nền, state tùy chỉnh. Nội dung truyền qua children."
   },
   "from": "方塊:方塊:容器",
-  "className": "fixed z-50 shadow-lg transition-transform duration-300 pointer-events-auto flex flex-col",
+  "defaults": { "shadow": "lg" },
+  "className": "fixed z-50 transition-transform duration-300 pointer-events-auto flex flex-col",
   "args": {
     "state": {
       "type": "string",

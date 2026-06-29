@@ -8,7 +8,9 @@
     "vi": "Khối danh sách."
   },
   "from": "方塊:方塊:容器",
-  "className": "!border-0",
+  "tag": "ul",
+  "className": "!border-0 flex w-full {dirClass}",
+  "style": { "list-style": "none", "padding": "0", "margin": "0" },
   "args": {
     "color": {
       "type": "string", "description": "色彩主題",
@@ -18,12 +20,12 @@
     "active": { "type": "boolean", "description": "供電狀態", "default": true },
     "hover": { "type": "boolean", "description": "允許懸停效果", "default": false },
     "direction": {
-      "type": "string", "description": "排列方向",
-      "default": "column",
-      "options": ["column", "row"],
+      "type": "string", "description": "排列方向 (UnoCSS 引信: flex-col flex-row)",
+      "default": "col",
+      "options": ["col", "row"],
       "variants": {
-        "column": { "wrapClassName": "flex-col" },
-        "row": { "wrapClassName": "flex-row" }
+        "col": { "dirClass": "flex-col" },
+        "row": { "dirClass": "flex-row" }
       }
     },
     "divider": {
@@ -34,13 +36,8 @@
     "title": { "type": "string", "description": "可選標題（顯示在列表上方）", "default": "" }
   },
   "wrap": {
-    "from": "ul",
-    "className": "flex w-full",
-    "style": { "list-style": "none", "padding": "0", "margin": "0" }
-  },
-  "wrapChild": {
     "from": "li",
-    "className": "flex flex-col"
+    "className": "cube-zebra-item focus:outline-none"
   },
   "prepend": [
     {

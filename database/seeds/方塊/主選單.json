@@ -28,11 +28,6 @@
       "default": "sm",
       "options": ["none", "xs", "sm", "md", "lg", "xl", "2xl"]
     },
-    "width": {
-      "type": "string",
-      "description": "寬度",
-      "default": "full"
-    },
     "gap": {
       "type": "string",
       "description": "間距",
@@ -80,7 +75,7 @@
           "repeat": "{items}",
           "href": { "$api": { "path": "/api/v1/page/{item}", "field": "路徑" } },
           "className": "!border-none",
-          "children": [{ "from": "span", "text": { "$api": { "path": "/api/v1/page/{item}", "field": "標題" } } }]
+          "children": [{ "from": "span", "children": [{ "$api": { "path": "/api/v1/page/{item}", "field": "標題" } }] }]
         }
       ]
     },
@@ -105,7 +100,7 @@
           "on": {
             "click": "$store.drawers.{drawerState} = false"
           },
-          "children": [{ "from": "span", "text": { "$api": { "path": "/api/v1/page/{item}", "field": "標題" } } }]
+          "children": [{ "from": "span", "children": [{ "$api": { "path": "/api/v1/page/{item}", "field": "標題" } }] }]
         }
       ]
     },

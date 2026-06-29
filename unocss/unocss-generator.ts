@@ -79,8 +79,11 @@ export class UnoCSS生成器 {
     
     const 主題CSS = 生成全域主題CSS(this.骨架, this.配色, this.風格, this.裝飾);
     const 動畫CSS = 生成動畫CSS(this.骨架);
-    
-    const 最終CSS = `${主題CSS}\n${動畫CSS}\n${unoCss}`.trim();
+
+    // 🌿 斑馬紋 CSS（來自精簡後的 wrapChild 引擎，由 cube-zebra-item 標記類觸發）
+    const 斑馬紋CSS = `.cube-zebra-item:nth-child(even) {\n  background-color: oklch(0.98 0.01 260 / 0.6);\n}\n.dark .cube-zebra-item:nth-child(even) {\n  background-color: oklch(0.2 0.01 260 / 0.4);\n}`;
+
+    const 最終CSS = `${主題CSS}\n${動畫CSS}\n${斑馬紋CSS}\n${unoCss}`.trim();
     if (啟用快取 && cacheKey) { 快取管理器.設定值(cacheKey, 最終CSS); }
     return 最終CSS;
   }

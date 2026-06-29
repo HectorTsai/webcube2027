@@ -9,7 +9,7 @@
   },
   "from": "方塊:方塊:容器",
   "tag": "button",
-  "attrs": { "type": "button" },
+  "defaults": { "type": "button" },
   "className": "cursor-pointer inline-flex items-center justify-center border-0 p-0 bg-transparent select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-current/30 disabled:cursor-default",
   "args": {
     "color": {
@@ -24,11 +24,11 @@
       "default": "md",
       "options": ["xs", "sm", "md", "lg", "xl"],
       "variants": {
-        "xs": { "className": "text-xs rounded", "containerClassName": "px-2 py-1" },
-        "sm": { "className": "text-sm rounded", "containerClassName": "px-3 py-1.5" },
-        "md": { "className": "text-base rounded-md", "containerClassName": "px-4 py-2" },
-        "lg": { "className": "text-lg rounded-lg", "containerClassName": "px-6 py-3" },
-        "xl": { "className": "text-xl rounded-lg", "containerClassName": "px-8 py-4" }
+        "xs": { "className": "text-xs", "rounded": "sm", "padding": "xs" },
+        "sm": { "className": "text-sm", "rounded": "sm", "padding": "sm" },
+        "md": { "className": "text-base", "rounded": "md", "padding": "md" },
+        "lg": { "className": "text-lg", "rounded": "lg", "padding": "lg" },
+        "xl": { "className": "text-xl", "rounded": "lg", "padding": "xl" }
       }
     },
     "disabled": {

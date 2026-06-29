@@ -71,6 +71,15 @@ export function 生成全域主題CSS(骨架模型: 骨架, 配色模型: 配色
     Object.entries(骨架模型.配置).forEach(([key, value]) => { variables.push(`  --${key}: ${value};`); });
   }
 
+  // 🎯 current 變數 Fallback：若上層無 cube-color-{color} 注入，安全降級到 primary 色系
+  variables.push(`  --c-current: var(--color-primary-raw);`);
+  variables.push(`  --c-current-content: var(--color-primary-content-raw);`);
+  variables.push(`  --c-current-10: var(--color-primary-10-raw);`);
+  variables.push(`  --c-current-30: var(--color-primary-30-raw);`);
+  variables.push(`  --c-current-50: var(--color-primary-50-raw);`);
+  variables.push(`  --c-current-70: var(--color-primary-70-raw);`);
+  variables.push(`  --c-current-90: var(--color-primary-90-raw);`);
+
   return `:root {\n${variables.join('\n')}\n}`;
 }
 

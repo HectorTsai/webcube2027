@@ -12,7 +12,8 @@
     "vi": "Khối thẻ, xây dựng trên Container."
   },
   "from": "方塊:方塊:容器",
-  "className": "rounded-md shadow-md overflow-hidden",
+  "defaults": { "rounded": "md", "shadow": "md" },
+  "className": "overflow-hidden",
   "args": {
     "color": {
       "type": "string",

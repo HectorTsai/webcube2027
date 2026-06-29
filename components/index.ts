@@ -21,6 +21,8 @@ export function processChildren(
   }
   
   return Children.toArray(children as any).map((child, index) => {
+    // 過濾 null/undefined，避免 Hono stringBufferToString 崩潰
+    if (child === null || child === undefined) return "";
     if (child && typeof child === 'object' && 'props' in child) {
       const childType = (child as any).type ?? (child as any).tag;
 
@@ -31,6 +33,10 @@ export function processChildren(
       // 由於上游已經完全對齊並注入完畢，絕對禁止對其執行 cloneElement，防止 Hono 非同步 VNode 肉體損壞變字串
       const tagName = childType?.name;
       if (tagName === 'Cube' || tagName === 'VariantComponent' || childType?.toString().includes('Cube')) {
+        // 補償注入：直接 mutate props 補上缺失的 context（不經 cloneElement，避免 async VNode 損壞）
+        if (child.props.context === undefined && baseProps.context !== undefined) {
+          child.props.context = baseProps.context;
+        }
         return child;
       }
 
@@ -99,20 +105,29 @@ export default function createVariantComponent(componentPath: string) {
       if (props && props.context && !variant) {
         try {
           const context = props.context;
-          // 優先從 Context 快取讀取骨架，避免重複 API 呼叫
-          let skeleton = context.get?.('skeleton');
-          
-          if (!skeleton) {
-            const res = await InnerAPI(context, `/api/v1/skeleton`);
-            if (res.ok) {
-              const data = await res.json();
-              skeleton = new 骨架(data.skeleton);
-              
-              // 【🔥 關鍵優化修正點】：查到後立刻寫回 Context 快取！
-              // 補上這一行後，同一次 SSR 請求內不論渲染多少個組件，都只會呼叫 1 次 API，效能暴增！
-              context.set?.('skeleton', skeleton);
-            }
+
+          // 🔥 防禦性鎖：快取 Promise 本身而非結果，杜絕重入鎖死（Re-entrancy Loop）
+          // 同一個 SSR 請求內數百個元件同時檢查 !skeleton 時，只有第一個會發 API，
+          // 其餘全部 await 同一個 Promise，避免 N 倍 API 轟炸與 OOM
+          let skeletonPromise = context.get?.('skeleton_promise');
+
+          if (!skeletonPromise) {
+            skeletonPromise = (async () => {
+              try {
+                const res = await InnerAPI(context, `/api/v1/skeleton`);
+                if (res.ok) {
+                  const data = await res.json();
+                  return new 骨架(data.skeleton);
+                }
+              } catch (_e) {
+                // ignore
+              }
+              return null;
+            })();
+            context.set?.('skeleton_promise', skeletonPromise);
           }
+
+          const skeleton = await skeletonPromise;
           if (skeleton?.風格) {
             variant = skeleton.風格[componentName] ?? skeleton.風格["default"];
           }
