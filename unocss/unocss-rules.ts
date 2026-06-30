@@ -1,8 +1,4 @@
-// unocss-rules.ts (2026 完全體 — rule ⇄ shortcut 雙軌分工)
-//    c-style-apply   → current token 直譯 CSS variable（transition + 三態）
-//    c-div-active    → 非 current active  token，走 UnoCSS 後重寫選擇器
-//    c-div-hover     → 非 current hover   token，走 UnoCSS 後重寫選擇器
-//    c-div-inactive  → 非 current inactive token，走 UnoCSS 後重寫選擇器
+// unocss-rules.ts (2026 簡化版 — c-style-apply 一軌通吃四態)
 import { Rule } from '@unocss/core';
 
 // ---------- current token → CSS variable ----------
@@ -10,6 +6,7 @@ const TOKEN_PREFIX_MAP: Record<string, string> = {
   'bg-': 'background-color',
   'text-': 'color',
   'border-': 'border-color',
+  'ring-': '--un-ring-color',
 };
 
 function resolveCurrentToken(token: string): string {
@@ -25,97 +22,108 @@ function buildCurrentCSS(tokens: string[], selector: string): string {
   if (tokens.length === 0) return '';
   const declarations = tokens.map(resolveCurrentToken).filter(Boolean);
   if (declarations.length === 0) return '';
-  return `${selector} {\n  ${declarations.join(' !important;\n  ')} !important;\n}\n`;
+  return `${selector} {\n  ${declarations.join(';\n  ')};\n}\n`;
 }
 
-// ---------- non-current token → UnoCSS 生成後重寫選擇器 ----------
+// ---------- non-current token → UnoCSS 解析後提取宣告、重包選擇器 ----------
 async function generateNonCurrentCSS(
   tokens: string[],
   selector: string,
   generator: any,
 ): Promise<string> {
   if (tokens.length === 0) return '';
-  const input = tokens.join(' ');
-  const { css } = await generator.generate(input, { preflights: false, minify: true });
-  if (!css.trim()) return '';
-  // 只在 rule 開頭（^ 或 } 之後）匹配 class selector，避開 CSS 值中的 .05 等浮點數
-  return css.replace(/(^|})(\.\w[\w:\\/%-]*)(?=\{)/g, (_m: string, sep: string, _cls: string) => {
-    // sep 是 ''（開頭）或 '}'（銜接上條 rule），需要保留以免吃掉分隔符
-    return sep + selector;
-  }) + '\n';
+
+  const fakeHtml = `<div class="${tokens.join(' ')}"></div>`;
+  const { css } = await generator.generate(fakeHtml, { preflights: false });
+  if (!css) return '';
+
+  const blocks = [...css.matchAll(/\{([^}]+)\}/g)];
+  if (blocks.length === 0) return '';
+
+  const allDeclarations = blocks
+    .map(m => m[1].trim())
+    .join(';')
+    .split(';')
+    .map(d => d.trim())
+    .filter(Boolean);
+
+  if (allDeclarations.length === 0) return '';
+
+  return `${selector} {\n  ${allDeclarations.join(';\n  ')};\n}\n`;
 }
 
 export function getSystemRules(
   activeCurrent: string[] = [],
   hoverCurrent: string[] = [],
   inactiveCurrent: string[] = [],
+  selectedCurrent: string[] = [],
+  focusCurrent: string[] = [],
   activeElse: string[] = [],
   hoverElse: string[] = [],
   inactiveElse: string[] = [],
+  selectedElse: string[] = [],
+  focusElse: string[] = [],
+  elseGenerator?: any,
 ): Rule<any>[] {
+  // 🔑 使用獨立 elseGenerator 解析常規 token，避免在 rule 內部調用主 generator.generate() 時遞迴失敗
+  const gen = elseGenerator;
+
   return [
-    // 0. 🎯 cube-color-{color} — 純供電：只注入 --c-current 變數，不附帶任何樣式
+    // 0. cube-color-{color} — 純供電：注入 --c-current 變數
     [
       /^cube-color-(.+)$/,
-      ([, color]) => {
-        // 注入完整階梯變數（對齊容器.tsx 的 scopedStyles）
-        return {
-          '--c-current': `var(--color-${color}-raw)`,
-          '--c-current-content': `var(--color-${color}-content-raw)`,
-          '--c-current-10': `var(--color-${color}-10-raw)`,
-          '--c-current-30': `var(--color-${color}-30-raw)`,
-          '--c-current-50': `var(--color-${color}-50-raw)`,
-          '--c-current-70': `var(--color-${color}-70-raw)`,
-          '--c-current-90': `var(--color-${color}-90-raw)`,
-        };
-      },
+      ([, color]) => ({
+        '--c-current': `var(--color-${color}-raw)`,
+        '--c-current-content': `var(--color-${color}-content-raw)`,
+        '--c-current-10': `var(--color-${color}-10-raw)`,
+        '--c-current-30': `var(--color-${color}-30-raw)`,
+        '--c-current-50': `var(--color-${color}-50-raw)`,
+        '--c-current-70': `var(--color-${color}-70-raw)`,
+        '--c-current-90': `var(--color-${color}-90-raw)`,
+      }),
     ],
 
-    // 0a. 🎯 text-current — 獨立 utility，讀取 --c-current
-    ['text-current', { color: 'oklch(var(--c-current)) !important' }],
-    // 0b. 🎯 text-current-content — 獨立 utility，讀取 --c-current-content
-    ['text-current-content', { color: 'oklch(var(--c-current-content)) !important' }],
-    // 0c. 🎯 bg-current — 獨立 utility，讀取 --c-current
-    ['bg-current', { 'background-color': 'oklch(var(--c-current)) !important' }],
-    // 0d. 🎯 border-current — 獨立 utility，讀取 --c-current
-    ['border-current', { 'border-color': 'oklch(var(--c-current)) !important' }],
+    // 0a–0d. 獨立 current utility
+    ['text-current', { color: 'oklch(var(--c-current))' }],
+    ['text-current-content', { color: 'oklch(var(--c-current-content))' }],
+    ['bg-current', { 'background-color': 'oklch(var(--c-current))' }],
+    ['border-current', { 'border-color': 'oklch(var(--c-current))' }],
 
-    // 1. c-style-apply — current token → CSS variable + transition
+    // 1. c-style-apply — 四態歸一的主核心軌道
     [
       /^c-style-apply$/,
-      () => {
+      async () => {
         let css = `.c-style-apply {\n  transition: background-color 0.2s ease-out, color 0.2s ease-out, border-color 0.2s ease-out, box-shadow 0.2s ease-out;\n}\n`;
+
+        // ⚡️ active 基礎層
         css += buildCurrentCSS(activeCurrent, '.c-style-apply[data-active="true"]');
+        css += await generateNonCurrentCSS(activeElse, '.c-style-apply[data-active="true"]', gen);
+
+        // 🟣 selected 疊加層 — strip selected: 前綴後餵入 generator
+        const cleanSelected = selectedElse.map(cls => cls.replace(/^selected:/, ''));
+        css += buildCurrentCSS(selectedCurrent, '.c-style-apply[data-active="true"][data-selected="true"]');
+        const selectedRawCss = await generateNonCurrentCSS(cleanSelected, '.c-style-apply[data-active="true"][data-selected="true"]', gen);
+        if (selectedRawCss) {
+          css += selectedRawCss.replace(/;/g, ' !important;').replace(/!important\s+!important/g, '!important');
+        }
+
+        // 🔮 hover 疊加層
         const cleanHover = hoverCurrent.map(cls => cls.replace(/^hover:/, ''));
         css += buildCurrentCSS(cleanHover, '.c-style-apply[data-active="true"][data-hover="true"]:hover');
+        css += await generateNonCurrentCSS(hoverElse, '.c-style-apply[data-active="true"][data-hover="true"]:hover', gen);
+
+        // 🎯 focus 疊加層 — keyboard focus ring，需 active + focus 雙重門禁
+        const cleanFocus = focusCurrent.map(cls => cls.replace(/^focus:/, ''));
+        css += buildCurrentCSS(cleanFocus, '.c-style-apply[data-active="true"][data-focus="true"]:focus');
+        css += await generateNonCurrentCSS(focusElse, '.c-style-apply[data-active="true"][data-focus="true"]:focus', gen);
+
+        // 🔴 inactive 斷電層
         const cleanInactive = inactiveCurrent.map(cls => cls.replace(/^inactive:/, ''));
         css += buildCurrentCSS(cleanInactive, '.c-style-apply[data-active="false"]');
+        css += await generateNonCurrentCSS(inactiveElse, '.c-style-apply[data-active="false"]', gen);
+
         return css.trim();
-      }
-    ],
-
-    // 2. c-div-active — non-current active token → [data-active="true"] 才通電
-    [
-      /^c-div-active$/,
-      async (_, { generator }) => {
-        return await generateNonCurrentCSS(activeElse, '.c-div-active[data-active="true"]', generator);
-      }
-    ],
-
-    // 3. c-div-hover — non-current hover token → active+hover+:hover 三重門禁
-    [
-      /^c-div-hover$/,
-      async (_, { generator }) => {
-        return await generateNonCurrentCSS(hoverElse, '.c-div-hover[data-active="true"][data-hover="true"]:hover', generator);
-      }
-    ],
-
-    // 4. c-div-inactive — non-current inactive token → [data-active="false"] 才爆發
-    [
-      /^c-div-inactive$/,
-      async (_, { generator }) => {
-        return await generateNonCurrentCSS(inactiveElse, '.c-div-inactive[data-active="false"]', generator);
-      }
+      },
     ],
   ];
 }

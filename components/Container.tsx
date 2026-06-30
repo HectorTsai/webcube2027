@@ -4,6 +4,7 @@ import { BaseComponentProps, 過濾無效Props } from "./classes.ts";
 
 export interface ContainerProps extends BaseComponentProps {
   hover?: boolean;
+  focus?: boolean;
   active?: boolean;
   activeStateName?: string; 
 }
@@ -13,7 +14,8 @@ export default function Container(props: ContainerProps) {
     color = "primary", 
     active = true, 
     activeStateName, 
-    hover = false, 
+    hover = false,
+    focus = true,
     children, 
     className = "", 
     style, 
@@ -39,14 +41,15 @@ export default function Container(props: ContainerProps) {
     ...style 
   };
 
-  const 智慧分發Children = processChildren(children, { context: { ...context, color: 實際供電色彩, active, activeStateName, hover } });
+  const 智慧分發Children = processChildren(children, { context: { ...context, color: 實際供電色彩, active, activeStateName, hover, focus } });
 
   // 📦 方案甲盲倒組合:
   //    c-style-apply  → rule  處理 current token → CSS variable
   //    c-div-active   → shortcut 非 current active  token
   //    c-div-hover    → shortcut 非 current hover   token
   //    c-div-inactive → shortcut 非 current inactive token
-  const 最終盲倒Class = `c-style-apply c-div-active c-div-hover c-div-inactive ${className}`.trim().replace(/\s+/g, ' ');
+  //    c-div-focus    → shortcut 非 current focus   token
+  const 最終盲倒Class = `c-style-apply c-div-active c-div-hover c-div-inactive c-div-focus ${className}`.trim().replace(/\s+/g, ' ');
 
   if (activeStateName) {
     return (
@@ -58,7 +61,8 @@ export default function Container(props: ContainerProps) {
         x-init={`if(!Alpine.store('Container')){Alpine.store('Container',{})}if(Alpine.store('Container').${activeStateName}===undefined){Alpine.store('Container').${activeStateName}=${active}}`}
         x-bind:data-active={`($store.Container?.${activeStateName} ?? ${active}) ? 'true' : 'false'`}
         x-bind:style={`!($store.Container?.${activeStateName} ?? ${active}) ? '--c-current: var(--color-neutral-raw); --c-current-content: var(--color-neutral-content-raw); --c-current-50: var(--color-neutral-50-raw); --c-current-70: var(--color-neutral-70-raw); --c-current-90: var(--color-neutral-90-raw);' : ''`}
-        data-hover={hover ? "true" : "false"} 
+        data-hover={hover ? "true" : "false"}
+        data-focus={focus ? "true" : "false"}
         {...過濾無效Props(props)} 
       >
         {智慧分發Children}
@@ -71,7 +75,8 @@ export default function Container(props: ContainerProps) {
       class={最終盲倒Class}
       style={scopedStyles}
       data-active={active ? "true" : "false"} 
-      data-hover={hover ? "true" : "false"}   
+      data-hover={hover ? "true" : "false"}
+      data-focus={focus ? "true" : "false"}
       {...過濾無效Props(props)} 
     >
       {智慧分發Children}

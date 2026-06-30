@@ -23,7 +23,7 @@ export default async function FooterTest(c: Context) {
             <span class="w-2 h-5 bg-purple-500 rounded-full inline-block" />
             基本頁尾
           </h2>
-          <Cube from="方塊:方塊:頁尾" context={c} color="base">
+          <Cube from="方塊:方塊:頁尾" context={c} color="primary">
             <div class="text-center text-sm">
               <p>&copy; 2024 WebCube. All rights reserved.</p>
             </div>
@@ -83,7 +83,18 @@ export default async function FooterTest(c: Context) {
           </Cube>
         </section>
 
-        {/* 區塊四：使用說明 */}
+        {/* 區塊四：版權資訊 */}
+        <section class="space-y-4">
+          <h2 class="text-lg font-black text-slate-800 flex items-center gap-2">
+            <span class="w-2 h-5 bg-rose-500 rounded-full inline-block" />
+            版權資訊（copyright prop）
+          </h2>
+          <Cube from="方塊:方塊:頁尾" context={c} color="primary"
+            copyright={{ 公司: "WebCube", 網址: "https://webcube.tw", 開始年份: "2024" }}
+          />
+        </section>
+
+        {/* 區塊五：使用說明 */}
         <section class="space-y-4">
           <h2 class="text-lg font-black text-slate-800 flex items-center gap-2">
             <span class="w-2 h-5 bg-sky-500 rounded-full inline-block" />

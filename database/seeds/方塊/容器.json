@@ -30,14 +30,29 @@
       "type": "string",
       "description": "Padding 尺寸",
       "default": "md",
-      "options": ["none", "xs", "sm", "md", "lg", "xl"],
+      "options": ["none", "xs", "sm", "md", "lg", "xl", "2xl"],
       "variants": {
         "none": { "className": "p-0" },
         "xs":   { "className": "p-1" },
         "sm":   { "className": "p-2" },
         "md":   { "className": "p-4" },
         "lg":   { "className": "p-6" },
-        "xl":   { "className": "p-8" }
+        "xl":   { "className": "p-8" },
+        "2xl":  { "className": "p-10" }
+      }
+    },
+    "gap": {
+      "type": "string",
+      "description": "Flex 子元素間距",
+      "default": "none",
+      "options": ["none", "xs", "sm", "md", "lg", "xl"],
+      "variants": {
+        "none": { "className": "gap-0" },
+        "xs":   { "className": "gap-1" },
+        "sm":   { "className": "gap-2" },
+        "md":   { "className": "gap-4" },
+        "lg":   { "className": "gap-6" },
+        "xl":   { "className": "gap-8" }
       }
     },
     "border": {
@@ -88,6 +103,117 @@
       "variants": {
         "col": {},
         "row": { "className": "!flex-row" }
+      }
+    },
+    "align": {
+      "type": "string",
+      "description": "Flex align-items 垂直對齊",
+      "default": "start",
+      "options": ["start", "center", "end", "stretch", "baseline"],
+      "variants": {
+        "start":    {},
+        "center":   { "className": "items-center" },
+        "end":      { "className": "items-end" },
+        "stretch":  { "className": "items-stretch" },
+        "baseline": { "className": "items-baseline" }
+      }
+    },
+    "justify": {
+      "type": "string",
+      "description": "Flex justify-content 水平對齊",
+      "default": "start",
+      "options": ["start", "center", "end", "between", "around", "evenly"],
+      "variants": {
+        "start":   {},
+        "center":  { "className": "justify-center" },
+        "end":     { "className": "justify-end" },
+        "between": { "className": "justify-between" },
+        "around":  { "className": "justify-around" },
+        "evenly":  { "className": "justify-evenly" }
+      }
+    },
+    "textAlign": {
+      "type": "string",
+      "description": "文字對齊",
+      "default": "left",
+      "options": ["left", "center", "right", "justify"],
+      "variants": {
+        "left":    {},
+        "center":  { "className": "text-center" },
+        "right":   { "className": "text-right" },
+        "justify": { "className": "text-justify" }
+      }
+    },
+    "fontSize": {
+      "type": "string",
+      "description": "字級大小（由佈景主題控制，非直接 hardcode 像素）",
+      "default": "base",
+      "options": ["xs", "sm", "base", "lg", "xl", "2xl", "3xl", "4xl", "5xl"],
+      "variants": {
+        "xs":  { "className": "text-xs" },
+        "sm":  { "className": "text-sm" },
+        "base": {},
+        "lg":  { "className": "text-lg" },
+        "xl":  { "className": "text-xl" },
+        "2xl": { "className": "text-2xl" },
+        "3xl": { "className": "text-3xl" },
+        "4xl": { "className": "text-4xl" },
+        "5xl": { "className": "text-5xl" }
+      }
+    },
+    "display": {
+      "type": "string",
+      "description": "CSS display",
+      "default": "flex",
+      "options": ["flex", "inline-flex", "block", "inline-block", "inline", "grid", "none"],
+      "variants": {
+        "flex":         {},
+        "inline-flex":  { "className": "!inline-flex" },
+        "block":        { "className": "!block" },
+        "inline-block": { "className": "!inline-block" },
+        "inline":       { "className": "!inline" },
+        "grid":         { "className": "!grid" },
+        "none":         { "className": "!hidden" }
+      }
+    },
+    "underline": {
+      "type": "string",
+      "description": "文字底線",
+      "default": "none",
+      "options": ["none", "underline", "line-through"],
+      "variants": {
+        "none":         { "className": "no-underline" },
+        "underline":    { "className": "underline" },
+        "line-through": { "className": "line-through" }
+      }
+    },
+    "userSelect": {
+      "type": "string",
+      "description": "禁止或允許文字選取",
+      "default": "auto",
+      "options": ["auto", "none", "text", "all"],
+      "variants": {
+        "auto": {},
+        "none": { "className": "select-none" },
+        "text": { "className": "select-text" },
+        "all":  { "className": "select-all" }
+      }
+    },
+    "cursor": {
+      "type": "string",
+      "description": "滑鼠游標樣式",
+      "default": "default",
+      "options": ["default", "pointer", "not-allowed", "grab", "grabbing", "text", "move", "wait", "help"],
+      "variants": {
+        "default":      {},
+        "pointer":      { "className": "cursor-pointer" },
+        "not-allowed":  { "className": "cursor-not-allowed" },
+        "grab":         { "className": "cursor-grab" },
+        "grabbing":     { "className": "cursor-grabbing" },
+        "text":         { "className": "cursor-text" },
+        "move":         { "className": "cursor-move" },
+        "wait":         { "className": "cursor-wait" },
+        "help":         { "className": "cursor-help" }
       }
     },
     "active": {

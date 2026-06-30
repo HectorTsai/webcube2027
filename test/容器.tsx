@@ -20,7 +20,7 @@ const layoutScenarios = [
 
 const contentScenarios = [
   { active: true, hover: true, label: "通電常態 + 允許懸停" },
-  { active: false, hover: false, label: "斷電冷卻（應顯示 neutral 色）" },
+  { active: false, hover: false, label: "斷電冷卻（應套用風格 inactive）" },
   { active: true, hover: false, label: "通電常態 + 禁止懸停" },
 ];
 
@@ -118,7 +118,7 @@ export default function ContainerTestPage(c: Context) {
 
               <div class="space-y-2">
                 <div class="text-xs font-bold text-slate-400">靜態失活對照組</div>
-                <Cube from="方塊:方塊:容器" context={c} color="neutral" className="p-sm rounded-lg" active={false} hover={false}>
+                <Cube from="方塊:方塊:容器" context={c} color="neutral" className="c-style-apply p-sm rounded-lg" active={false} hover={false}>
                   <div class="font-bold">斷電對照組</div>
                 </Cube>
               </div>
@@ -141,6 +141,79 @@ export default function ContainerTestPage(c: Context) {
                 </button>
               </div>
 
+            </div>
+          </div>
+        </section>
+
+        {/* 區塊四：第四態 selected 選中測試 */}
+        <section class="space-y-4">
+          <h2 class="text-lg font-black text-slate-800 flex items-center gap-2">
+            <span class="w-2 h-5 bg-purple-500 rounded-full inline-block" />
+            第四態 Selected — 選中強調（靜態 + Alpine 動態）
+          </h2>
+
+          {/* 4-1：靜態選中矩陣 */}
+          <div class="border border-slate-100 rounded-xl p-5 bg-white shadow-sm space-y-4">
+            <div class="text-xs font-bold text-slate-400 tracking-wider">
+              靜態選中：selected=true（應顯示 accent 色 + ring）
+            </div>
+            <div class="flex flex-wrap gap-4">
+              {["primary", "secondary", "accent"].map((color) => (
+                <Cube
+                  from="方塊:方塊:容器" context={c}
+                  color={color} className="p-sm rounded-lg" active selected
+                >
+                  <span class="font-bold capitalize">{color} 選中</span>
+                </Cube>
+              ))}
+            </div>
+          </div>
+
+          {/* 4-2：頁籤式 Alpine 動態切換 */}
+          <div class="border border-slate-100 rounded-xl p-6 bg-white shadow-sm space-y-6"
+            x-data="{ currentTab: 'home' }">
+            <div class="text-sm text-slate-500 max-w-2xl leading-relaxed">
+              頁籤情境：點擊切換 <code>data-selected</code>，選中項顯示強調色。
+              hover 效果由風格定義，在 active 與 selected 底色上皆能疊加。
+            </div>
+
+            <div class="flex flex-wrap gap-4 items-center">
+              {[
+                { id: "home", label: "首頁" },
+                { id: "products", label: "產品" },
+                { id: "settings", label: "設定" },
+              ].map((tab) => (
+                <Cube
+                  from="方塊:方塊:容器" context={c}
+                  color="primary" className="c-div-selected p-sm rounded-lg cursor-pointer"
+                  active hover
+                  x-bind:data-selected={`currentTab === '${tab.id}'`}
+                  x-on:click={`currentTab = '${tab.id}'`}
+                >
+                  <span class="font-bold" x-text={`currentTab === '${tab.id}' ? '✓ ${tab.label}' : '${tab.label}'`}>
+                    {tab.label}
+                  </span>
+                </Cube>
+              ))}
+            </div>
+
+            <div class="text-xs text-slate-400">
+              目前選中：<code class="bg-slate-100 px-1 rounded" x-text="currentTab" />
+            </div>
+          </div>
+
+          {/* 4-3：selected + disabled 不衝突驗證 */}
+          <div class="border border-slate-100 rounded-xl p-5 bg-white shadow-sm space-y-4">
+            <div class="text-xs font-bold text-slate-400 tracking-wider">
+              邊界情境：selected + disabled（disabled 應優先斷電，selected 不可見）
+            </div>
+            <div class="flex flex-wrap gap-4">
+              <Cube from="方塊:方塊:容器" context={c} color="primary" className="p-sm rounded-lg" active selected disabled>
+                <span class="font-bold">選中但禁用</span>
+              </Cube>
+              <Cube from="方塊:方塊:容器" context={c} color="primary" className="p-sm rounded-lg" active={false} selected>
+                <span class="font-bold">選中但斷電</span>
+              </Cube>
             </div>
           </div>
         </section>

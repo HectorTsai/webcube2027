@@ -14,7 +14,9 @@
     "配置": {
       "active": "bg-transparent text-current border-2 border-solid border-current shadow-sm",
       "inactive": "bg-transparent text-current-30 border-2 border-solid border-current-50/30 shadow-none saturate-30 opacity-50",
-      "hover": "hover:bg-current-10/20 hover:text-current-content hover:border-current-70 hover:shadow-md"
+      "hover": "hover:bg-current-10/20 hover:text-current-content hover:border-current-70 hover:shadow-md",
+      "focus": "focus:outline-none focus:ring-2 focus:ring-current focus:ring-offset-2",
+      "selected": "selected:bg-current selected:text-current-content selected:border-current-content"
     },
     "售價": 0,
     "可刪除": false

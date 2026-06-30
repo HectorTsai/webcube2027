@@ -17,7 +17,8 @@ const DEFAULT_VALUES = {
     "shadow": "none",
     "text-color": "inherit",
     "hover-bg": "transparent",
-    "hover-shadow": "none"
+    "hover-shadow": "none",
+    "focus": "focus:outline-none focus:ring-2 focus:ring-current focus:ring-offset-2"
   },
   售價: 0
 };

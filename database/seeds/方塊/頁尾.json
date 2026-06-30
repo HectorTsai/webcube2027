@@ -3,15 +3,16 @@
   "名稱": { "en": "Footer", "zh-tw": "頁尾", "vi": "Chân trang" },
   "標籤集": ["方塊:標籤:導覽"],
   "描述": {
-    "en": "Page footer section built on Container. Centered column layout with configurable color, variant, padding, and gap. Content is passed as children.",
-    "zh-tw": "基於 Container 的頁面頁尾區塊。置中欄佈局，可設定 color、variant、padding 與 gap。內容透過 children 傳入。",
-    "vi": "Phần chân trang dựa trên Container. Bố cục cột căn giữa với màu sắc, biến thể, đệm và khoảng cách có thể cấu hình. Nội dung được truyền qua children."
+    "en": "Page footer section built on Container. Centered column layout with configurable color, padding, and gap. Content is passed as children.",
+    "zh-tw": "基於 Container 的頁面頁尾區塊。置中欄佈局，可設定 color、padding 與 gap。內容透過 children 傳入。",
+    "vi": "Phần chân trang dựa trên Container. Bố cục cột căn giữa với màu sắc, đệm và khoảng cách có thể cấu hình. Nội dung được truyền qua children."
   },
   "from": "方塊:方塊:容器",
-  "defaults": { 
+  "defaults": {
     "border": "none",
     "shadow": "none",
-    "rounded": "none"
+    "align": "center",
+    "justify": "center"
   },
   "mergedArgs": {
     "currentYear": "@api/v1/temporal/fullYear",
@@ -25,11 +26,6 @@
       "default": "base",
       "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "base", "neutral"]
     },
-    "variant": {
-      "type": "string",
-      "description": "樣式變體",
-      "default": "solid"
-    },
     "direction": {
       "type": "string",
       "description": "排列方向",
@@ -40,23 +36,35 @@
       "type": "string",
       "description": "內距",
       "default": "xs",
-      "options": ["none", "xs", "sm", "md", "lg", "xl", "2xl"]
-    },
-    "width": {
-      "type": "string",
-      "description": "寬度",
-      "default": "full"
+      "options": ["none", "xs", "sm", "md", "lg", "xl", "2xl"],
+      "variants": {
+        "none": { "className": "p-0" },
+        "xs":   { "className": "p-1" },
+        "sm":   { "className": "p-2" },
+        "md":   { "className": "p-4" },
+        "lg":   { "className": "p-6" },
+        "xl":   { "className": "p-8" },
+        "2xl":  { "className": "p-10" }
+      }
     },
     "gap": {
       "type": "string",
       "description": "間距",
       "default": "xs",
-      "options": ["none", "xs", "sm", "md", "lg", "xl"]
+      "options": ["none", "xs", "sm", "md", "lg", "xl"],
+      "variants": {
+        "none": { "className": "gap-0" },
+        "xs":   { "className": "gap-1" },
+        "sm":   { "className": "gap-2" },
+        "md":   { "className": "gap-4" },
+        "lg":   { "className": "gap-6" },
+        "xl":   { "className": "gap-8" }
+      }
     },
     "className": {
       "type": "string",
-      "description": "額外的 CSS 類別（如 items-center justify-center text-sm）",
-      "default": "items-center justify-center text-sm"
+      "description": "額外的 CSS 類別，會追加入頂層定義的排版類名後方",
+      "default": ""
     },
     "copyright": {
       "type": "object",
@@ -66,8 +74,9 @@
   },
   "children": [
     {
-      "from": "div",
-      "className": "flex flex-row items-center justify-center gap-1 text-center text-sm",
+      "from": "方塊:方塊:容器",
+      "direction": "row",
+      "textAlign": "center",
       "children": [
         {
           "from": "span",
@@ -77,7 +86,8 @@
           "from": "方塊:方塊:超連結",
           "href": "{copyright.網址}",
           "target": "_blank",
-          "className": "!border-none !shadow-none",
+          "border": "none",
+          "shadow": "none",
           "children": [
             {
               "from": "span",

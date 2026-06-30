@@ -122,6 +122,8 @@ export default async function LinkTestPage(c: Context) {
             <Cube from="方塊:方塊:超連結" context={c} color="error" size="md"
               disabled={false}
               x-bind:disabled="locked"
+              x-bind:data-active="(!locked).toString()"
+              x-bind:data-hover="(!locked).toString()"
               href="https://developer.mozilla.org"
               target="_blank" rel="noopener noreferrer"
               x-on:click="if(locked) $event.preventDefault()">
@@ -132,7 +134,7 @@ export default async function LinkTestPage(c: Context) {
               x-text="locked ? '解鎖' : '鎖定'">鎖定</button>
           </div>
           <p class="text-xs text-slate-400">
-            鎖定時連結自動斷電變灰，且點擊無效（preventDefault）。
+            鎖定時自動斷電變灰、游標變禁止符號、點擊無效。
           </p>
         </section>
 

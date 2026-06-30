@@ -54,19 +54,22 @@ const VOID_ELEMENTS = new Set([
 ]);
 
 const TAG_ATTR_WHITELIST: Record<string, Set<string>> = {
-  a: new Set(["href", "target", "rel", "download", "hreflang", "ping", "referrerpolicy"]),
+  a: new Set(["href", "target", "rel", "download", "hreflang", "ping", "referrerpolicy",]),
   img: new Set(["src", "alt", "crossorigin", "decoding", "loading", "referrerpolicy", "sizes", "srcset"]),
-  input: new Set(["type", "placeholder", "value", "name", "disabled", "readonly", "required", "min", "max", "step", "maxlength", "pattern", "autocomplete", "autofocus"]),
-  button: new Set(["type", "disabled", "name", "value", "autofocus"]),
+  input: new Set(["type", "placeholder", "value", "name", "readonly", "required", "min", "max", "step", "maxlength", "pattern", "autocomplete", "autofocus"]),
+  button: new Set(["type", "name", "value", "autofocus"]),
   form: new Set(["action", "method", "target", "enctype", "novalidate", "autocomplete"]),
   label: new Set(["for"]),
-  textarea: new Set(["placeholder", "rows", "cols", "maxlength", "readonly", "disabled"]),
-  select: new Set(["disabled", "multiple", "name", "required"]),
+  textarea: new Set(["placeholder", "rows", "cols", "maxlength", "readonly"]),
+  select: new Set(["multiple", "name", "required"]),
   video: new Set(["src", "poster", "controls", "autoplay", "loop", "muted", "width", "height"]),
   audio: new Set(["src", "controls", "autoplay", "loop", "muted"]),
 };
 
-const GLOBAL_ATTRS = new Set(["id", "title", "tabindex", "role", "aria-label", "aria-hidden", "lang", "dir", "hidden"]);
+const GLOBAL_ATTRS = new Set(["id", "title", "tabindex", "role", "aria-label", "aria-hidden", "lang", "dir", "hidden", "disabled"]);
+
+// 斷電時需移除的原生互動屬性（防止瀏覽器忽略 disabled 仍觸發行為）
+const 原生點擊屬性 = ["href", "action", "formaction"];
 
 function isAttrAllowed(tag: string, attr: string): boolean {
   const attrLower = attr.toLowerCase();
@@ -256,10 +259,13 @@ function 解析最終屬性與樣式(params: {
   // 4. 準備最終 Style（不再手動注入 --c-current，交由 UnoCSS 的 cube-color-{color} 處理）
   const 最終Style: Record<string, string> = { ...finalStyle };
 
-  // 5. 準備最終 ClassName：若有 color，套用 cube-color-{color} 純供電
+  // 5. 準備最終 ClassName：合併 seed 定義、外部傳入、color 供電
   const 最終ClsArray: string[] = [];
   const 清理後的FinalCls = finalClassName.trim();
   if (清理後的FinalCls) 最終ClsArray.push(清理後的FinalCls);
+  if (mergedArgs.className && typeof mergedArgs.className === 'string') {
+    最終ClsArray.push(substitute(mergedArgs.className, mergedArgs));
+  }
   if (mergedArgs.color) {
     最終ClsArray.push(`cube-color-${mergedArgs.color}`);
   }
@@ -500,10 +506,14 @@ async function 處理方塊引用(from: string, currentDef: any, mergedArgs: any
   return result;
 }
 
-// ── 解析智慧三態Alpine：自動判別靜態 Boolean、Alpine 表達式與 activeStateName ──
-function 解析智慧三態Alpine(mergedArgs: any) {
-  const active = mergedArgs.active ?? true;
-  const hover = mergedArgs.hover ?? false;
+// ── 解析智慧五態Alpine：自動判別靜態 Boolean、Alpine 表達式與 activeStateName ──
+function 解析智慧五態Alpine(mergedArgs: any) {
+  // 🔒 disabled 強制斷電：無論 active/hover 傳入何值，disabled=true 一律關閉通電與懸停
+  const disabled = String(mergedArgs.disabled) === 'true';
+  const active = disabled ? false : (mergedArgs.active ?? true);
+  const hover = disabled ? false : (mergedArgs.hover ?? false);
+  const focus = disabled ? false : (mergedArgs.focus ?? true);
+  const selected = mergedArgs.selected ?? false;
   const activeStateName = mergedArgs.activeStateName as string | undefined;
 
   const isAlpineExpression = (val: any) => typeof val === 'string' && (val.includes('$') || val.includes('.'));
@@ -539,6 +549,20 @@ function 解析智慧三態Alpine(mergedArgs: any) {
     alpineAttrs[":data-hover"] = String(hover);
   } else {
     alpineAttrs["data-hover"] = String(hover);
+  }
+
+  // 4. selected 狀態綁定（第四態）
+  if (isAlpineExpression(selected)) {
+    alpineAttrs[":data-selected"] = String(selected);
+  } else {
+    alpineAttrs["data-selected"] = String(selected);
+  }
+
+  // 5. focus 狀態綁定（第五態：鍵盤焦點）
+  if (isAlpineExpression(focus)) {
+    alpineAttrs[":data-focus"] = String(focus);
+  } else {
+    alpineAttrs["data-focus"] = String(focus);
   }
 
   return alpineAttrs;
@@ -577,13 +601,31 @@ function 剝離HTML污染屬性(
   let mergedAlpine = variantAlpine ? { ...variantAlpine } : undefined;
 
   if (definition.args) {
+    // 🔄 兩階段變體處理：避免 variant 傳播值（如 size→padding）在目標 arg 處理完後才寫入
+    const 變體標準Key = ['className', 'style', 'on', 'data', 'alpine', 'containerClassName', 'wrapClassName'];
+
+    // ═══ Pass 1：只處理非標準 key 的傳播，確保下游 args 在 Pass 2 看到最新值 ═══
+    for (const [key, argDef] of Object.entries(definition.args) as [string, any][]) {
+      const runtimeVal = mergedArgs[key];
+      if (runtimeVal !== undefined && argDef.variants) {
+        const v = argDef.variants[String(runtimeVal)];
+        if (v) {
+          for (const [vk, vv] of Object.entries(v)) {
+            if (!變體標準Key.includes(vk)) {
+              mergedArgs[vk] = vv;
+            }
+          }
+        }
+      }
+    }
+
+    // ═══ Pass 2：標準 key 套用（此時 mergedArgs 已含 Pass 1 傳播的最新值） ═══
     for (const [key, argDef] of Object.entries(definition.args) as [string, any][]) {
       const runtimeVal = mergedArgs[key];
       if (runtimeVal !== undefined && argDef.variants) {
         const v = argDef.variants[String(runtimeVal)];
         if (v) {
           if (v.className) finalClassName = [finalClassName, v.className].filter(Boolean).join(" ");
-          // containerClassName / wrapClassName 已移除（容器退居 JSON，無雙層 wrapper）
           if (v.style) Object.assign(finalStyle, v.style);
           if (v.on) Object.assign(finalOn, v.on);
           if (v.data) Object.assign(finalData, v.data);
@@ -595,12 +637,6 @@ function 剝離HTML污染屬性(
               } else {
                 (mergedAlpine as any)[ak] = av;
               }
-            }
-          }
-          // 其餘非標準 key 合併到 mergedArgs（如 rounded / padding）
-          for (const [vk, vv] of Object.entries(v)) {
-            if (!['className', 'style', 'on', 'data', 'alpine', 'containerClassName', 'wrapClassName'].includes(vk)) {
-              mergedArgs[vk] = vv;
             }
           }
         }
@@ -638,8 +674,8 @@ function 剝離HTML污染屬性(
   const 框架內部變數 = ['from', 'args', 'definition', 'children', 'repeat', 'slot', '$api', 'styleConditions', 'prepend', 'append', 'wrap'];
 
   Object.keys(attrs).forEach(key => {
-    // 明確過濾掉 data-active / data-hover，交由 variantAlpine 專責覆蓋
-    if (key !== 'data-active' && key !== 'data-hover' && !框架內部變數.includes(key) && typeof attrs[key] !== 'object') {
+    // 明確過濾掉 data-active / data-hover / data-selected，交由 variantAlpine 專責覆蓋
+    if (key !== 'data-active' && key !== 'data-hover' && key !== 'data-selected' && !框架內部變數.includes(key) && typeof attrs[key] !== 'object') {
       乾淨Attrs[key] = attrs[key];
     }
   });
@@ -689,8 +725,8 @@ export default async function Cube(props: CubeProps): Promise<any> {
     (definition.from as string) ||    // 3. 繼承來源
     "div";                            // 4. 預設底線
 
-  // ⚡ 智慧判定 Alpine 三態：靜態 Boolean 走 data-active，Alpine 表達式走 :data-active
-  const variantAlpine = 解析智慧三態Alpine(mergedArgs);
+  // ⚡ 智慧判定 Alpine 五態：靜態 Boolean 走 data-*，Alpine 表達式走 :data-*
+  const variantAlpine = 解析智慧五態Alpine(mergedArgs);
 
   // 🎨 條件 CSS 作用域處理（如分隔線）
   let 條件StyleNode: any = null;
@@ -706,9 +742,25 @@ export default async function Cube(props: CubeProps): Promise<any> {
   // ═══════════════════════════════════════════════════════════════════════════
   // ⚡ 4. 終極供電鏈：處理子節點並向下傳導（Context, Color 等）
   // JSX children 優先於 definition.children，若無則 fallback
-  const rawChildren = (childrenProp !== undefined && (!Array.isArray(childrenProp) || childrenProp.length > 0))
+  let rawChildren = (childrenProp !== undefined && (!Array.isArray(childrenProp) || childrenProp.length > 0))
     ? childrenProp
     : definition.children;
+
+  // 🔄 當 children 來自 definition（JSON 物件）時，包裹為 <Cube> 以遞迴渲染
+  if (childrenProp === undefined && rawChildren) {
+    const arr = Array.isArray(rawChildren) ? rawChildren : [rawChildren];
+    rawChildren = await Promise.all(arr.map(async (child: any) => {
+      if (!child || typeof child !== 'object' || !child.from) return child;
+      // 剝離 CUBE_META 欄位（由 Cube 從 definition 讀取），其餘作為額外 props 傳入
+      const extraProps: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(child)) {
+        if (!CUBE_META.has(k) && v !== undefined) {
+          extraProps[k] = v;
+        }
+      }
+      return await jsx(Cube, { definition: child, ...mergedArgs, ...extraProps, context, depth: (props.depth || 0) + 1 });
+    }));
+  }
 
   const poweredMergedArgs = { ...mergedArgs, context };
 
@@ -778,7 +830,7 @@ export default async function Cube(props: CubeProps): Promise<any> {
     .flat()
     .filter((node) => node !== null && node !== undefined && node !== false);
 
-  if (nativeChildren.length === 0 && !條件StyleNode) {
+  if (nativeChildren.length === 0 && !條件StyleNode && !(definition as any).text) {
     return "" as any;
   }
 
@@ -787,6 +839,21 @@ export default async function Cube(props: CubeProps): Promise<any> {
 
   // 🧼 純淨化過濾：屬性剝離 + 變體處理 + 供電注入
   const 最終純淨Props = 剝離HTML污染屬性(原生Tag, definition, mergedArgs, variantAlpine, 條件ScopeClass);
+
+  // 🔒 通用斷電防線：disabled / 斷電時封鎖游標、注入無障礙標記、移除原生點擊屬性
+  if (String(mergedArgs.disabled) === 'true' || mergedArgs.active === false) {
+    最終純淨Props.class = 最終純淨Props.class
+      .replace(/\b(\w+[:/])*cursor-pointer\b/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    最終純淨Props.class = `${最終純淨Props.class} !cursor-not-allowed`.trim();
+    最終純淨Props["aria-disabled"] = "true";
+
+    // 移除會觸發原生瀏覽器行為的屬性（如 href, action, formaction）
+    for (const key of 原生點擊屬性) {
+      if (key in 最終純淨Props) delete 最終純淨Props[key];
+    }
+  }
 
   // 🖼️ 輸出最乾淨、零 Wrapper 包裹的原生 HTML 節點
   if (isVoidElement(原生Tag)) return jsx(原生Tag, 最終純淨Props);

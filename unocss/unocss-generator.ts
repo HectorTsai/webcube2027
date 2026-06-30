@@ -24,14 +24,23 @@ export class UnoCSS生成器 {
   }
   
   private async 確保Uno核心已建立(
-    activeCurrent: string[], hoverCurrent: string[], inactiveCurrent: string[],
-    activeElse: string[], hoverElse: string[], inactiveElse: string[],
+    activeCurrent: string[], hoverCurrent: string[], inactiveCurrent: string[], selectedCurrent: string[], focusCurrent: string[],
+    activeElse: string[], hoverElse: string[], inactiveElse: string[], selectedElse: string[], focusElse: string[],
   ) {
-    const rules = getSystemRules(
-      activeCurrent, hoverCurrent, inactiveCurrent,
-      activeElse, hoverElse, inactiveElse,
-    );
     const 動態色彩Theme = 提取UnoCSS動態Theme色彩(this.配色);
+
+    // 🔑 獨立 elseGenerator：專門解析 bg-accent 等常規 token，不與主引擎共享 instance
+    //    避免在 rule 內部調用 generator.generate() 時發生遞迴靜默失敗
+    const elseGenerator = await createGenerator({
+      presets: [presetWind3()],
+      theme: { colors: 動態色彩Theme },
+    });
+
+    const rules = getSystemRules(
+      activeCurrent, hoverCurrent, inactiveCurrent, selectedCurrent, focusCurrent,
+      activeElse, hoverElse, inactiveElse, selectedElse, focusElse,
+      elseGenerator,
+    );
 
     return await createGenerator({
       presets: [presetWind3()],
@@ -48,8 +57,10 @@ export class UnoCSS生成器 {
     }
     
     const jsonActive = this.風格?.配置?.active || "bg-current text-current-content border border-solid border-current-30 shadow-sm";     
-    const jsonInactive = this.風格?.配置?.inactive || "bg-base-50 text-base-content border border-solid border-base-50/20 shadow-none"; 
+    const jsonInactive = this.風格?.配置?.inactive || "bg-base-50 text-base-content border border-solid border-base-50/20 opacity-40 select-none shadow-none cursor-not-allowed"; 
     const jsonHover = this.風格?.配置?.hover || "bg-current-70";
+    const jsonSelected = this.風格?.配置?.selected || "selected:bg-accent selected:text-accent-content";  // 第四態：選中
+    const jsonFocus = this.風格?.配置?.focus || "focus:outline-none focus:ring-2 focus:ring-current focus:ring-offset-2";  // 第五態：鍵盤焦點
     const jsonLayout = (this.骨架 as any)?.配置字串 || "";
 
     // ==================== current ⇄ else 雙軌分流 ====================
@@ -62,17 +73,19 @@ export class UnoCSS生成器 {
     const inactiveCurrent: string[] = [], inactiveElse: string[] = [];
     jsonInactive.split(/\s+/).forEach(cls => { if (!cls) return; cls.includes('current') ? inactiveCurrent.push(cls) : inactiveElse.push(cls); });
 
+    const selectedCurrent: string[] = [], selectedElse: string[] = [];
+    if (jsonSelected) jsonSelected.split(/\s+/).forEach(cls => { if (!cls) return; cls.includes('current') ? selectedCurrent.push(cls) : selectedElse.push(cls); });
+
+    const focusCurrent: string[] = [], focusElse: string[] = [];
+    jsonFocus.split(/\s+/).forEach(cls => { if (!cls) return; cls.includes('current') ? focusCurrent.push(cls) : focusElse.push(cls); });
+
     const 核心引擎 = await this.確保Uno核心已建立(
-      activeCurrent, hoverCurrent, inactiveCurrent,
-      activeElse, hoverElse, inactiveElse,
+      activeCurrent, hoverCurrent, inactiveCurrent, selectedCurrent, focusCurrent,
+      activeElse, hoverElse, inactiveElse, selectedElse, focusElse,
     );
 
-    // 🎯 引導 HTML：四個 class 觸發四條 rule
-    //    c-style-apply  → current token → CSS variable
-    //    c-div-active   → active  else → [data-active="true"]
-    //    c-div-hover    → hover   else → [data-active="true"][data-hover="true"]:hover
-    //    c-div-inactive → inactive else → [data-active="false"]
-    const 風格引導HTML = `<div class="c-style-apply c-div-active c-div-hover c-div-inactive ${jsonLayout}"></div>`;
+    // 🎯 引導 HTML：觸發 c-style-apply rule + c-div-* shortcuts
+    const 風格引導HTML = `<div class="c-style-apply c-div-active c-div-hover c-div-inactive c-div-selected c-div-focus ${activeElse.join(' ')} ${hoverElse.join(' ')} ${inactiveElse.join(' ')} ${selectedElse.join(' ')} ${focusElse.join(' ')} ${jsonLayout}"></div>`;
     const 最終編編HTML = `${html}\n${風格引導HTML}`;
 
     const { css: unoCss } = await 核心引擎.generate(最終編編HTML, { preflights: false });

@@ -3,13 +3,22 @@
   "名稱": { "en": "Link", "zh-tw": "超連結", "vi": "Liên kết" },
   "標籤集": ["方塊:標籤:互動元素"],
   "描述": {
-    "en": "Link cube built on Container. Supports color themes, sizes, disabled state, and href prop.",
-    "zh-tw": "超連結方塊，基於容器建構。無底線、支援色彩主題、尺寸、禁用狀態。",
+    "en": "Link cube built on Container. Inline-flex centered, underlined by default on hover (style-driven). Supports color themes, sizes, and disabled state.",
+    "zh-tw": "超連結方塊，基於容器建構。inline-flex 置中，hover 底線由風格控制。支援色彩主題、尺寸與禁用狀態。",
     "vi": "Khối liên kết, xây dựng trên Container."
   },
   "from": "方塊:方塊:容器",
   "tag": "a",
-  "className": "cursor-pointer inline-flex items-center justify-center p-0 bg-transparent select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-current/30 no-underline",
+  "className": "c-style-apply",
+  "defaults": {
+    "display": "inline-flex",
+    "align": "center",
+    "justify": "center",
+    "padding": "none",
+    "underline": "none",
+    "userSelect": "none",
+    "cursor": "pointer"
+  },
   "args": {
     "color": {
       "type": "string",
@@ -19,15 +28,15 @@
     },
     "size": {
       "type": "string",
-      "description": "連結尺寸（控制內距與字級）",
+      "description": "連結尺寸（控制字級、圓角與內距）",
       "default": "md",
       "options": ["xs", "sm", "md", "lg", "xl"],
       "variants": {
-        "xs": { "className": "text-xs", "rounded": "sm", "padding": "xs" },
-        "sm": { "className": "text-sm", "rounded": "sm", "padding": "sm" },
-        "md": { "className": "text-base", "rounded": "md", "padding": "md" },
-        "lg": { "className": "text-lg", "rounded": "lg", "padding": "lg" },
-        "xl": { "className": "text-xl", "rounded": "lg", "padding": "xl" }
+        "xs": { "fontSize": "xs", "rounded": "sm", "padding": "xs" },
+        "sm": { "fontSize": "sm", "rounded": "sm", "padding": "sm" },
+        "md": { "fontSize": "base", "rounded": "md", "padding": "md" },
+        "lg": { "fontSize": "lg", "rounded": "lg", "padding": "lg" },
+        "xl": { "fontSize": "xl", "rounded": "lg", "padding": "xl" }
       }
     },
     "disabled": {
