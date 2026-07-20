@@ -1,0 +1,165 @@
+{
+  "id": "AI伺服器:AI伺服器:openrouter免費",
+  "名稱": { "en": "OpenRouter Free", "zh-tw": "OpenRouter 免費", "zh-cn": "OpenRouter 免费", "vi": "OpenRouter Miễn Phí" },
+  "provider": "openrouter",
+  "url": "https://openrouter.ai/api/v1",
+  "apiKey": "",
+  "模型列表": [
+    {
+      "名稱": { "en": "nvidia/nemotron-3-super-120b-a12b:free", "zh-tw": "nvidia/nemotron-3-super-120b-a12b:free", "zh-cn": "nvidia/nemotron-3-super-120b-a12b:free", "vi": "nvidia/nemotron-3-super-120b-a12b:free" },
+      "能力值": 10,
+      "擅長能力": [
+        "文本生成", "推理", "代碼生成", "代碼審核",
+        "結構化輸出", "多語言"
+      ],
+      "每分次數上限": 5,
+      "每分Token上限": 0,
+      "併發數上限": 1,
+      "冷卻秒數": 5,
+      "是否為推理模型": false,
+      "預期思考超時秒數": 30
+    },
+    {
+      "名稱": { "en": "google/gemma-4-31b-it:free", "zh-tw": "google/gemma-4-31b-it:free", "zh-cn": "google/gemma-4-31b-it:free", "vi": "google/gemma-4-31b-it:free" },
+      "能力值": 9,
+      "擅長能力": [
+        "文本生成", "翻譯", "多語言", "推理",
+        "代碼生成", "結構化輸出", "工具調用", "圖片理解"
+      ],
+      "每分次數上限": 6,
+      "每分Token上限": 0,
+      "併發數上限": 1,
+      "冷卻秒數": 5,
+      "是否為推理模型": false,
+      "預期思考超時秒數": 30
+    },
+    {
+      "名稱": { "en": "openai/gpt-oss-120b:free", "zh-tw": "openai/gpt-oss-120b:free", "zh-cn": "openai/gpt-oss-120b:free", "vi": "openai/gpt-oss-120b:free" },
+      "能力值": 9,
+      "擅長能力": [
+        "文本生成", "推理", "代碼生成",
+        "結構化輸出", "工具調用", "代碼審核"
+      ],
+      "每分次數上限": 5,
+      "每分Token上限": 0,
+      "併發數上限": 1,
+      "冷卻秒數": 5,
+      "是否為推理模型": false,
+      "預期思考超時秒數": 30
+    },
+    {
+      "名稱": { "en": "poolside/laguna-m.1:free", "zh-tw": "poolside/laguna-m.1:free", "zh-cn": "poolside/laguna-m.1:free", "vi": "poolside/laguna-m.1:free" },
+      "能力值": 9,
+      "擅長能力": [
+        "代碼生成", "推理", "工具調用", "代碼審核", "結構化輸出"
+      ],
+      "每分次數上限": 5,
+      "每分Token上限": 0,
+      "併發數上限": 1,
+      "冷卻秒數": 5,
+      "是否為推理模型": false,
+      "預期思考超時秒數": 30
+    },
+    {
+      "名稱": { "en": "meta-llama/llama-4-maverick:free", "zh-tw": "meta-llama/llama-4-maverick:free", "zh-cn": "meta-llama/llama-4-maverick:free", "vi": "meta-llama/llama-4-maverick:free" },
+      "能力值": 10,
+      "擅長能力": [
+        "文本生成", "推理", "代碼生成", "代碼審核",
+        "翻譯", "多語言", "圖片理解", "結構化輸出"
+      ],
+      "每分次數上限": 4,
+      "每分Token上限": 0,
+      "併發數上限": 1,
+      "冷卻秒數": 5,
+      "是否為推理模型": false,
+      "預期思考超時秒數": 30
+    },
+    {
+      "名稱": { "en": "meta-llama/llama-4-scout:free", "zh-tw": "meta-llama/llama-4-scout:free", "zh-cn": "meta-llama/llama-4-scout:free", "vi": "meta-llama/llama-4-scout:free" },
+      "能力值": 9,
+      "擅長能力": [
+        "文本生成", "推理", "翻譯", "多語言",
+        "代碼生成", "結構化輸出", "圖片理解"
+      ],
+      "每分次數上限": 6,
+      "每分Token上限": 0,
+      "併發數上限": 1,
+      "冷卻秒數": 5,
+      "是否為推理模型": false,
+      "預期思考超時秒數": 30
+    },
+    {
+      "名稱": { "en": "google/gemma-3-27b-it:free", "zh-tw": "google/gemma-3-27b-it:free", "zh-cn": "google/gemma-3-27b-it:free", "vi": "google/gemma-3-27b-it:free" },
+      "能力值": 8,
+      "擅長能力": [
+        "文本生成", "推理", "翻譯", "多語言",
+        "代碼生成", "結構化輸出"
+      ],
+      "每分次數上限": 8,
+      "每分Token上限": 0,
+      "併發數上限": 1,
+      "冷卻秒數": 3,
+      "是否為推理模型": false,
+      "預期思考超時秒數": 30
+    },
+    {
+      "名稱": { "en": "qwen/qwen3-coder-480b-a35b:free", "zh-tw": "qwen/qwen3-coder-480b-a35b:free", "zh-cn": "qwen/qwen3-coder-480b-a35b:free", "vi": "qwen/qwen3-coder-480b-a35b:free" },
+      "能力值": 10,
+      "擅長能力": [
+        "代碼生成", "推理", "工具調用",
+        "文本生成", "結構化輸出", "代碼審核"
+      ],
+      "每分次數上限": 5,
+      "每分Token上限": 0,
+      "併發數上限": 1,
+      "冷卻秒數": 5,
+      "是否為推理模型": false,
+      "預期思考超時秒數": 30
+    },
+    {
+      "名稱": { "en": "deepseek/deepseek-chat-v3-0324:free", "zh-tw": "deepseek/deepseek-chat-v3-0324:free", "zh-cn": "deepseek/deepseek-chat-v3-0324:free", "vi": "deepseek/deepseek-chat-v3-0324:free" },
+      "能力值": 10,
+      "擅長能力": [
+        "代碼生成", "推理", "文本生成",
+        "結構化輸出", "工具調用", "代碼審核", "翻譯", "多語言"
+      ],
+      "每分次數上限": 4,
+      "每分Token上限": 0,
+      "併發數上限": 1,
+      "冷卻秒數": 5,
+      "是否為推理模型": false,
+      "預期思考超時秒數": 30
+    },
+    {
+      "名稱": { "en": "meta-llama/llama-3.2-3b-instruct:free", "zh-tw": "meta-llama/llama-3.2-3b-instruct:free", "zh-cn": "meta-llama/llama-3.2-3b-instruct:free", "vi": "meta-llama/llama-3.2-3b-instruct:free" },
+      "能力值": 5,
+      "擅長能力": [
+        "文本生成", "翻譯", "多語言",
+        "結構化輸出"
+      ],
+      "每分次數上限": 10,
+      "每分Token上限": 0,
+      "併發數上限": 1,
+      "冷卻秒數": 3,
+      "是否為推理模型": false,
+      "預期思考超時秒數": 30
+    }
+  ],
+  "硬體描述": "OpenRouter 免費模型路由（自動選擇可用後端）",
+  "硬體分數": 9,
+  "收費": false,
+  "月次數上限": 6000,
+  "日次數上限": 200,
+  "每分次數上限": 20,
+  "併發數上限": 3,
+  "冷卻秒數": 1,
+  "月Token上限": 6000000,
+  "每日Token上限": 200000,
+  "每分Token上限": 0,
+  "有效日期": null,
+  "網站ID": null,
+  "啟用": true,
+  "可刪除": true,
+  "標籤集": ["AI伺服器:標籤:系統預設", "AI伺服器:標籤:開發測試"],
+  "備註": "OpenRouter 免費模型：10 個模型覆蓋全場景。精英層：Nemotron 3 Super (120B)、Llama 4 Maverick (400B MoE)、DeepSeek V3、Qwen3 Coder 480B、Gemma 4 31B。備援層：Llama 4 Scout、Gemma 3 27B、GPT-OSS 120B、Laguna M.1、Llama 3.2 3B（輕量超寬鬆）。每日總計 50 次免費用戶 / 1000 次付費用戶。"
+}

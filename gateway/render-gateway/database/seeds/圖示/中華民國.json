@@ -1,0 +1,16 @@
+{
+    "id": "圖示:圖示:中華民國",
+    "名稱": {
+        "en": "republic of china",
+        "zh-tw": "中華民國",
+        "vi": "Cộng hòa Trung Quốc"
+    },
+    "資料": {
+        "format": "SVG",
+        "content": "https://flagicons.lipis.dev/flags/4x3/tw.svg"
+    },
+    "標籤集": [
+        "圖示:標籤:旗幟"
+    ],
+    "可刪除": false
+}

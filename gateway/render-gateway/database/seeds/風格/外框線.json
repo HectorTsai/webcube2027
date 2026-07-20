@@ -1,0 +1,23 @@
+{
+    "id": "風格:風格:外框線",
+    "名稱": {
+      "en": "Outline",
+      "zh-tw": "外框線",
+      "vi": "Khung viền"
+    },
+    "描述": {
+      "en": "Elegant outlined borders with responsive transparency on hover.",
+      "zh-tw": "優雅的雙像素線框，並在懸停時注入響應式不透明度。",
+      "vi": "Khung viền hai pixel thanh lịch, tự động thêm độ trong suốt phản hồi khi di chuột."
+    },
+    "標籤集": ["風格:標籤:基本"],
+    "配置": {
+      "active": "bg-transparent text-current border-2 border-solid border-current shadow-sm",
+      "inactive": "bg-transparent text-current-30 border-2 border-solid border-current-50/30 shadow-none saturate-30 opacity-50",
+      "hover": "hover:bg-current-10/20 hover:text-current-content hover:border-current-70 hover:shadow-md",
+      "focus": "focus:outline-none focus:ring-2 focus:ring-current focus:ring-offset-2",
+      "selected": "selected:bg-current selected:text-current-content selected:border-current-content"
+    },
+    "售價": 0,
+    "可刪除": false
+  }

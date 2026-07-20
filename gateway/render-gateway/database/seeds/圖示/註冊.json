@@ -1,0 +1,15 @@
+{
+    "id": "圖示:圖示:註冊",
+    "名稱": {
+        "en": "signup",
+        "zh-tw": "註冊",
+        "zh-cn": "註冊",
+        "vi": "đăng ký"
+    },
+    "資料": {
+        "format": "SVG",
+        "content": "file://icons/signup.svg"
+    },
+    "標籤集": [],
+    "可刪除": false
+}

@@ -1,0 +1,13 @@
+{
+  "id": "方塊:方塊:列表項目",
+  "名稱": { "en": "List Item", "zh-tw": "列表項目", "vi": "Mục danh sách" },
+  "標籤集": ["方塊:標籤:佈局結構"],
+  "描述": {
+    "en": "Native li list item cube. Wrap each item inside a 列表 for proper HTML semantics.",
+    "zh-tw": "原生 li 列表項目方塊。在列表內包裹每個項目以符合 HTML 語意。",
+    "vi": "Khối mục danh sách li gốc."
+  },
+  "tag": "li",
+  "className": "focus:outline-none",
+  "可刪除": false
+}

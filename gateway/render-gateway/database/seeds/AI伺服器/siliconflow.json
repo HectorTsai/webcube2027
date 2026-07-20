@@ -1,0 +1,96 @@
+{
+  "id": "AI伺服器:AI伺服器:siliconflow免費",
+  "名稱": { "en": "SiliconFlow Free", "zh-tw": "硅基流動 免費", "zh-cn": "硅基流动 免费", "vi": "SiliconFlow Miễn Phí" },
+  "provider": "siliconflow",
+  "url": "https://api.siliconflow.cn/v1",
+  "apiKey": "",
+  "模型列表": [
+    {
+      "名稱": { "en": "deepseek-ai/DeepSeek-V3", "zh-tw": "deepseek-ai/DeepSeek-V3", "zh-cn": "deepseek-ai/DeepSeek-V3", "vi": "deepseek-ai/DeepSeek-V3" },
+      "能力值": 10,
+      "擅長能力": [
+        "文本生成", "推理", "代碼生成", "代碼審核",
+        "翻譯", "多語言", "結構化輸出", "工具調用"
+      ],
+      "每分次數上限": 12,
+      "每分Token上限": 0,
+      "併發數上限": 2,
+      "冷卻秒數": 5,
+      "是否為推理模型": false,
+      "預期思考超時秒數": 30
+    },
+    {
+      "名稱": { "en": "Pro/Qwen/Qwen3-Coder-480B-A35B-Instruct", "zh-tw": "Pro/Qwen/Qwen3-Coder-480B-A35B-Instruct", "zh-cn": "Pro/Qwen/Qwen3-Coder-480B-A35B-Instruct", "vi": "Pro/Qwen/Qwen3-Coder-480B-A35B-Instruct" },
+      "能力值": 10,
+      "擅長能力": [
+        "代碼生成", "推理", "工具調用",
+        "文本生成", "結構化輸出", "代碼審核"
+      ],
+      "每分次數上限": 12,
+      "每分Token上限": 0,
+      "併發數上限": 2,
+      "冷卻秒數": 5,
+      "是否為推理模型": false,
+      "預期思考超時秒數": 30
+    },
+    {
+      "名稱": { "en": "Qwen/Qwen3-8B", "zh-tw": "Qwen/Qwen3-8B", "zh-cn": "Qwen/Qwen3-8B", "vi": "Qwen/Qwen3-8B" },
+      "能力值": 8,
+      "擅長能力": [
+        "文本生成", "推理", "翻譯", "多語言",
+        "代碼生成", "結構化輸出", "工具調用"
+      ],
+      "每分次數上限": 18,
+      "每分Token上限": 0,
+      "併發數上限": 3,
+      "冷卻秒數": 2,
+      "是否為推理模型": false,
+      "預期思考超時秒數": 30
+    },
+    {
+      "名稱": { "en": "Qwen/Qwen2.5-32B-Instruct", "zh-tw": "Qwen/Qwen2.5-32B-Instruct", "zh-cn": "Qwen/Qwen2.5-32B-Instruct", "vi": "Qwen/Qwen2.5-32B-Instruct" },
+      "能力值": 8,
+      "擅長能力": [
+        "文本生成", "推理", "翻譯", "多語言",
+        "代碼生成", "結構化輸出", "工具調用", "代碼審核"
+      ],
+      "每分次數上限": 18,
+      "每分Token上限": 0,
+      "併發數上限": 3,
+      "冷卻秒數": 2,
+      "是否為推理模型": false,
+      "預期思考超時秒數": 30
+    },
+    {
+      "名稱": { "en": "Qwen/Qwen2.5-7B-Instruct", "zh-tw": "Qwen/Qwen2.5-7B-Instruct", "zh-cn": "Qwen/Qwen2.5-7B-Instruct", "vi": "Qwen/Qwen2.5-7B-Instruct" },
+      "能力值": 6,
+      "擅長能力": [
+        "文本生成", "翻譯", "多語言",
+        "結構化輸出", "嵌入"
+      ],
+      "每分次數上限": 25,
+      "每分Token上限": 0,
+      "併發數上限": 5,
+      "冷卻秒數": 1,
+      "是否為推理模型": false,
+      "預期思考超時秒數": 30
+    }
+  ],
+  "硬體描述": "硅基流動（SiliconFlow）聚合平台，國內直連",
+  "硬體分數": 9,
+  "收費": false,
+  "月次數上限": 90000,
+  "日次數上限": 3000,
+  "每分次數上限": 60,
+  "併發數上限": 10,
+  "冷卻秒數": 1,
+  "月Token上限": 20000000,
+  "每日Token上限": 700000,
+  "每分Token上限": 0,
+  "有效日期": null,
+  "網站ID": null,
+  "啟用": true,
+  "可刪除": true,
+  "標籤集": ["AI伺服器:標籤:系統預設", "AI伺服器:標籤:開發測試"],
+  "備註": "硅基流動（SiliconFlow）：國內直連，OpenAI 相容。精英層：DeepSeek-V3（滿血版）、Qwen3-Coder 480B。備援層：Qwen3-8B、Qwen2.5-32B、Qwen2.5-7B（超輕量寬鬆）。全體 RPM 合計 = 60，併發高達 10，是限制最寬鬆的平台。"
+}

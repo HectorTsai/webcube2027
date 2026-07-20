@@ -1,0 +1,11 @@
+{
+  "id": "方塊:方塊:div",
+  "名稱": { "en": "Div", "zh-tw": "Div 容器" },
+  "標籤集": ["方塊:標籤:佈局結構"],
+  "描述": {
+    "en": "Native div wrapper block. The atomic building block of all layout.",
+    "zh-tw": "原生 div 包裹方塊。所有佈局的原子建構塊。"
+  },
+  "tag": "div",
+  "可刪除": false
+}

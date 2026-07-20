@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="none" viewBox="0 0 24 24">
+    <path id="path1" d="M4,25L4,15,A10 30 0 0 1 20 15L20,25L20,15A10 30 0 0 0 4 15L4,25"
+    />
+    <rect x="1" y="16" width="6" height="9" fill="currentColor">
+        <animate attributeName="y" dur="2s" repeatCount="indefinite"
+                 values="25;16;16;25" keyTimes="0;0.07;0.93;1" />
+    </rect>
+    <rect x="9" y="12" width="6" height="22" fill="currentColor">
+        <animate attributeName="y" dur="2s"
+                 values="15;11;15;15;12;15;15" repeatCount="indefinite" />
+    </rect>
+    <rect x="17" y="16" width="6" height="9" fill="currentColor">
+        <animate attributeName="y" dur="2s" repeatCount="indefinite"
+                 values="16;16;25;16;16" keyTimes="0;0.43;0.5;0.67;1" />
+    </rect>
+    <g>
+        <rect x="-3" y="-3" width="6" height="6" fill="currentColor">
+        </rect>
+        <animateMotion begin="0s" dur="2s" repeatCount="indefinite"
+                       keyTimes="0;0.1;0.25;0.4;0.5;0.6;0.75;0.9;1" keyPoints="0;0.2;0.25;0.3;0.5;0.7;0.75;0.8;1"
+                       rotate="auto">
+            <mpath xlink:href="#path1" />
+        </animateMotion>
+    </g>
+</svg>

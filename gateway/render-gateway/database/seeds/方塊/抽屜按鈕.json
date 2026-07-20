@@ -1,0 +1,80 @@
+{
+  "id": "方塊:方塊:抽屜按鈕",
+  "名稱": { "en": "Drawer Button", "zh-tw": "抽屜按鈕", "vi": "Nút ngăn kéo" },
+  "標籤集": ["方塊:標籤:互動元素", "方塊:標籤:導覽"],
+  "描述": {
+    "en": "A clickable trigger that toggles a drawer panel. Built on Button for full color/size/disabled support. The drawer slot accepts the panel content shown on click.",
+    "zh-tw": "點擊可切換抽屜面板的觸發按鈕。基於按鈕建構，完整繼承色彩/尺寸/禁用支援。drawer 插槽接受點擊後顯示的抽屜內容。",
+    "vi": "Nút bật/tắt bảng điều khiển. Xây dựng trên Button, kế thừa đầy đủ màu sắc/kích thước/vô hiệu hóa. Slot drawer chấp nhận nội dung bảng hiển thị khi nhấp."
+  },
+  "from": "方塊:方塊:按鈕",
+  "tag": "div",
+  "defaults": {
+    "shadow": "none"
+  },
+  "args": {
+    "state": {
+      "type": "string",
+      "description": "抽屜 Alpine store 狀態名稱（$store.drawers.{state}）",
+      "default": "drawerOpen"
+    },
+    "id": {
+      "type": "string",
+      "description": "圖示 ID（如「圖示:圖示:使用者」），顯示在按鈕上的圖標",
+      "default": "圖示:圖示:使用者"
+    },
+    "text": {
+      "type": "string",
+      "description": "按鈕上的文字標籤",
+      "default": ""
+    },
+    "svg": {
+      "type": "string",
+      "description": "按鈕上的 SVG 原始內容（raw string）",
+      "default": ""
+    },
+    "src": {
+      "type": "string",
+      "description": "按鈕上的圖片網址（頭像圖片用）",
+      "default": ""
+    },
+    "size": {
+      "type": "string",
+      "description": "按鈕尺寸（控制整體寬高與字級）",
+      "default": "md",
+      "options": ["xs", "sm", "md", "lg", "xl"],
+      "variants": {
+        "xs":  { "fontSize": "xs", "rounded": "sm", "padding": "none", "className": "w-8 h-8" },
+        "sm":  { "fontSize": "sm", "rounded": "sm", "padding": "none", "className": "w-10 h-10" },
+        "md":  { "fontSize": "base", "rounded": "md", "padding": "none", "className": "w-12 h-12" },
+        "lg":  { "fontSize": "lg", "rounded": "lg", "padding": "none", "className": "w-14 h-14" },
+        "xl":  { "fontSize": "xl", "rounded": "xl", "padding": "none", "className": "w-16 h-16" }
+      }
+    },
+    "color": {
+      "type": "string",
+      "description": "色彩主題",
+      "default": "base",
+      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "base", "neutral"]
+    },
+    "position": {
+      "type": "string",
+      "description": "抽屜滑出方向",
+      "default": "right",
+      "options": ["left", "right", "top", "bottom"]
+    }
+  },
+  "alpine": {
+    "init": "if(!Alpine.store('drawers')){Alpine.store('drawers',{})}Alpine.store('drawers').{state}=Alpine.store('drawers').{state}||false",
+    "五態": true,
+    "bind": { "disabled": "{disabled}" }
+  },
+  "on": {
+    "click": "if(!{disabled}){ $store.drawers['{state}'] = !$store.drawers['{state}'] }"
+  },
+  "children": [
+    { "from": "方塊:方塊:圖示", "id": "{id}", "size": "{size}" },
+    "$$CHILDREN$$"
+  ],
+  "可刪除": false
+}

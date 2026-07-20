@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle cx="3" cy="21" r="3" fill="currentColor" visibility="visible">
+        <animate attributeName="visibility"
+                 values="visible;visible;visible;visible;visible;visible;visible;visible;visible;
+                        hidden;hidden;hidden;hidden;hidden;hidden;hidden;hidden;hidden;"
+                 calcMode="discrete" dur="2s" repeatCount="indefinite"
+                 begin="0s;" />
+    </circle>
+    <circle cx="12" cy="21" r="3" fill="currentColor">
+        <animate attributeName="visibility"
+                 values="hidden;visible;visible;visible;visible;visible;visible;visible;visible;
+                        visible;hidden;hidden;hidden;hidden;hidden;hidden;hidden;hidden;"
+                 calcMode="discrete" dur="2s" repeatCount="indefinite"
+                 begin="0s;" />
+    </circle>
+    <circle cx="21" cy="21" r="3" fill="currentColor">
+        <animate attributeName="visibility"
+                 values="hidden;hidden;visible;visible;visible;visible;visible;visible;visible;
+                        visible;visible;hidden;hidden;hidden;hidden;hidden;hidden;hidden;"
+                 calcMode="discrete" dur="2s" repeatCount="indefinite"
+                 begin="0s;" />
+    </circle>
+    <circle cx="21" cy="12" r="3" fill="currentColor">
+        <animate attributeName="visibility"
+                 values="hidden;hidden;hidden;visible;visible;visible;visible;visible;visible;
+                        visible;visible;visible;hidden;hidden;hidden;hidden;hidden;hidden;"
+                 calcMode="discrete" dur="2s" repeatCount="indefinite"
+                 begin="0s;" />
+    </circle>
+    <circle cx="21" cy="3" r="3" fill="currentColor">
+        <animate attributeName="visibility"
+                 values="hidden;hidden;hidden;hidden;visible;visible;visible;visible;visible;
+                        visible;visible;visible;visible;hidden;hidden;hidden;hidden;hidden;"
+                 calcMode="discrete" dur="2s" repeatCount="indefinite"
+                 begin="0s;" />
+    </circle>
+    <circle cx="12" cy="3" r="3" fill="currentColor">
+        <animate attributeName="visibility"
+                 values="hidden;hidden;hidden;hidden;hidden;visible;visible;visible;visible;
+                        visible;visible;visible;visible;visible;hidden;hidden;hidden;hidden;"
+                 calcMode="discrete" dur="2s" repeatCount="indefinite"
+                 begin="0s;" />
+    </circle>
+    <circle cx="3" cy="3" r="3" fill="currentColor">
+        <animate attributeName="visibility"
+                 values="hidden;hidden;hidden;hidden;hidden;hidden;visible;visible;visible;
+                        visible;visible;visible;visible;visible;visible;hidden;hidden;hidden;"
+                 calcMode="discrete" dur="2s" repeatCount="indefinite"
+                 begin="0s;" />
+    </circle>
+    <circle cx="3" cy="12" r="3" fill="currentColor">
+        <animate attributeName="visibility"
+                 values="hidden;hidden;hidden;hidden;hidden;hidden;hidden;visible;visible;
+                        visible;visible;visible;visible;visible;visible;visible;hidden;hidden;"
+                 calcMode="discrete" dur="2s" repeatCount="indefinite"
+                 begin="0s;" />
+    </circle>
+    <circle cx="12" cy="12" r="3" fill="currentColor">
+        <animate attributeName="visibility"
+                 values="hidden;hidden;hidden;hidden;hidden;hidden;hidden;hidden;visible;
+                        visible;visible;visible;visible;visible;visible;visible;visible;hidden;"
+                 calcMode="discrete" dur="2s" repeatCount="indefinite"
+                 begin="0s;" />
+    </circle>
+</svg>

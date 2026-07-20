@@ -1,0 +1,23 @@
+{
+    "id": "風格:風格:經典實心",
+    "名稱": {
+      "en": "Classic Solid",
+      "zh-tw": "經典實心",
+      "vi": "Đặc cổ điển"
+    },
+    "描述": {
+      "en": "Full color coverage with dynamic active and inactive state scaling.",
+      "zh-tw": "主題色彩完全填充，具備激活與失活的動態狀態縮放。",
+      "vi": "Đổ đầy màu chủ đề, tích hợp khả năng co giãn trạng thái động khi kích hoạt và hủy kích hoạt."
+    },
+    "標籤集": ["風格:標籤:基本"],
+    "配置": {
+      "active": "bg-current text-current-content border border-solid border-current-30 shadow-sm",
+      "inactive": "bg-base-50 text-base-50-content border border-solid border-base-50/20 shadow-none",
+      "hover": "hover:bg-current-content/50 hover:border-current-50",
+      "focus": "focus:outline-none focus:ring-2 focus:ring-current focus:ring-offset-2",
+      "selected": "selected:bg-current-70 selected:text-current-content"
+    },
+    "售價": 0,
+    "可刪除": false
+  }

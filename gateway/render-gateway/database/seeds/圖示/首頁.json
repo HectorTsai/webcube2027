@@ -1,0 +1,15 @@
+{
+    "id": "圖示:圖示:首頁",
+    "名稱": {
+        "en": "home",
+        "zh-tw": "首頁",
+        "zh-cn": "首页",
+        "vi": "trang chủ"
+    },
+    "資料": {
+        "format": "SVG",
+        "content": "file://icons/home.svg"
+    },
+    "標籤集": [],
+    "可刪除": false
+}

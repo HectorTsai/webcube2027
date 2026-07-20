@@ -1,0 +1,31 @@
+{
+  "id": "方塊:方塊:img",
+  "名稱": { "en": "Raw Image", "zh-tw": "原生圖片", "vi": "Hình ảnh gốc" },
+  "標籤集": ["方塊:標籤:內容展示"],
+  "描述": {
+    "zh-tw": "純原生 img 元素，不帶任何 API 邏輯。直接接收 src、alt、width、height、className。"
+  },
+  "tag": "img",
+  "attrs": { "loading": "lazy" },
+  "args": {
+    "src": { "type": "string", "description": "圖片 URL" },
+    "alt": { "type": "string", "description": "替代文字", "default": "Image" },
+    "width": { "type": "string", "description": "圖片寬度" },
+    "height": { "type": "string", "description": "圖片高度" },
+    "className": { "type": "string", "description": "額外 CSS 類別" },
+    "objectFit": {
+      "type": "string",
+      "options": ["fill", "contain", "cover", "none", "scale-down"],
+      "variants": {
+        "fill": { "className": "object-fill" },
+        "contain": { "className": "object-contain" },
+        "cover": { "className": "object-cover" },
+        "none": { "className": "object-none" },
+        "scale-down": { "className": "object-scale-down" }
+      },
+      "description": "圖片裁切方式（對應 CSS object-fit）"
+    }
+  },
+  "style": { "max-width": "100%" },
+  "可刪除": false
+}

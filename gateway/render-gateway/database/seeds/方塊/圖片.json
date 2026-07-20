@@ -1,0 +1,19 @@
+{
+  "id": "方塊:方塊:圖片",
+  "名稱": { "en": "Smart Image", "zh-tw": "智慧圖片", "vi": "Hình ảnh thông minh" },
+  "標籤集": ["方塊:標籤:內容展示"],
+  "描述": {
+    "zh-tw": "智慧圖片：支援直接 src 或透過 id 自動拼接 /media/v1/image/{id}。當使用者僅傳入 id 時，src 預設值會自動插值生成 media URL；若直接傳入 src，則優先使用 src。"
+  },
+  "from": "方塊:方塊:img",
+  "args": {
+    "id": { "type": "string", "description": "資料庫圖片 ID（自動拼接為 /media/v1/image/{id}）" },
+    "src": { "type": "string", "description": "直接指定圖片 URL（優先於 id）", "default": "/media/v1/image/{id}" },
+    "alt": { "type": "string", "description": "替代文字", "default": "Image" },
+    "width": { "type": "string", "description": "圖片寬度" },
+    "height": { "type": "string", "description": "圖片高度" },
+    "className": { "type": "string", "description": "額外 CSS 類別" },
+    "objectFit": { "type": "string", "description": "圖片裁切方式（傳遞給底層 img）" }
+  },
+  "可刪除": false
+}

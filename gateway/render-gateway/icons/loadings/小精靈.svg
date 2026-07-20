@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <rect x="10.5" y="10.5" width="3" height="3" fill="oklch(var(--bc))">
+        <animate attributeName="x" dur="0.3s" begin="0s"
+                 from="30" to="10" repeatCount="indefinite" />
+    </rect>
+    <rect x="10.5" y="10.5" width="3" height="3" fill="oklch(var(--bc))">
+        <animate attributeName="x" dur="0.3s" begin="0.2s"
+                 from="30" to="10" repeatCount="indefinite" />
+    </rect>
+    <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="10" transform-origin="center"
+        stroke-dasharray="22" stroke-dashoffset="0" transform="rotate(120)">
+        <animate attributeName="stroke-dashoffset" dur="0.5s"
+                 values="0;6;0" begin="0s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="10" transform-origin="center"
+            stroke-dasharray="26" stroke-dashoffset="0">
+        <animateTransform attributeName="transform" type="rotate"
+                  values="0;30;0" begin="0s"
+                  dur="0.5s" repeatCount="indefinite" />
+    </circle>
+    <circle cx="15" cy="6.5" r="2" fill="oklch(var(--bc))" />
+</svg>

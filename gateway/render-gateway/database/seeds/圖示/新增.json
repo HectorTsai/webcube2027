@@ -1,0 +1,15 @@
+{
+    "id": "圖示:圖示:新增",
+    "名稱": {
+        "en": "add",
+        "zh-tw": "新增",
+        "zh-cn": "新增",
+        "vi": "phép cộng"
+    },
+    "資料": {
+        "format": "SVG",
+        "content": "file://icons/add.svg"
+    },
+    "標籤集": [],
+    "可刪除": false
+}

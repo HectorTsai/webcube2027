@@ -1,0 +1,25 @@
+{
+  "id": "方塊:方塊:svg",
+  "名稱": { "en": "Raw SVG", "zh-tw": "原生 SVG", "vi": "SVG thuần" },
+  "標籤集": ["方塊:標籤:內容展示"],
+  "描述": {
+    "zh-tw": "純原生 svg 元素，提供 viewBox、fill、stroke 等預設屬性。圖示方塊的基礎父方塊。"
+  },
+  "from": "",
+  "tag": "svg",
+  "attrs": {
+    "xmlns": "http://www.w3.org/2000/svg",
+    "viewBox": "0 0 24 24",
+    "fill": "none",
+    "stroke": "currentColor",
+    "stroke-width": "2",
+    "stroke-linecap": "round",
+    "stroke-linejoin": "round"
+  },
+  "args": {
+    "className": { "type": "string", "description": "額外 CSS 類別" },
+    "width": { "type": "string", "description": "SVG 寬度" },
+    "height": { "type": "string", "description": "SVG 高度" }
+  },
+  "可刪除": false
+}

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+<circle cx="12" cy="3" r="3" fill="currentColor">
+        <animateTransform id="r1" attributeName="transform"
+              type="rotate" dur="1.5s"
+              from="0 12 12" to="360 12 12"
+              repeatCount="indefinite"
+              begin="0s" />
+    </circle>
+    <circle cx="12" cy="3" r="3" fill="currentColor">
+        <animateTransform id="r2" attributeName="transform"
+              type="rotate" dur="1.5s"
+              from="0 12 12" to="360 12 12"
+              repeatCount="indefinite"
+              begin="0.214s" />
+    </circle>
+    <circle cx="12" cy="3" r="3" fill="currentColor">
+        <animateTransform id="r3" attributeName="transform"
+              type="rotate" dur="1.5s"
+              from="0 12 12" to="360 12 12"
+              repeatCount="indefinite"
+              begin="0.428" />
+    </circle>
+    <circle cx="12" cy="3" r="3" fill="currentColor">
+        <animateTransform id="r4" attributeName="transform"
+              type="rotate" dur="1.5s"
+              from="0 12 12" to="360 12 12"
+              repeatCount="indefinite"
+              begin="0.643" />
+    </circle>
+    <circle cx="12" cy="3" r="3" fill="currentColor">
+        <animateTransform id="r5" attributeName="transform"
+              type="rotate" dur="1.5s"
+              from="0 12 12" to="360 12 12"
+              repeatCount="indefinite"
+              begin="0.857" />
+    </circle>
+    <circle cx="12" cy="3" r="3" fill="currentColor">
+        <animateTransform id="r6" attributeName="transform"
+              type="rotate" dur="1.5s"
+              from="0 12 12" to="360 12 12"
+              repeatCount="indefinite"
+              begin="1.071" />
+    </circle>
+    <circle cx="12" cy="3" r="3" fill="currentColor">
+        <animateTransform id="r7" attributeName="transform"
+              type="rotate" dur="1.5s"
+              from="0 12 12" to="360 12 12"
+              repeatCount="indefinite"
+              begin="1.286" />
+    </circle>
+</svg>

@@ -1,0 +1,15 @@
+{
+    "id": "圖示:圖示:鑰匙",
+    "名稱": {
+        "en": "key",
+        "zh-tw": "鑰匙",
+        "zh-cn": "鑰匙",
+        "vi": "chìa khóa"
+    },
+    "資料": {
+        "format": "SVG",
+        "content": "file://icons/key.svg"
+    },
+    "標籤集": [],
+    "可刪除": false
+}

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="-40 -40 80 80">
+    <g class="animate-[spin_1s_linear_reverse_infinite]">
+        <circle cx="20" cy="0" r="7" fill="currentColor" />
+        <circle cx="12.4698" cy="15.63663" r="7" fill="currentColor" />
+        <circle cx="-4.45042" cy="19.49856" r="7" fill="currentColor" />
+        <circle cx="-18.01938" cy="8.67767" r="7" fill="currentColor" />
+        <circle cx="-18.01938" cy="-8.67767" r="7" fill="currentColor" />
+        <circle cx="-4.45042" cy="-19.49856" r="7" fill="currentColor" />
+        <circle cx="12.4698" cy="-15.63663" r="7" fill="currentColor" />
+    </g>
+    <g class="animate-spin-z-2">
+        <circle cx="35" cy="0" r="5" fill="currentColor" />
+        <circle cx="21.82214" cy="27.3641" r="5" fill="currentColor" />
+        <circle cx="-7.78823" cy="34.12248" r="5" fill="currentColor" />
+        <circle cx="-31.53391" cy="15.18593" r="5" fill="currentColor" />
+        <circle cx="-31.53391" cy="-15.18593" r="5" fill="currentColor" />
+        <circle cx="-7.78823" cy="-34.12248" r="5" fill="currentColor" />
+        <circle cx="21.82214" cy="-27.3641" r="5" fill="currentColor" />
+    </g>
+</svg>

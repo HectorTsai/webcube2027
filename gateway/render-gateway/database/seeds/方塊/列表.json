@@ -1,0 +1,50 @@
+{
+  "id": "方塊:方塊:列表",
+  "名稱": { "en": "List", "zh-tw": "列表", "vi": "Danh sách" },
+  "標籤集": ["方塊:標籤:內容展示"],
+  "描述": {
+    "en": "List cube built on Container. Wrap each item with 方塊:方塊:列表項目 for proper <li> semantics.",
+    "zh-tw": "列表方塊，基於容器建構。每個項目需以 方塊:方塊:列表項目 包裹以符合 <li> 語意。",
+    "vi": "Khối danh sách."
+  },
+  "from": "方塊:方塊:容器",
+  "tag": "ul",
+  "style": { "list-style": "none", "margin": "0" },
+  "className": "w-full",
+  "defaults": {
+    "border": "none",
+    "padding": "none"
+  },
+  "args": {
+    "color": {
+      "type": "string", "description": "色彩主題",
+      "default": "base",
+      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "base", "neutral"]
+    },
+    "active": { "type": "boolean", "description": "供電狀態", "default": true },
+    "hover": { "type": "boolean", "description": "允許懸停效果", "default": false },
+    "direction": {
+      "type": "string",
+      "description": "排列方向（繼承自容器）",
+      "default": "col",
+      "options": ["col", "row"]
+    },
+    "divider": {
+      "type": "boolean", "description": "項目之間顯示分隔線",
+      "default": false
+    },
+    "stripe": { "type": "boolean", "description": "偶數列半透明背景（斑馬紋）", "default": false },
+    "title": { "type": "string", "description": "可選標題（顯示在列表上方）", "default": "" }
+  },
+  "children": [
+    {
+      "if": "{title}",
+      "from": "方塊:方塊:div",
+      "className": "px-4 py-2 text-center opacity-60 text-sm font-medium tracking-wide",
+      "text": "{title}"
+    },
+    "$$CHILDREN$$"
+  ],
+
+  "可刪除": false
+}

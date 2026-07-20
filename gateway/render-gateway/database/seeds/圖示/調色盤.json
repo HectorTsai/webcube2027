@@ -1,0 +1,15 @@
+{
+    "id": "圖示:圖示:調色盤",
+    "名稱": {
+        "en": "palette",
+        "zh-tw": "調色盤",
+        "zh-cn": "調色盤",
+        "vi": "thanh màu"
+    },
+    "資料": {
+        "format": "SVG",
+        "content": "file://icons/palette.svg"
+    },
+    "標籤集": [],
+    "可刪除": false
+}

@@ -1,0 +1,11 @@
+{
+  "id": "方塊:方塊:li",
+  "名稱": { "en": "List Item", "zh-tw": "列表項目" },
+  "標籤集": ["方塊:標籤:佈局結構"],
+  "描述": {
+    "en": "Native li list item wrapper block.",
+    "zh-tw": "原生 li 列表項目包裹方塊。"
+  },
+  "tag": "li",
+  "可刪除": false
+}

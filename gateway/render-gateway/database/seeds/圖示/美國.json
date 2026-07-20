@@ -1,0 +1,16 @@
+{
+    "id": "圖示:圖示:美國",
+    "名稱": {
+        "en": "united states",
+        "zh-tw": "美國",
+        "vi": "Hoa Kỳ"
+    },
+    "資料": {
+        "format": "SVG",
+        "content": "https://flagicons.lipis.dev/flags/4x3/us.svg"
+    },
+    "標籤集": [
+        "圖示:標籤:旗幟"
+    ],
+    "可刪除": false
+}

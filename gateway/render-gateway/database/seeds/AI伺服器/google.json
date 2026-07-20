@@ -1,0 +1,82 @@
+{
+  "id": "AI伺服器:AI伺服器:google免費",
+  "名稱": { "en": "Google Gemini Free", "zh-tw": "Google Gemini 免費", "zh-cn": "Google Gemini 免费", "vi": "Google Gemini Miễn Phí" },
+  "provider": "gemini",
+  "url": "https://generativelanguage.googleapis.com",
+  "apiKey": "",
+  "模型列表": [
+    {
+      "名稱": { "en": "gemini-2.5-flash", "zh-tw": "gemini-2.5-flash", "zh-cn": "gemini-2.5-flash", "vi": "gemini-2.5-flash" },
+      "能力值": 9,
+      "擅長能力": [
+        "文本生成", "翻譯", "多語言", "推理",
+        "工具調用", "代碼生成", "結構化輸出", "圖片理解"
+      ],
+      "每分次數上限": 8,
+      "每分Token上限": 0,
+      "併發數上限": 2,
+      "冷卻秒數": 3,
+      "是否為推理模型": false,
+      "預期思考超時秒數": 30
+    },
+    {
+      "名稱": { "en": "gemini-2.5-pro", "zh-tw": "gemini-2.5-pro", "zh-cn": "gemini-2.5-pro", "vi": "gemini-2.5-pro" },
+      "能力值": 10,
+      "擅長能力": [
+        "文本生成", "推理", "代碼生成", "代碼審核",
+        "翻譯", "多語言", "結構化輸出", "圖片理解"
+      ],
+      "每分次數上限": 3,
+      "每分Token上限": 0,
+      "併發數上限": 1,
+      "冷卻秒數": 5,
+      "是否為推理模型": false,
+      "預期思考超時秒數": 30
+    },
+    {
+      "名稱": { "en": "gemini-2.5-flash-lite", "zh-tw": "gemini-2.5-flash-lite", "zh-cn": "gemini-2.5-flash-lite", "vi": "gemini-2.5-flash-lite" },
+      "能力值": 7,
+      "擅長能力": [
+        "文本生成", "翻譯", "多語言",
+        "結構化輸出", "嵌入"
+      ],
+      "每分次數上限": 14,
+      "每分Token上限": 0,
+      "併發數上限": 2,
+      "冷卻秒數": 1,
+      "是否為推理模型": false,
+      "預期思考超時秒數": 30
+    },
+    {
+      "名稱": { "en": "gemini-2.0-flash", "zh-tw": "gemini-2.0-flash", "zh-cn": "gemini-2.0-flash", "vi": "gemini-2.0-flash" },
+      "能力值": 8,
+      "擅長能力": [
+        "文本生成", "翻譯", "多語言", "推理",
+        "工具調用", "代碼生成", "結構化輸出"
+      ],
+      "每分次數上限": 10,
+      "每分Token上限": 0,
+      "併發數上限": 1,
+      "冷卻秒數": 3,
+      "是否為推理模型": false,
+      "預期思考超時秒數": 30
+    }
+  ],
+  "硬體描述": "Google Gemini API 免費層",
+  "硬體分數": 9,
+  "收費": false,
+  "月次數上限": 45000,
+  "日次數上限": 1500,
+  "每分次數上限": 15,
+  "併發數上限": 2,
+  "冷卻秒數": 2,
+  "月Token上限": 30000000,
+  "每日Token上限": 1000000,
+  "每分Token上限": 0,
+  "有效日期": null,
+  "網站ID": null,
+  "啟用": true,
+  "可刪除": true,
+  "標籤集": ["AI伺服器:標籤:系統預設", "AI伺服器:標籤:開發測試"],
+  "備註": "Google Gemini 免費層：精英層 Gemini 2.5 Flash（主力）+ 2.5 Pro（推理王者 5 RPM）。備援層：2.5 Flash-Lite（15 RPM 寬鬆）、2.0 Flash（成熟穩定）。支援多模態圖片理解。"
+}

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <g transform-origin="center">
+        <rect x="6" y="1" width="12" height="22" rx="6"
+              stroke="oklch(var(--bc))" stroke-width="2"
+              fill="currentColor" />
+        <rect x="6" y="0" width="12" height="24"
+              fill="white"
+        >
+            <animate id="h1" attributeName="height"
+                     from="22" to="0" dur="0.5s"
+                     begin="0s;r2.end" />
+            <animate id="h2" attributeName="height"
+                     from="0" to="22" dur="0.5s"
+                     begin="r1.end" />
+        </rect>
+        <rect x="6" y="1" width="12" height="22" rx="6"
+              stroke="oklch(var(--bc))" stroke-width="2" />
+        <animateTransform id="r1" attributeName="transform" type="rotate"
+                          values="0;150;180" dur="0.5s"
+                          begin="h1.end" />
+        <animateTransform id="r2" attributeName="transform" type="rotate"
+                          values="0;150;180" dur="0.5s"
+                          begin="h2.end" />
+    </g>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle cx="5" cy="5" r="5" fill="currentColor" opacity="1">
+        <animateMotion
+            path="M0,0 L1,0 L0,0 L1,0 L0,0 L14,0 L13,0 L14,0 L13,0 L14,0 L14,14 L14,13 L14,14 L14,13 L14,14 L0,14 L1,14 L0,14 L1,14 L0,14 Z"
+            begin="0s" dur="1.5s" repeatCount="indefinite"
+        />
+        <animate attributeName="opacity" values="1;0.2;1" dur="1.5s" repeatCount="indefinite"/>
+    </circle>
+</svg>

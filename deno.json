@@ -1,0 +1,25 @@
+{
+  "workspaces": [
+    "gateway/data-gateway",
+    "gateway/ai-gateway",
+    "gateway/render-gateway",
+    "gateway/page-gateway",
+    "gateway/cube-gateway",
+    "gateway/theme-gateway"
+  ],
+  "imports": {
+    "hono": "jsr:@hono/hono@^4.6.3",
+    "hono/serve-static": "jsr:@hono/hono@^4.6.3/serve-static"
+  },
+  "tasks": {
+    "dev": "deno run --allow-all --env --unstable-cron --watch main.ts",
+    "start": "deno run --allow-all --env --unstable-cron main.ts",
+    "dev:ai": "deno run --allow-all --env --unstable-cron --watch gateway/ai-gateway/main.ts",
+    "dev:render": "deno run --allow-all --env --unstable-cron --watch gateway/render-gateway/main.ts",
+    "dev:data": "deno run --allow-all --watch gateway/data-gateway/mod.ts"
+  },
+  "compilerOptions": {
+    "jsx": "precompile",
+    "jsxImportSource": "hono/jsx"
+  }
+}

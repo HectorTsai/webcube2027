@@ -1,0 +1,19 @@
+# Environment
+.env
+
+# Deno
+.deno/
+
+# Data
+/data/
+
+# Logs
+/logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

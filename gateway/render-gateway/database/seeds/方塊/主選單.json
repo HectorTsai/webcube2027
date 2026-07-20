@@ -1,0 +1,94 @@
+{
+  "id": "方塊:方塊:主選單",
+  "名稱": { "en": "Menu Bar", "zh-tw": "主選單", "vi": "Thanh menu" },
+  "標籤集": ["方塊:標籤:導覽"],
+  "描述": {
+    "en": "Responsive navigation menu bar. Desktop: horizontal row. Mobile: hamburger button with drawer toggle.",
+    "zh-tw": "響應式導航選單列。桌面版：水平 row 佈局。行動版：漢堡選單按鈕切換抽屜。",
+    "vi": "Thanh menu điều hướng đáp ứng. Desktop: row ngang. Di động: nút hamburger."
+  },
+  "from": "方塊:方塊:容器",
+  "className": "w-full",
+  "declareStores": ["drawers", "layout"],
+  "defaults": { "border": "none", "shadow": "none", "rounded": "none", "direction": "row" },
+  "args": {
+    "color": { "type": "string", "description": "色彩主題", "default": "primary", "options": ["primary","secondary","accent","info","success","warning","error","base","neutral"] },
+    "padding": { "type": "string", "description": "內距", "default": "sm", "options": ["none","xs","sm","md","lg","xl","2xl"] },
+    "gap": { "type": "string", "description": "間距", "default": "md", "options": ["none","xs","sm","md","lg","xl"] },
+    "drawerState": { "type": "string", "description": "Alpine store 狀態名稱", "default": "menuDrawer" },
+    "className": { "type": "string", "description": "額外 CSS 類別", "default": "" },
+    "items": { "type": "array", "description": "菜單項目", "default": [] }
+  },
+  "alpine": { "layoutObserver": "navbarHeight" },
+  "mergedArgs": {},
+  "children": [
+    {
+      "from": "方塊:方塊:div",
+      "className": "flex items-center pr-1 shrink-0 gap-2",
+      "children": "$$CHILDREN$$"
+    },
+    {
+      "from": "方塊:方塊:div",
+      "className": "hidden md:flex items-center flex-1 gap-4",
+      "children": [
+        {
+          "from": "方塊:方塊:超連結",
+          "repeat": "{items}",
+          "href": "{item.路徑}",
+          "size": "sm",
+          "direction": "row",
+          "className": "!border-none gap-1",
+          "children": [
+            { "if": "{item.圖示}", "from": "方塊:方塊:圖示", "id": "{item.圖示}", "size": "xs" },
+            { "from": "方塊:方塊:span", "text": "{item.標題}" }
+          ]
+        }
+      ]
+    },
+    {
+      "from": "方塊:方塊:div",
+      "className": "hidden md:flex items-center shrink-0 gap-2"
+    },
+    {
+      "from": "方塊:方塊:抽屜按鈕",
+      "size": "xs",
+      "color": "{color}",
+      "state": "{drawerState}",
+      "position": "right",
+      "id": "選單",
+      "className": "md:hidden ml-auto",
+      "children": [
+        {
+          "from": "方塊:方塊:抽屜",
+          "state": "{drawerState}",
+          "position": "right",
+          "color": "{color}",
+          "children": [
+            {
+              "from": "方塊:方塊:超連結",
+              "repeat": "{items}",
+              "href": "{item.路徑}",
+              "size": "sm",
+              "direction": "row",
+              "className": "block text-left !border-none !shadow-none gap-1",
+              "on": { "click": "$store.drawers.{drawerState} = false" },
+              "children": [
+                { "if": "{item.圖示}", "from": "方塊:方塊:圖示", "id": "{item.圖示}", "size": "xs" },
+                { "from": "方塊:方塊:span", "text": "{item.標題}" }
+              ]
+            },
+            {
+              "from": "方塊:方塊:div",
+              "className": "border-t border-neutral-200 pt-4 mt-4 flex items-center gap-3 text-sm",
+              "children": [
+                { "from": "方塊:方塊:切換器", "id": "language-switcher-nav" },
+                { "from": "方塊:方塊:超連結", "text": "Login", "href": "/login", "size": "sm", "className": "!border-none !shadow-none text-blue-600" }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "可刪除": false
+}

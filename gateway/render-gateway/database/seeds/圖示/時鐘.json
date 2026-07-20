@@ -1,0 +1,15 @@
+{
+    "id": "圖示:圖示:時鐘",
+    "名稱": {
+        "en": "clock",
+        "zh-tw": "時鐘",
+        "zh-cn": "時鐘",
+        "vi": "đồng hồ"
+    },
+    "資料": {
+        "format": "SVG",
+        "content": "file://icons/clock.svg"
+    },
+    "標籤集": [],
+    "可刪除": false
+}

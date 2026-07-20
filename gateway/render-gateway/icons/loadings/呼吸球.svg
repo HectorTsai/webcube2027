@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="10"
+            fill="currentColor"
+            fill-opacity="0.4"
+            class="origin-center animate__動畫 animate__無限次 animate__縮放-現隱現 animate__慢"
+    />
+    <circle cx="12" cy="12" r="10"
+            fill="currentColor"
+            fill-opacity="0.6"
+            class="origin-center animate__動畫 animate__無限次 animate__縮放-隱現隱 animate__慢"
+    />
+</svg>

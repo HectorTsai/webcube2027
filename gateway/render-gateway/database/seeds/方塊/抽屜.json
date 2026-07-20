@@ -1,0 +1,97 @@
+{
+  "id": "方塊:方塊:抽屜",
+  "名稱": { "en": "Drawer", "zh-tw": "抽屜", "vi": "Ngăn kéo" },
+  "標籤集": ["方塊:標籤:導覽"],
+  "描述": {
+    "en": "Alpine.js powered slide-in drawer. Supports left/right/top/bottom positions, backdrop close, and configurable state. Content passed as children.",
+    "zh-tw": "Alpine.js 驅動的滑入式抽屜面板。支援上/下/左/右四方向、背景點擊關閉、自訂 state。內容透過 children 傳入。",
+    "vi": "Ngăn kéo trượt được điều khiển bởi Alpine.js. Hỗ trợ bốn hướng, đóng khi nhấp nền, state tùy chỉnh. Nội dung truyền qua children."
+  },
+  "from": "方塊:方塊:容器",
+  "defaults": { "shadow": "lg" },
+  "declareStores": ["drawers", "layout"],
+  "className": "fixed z-50 !m-0 transition-transform duration-300 pointer-events-auto flex flex-col",
+  "args": {
+    "state": {
+      "type": "string",
+      "description": "Alpine store 狀態名稱（$store.drawers.{state}）",
+      "default": "drawerOpen"
+    },
+    "color": {
+      "type": "string",
+      "description": "色彩主題（來自容器）",
+      "default": "base",
+      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "base", "neutral"]
+    },
+    "width": {
+      "type": "string",
+      "description": "抽屜寬度（僅 left/right 使用），替換 variant className 中的 {width}，受 max-w-[50vw] 限制",
+      "default": "320px"
+    },
+    "height": {
+      "type": "string",
+      "description": "抽屜高度（僅 top/bottom 使用），替換 variant className 中的 {height}",
+      "default": "85vh"
+    },
+    "padding": {
+      "type": "string",
+      "description": "抽屜內距（來自容器）",
+      "default": "md",
+      "options": ["none", "xs", "sm", "md", "lg", "xl", "2xl"]
+    },
+    "position": {
+      "type": "string",
+      "description": "抽屜滑出方向（自動調整 className / 寬度 / transition）",
+      "default": "left",
+      "options": ["left", "right", "top", "bottom"],
+      "variants": {
+        "left": {
+          "className": "left-0 w-[{width}] max-w-[50vw]"
+        },
+        "right": {
+          "className": "right-0 w-[{width}] max-w-[50vw]"
+        },
+        "top": {
+          "className": "inset-x-0 w-full max-h-[{height}]"
+        },
+        "bottom": {
+          "className": "inset-x-0 w-full max-h-[{height}]"
+        }
+      }
+    },
+    "offsetTop": {
+      "type": "string",
+      "description": "從頂端偏移的像素值（如 48），用於避開導覽列等固定元素；留空則不偏移。left/right 會同時縮短高度，僅會下移起始點。",
+      "default": ""
+    },
+    "offsetBottom": {
+      "type": "string",
+      "description": "從底端偏移的像素值；留空則不偏移。left/right 會同時縮短高度，bottom 僅會上移起始點。",
+      "default": ""
+    }
+  },
+  "alpine": {
+    "drawer": "{state}",
+    "drawerPosition": "{position}"
+  },
+  "on": {
+    "click.stop": ""
+  },
+  "children": [
+    {
+      "from": "方塊:方塊:div",
+      "className": "fixed inset-0 bg-neutral-900/50 pointer-events-auto transition-opacity duration-300",
+      "style": { "width": "100%", "height": "100%" },
+      "alpine": { "toggle": "{state}" },
+      "on": { "click": "$store.drawers.{state} = false" }
+    },
+    { "from": "方塊:方塊:div" },
+    {
+      "from": "方塊:方塊:div",
+      "className": "flex-1 overflow-y-auto relative z-10 flex flex-col [&_a]:w-full",
+      "children": "$$CHILDREN$$"
+    },
+    { "from": "方塊:方塊:div" }
+  ],
+  "可刪除": false
+}

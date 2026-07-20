@@ -1,0 +1,11 @@
+{
+  "id": "方塊:方塊:span",
+  "名稱": { "en": "Span", "zh-tw": "Span 行內" },
+  "標籤集": ["方塊:標籤:佈局結構"],
+  "描述": {
+    "en": "Native span inline wrapper block.",
+    "zh-tw": "原生 span 行內包裹方塊。"
+  },
+  "tag": "span",
+  "可刪除": false
+}

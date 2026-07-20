@@ -1,0 +1,13 @@
+{
+  "imports": {
+    "nanoid": "npm:nanoid@^5.0.0",
+    "mongodb": "npm:mongodb@^6.0.0",
+    "mysql2": "npm:mysql2@^3.0.0",
+    "pg": "npm:pg@^8.0.0",
+    "firebase-admin": "npm:firebase-admin@^12.0.0",
+    "node-appwrite": "npm:node-appwrite@^14.0.0",
+    "@aws-sdk/client-dynamodb": "npm:@aws-sdk/client-dynamodb@^3.0.0",
+    "@aws-sdk/lib-dynamodb": "npm:@aws-sdk/lib-dynamodb@^3.0.0",
+    "mssql": "npm:mssql@^11.0.0"
+  }
+}

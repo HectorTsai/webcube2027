@@ -1,0 +1,16 @@
+{
+    "id": "圖示:圖示:越南",
+    "名稱": {
+        "en": "vietnam",
+        "zh-tw": "越南",
+        "vi": "Việt Nam"
+    },
+    "資料": {
+        "format": "SVG",
+        "content": "https://flagicons.lipis.dev/flags/4x3/vn.svg"
+    },
+    "標籤集": [
+        "圖示:標籤:旗幟"
+    ],
+    "可刪除": false
+}

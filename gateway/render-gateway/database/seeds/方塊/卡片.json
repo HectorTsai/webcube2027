@@ -1,0 +1,45 @@
+{
+  "id": "方塊:方塊:卡片",
+  "名稱": {
+    "en": "Card",
+    "zh-tw": "卡片",
+    "vi": "Thẻ"
+  },
+  "標籤集": ["方塊:標籤:內容展示"],
+  "描述": {
+    "en": "Card cube built on Container, following daisyUI structure: media slot (image, no padding) + body slot (content, padded). Direction variant switches column/row layout.",
+    "zh-tw": "卡片方塊，基於容器建構，仿 daisyUI 結構：media slot（圖片，無 padding）+ body slot（內容，自動接收 JSX children）。Direction variant 切換 column/row 佈局。",
+    "vi": "Khối thẻ, xây dựng trên Container."
+  },
+  "from": "方塊:方塊:容器",
+  "defaults": { "border": "none", "padding": "none", "rounded": "md", "shadow": "md" },
+  "className": "overflow-hidden",
+  "args": {
+    "color": {
+      "type": "string",
+      "description": "色彩主題",
+      "default": "primary",
+      "options": ["primary", "secondary", "accent", "info", "success", "warning", "error", "base", "neutral"]
+    },
+    "direction": {
+      "type": "string",
+      "description": "佈局方向 — col：圖片佔滿上方，row：圖片佔滿左側（繼承容器 variants）",
+      "default": "col",
+      "options": ["col", "row"]
+    },
+    "active": {
+      "type": "boolean",
+      "description": "供電狀態",
+      "default": true
+    },
+    "hover": {
+      "type": "boolean",
+      "description": "允許懸停效果",
+      "default": false
+    }
+  },
+  "children": [
+    { "from": "方塊:方塊:div", "className": "overflow-hidden flex-shrink-0", "children": "$$FIRST_IMAGE_CHILD$$" },
+    { "from": "方塊:方塊:div", "className": "p-4 flex-1 min-w-0 font-GENEI", "direction": "col", "children": "$$REST_CHILDREN$$" }
+  ]
+}

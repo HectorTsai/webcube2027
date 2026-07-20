@@ -1,0 +1,18 @@
+{
+    "id": "排程記錄:排程記錄:ai-pool-restore",
+    "名稱": {
+        "en": "AI Pool Adaptive Restore",
+        "zh-tw": "AI Pool 自適應恢復",
+        "zh-cn": "AI Pool 自适应恢复",
+        "vi": "Khôi phục thích ứng nhóm AI"
+    },
+    "host": null,
+    "命令": "/api/v1/ai/pool/restore",
+    "最後執行": "1970-01-01T00:00:00.000Z",
+    "建立時間": "2025-01-01T00:00:00.000Z",
+    "間隔分鐘": 1,
+    "循環": true,
+    "啟用": true,
+    "可刪除": false,
+    "標籤集": ["排程記錄:標籤:系統排程", "排程記錄:標籤:AI-Pool"]
+}

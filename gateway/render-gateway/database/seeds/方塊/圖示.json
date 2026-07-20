@@ -1,0 +1,29 @@
+{
+  "id": "方塊:方塊:圖示",
+  "名稱": { "en": "Icon", "zh-tw": "圖示", "vi": "Biểu tượng" },
+  "標籤集": ["方塊:標籤:內容展示"],
+  "描述": {
+    "zh-tw": "SVG 圖示：支援三種模式：1) id 模式（透過資料庫查詢）；2) svg 模式（直接傳入內聯 SVG 字串）；3) JSX children。parseRaw 機制自動將 raw HTML parse 後注入 definition.attrs 定義的屬性。繼承自 方塊:方塊:svg 的 viewBox 與 stroke/fill 預設。"
+  },
+  "from": "方塊:方塊:svg",
+  "args": {
+    "id": { "type": "string", "description": "圖示資料庫 ID（當未傳入 svg 時，透過 @media 自動查詢）" },
+    "svg": { "type": "string", "description": "直接傳入內聯 SVG 字串（優先於 id）", "default": "@media/v1/icon/{id}" },
+    "className": { "type": "string", "description": "額外 CSS 類別" },
+    "size": {
+      "type": "string", "default": "md",
+      "options": ["xs","sm","md","lg","xl","2xl","3xl","4xl"],
+      "variants": {
+        "xs": { "className": "w-4 h-4" },
+        "sm": { "className": "w-5 h-5" },
+        "md": { "className": "w-6 h-6" },
+        "lg": { "className": "w-8 h-8" },
+        "xl": { "className": "w-10 h-10" },
+        "2xl": { "className": "w-12 h-12" },
+        "3xl": { "className": "w-16 h-16" },
+        "4xl": { "className": "w-24 h-24" }
+      }
+    }
+  },
+  "可刪除": false
+}

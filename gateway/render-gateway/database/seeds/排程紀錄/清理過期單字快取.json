@@ -1,0 +1,18 @@
+{
+    "id": "排程記錄:排程記錄:clear-expired-words",
+    "名稱": {
+        "en": "Clear Expired Word Cache",
+        "zh-tw": "清理過期單字快取",
+        "zh-cn": "清理过期单词缓存",
+        "vi": "Xóa bộ nhớ đệm từ hết hạn"
+    },
+    "host": null,
+    "命令": "/api/v1/system/words/clear-expired",
+    "最後執行": "1970-01-01T00:00:00.000Z",
+    "建立時間": "2025-01-01T00:00:00.000Z",
+    "間隔分鐘": 60,
+    "循環": true,
+    "啟用": true,
+    "可刪除": false,
+    "標籤集": ["排程記錄:標籤:系統排程", "排程記錄:標籤:單字快取"]
+}

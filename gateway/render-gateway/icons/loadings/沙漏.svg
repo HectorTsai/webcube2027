@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <defs>
+        <mask id="mask1">
+            <rect x="8" y="2" width="10" height="10" fill="white" />
+            <rect x="8" y="2" width="10" height="10" fill="black">
+                <animate id="fillWater" attributeName="height" from="0" to="10" dur="1s" begin="0s;rotate.end" />
+            </rect>>
+        </mask>
+        <mask id="mask2">
+            <rect x="8" y="12" width="10" height="10" fill="white" />
+            <rect x="8" y="12" width="10" height="10" fill="black">
+                <animate attributeName="height" values="10;0;0" dur="1.8s" repeatCount="indefinite" />
+            </rect>>
+        </mask>
+    </defs>
+    <g class="origin-center" transform-origin="center">
+        <polygon points="8,4 8,10 12,12 16,10 16,4" fill="currentColor" mask="url(#mask1)" />
+        <polygon points="12,12 8,16 8,20 16,20 16,16" fill="currentColor" mask="url(#mask2)" />
+        <path stroke="oklch(var(--bc))" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.5 4h-13m13 16h-13M8 20v-3.333a2 2 0 0 1 .4-1.2L10 12.6a1 1 0 0 0 0-1.2L8.4 8.533a2 2 0 0 1-.4-1.2V4h8v3.333a2 2 0 0 1-.4 1.2L13.957 11.4a1 1 0 0 0 0 1.2l1.643 2.867a2 2 0 0 1 .4 1.2V20H8Z"/>
+        <animateTransform id="rotate" attributeName="transform"
+              type="rotate"
+              from="0 0 0" to="180 0 0"
+              dur=".3s"
+              begin="fillWater.end+0.5s"
+        />
+    </g>
+</svg>

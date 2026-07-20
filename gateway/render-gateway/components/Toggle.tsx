@@ -1,0 +1,130 @@
+import Icon, { IconProps } from './Icon.tsx';
+import {Color, ComponentProps} from "./classes.ts";
+import { processChildren } from "./index.ts";
+
+const sizeMap: Record<string, { width: number; height: number; thumb: number }> = {
+  xs: { width: 48, height: 24, thumb: 18 },
+  sm: { width: 56, height: 28, thumb: 22 },
+  md: { width: 64, height: 32, thumb: 26 },
+  lg: { width: 74, height: 36, thumb: 30 },
+  xl: { width: 96, height: 44, thumb: 36 },
+};
+
+const iconSizeMap: Record<keyof typeof sizeMap, IconProps['size']> = {
+  xs: 'xs',
+  sm: 'xs',
+  md: 'sm',
+  lg: 'md',
+  xl: 'lg',
+};
+
+export interface ToggleProps extends ComponentProps {
+  name?: string;
+  color?: Color;
+  size?: keyof typeof sizeMap;
+  value?: string;
+  checked?: boolean;
+  defaultChecked?: boolean;
+  disabled?: boolean;
+  onIcon?: string;
+  offIcon?: string;
+  onSvg?: string;
+  onSrc?: string;
+  offSvg?: string;
+  offSrc?: string;
+  /** Any additional props (including Alpine.js x- attributes and event handlers) */
+  [key: string]: any;
+}
+
+export default async function Toggle({
+  size = 'md',
+  color = 'primary',
+  variant,
+  context,
+  name,
+  value,
+  checked,
+  defaultChecked,
+  disabled,
+  children,
+  onIcon,
+  offIcon,
+  onSvg,
+  onSrc,
+  offSvg,
+  offSrc,
+  ...restProps
+}: ToggleProps) {
+  const config = sizeMap[size] || sizeMap.md;
+  const iconSize = iconSizeMap[size] || iconSizeMap.md;
+  const initial = typeof checked === 'boolean' ? checked : (defaultChecked ?? false);
+  const onTrackClass = `bg-${color} border-${color}`;
+  const offTrackClass = 'bg-gray-300 border-gray-300';
+  const onBlockClass = `bg-${color}-content`;
+  const offBlockClass = 'bg-gray-400';
+  const translateX = config.width - config.thumb - 4;
+  const hasOnIcon = Boolean(onIcon || onSvg || onSrc);
+  const hasOffIcon = Boolean(offIcon || offSvg || offSrc);
+  const IconOn = hasOnIcon ? await Icon({
+    id: onIcon,
+    svg: onSvg,
+    src: onSrc,
+    size: iconSize,
+    className: `text-${color}`,
+  }) : null;
+  const IconOff = hasOffIcon ? await Icon({
+    id: offIcon,
+    svg: offSvg,
+    src: offSrc,
+    size: iconSize,
+    className: 'text-white',
+  }) : null;
+
+  const processedChildren = processChildren(children, { color, variant, context });
+
+  return (
+    <div class={`max-w-full ${disabled ? 'opacity-60' : ''}`} {...restProps}>
+      <label
+        class="inline-flex items-center gap-3 cursor-pointer select-none flex-wrap"
+        x-data={`{ on: ${initial}, trackOn: '${onTrackClass}', trackOff: '${offTrackClass}', blockOn: '${onBlockClass}', blockOff: '${offBlockClass}' }`}
+      >
+        {/* 隱藏元素確保 UnoCSS 能掃描到所有動態類名 */}
+        <div class="hidden bg-primary border-primary bg-secondary border-secondary bg-accent border-accent bg-info border-info bg-success border-success bg-warning border-warning bg-error border-error bg-primary-content bg-secondary-content bg-accent-content bg-info-content bg-success-content bg-warning-content bg-error-content bg-gray-300 border-gray-300 bg-gray-400 text-primary text-secondary text-accent text-info text-success text-warning text-error text-white"></div>
+        <input
+          type="checkbox"
+          class="sr-only"
+          name={name}
+          value={value}
+          disabled={disabled}
+          x-model="on"
+        />
+
+        <div
+          class="relative rounded-full border transition duration-200 shadow-inner"
+          style={`width: ${config.width}px; height: ${config.height}px;`}
+          x-bind:class="on ? trackOn : trackOff"
+        >
+          <div
+            class="absolute rounded-full shadow-lg border border-gray-300 transition-all duration-200 flex items-center justify-center overflow-hidden"
+            style={`width: ${config.thumb}px; height: ${config.thumb}px; top: calc(50% - ${config.thumb / 2}px); left: 4px;`}
+            x-bind:class="on ? blockOn : blockOff"
+            x-bind:style={`{ transform: on ? 'translateX(${translateX-4}px)' : 'translateX(0)' }`}
+          >
+            {hasOnIcon && (
+              <span class="absolute inset-0 flex items-center justify-center" x-show="on">
+                {IconOn}
+              </span>
+            )}
+            {hasOffIcon && (
+              <span class="absolute inset-0 flex items-center justify-center" x-show="!on">
+                {IconOff}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {processedChildren}
+      </label>
+    </div>
+  );
+}

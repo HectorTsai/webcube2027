@@ -1,0 +1,20 @@
+{
+    "id": "裝飾:裝飾:無裝飾",
+    "名稱": {
+        "en": "No Ornament",
+        "zh-tw": "乾淨無掛件"
+    },
+    "描述": {
+        "zh-tw": "不加載任何邊角 SVG 或額外浮水印。"
+    },
+    "配置": {
+        "container-top-left": "none",
+        "container-top-right": "none",
+        "container-bottom-left": "none",
+        "container-bottom-right": "none",
+        "page-watermark": "none"
+    },
+    "標籤集": [],
+    "售價": 0,
+    "可刪除": false
+}

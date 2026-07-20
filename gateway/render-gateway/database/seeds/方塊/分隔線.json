@@ -1,0 +1,71 @@
+{
+  "id": "方塊:方塊:分隔線",
+  "名稱": { "en": "Divider", "zh-tw": "分隔線", "vi": "Dải phân cách" },
+  "標籤集": ["方塊:標籤:佈局結構"],
+  "from": "方塊:方塊:div",
+  "可刪除": false,
+  "args": {
+    "color": {
+      "type": "string",
+      "default": "current",
+      "options": ["primary", "secondary", "accent", "base", "neutral", "success", "warning", "error"],
+      "variants": {
+        "current": { "className": "border-current-content text-current-content" },
+        "primary": { "className": "text-primary border-primary" },
+        "secondary": { "className": "text-secondary border-secondary" },
+        "accent": { "className": "text-accent border-accent" },
+        "base": { "className": "text-base border-base text-base" },
+        "neutral": { "className": "text-neutral border-neutral" },
+        "success": { "className": "text-success border-success" },
+        "warning": { "className": "text-warning border-warning" },
+        "error": { "className": "text-error border-error" }
+      }
+    },
+    "direction": {
+      "type": "string",
+      "default": "horizontal",
+      "options": ["horizontal", "vertical"],
+      "variants": {
+        "horizontal": {
+          "className": "flex flex-row items-center w-full my-4",
+          "isHorizontal": true
+        },
+        "vertical": {
+          "className": "flex flex-col items-center h-full min-h-[4rem] mx-4 inline-flex",
+          "isVertical": true
+        }
+      }
+    },
+    "label": {
+      "type": "string",
+      "default": ""
+    }
+  },
+  "children": [
+    {
+      "from": "方塊:方塊:span",
+      "className": "line flex-1",
+      "styleConditions": {
+        "isHorizontal": "border-t border-solid h-0 w-full block",
+        "isVertical": "border-l border-solid w-0 h-full block"
+      }
+    },
+    {
+      "from": "方塊:方塊:span",
+      "className": "label text-xs font-medium shrink-0 empty:hidden",
+      "styleConditions": {
+        "isHorizontal": "px-3",
+        "isVertical": "py-1.5"
+      },
+      "text": "{label}"
+    },
+    {
+      "from": "方塊:方塊:span",
+      "className": "line flex-1",
+      "styleConditions": {
+        "isHorizontal": "border-t border-solid h-0 w-full block",
+        "isVertical": "border-l border-solid w-0 h-full block"
+      }
+    }
+  ]
+}

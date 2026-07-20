@@ -1,0 +1,46 @@
+{
+  "id": "方塊:方塊:基礎佈局",
+  "名稱": { "en": "Basic Layout", "zh-tw": "基礎佈局", "vi": "Bố cục cơ bản" },
+  "標籤集": ["方塊:標籤:佈局結構"],
+  "描述": {
+    "en": "Full-height page layout with fixed header (主選單) and footer (頁尾). Content area fills remaining space via flex-1.",
+    "zh-tw": "滿版頁面佈局，固定頂部主選單與底部頁尾，內容區自動充滿剩餘空間。",
+    "vi": "Bố cục trang toàn chiều cao với header và footer cố định. Vùng nội dung tự lấp đầy."
+  },
+  "from": "方塊:方塊:div",
+  "className": "flex flex-col min-h-screen",
+  "mergedArgs": {
+    "siteName": "@api/v1/info/名稱",
+    "copyright": "@api/v1/info/版權資料",
+    "menuItems": "@api/v1/info/主選單"
+  },
+  "children": [
+    {
+      "from": "方塊:方塊:主選單",
+      "color": "primary",
+      "items": "{menuItems}",
+      "className": "w-full sticky top-0 z-50",
+      "children": [
+        {
+          "from": "方塊:方塊:div",
+          "className": "flex items-center pr-1 shrink-0 gap-2",
+          "children": [
+            { "from": "方塊:方塊:圖示", "id": "", "size": "lg" },
+            { "from": "方塊:方塊:span", "className": "font-bold text-lg", "text": "{siteName}" }
+          ]
+        }
+      ]
+    },
+    {
+      "from": "方塊:方塊:div",
+      "className": "flex-1 min-h-0 overflow-y-auto",
+      "children": "$$CHILDREN$$"
+    },
+    {
+      "from": "方塊:方塊:頁尾",
+      "color": "primary",
+      "copyright": "{copyright}"
+    }
+  ],
+  "可刪除": false
+}

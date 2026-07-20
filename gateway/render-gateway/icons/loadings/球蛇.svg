@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+<circle cx="12" cy="2" r="2" fill="currentColor" transform-origin="12px 8px">
+        <animateTransform attributeName="transform"
+              type="rotate" dur="1.5s" begin="0s"
+              values="0;270;333;360;360;360" repeatCount="indefinite" />
+    </circle>
+    <circle cx="12" cy="6" r="2" fill="currentColor" transform-origin="12px 12px">
+        <animateTransform attributeName="transform"
+              type="rotate" dur="1.5s" begin="0.15s"
+              values="0;270;333;360;360;360" repeatCount="indefinite" />
+    </circle>
+    <circle cx="12" cy="10" r="2" fill="currentColor" transform-origin="12px 16px">
+        <animateTransform attributeName="transform"
+              type="rotate" dur="1.5s" begin="0.3"
+              values="0;270;333;360;360;360" repeatCount="indefinite" />
+    </circle>
+    <circle cx="12" cy="14" r="2" fill="currentColor" transform-origin="12px 20px">
+        <animateTransform id="r4" attributeName="transform"
+              type="rotate" dur="1.5s" begin="0.45"
+              values="0;270;333;360;360;360" repeatCount="indefinite" />
+    </circle>
+    <circle cx="12" cy="18" r="2" fill="currentColor" transform-origin="12px 24px">
+        <animateTransform id="r5" attributeName="transform"
+              type="rotate" dur="1.5s" begin="0.6"
+              values="0;270;333;360;360;360" repeatCount="indefinite" />
+    </circle>
+</svg>

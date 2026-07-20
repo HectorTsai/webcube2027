@@ -1,0 +1,15 @@
+{
+    "id": "圖示:圖示:資訊",
+    "名稱": {
+        "en": "info",
+        "zh-tw": "資訊",
+        "zh-cn": "信息",
+        "vi": "thông tin"
+    },
+    "資料": {
+        "format": "SVG",
+        "content": "file://icons/info.svg"
+    },
+    "標籤集": [],
+    "可刪除": false
+}

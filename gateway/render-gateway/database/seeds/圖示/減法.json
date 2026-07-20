@@ -1,0 +1,15 @@
+{
+    "id": "圖示:圖示:減法",
+    "名稱": {
+        "en": "subtraction",
+        "zh-tw": "減法",
+        "zh-cn": "減法",
+        "vi": "phép trừ"
+    },
+    "資料": {
+        "format": "SVG",
+        "content": "file://icons/subtraction.svg"
+    },
+    "標籤集": [],
+    "可刪除": false
+}
