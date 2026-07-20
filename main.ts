@@ -13,8 +13,8 @@
 
 import { Hono } from "hono";
 import { serveStatic } from "hono/serve-static";
-import { 設定App } from "./util/InnerAPI.ts";
-import { info, error } from "./util/logger.ts";
+import { 設定App } from "@dui/util/InnerAPI";
+import { info, error } from "@dui/util/logger";
 
 const app = new Hono();
 

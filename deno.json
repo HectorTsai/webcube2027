@@ -1,5 +1,11 @@
 {
-  "workspaces": [
+  "minimumDependencyAge": 0,
+  "workspace": [
+    "packages/dui-database",
+    "packages/dui-framework",
+    "packages/dui-multilanguage",
+    "packages/dui-translation",
+    "packages/dui-util",
     "gateway/data-gateway",
     "gateway/ai-gateway",
     "gateway/render-gateway",
@@ -8,15 +14,18 @@
     "gateway/theme-gateway"
   ],
   "imports": {
-    "hono": "jsr:@hono/hono@^4.6.3",
-    "hono/serve-static": "jsr:@hono/hono@^4.6.3/serve-static"
+    "hono": "jsr:@hono/hono@^4.12.31",
+    "hono/serve-static": "jsr:@hono/hono@^4.12.31/serve-static",
+    "hono/jsx": "jsr:@hono/hono@^4.12.31/jsx",
+    "hono/jsx/dom": "jsr:@hono/hono@^4.12.31/jsx/dom",
+    "hono/utils/html": "jsr:@hono/hono@^4.12.31/utils/html"
   },
   "tasks": {
     "dev": "deno run --allow-all --env --unstable-cron --watch main.ts",
     "start": "deno run --allow-all --env --unstable-cron main.ts",
     "dev:ai": "deno run --allow-all --env --unstable-cron --watch gateway/ai-gateway/main.ts",
     "dev:render": "deno run --allow-all --env --unstable-cron --watch gateway/render-gateway/main.ts",
-    "dev:data": "deno run --allow-all --watch gateway/data-gateway/mod.ts"
+    "dev:data": "deno run --allow-all --env --watch gateway/data-gateway/main.ts"
   },
   "compilerOptions": {
     "jsx": "precompile",

@@ -1,0 +1,6 @@
+{
+  "name": "@dui/translation",
+  "version": "0.1.0",
+  "description": "AI-powered translation with caching, falls back to Google Translate",
+  "exports": "./mod.ts"
+}

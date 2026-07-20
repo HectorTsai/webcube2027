@@ -1,13 +1,16 @@
 {
+  "tasks": {
+    "dev": "deno run --allow-all --env --watch main.ts",
+    "start": "deno run --allow-all --env main.ts"
+  },
   "imports": {
-    "nanoid": "npm:nanoid@^5.0.0",
-    "mongodb": "npm:mongodb@^6.0.0",
-    "mysql2": "npm:mysql2@^3.0.0",
-    "pg": "npm:pg@^8.0.0",
-    "firebase-admin": "npm:firebase-admin@^12.0.0",
-    "node-appwrite": "npm:node-appwrite@^14.0.0",
-    "@aws-sdk/client-dynamodb": "npm:@aws-sdk/client-dynamodb@^3.0.0",
-    "@aws-sdk/lib-dynamodb": "npm:@aws-sdk/lib-dynamodb@^3.0.0",
-    "mssql": "npm:mssql@^11.0.0"
+    "hono": "jsr:@hono/hono@^4.12.31",
+    "hono/serve-static": "jsr:@hono/hono@^4.12.31/serve-static",
+    "@dui/database": "./../../packages/dui-database/mod.ts",
+    "@dui/database/pool": "./../../packages/dui-database/pool.ts",
+    "@dui/database/logger": "./../../packages/dui-database/logger.ts",
+    "@dui/database/model-registry": "./../../packages/dui-database/model-registry.ts",
+    "@dui/database/seed-loader": "./../../packages/dui-database/seed-loader.ts",
+    "@dui/database/adapter/adapter-interface": "./../../packages/dui-database/adapter/adapter-interface.ts"
   }
 }

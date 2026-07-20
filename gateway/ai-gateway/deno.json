@@ -1,5 +1,4 @@
 {
-  "minimumDependencyAge": 0,
   "tasks": {
     "dev": "deno run -A --unstable-cron --watch main.ts",
     "build:css": "deno run -A npm:@tailwindcss/cli -i input.css -o static/style.css",
@@ -7,16 +6,8 @@
   },
   "imports": {
     "@dui/database": "jsr:@dui/database@^1.0.2",
-    "@dui/smartmultilingual": "jsr:@dui/smartmultilingual@^0.2.3",
+    "@dui/smartmultilingual": "./../../packages/dui-multilanguage/mod.ts",
     "@std/assert": "jsr:@std/assert@^1.0.19",
-    "bcryptjs": "npm:bcryptjs@^3.0.3",
-    "hono": "npm:hono@^4.12.30",
-    "@tailwindcss/cli": "npm:@tailwindcss/cli@^4.3.3",
-    "daisyui": "npm:daisyui@^5.6.18",
-    "tailwindcss": "npm:tailwindcss@^4.3.3"
-  },
-  "compilerOptions": {
-    "jsx": "precompile",
-    "jsxImportSource": "hono/jsx"
+    "bcryptjs": "npm:bcryptjs@^3.0.3"
   }
 }
