@@ -3,10 +3,12 @@
   "version": "0.1.0",
   "exports": {
     ".": "./mod.ts",
-    "./hono-fbr": "./hono-fbr.ts"
+    "./file-router": "./fileRouter.ts",
+    "./setup-guard": "./setup-guard.ts",
+    "./route-loader": "./route-loader.ts"
   },
   "imports": {
-    "@inventus/hono-fbr": "jsr:@inventus/hono-fbr@^0.1.2",
+    "hono": "jsr:@hono/hono@^4.12.31",
     "@tailwindcss/cli": "npm:@tailwindcss/cli@^4.3.3",
     "tailwindcss": "npm:tailwindcss@^4.3.3",
     "daisyui": "npm:daisyui@^5.6.18"

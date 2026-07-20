@@ -5,7 +5,7 @@
 
 import { createConnection, type Connection } from 'mysql2/promise';
 import type { DatabaseAdapter, QueryOptions, FieldFilter } from './adapter-interface.ts';
-import { info, error } from '../logger.ts';
+import { error } from '../logger.ts';
 
 export interface MysqlConnectOptions {
   host?: string;
@@ -18,7 +18,6 @@ export interface MysqlConnectOptions {
 export class MysqlAdapter implements DatabaseAdapter {
   readonly type = 'mysql';
   private conn: Connection | null = null;
-  private 已初始化 = new Set<string>();
 
   constructor(_選項: MysqlConnectOptions) {
     // 建構時不連線，由 connect() 初始化
@@ -162,29 +161,8 @@ export class MysqlAdapter implements DatabaseAdapter {
   }
 
   async initialize(model: string): Promise<void> {
-    if (this.已初始化.has(model)) return;
     try {
       await this.確保資料表(model);
-      this.已初始化.add(model);
-
-      // 若為空則匯入種子
-      const count = await this.count(model);
-      if (count === 0) {
-        const { loadSeeds } = await import('../seed-loader.ts');
-        const items = await loadSeeds(model);
-
-        if (items && items.length > 0) {
-          for (const 實例 of items) {
-            try {
-              await 實例.init();
-              await this.create(model, 實例.id, 實例.toJSON());
-            } catch (err) {
-              await error('MysqlAdapter', `匯入種子失敗 ${model}/${實例.id}: ${err}`);
-            }
-          }
-          await info('MysqlAdapter', `${model} 種子匯入完成，共 ${items.length} 筆`);
-        }
-      }
     } catch (err) {
       await error('MysqlAdapter', `初始化 ${model} 失敗: ${err}`);
     }

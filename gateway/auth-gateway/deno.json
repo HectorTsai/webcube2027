@@ -1,0 +1,22 @@
+{
+  "tasks": {
+    "dev": "deno run --allow-all --env --watch main.ts",
+    "start": "deno run --allow-all --env main.ts",
+    "build:css": "npx @tailwindcss/cli -i routes/css/input.css -o routes/css/output.css"
+  },
+  "compilerOptions": {
+    "jsx": "precompile",
+    "jsxImportSource": "hono/jsx"
+  },
+  "imports": {
+    "hono": "jsr:@hono/hono@^4.12.31",
+    "hono/jwt": "jsr:@hono/hono@^4.12.31/jwt",
+    "hono/html": "jsr:@hono/hono@^4.12.31/html",
+    "@dui/util": "./../../packages/dui-util/mod.ts",
+    "@dui/framework": "./../../packages/dui-framework/mod.ts",
+    "@dui/framework/file-router": "./../../packages/dui-framework/fileRouter.ts",
+    "@tailwindcss/cli": "npm:@tailwindcss/cli@^4.3.3",
+    "tailwindcss": "npm:tailwindcss@^4.3.3",
+    "daisyui": "npm:daisyui@^5.6.18"
+  }
+}

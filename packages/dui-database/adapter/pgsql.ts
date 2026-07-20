@@ -12,7 +12,7 @@
 
 import { Client, type ClientConfig } from 'pg';
 import type { DatabaseAdapter, QueryOptions, FieldFilter } from './adapter-interface.ts';
-import { info, error } from '../logger.ts';
+import { error } from '../logger.ts';
 
 export interface PgsqlConnectOptions {
   host?: string;
@@ -26,7 +26,6 @@ export interface PgsqlConnectOptions {
 export class PgsqlAdapter implements DatabaseAdapter {
   readonly type = 'postgresql';
   private client: Client | null = null;
-  private 已初始化 = new Set<string>();
 
   constructor(_選項: PgsqlConnectOptions) {
     // 建構時不連線，由 connect() 初始化
@@ -179,28 +178,8 @@ export class PgsqlAdapter implements DatabaseAdapter {
   }
 
   async initialize(model: string): Promise<void> {
-    if (this.已初始化.has(model)) return;
     try {
       await this.確保資料表(model);
-      this.已初始化.add(model);
-
-      const count = await this.count(model);
-      if (count === 0) {
-        const { loadSeeds } = await import('../seed-loader.ts');
-        const items = await loadSeeds(model);
-
-        if (items && items.length > 0) {
-          for (const 實例 of items) {
-            try {
-              await 實例.init();
-              await this.create(model, 實例.id, 實例.toJSON());
-            } catch (err) {
-              await error('PgsqlAdapter', `匯入種子失敗 ${model}/${實例.id}: ${err}`);
-            }
-          }
-          await info('PgsqlAdapter', `${model} 種子匯入完成，共 ${items.length} 筆`);
-        }
-      }
     } catch (err) {
       await error('PgsqlAdapter', `初始化 ${model} 失敗: ${err}`);
     }

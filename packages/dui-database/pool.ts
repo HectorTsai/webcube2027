@@ -1,23 +1,28 @@
-// Data Pool — L1/L2/L3 multi-layer data access
+// Data Pool — L2/L3 multi-layer data access
 // Global singleton, import directly by all services
 //
-// Routing: L3 (specific host) → other L3 → L2 (SYSTEM) → L1 (BASE) degraded fallback
-// System getter: get L2 DatabaseAdapter directly for admin operations
+// Architecture:
+//   L1 (config KV) → stores L2 connection info, no longer a database fallback
+//   L2 (SYSTEM)    → central database (read L2 connection info from L1 store)
+//   L3 (HOST)      → per-site database via hostname lookup (from L2 site data)
+//
+// Query routing: L3 (specific host) → other L3 → L2 (SYSTEM)
+// No L1 fallback — L1 is a config store, not a database.
 //
 // Lifecycle:
-//   await dataPool.initL1()
-//     → connect + auto-seed for all registered models
-//   await dataPool.initL2()
-//   await dataPool.initL3(host)
+//   await dataPool.initL1()       // init L1 KV store + ensure crypto key
+//   await dataPool.initL2()       // read L2 conn info from L1 → connect
+//   await dataPool.initL3(host)   // auto-triggered on first query for that host
 
 import type { DatabaseAdapter } from './adapter/adapter-interface.ts';
 import type { L2ConnectionInfo } from './index.ts';
+import { L1Store } from './l1-store.ts';
 import { info, error } from './logger.ts';
-import { listModels, toModelInstance } from './model-registry.ts';
+import { ensureKey, decrypt } from '@dui/util';
 
 // ── Query Result ──
 
-type SourceLevel = 'L1' | 'L2' | 'L3';
+type SourceLevel = 'L2' | 'L3';
 
 /**
  * Query result returned by all data pool operations.
@@ -33,75 +38,51 @@ export interface QueryResult<T> {
 // ── Pool Core ──
 
 /**
- * Multi-layer data pool with L1/L2/L3 routing.
+ * Multi-layer data pool with L2/L3 routing.
  *
- * - L1 (BASE): SQLite, local file database
+ * - L1 (CONFIG): KV store (JSON file) for system settings + L2 connection info
  * - L2 (SYSTEM): Central database (MySQL, PostgreSQL, MongoDB, etc.)
- * - L3 (Host): Per-site database via hostname lookup
+ * - L3 (HOST): Per-site database via hostname lookup
  *
- * Query degradation: L3 → other L3 → L2 → L1, higher layer wins.
+ * Query degradation: L3 → other L3 → L2. No L1 fallback.
  */
 export class PoolCore {
-  /**
-   * Partially update specific fields of a record without a full read-modify-write cycle.
-   *
-   * This is the efficient choice for high-frequency field updates (e.g. updating
-   * a `lastRead` timestamp on a cache record), as it only pushes the changed
-   * fields to the database.
-   *
-   * The `updatedAt` field is automatically updated.
-   */
-  async patch<T extends { id?: string }>(
-    model: string,
-    id: string,
-    fields: Partial<T>,
-    host?: string
-  ): Promise<QueryResult<T>> {
-    const key = this.writeLayer(host);
-    const db = this.連線池.get(key);
-    if (!db) return { data: null, source: 'L1', success: false, error: 'No writable database' };
-
-    try {
-      const updatedFields = { ...fields, updatedAt: new Date().toISOString() } as Record<string, unknown>;
-      const result = await db.patch(model, id, updatedFields);
-      if (result) {
-        const instance = this.toModelInstance<T>(model, result);
-        if (instance) return { data: instance, source: this.keyToLayer(key), success: true };
-      }
-      return { data: null, source: this.keyToLayer(key), success: false, error: 'Record not found' };
-    } catch (err) {
-      return { data: null, source: this.keyToLayer(key), success: false, error: String(err) };
-    }
-  }
-
-  /** L1="BASE", L2="SYSTEM", L3=host */
   private 連線池 = new Map<string, DatabaseAdapter>();
   private 初始化中 = { L2: false, L3: new Set<string>() };
+  private _l1!: L1Store;
+
+  // ═══════════════════════════════════════════
+  //  L1 Store accessor
+  // ═══════════════════════════════════════════
+
+  /**
+   * Access the L1 config store.
+   * Returns `null` if `initL1()` has not been called yet.
+   */
+  get config(): L1Store | null {
+    return this._l1 ?? null;
+  }
 
   // ═══════════════════════════════════════════
   //  Lifecycle
   // ═══════════════════════════════════════════
 
-  /** Initialize L1 (SQLite). Connects to the database and auto-seeds all registered models. */
-  async initL1(): Promise<void> {
-    if (this.連線池.has('BASE')) return;
-    const 路徑 = Deno.env.get('L1_DB_PATH') || './data/webcube.db';
-
-    const { SqliteAdapter } = await import('./adapter/sqlite.ts');
-    const l1 = new SqliteAdapter(路徑);
-    await info('Pool', `L1 connected — SQLite (${路徑})`);
-
-    this.連線池.set('BASE', l1);
-
-    // L1 seed: init all registered models
-    const models = listModels();
-    for (const m of models) {
-      try { await l1.initialize(m); } catch (e) { await error('Pool', `L1 seed failed: ${m} — ${e}`); }
-    }
-    await info('Pool', `L1 seed complete (${models.length} models)`);
+  /**
+   * Initialize L1 — the config KV store.
+   *
+   * Creates the L1Store (backed by a JSON file) and ensures the
+   * encryption key exists (auto-generated on first run).
+   */
+  async initL1(dataDir?: string): Promise<void> {
+    if (this._l1) return;
+    ensureKey(dataDir); // ensure crypto key exists before L1 store
+    this._l1 = new L1Store(dataDir ? `${dataDir}/l1.json` : undefined);
+    await this._l1.init();
   }
 
-  /** Initialize L2 (SYSTEM). Reads connection info from L1 and connects to the central database. */
+  /**
+   * Initialize L2 (SYSTEM). Reads connection info from L1 and connects.
+   */
   async initL2(): Promise<void> {
     if (this.連線池.has('SYSTEM')) return;
 
@@ -112,15 +93,19 @@ export class PoolCore {
 
     this.初始化中.L2 = true;
     try {
-      const l1 = this.連線池.get('BASE')!;
-      const l2Info = await this.readL2ConnectionInfo(l1);
-      if (!l2Info) { this.初始化中.L2 = false; return; }
+      const connStr = await this._l1?.get('l2_connection');
+      if (!connStr) { this.初始化中.L2 = false; return; }
+
+      const decrypted = await decrypt(connStr);
+      const l2Info: L2ConnectionInfo = JSON.parse(decrypted);
 
       const l2 = await this.buildAdapter(l2Info);
       if (!l2) { this.初始化中.L2 = false; return; }
 
       this.連線池.set('SYSTEM', l2);
       await info('Pool', 'L2 connected');
+    } catch (err) {
+      await error('Pool', `L2 init failed: ${err}`);
     } finally {
       this.初始化中.L2 = false;
     }
@@ -128,7 +113,6 @@ export class PoolCore {
 
   /**
    * Initialize L3 for a specific host. Reads connection info from L2's site data.
-   * @param host - The hostname/domain to initialize L3 for.
    */
   async initL3(host: string): Promise<void> {
     if (this.連線池.has(host)) return;
@@ -164,33 +148,32 @@ export class PoolCore {
   }
 
   // ═══════════════════════════════════════════
-  //  Public Query API (L3 → L2 → L1 degraded)
+  //  Public Query API (L3 → L2 degraded)
   // ═══════════════════════════════════════════
 
   /**
    * Get a single record by its composite ID.
-   * Searches through L3 → L2 → L1 and returns the first match.
+   * Searches through L3 → L2 and returns the first match.
    */
   async getById<T extends { id: string }>(id: string, host?: string): Promise<QueryResult<T>> {
     const model = this.parseModel(id);
-    if (!model) return { data: null, source: 'L1', success: false, error: 'Invalid ID format' };
+    if (!model) return { data: null, source: 'L3', success: false, error: 'Invalid ID format' };
 
     for (const key of await this.getLayerKeys(host)) {
       const db = this.連線池.get(key)!;
       try {
         const raw = await db.getById(model, id);
         if (raw) {
-          const 實例 = this.toModelInstance<T>(model, raw);
-          if (實例) return { data: 實例, source: this.keyToLayer(key), success: true };
+          return { data: raw as T, source: this.keyToLayer(key), success: true };
         }
       } catch { /* degrade to next layer */ }
     }
 
-    return { data: null, source: 'L1', success: false, error: 'Not found in any available layer' };
+    return { data: null, source: 'L3', success: false, error: 'Not found in any available layer' };
   }
 
   /**
-   * List records from the highest available layer (L3 → L2 → L1).
+   * List records from the highest available layer (L3 → L2).
    * Returns the first layer that has data.
    */
   async list<T extends { id: string }>(
@@ -204,17 +187,12 @@ export class PoolCore {
       try {
         const rows = await db.list(model, { limit, offset });
         if (rows.length > 0) {
-          const allData: T[] = [];
-          for (const row of rows) {
-            const instance = this.toModelInstance<T>(model, row);
-            if (instance) allData.push(instance);
-          }
-          return { data: allData, source: this.keyToLayer(key), success: true };
+          return { data: rows as T[], source: this.keyToLayer(key), success: true };
         }
       } catch { /* degrade */ }
     }
 
-    return { data: [], source: 'L1', success: true };
+    return { data: [], source: 'L3', success: true };
   }
 
   /**
@@ -238,28 +216,12 @@ export class PoolCore {
           const rid = row.id as string;
           if (seen.has(rid)) continue;
           seen.add(rid);
-          const instance = this.toModelInstance<T>(model, row);
-          if (instance) allData.push(instance);
+          allData.push(row as T);
         }
       } catch { /* skip failed layer */ }
     }
 
-    return { data: allData, source: 'L1', success: true };
-  }
-
-  /**
-   * Get the default value for a model — always from L1 seed data.
-   */
-  async getDefault<T extends { id: string }>(model: string): Promise<QueryResult<T>> {
-    const db = this.連線池.get('BASE');
-    if (!db) return { data: null, source: 'L1', success: false, error: 'L1 not initialized' };
-
-    const rows = await db.list(model, { limit: 1 });
-    if (rows.length > 0) {
-      const instance = this.toModelInstance<T>(model, rows[0]);
-      if (instance) return { data: instance, source: 'L1', success: true };
-    }
-    return { data: null, source: 'L1', success: false, error: 'No default data' };
+    return { data: allData, source: 'L3', success: true };
   }
 
   /**
@@ -273,7 +235,7 @@ export class PoolCore {
   ): Promise<QueryResult<T>> {
     const key = this.writeLayer(host);
     const db = this.連線池.get(key);
-    if (!db) return { data: null, source: 'L1', success: false, error: 'No writable database' };
+    if (!db) return { data: null, source: 'L3', success: false, error: 'No writable database' };
 
     const { id, isUpdate } = await this.resolveId(model, data);
     const updateData = { ...data, id } as Record<string, unknown>;
@@ -284,8 +246,7 @@ export class PoolCore {
         if (!existing) {
           const created = await db.create(model, id, updateData);
           if (created) {
-            const instance = this.toModelInstance<T>(model, created);
-            if (instance) return { data: instance, source: this.keyToLayer(key), success: true };
+            return { data: created as T, source: this.keyToLayer(key), success: true };
           }
         }
       }
@@ -294,8 +255,7 @@ export class PoolCore {
         ? await db.update(model, id, updateData)
         : await db.create(model, id, updateData);
       if (result) {
-        const instance = this.toModelInstance<T>(model, result);
-        if (instance) return { data: instance, source: this.keyToLayer(key), success: true };
+        return { data: result as T, source: this.keyToLayer(key), success: true };
       }
 
       return { data: null, source: this.keyToLayer(key), success: false, error: 'Write failed' };
@@ -306,27 +266,58 @@ export class PoolCore {
 
   /**
    * Delete a record by its composite ID.
-   * System default records (marked as non-deletable) cannot be deleted.
+   *
+   * If the record exists in a different layer than the delete target,
+   * the operation is rejected — you cannot delete a record from the wrong layer.
+   * Layer-level access control is the responsibility of the API Gateway layer.
    */
   async delete(id: string, host?: string): Promise<QueryResult<boolean>> {
     const model = this.parseModel(id);
-    if (!model) return { data: false, source: 'L1', success: false, error: 'Invalid ID format' };
+    if (!model) return { data: false, source: 'L3', success: false, error: 'Invalid ID format' };
 
-    // Check if deletable
     const existing = await this.getById(id, host);
-    if (existing.success && (existing.data as Record<string, unknown>)?.deletable === false) {
-      return { data: false, source: existing.source, success: false, error: 'This record is not deletable (system default data)' };
-    }
 
     const key = this.writeLayer(host);
+    const targetLayer = this.keyToLayer(key);
+
+    // Layer mismatch: record lives in one layer but delete targets another
+    if (existing.success && existing.source !== targetLayer) {
+      return { data: false, source: existing.source, success: false, error: `Record exists in ${existing.source} but delete targets ${targetLayer}` };
+    }
+
     const db = this.連線池.get(key);
-    if (!db) return { data: false, source: 'L1', success: false, error: 'No writable database' };
+    if (!db) return { data: false, source: 'L3', success: false, error: 'No writable database' };
 
     try {
       const ok = await db.delete(model, id) as boolean;
-      return { data: ok, source: this.keyToLayer(key), success: ok };
+      return { data: ok, source: targetLayer, success: ok };
     } catch (err) {
-      return { data: false, source: this.keyToLayer(key), success: false, error: String(err) };
+      return { data: false, source: targetLayer, success: false, error: String(err) };
+    }
+  }
+
+  /**
+   * Partially update specific fields of a record without a full read-modify-write cycle.
+   */
+  async patch<T extends { id?: string }>(
+    model: string,
+    id: string,
+    fields: Partial<T>,
+    host?: string
+  ): Promise<QueryResult<T>> {
+    const key = this.writeLayer(host);
+    const db = this.連線池.get(key);
+    if (!db) return { data: null, source: 'L3', success: false, error: 'No writable database' };
+
+    try {
+      const updatedFields = { ...fields, updatedAt: new Date().toISOString() } as Record<string, unknown>;
+      const result = await db.patch(model, id, updatedFields);
+      if (result) {
+        return { data: result as T, source: this.keyToLayer(key), success: true };
+      }
+      return { data: null, source: this.keyToLayer(key), success: false, error: 'Record not found' };
+    } catch (err) {
+      return { data: null, source: this.keyToLayer(key), success: false, error: String(err) };
     }
   }
 
@@ -356,12 +347,13 @@ export class PoolCore {
     if (host && this.連線池.has(host)) keys.push(host);
 
     for (const k of this.連線池.keys()) {
-      if (k !== 'BASE' && k !== 'SYSTEM' && k !== host) keys.push(k);
+      if (k !== 'SYSTEM' && k !== host) keys.push(k);
     }
 
     if (this.連線池.has('SYSTEM')) keys.push('SYSTEM');
 
-    keys.push('BASE');
+    // Note: L1 is no longer a fallback — it's a config store only.
+    // Query degradation stops at L2.
 
     return keys;
   }
@@ -369,12 +361,11 @@ export class PoolCore {
   private writeLayer(host?: string): string {
     if (host && this.連線池.has(host)) return host;
     if (this.連線池.has('SYSTEM')) return 'SYSTEM';
-    return 'BASE';
+    throw new Error('No writable database layer available (L2 not initialized)');
   }
 
   private keyToLayer(key: string): SourceLevel {
     if (key === 'SYSTEM') return 'L2';
-    if (key === 'BASE') return 'L1';
     return 'L3';
   }
 
@@ -504,16 +495,6 @@ export class PoolCore {
     }
   }
 
-  private async readL2ConnectionInfo(l1: DatabaseAdapter): Promise<L2ConnectionInfo | null> {
-    const raw = await l1.getById('系統資訊', '系統資訊:系統資訊:預設');
-    if (!raw) return null;
-
-    const connStr = (typeof raw.資料庫 === 'string') ? raw.資料庫 as string : '';
-    if (!connStr.trim()) return null;
-
-    try { return JSON.parse(connStr) as L2ConnectionInfo; } catch { return null; }
-  }
-
   // ═══════════════════════════════════════════
   //  Internal: Helpers
   // ═══════════════════════════════════════════
@@ -526,22 +507,15 @@ export class PoolCore {
       return { id: `${model}:${model}:${nanoid(12)}`, isUpdate: false };
     }
 
-    const idParts = (data.id as string).split(':');
-    if (idParts.length === 3) {
-      return { id: data.id as string, isUpdate: true };
+    const idStr = data.id as string;
+    // Already a composite ID (3 parts or contains colon) → use as-is
+    if (idStr.split(':').length >= 2) {
+      return { id: idStr, isUpdate: true };
     }
 
+    // Raw nanoid without prefix — compose it
     const { nanoid } = await import('nanoid');
-    const table = idParts[0];
-    const m = idParts.length === 2 ? idParts[1] : table;
-    return { id: `${table}:${m}:${nanoid(12)}`, isUpdate: false };
-  }
-
-  private toModelInstance<T>(
-    model: string,
-    rawData: Record<string, unknown>
-  ): T | null {
-    return toModelInstance(model, rawData) as T | null;
+    return { id: `${model}:${model}:${nanoid(12)}`, isUpdate: false };
   }
 
   // ═══════════════════════════════════════════

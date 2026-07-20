@@ -2,7 +2,7 @@
 import { Context } from 'hono';
 import { error } from './logger.ts';
 
-// ── 模組層級 app 實例（main.ts 啟動時注入）──
+// ── 模組層級 app 實例（main.ts 啟動時注入，用於同進程呼叫）──
 let _app: any = null;
 
 /** main.ts 啟動時呼叫，InnerAPI 內部路由依賴 */
@@ -29,7 +29,11 @@ function encodeUrlParams(url: string): string {
 
 /**
  * 👑 透明快取版 InnerAPI
- * 呼叫端完全不需要知道快取存在，只要傳入 context，底層自動完成 Request 級別去重！
+ *
+ * 使用 `_app.request()` 做同進程內部路由呼叫。
+ * 需先由 main.ts 呼叫 `設定App(app)` 注入 Hono app 實例。
+ *
+ * 底層自動完成 Request 級別去重快取。
  */
 export async function InnerAPI(c: Context, apiPath: string): Promise<Response> {
   try {

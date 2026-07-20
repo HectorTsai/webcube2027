@@ -14,7 +14,7 @@ export interface IdInfo {
 /**
  * Base model class that all user-defined models should extend.
  *
- * Provides built-in fields (id, tags, deletable, updatedAt) and
+ * Provides built-in fields (id, tags, updatedAt) and
  * a composite ID format of `table:type:id`.
  *
  * @example
@@ -31,8 +31,6 @@ export class BaseModel {
   public tags: string[];
   /** Last modification timestamp. */
   public updatedAt: Date;
-  /** Whether this record can be deleted (system defaults are non-deletable). */
-  public deletable: boolean;
 
   /** The type component of the composite ID. */
   public get type(): string {
@@ -71,11 +69,7 @@ export class BaseModel {
     this.編號._id = ids[2];
   }
 
-  constructor(
-    data: Record<string, unknown> = {},
-    deletable: boolean = true,
-  ) {
-    this.deletable = deletable;
+  constructor(data: Record<string, unknown> = {}) {
     this.tags = data?.tags as string[] || data?.標籤集 as string[] || [];
     this.updatedAt = data?.updatedAt
       ? new Date(data.updatedAt as string)
@@ -100,7 +94,6 @@ export class BaseModel {
       id: this.id,
       tags: this.tags,
       updatedAt: this.updatedAt,
-      deletable: this.deletable,
     };
   }
 

@@ -13,7 +13,6 @@
 
 import { Hono } from "hono";
 import { serveStatic } from "hono/serve-static";
-import { 設定App } from "@dui/util/InnerAPI";
 import { info, error } from "@dui/util/logger";
 
 const app = new Hono();
@@ -28,9 +27,6 @@ app.get("/health", (c) => {
 
 // ── 掛載 Gateway Routes ──
 // TODO: 各 gateway 逐步 refactor 成可組合的 route module 後在此掛載
-
-// ── 注入 app 實例給 InnerAPI ──
-設定App(app);
 
 // ── 啟動 ──
 async function main() {

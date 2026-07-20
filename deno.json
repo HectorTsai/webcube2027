@@ -25,7 +25,8 @@
     "start": "deno run --allow-all --env --unstable-cron main.ts",
     "dev:ai": "deno run --allow-all --env --unstable-cron --watch gateway/ai-gateway/main.ts",
     "dev:render": "deno run --allow-all --env --unstable-cron --watch gateway/render-gateway/main.ts",
-    "dev:data": "deno run --allow-all --env --watch gateway/data-gateway/main.ts"
+    "dev:data": "deno run --allow-all --env --watch gateway/data-gateway/main.ts",
+    "dev:auth": "deno run --allow-all --env --watch gateway/auth-gateway/main.ts"
   },
   "compilerOptions": {
     "jsx": "precompile",

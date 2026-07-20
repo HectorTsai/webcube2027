@@ -9,7 +9,6 @@
 import { initializeApp, getApps, cert, type App } from 'firebase-admin/app';
 import { getFirestore, type Firestore, type Timestamp } from 'firebase-admin/firestore';
 import type { DatabaseAdapter, QueryOptions, FieldFilter } from './adapter-interface.ts';
-import { info, error } from '../logger.ts';
 
 export interface FirestoreConnectOptions {
   /** Firebase 專案 ID（必要）*/
@@ -23,7 +22,6 @@ export interface FirestoreConnectOptions {
 export class FirestoreAdapter implements DatabaseAdapter {
   readonly type = 'firestore';
   private db!: Firestore;
-  private 已初始化 = new Set<string>();
   private 選項: FirestoreConnectOptions;
 
   constructor(選項: FirestoreConnectOptions) {
@@ -184,32 +182,8 @@ export class FirestoreAdapter implements DatabaseAdapter {
     }
   }
 
-  async initialize(model: string): Promise<void> {
-    if (this.已初始化.has(model)) return;
-    try {
-      // Firestore collection 自動建立，不需 CREATE TABLE
-      this.已初始化.add(model);
-
-      const count = await this.count(model);
-      if (count === 0) {
-        const { loadSeeds } = await import('../seed-loader.ts');
-        const items = await loadSeeds(model);
-
-        if (items && items.length > 0) {
-          for (const 實例 of items) {
-            try {
-              await 實例.init();
-              await this.create(model, 實例.id, 實例.toJSON());
-            } catch (err) {
-              await error('FirestoreAdapter', `匯入種子失敗 ${model}/${實例.id}: ${err}`);
-            }
-          }
-          await info('FirestoreAdapter', `${model} 種子匯入完成，共 ${items.length} 筆`);
-        }
-      }
-    } catch (err) {
-      await error('FirestoreAdapter', `初始化 ${model} 失敗: ${err}`);
-    }
+  async initialize(_model: string): Promise<void> {
+    // Firestore collection 自動建立，不需 CREATE TABLE
   }
 
   async 關閉(): Promise<void> {

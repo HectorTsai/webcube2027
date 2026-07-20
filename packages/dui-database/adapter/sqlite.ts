@@ -6,7 +6,7 @@
 
 import { DatabaseSync } from 'node:sqlite';
 import { DatabaseAdapter, QueryOptions, FieldFilter } from './adapter-interface.ts';
-import { info, error } from '../logger.ts';
+import { error } from '../logger.ts';
 
 export class SqliteAdapter implements DatabaseAdapter {
   readonly type = 'sqlite';
@@ -18,14 +18,6 @@ export class SqliteAdapter implements DatabaseAdapter {
     // 啟用 WAL 模式提升並行效能
     this.db.exec('PRAGMA journal_mode=WAL;');
     this.db.exec('PRAGMA foreign_keys=ON;');
-
-    // 建立元資料表（追蹤已初始化的 model）
-    this.db.exec(`
-      CREATE TABLE IF NOT EXISTS _meta (
-        model TEXT PRIMARY KEY,
-        created_at TEXT DEFAULT (datetime('now'))
-      );
-    `);
   }
 
   getById(model: string, id: string): Promise<Record<string, unknown> | null> {
@@ -128,35 +120,7 @@ export class SqliteAdapter implements DatabaseAdapter {
 
   async initialize(model: string): Promise<void> {
     try {
-      // 檢查是否已初始化過
-      const metaStmt = this.db.prepare('SELECT model FROM _meta WHERE model = ?;');
-      const existing = metaStmt.get(model);
-      if (existing) return;
-
-      // 確保資料表存在
       await this.確保資料表(model);
-
-      // 若為空則匯入種子
-      const count = await this.count(model);
-      if (count === 0) {
-        const { loadSeeds } = await import('../index.ts');
-        const items = await loadSeeds(model);
-
-        if (items && items.length > 0) {
-          for (const 實例 of items) {
-            try {
-              await 實例.init();
-              await this.create(model, 實例.id, 實例.toJSON());
-            } catch (err) {
-              await error('SqliteAdapter', `匯入種子失敗 ${model}/${實例.id}: ${err}`);
-            }
-          }
-          await info('SqliteAdapter', `${model} 種子匯入完成，共 ${items.length} 筆`);
-        }
-      }
-
-      // 標記已初始化
-      this.db.prepare('INSERT INTO _meta (model) VALUES (?);').run(model);
     } catch (err) {
       await error('SqliteAdapter', `初始化 ${model} 失敗: ${err}`);
     }

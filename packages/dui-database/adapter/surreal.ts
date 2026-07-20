@@ -175,25 +175,11 @@ export class SurrealAdapter implements DatabaseAdapter {
     }
   }
 
-  async initialize(model: string): Promise<void> {
+  async initialize(_model: string): Promise<void> {
     try {
       await this.查詢('INFO FOR DB;');
     } catch {
       return;
-    }
-
-    if (await this.count(model) === 0) {
-      const { loadSeeds } = await import('../index.ts');
-      const items = await loadSeeds(model);
-
-      if (!items || items.length === 0) return;
-
-      for (const 實例 of items) {
-        try {
-          await (實例 as { init?: () => Promise<void> }).init?.();
-          await this.create(model, (實例 as { id: string }).id, (實例 as { toJSON: () => Record<string, unknown> }).toJSON());
-        } catch { /* skip */ }
-      }
     }
   }
 }

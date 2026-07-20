@@ -16,7 +16,7 @@
 
 import { Client, Databases, Query } from 'node-appwrite';
 import type { DatabaseAdapter, QueryOptions, FieldFilter } from './adapter-interface.ts';
-import { info, error } from '../logger.ts';
+import { error } from '../logger.ts';
 
 export interface AppwriteConnectOptions {
   /** Appwrite 端點 URL，例如 https://cloud.appwrite.io/v1 */
@@ -34,7 +34,6 @@ export class AppwriteAdapter implements DatabaseAdapter {
   private databases!: Databases;
   private databaseId: string;
   private 選項: AppwriteConnectOptions;
-  private 已初始化 = new Set<string>();
 
   constructor(選項: AppwriteConnectOptions) {
     this.選項 = 選項;
@@ -208,29 +207,9 @@ export class AppwriteAdapter implements DatabaseAdapter {
   }
 
   async initialize(model: string): Promise<void> {
-    if (this.已初始化.has(model)) return;
     try {
       // 確認 collection 存在（必須預先建立）
       await this.確認集合存在(model);
-      this.已初始化.add(model);
-
-      const count = await this.count(model);
-      if (count === 0) {
-        const { loadSeeds } = await import('../seed-loader.ts');
-        const items = await loadSeeds(model);
-
-        if (items && items.length > 0) {
-          for (const 實例 of items) {
-            try {
-              await 實例.init();
-              await this.create(model, 實例.id, 實例.toJSON());
-            } catch (err) {
-              await error('AppwriteAdapter', `匯入種子失敗 ${model}/${實例.id}: ${err}`);
-            }
-          }
-          await info('AppwriteAdapter', `${model} 種子匯入完成，共 ${items.length} 筆`);
-        }
-      }
     } catch (err) {
       await error('AppwriteAdapter', `初始化 ${model} 失敗: ${err}`);
     }

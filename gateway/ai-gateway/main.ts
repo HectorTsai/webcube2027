@@ -3,7 +3,7 @@ import { serveStatic } from "hono/serve-static";
 import { 處理AI請求 } from "./services/aiService/index.ts";
 import { 定時器 } from "./services/scheduler/index.ts";
 import { 設定App, InnerAPI } from "./services/index.ts";
-import { dataPool, registerModel } from "@dui/database";
+import { dataPool } from "@dui/database";
 import { info } from "./utils/logger.ts";
 import AI伺服器 from "./database/models/AI伺服器.ts";
 import 排程記錄 from "./database/models/排程記錄.ts";
@@ -16,12 +16,6 @@ import { verify } from "hono/jwt";
 import bcrypt from "bcryptjs";
 
 const app = new Hono();
-
-// ── 註冊資料庫 Model ──
-registerModel("AI伺服器", AI伺服器);
-registerModel("排程記錄", 排程記錄);
-registerModel("系統設定", 系統設定);
-registerModel("管理員", 管理員);
 
 // ── 注入 app 實例給 InnerAPI ──
 設定App(app);
@@ -95,7 +89,7 @@ app.all("/api/v1/ai/*", async (c) => {
 // ── 啟動 ──
 async function main() {
   // 初始化 L1 資料庫（自動載入 seeds/ 目錄下的種子資料）
-  await dataPool.initL1();
+  await dataPool.initL1(`${import.meta.dirname}/../data`);
 
   // 讀取系統設定
   const 設定結果 = await dataPool.list<系統設定>("系統設定", 1, 0);

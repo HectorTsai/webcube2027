@@ -4,7 +4,7 @@ import { encrypt, decrypt } from "./crypto.ts";
  * Encrypted string wrapper using AES-GCM.
  *
  * Automatically encrypts plaintext on access and decrypts ciphertext on retrieval.
- * The encryption key is read from the `SECRET_KEY` environment variable.
+ * The encryption key is resolved automatically via `ensureKey()`.
  *
  * @example
  * ```ts

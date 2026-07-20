@@ -4,7 +4,7 @@
 
 import { MongoClient, type Db, type Collection } from 'mongodb';
 import { DatabaseAdapter, QueryOptions, FieldFilter } from './adapter-interface.ts';
-import { info, error } from '../logger.ts';
+import { error } from '../logger.ts';
 
 // MongoDB 文件型別 — _id 使用字串而非 ObjectId
 interface WebCubeDoc {
@@ -152,33 +152,7 @@ export class MongoAdapter implements DatabaseAdapter {
 
   async initialize(model: string): Promise<void> {
     try {
-      const 集合 = await this.取得集合(model);
-
-      const count = await 集合.countDocuments();
-      if (count > 0) return;
-
-      const { loadSeeds } = await import('../index.ts');
-      const items = await loadSeeds(model);
-
-      if (items && items.length > 0) {
-        const documents: WebCubeDoc[] = [];
-        for (const 實例 of items) {
-          try {
-            await 實例.init();
-            const json = 實例.toJSON();
-            json._id = 實例.id;
-            json.updatedAt = new Date();
-            documents.push(json as WebCubeDoc);
-          } catch (err) {
-            await error('MongoAdapter', `匯入種子失敗 ${model}/${實例.id}: ${err}`);
-          }
-        }
-
-        if (documents.length > 0) {
-          await 集合.insertMany(documents);
-          await info('MongoAdapter', `${model} 種子匯入完成，共 ${documents.length} 筆`);
-        }
-      }
+      await this.取得集合(model);
     } catch (err) {
       await error('MongoAdapter', `初始化 ${model} 失敗: ${err}`);
     }

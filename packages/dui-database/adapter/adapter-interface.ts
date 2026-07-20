@@ -2,7 +2,6 @@
 export interface QueryOptions {
   limit?: number;
   offset?: number;
-  includeSeeds?: boolean;
 }
 
 /** Filter by field/value for querying non-ID columns */
@@ -71,7 +70,7 @@ export interface DatabaseAdapter {
   count(model: string): Promise<number>;
 
   /**
-   * Initialize a model table/collection and auto-load seed data if empty.
+   * Initialize a model table/collection.
    */
   initialize(model: string): Promise<void>;
 }

@@ -5,10 +5,6 @@
     ".": "./mod.ts",
     "./pool": "./pool.ts",
     "./base-model": "./base-model.ts",
-    "./secretstring": "./secretstring.ts",
-    "./crypto": "./crypto.ts",
-    "./model-registry": "./model-registry.ts",
-    "./seed-loader": "./seed-loader.ts",
     "./logger": "./logger.ts",
     "./types": "./types.ts"
   },

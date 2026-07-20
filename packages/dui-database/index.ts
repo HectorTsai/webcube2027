@@ -4,16 +4,13 @@
 
 export type { IdInfo } from './base-model.ts';
 export { BaseModel } from './base-model.ts';
-export { loadSeeds } from './seed-loader.ts';
 export { dataPool } from './pool.ts';
 export type { QueryResult } from './pool.ts';
-export { registerModel, getModel, listModels, toModelInstance } from './model-registry.ts';
-
 /**
  * L2/L3 database connection configuration.
  *
- * Stored as a JSON string in L1 record (for L2) or
- * L2 record (for L3).
+ * Stored as an encrypted JSON string in L1 store (for L2) or
+ * in L2 site data (for L3).
  */
 export interface L2ConnectionInfo {
   /** Database type: "surrealdb" | "sqlite" | "mongodb" | "mysql" | "postgresql" | "firestore" | "appwrite" | "dynamodb" | "mssql", default "surrealdb" */

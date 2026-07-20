@@ -12,7 +12,7 @@
 
 import sql from 'mssql';
 import type { DatabaseAdapter, QueryOptions, FieldFilter } from './adapter-interface.ts';
-import { info, error } from '../logger.ts';
+import { error } from '../logger.ts';
 
 export interface MssqlConnectOptions {
   server: string;
@@ -28,7 +28,6 @@ export interface MssqlConnectOptions {
 export class MssqlAdapter implements DatabaseAdapter {
   readonly type = 'mssql';
   private pool!: sql.ConnectionPool;
-  private 已初始化 = new Set<string>();
   private schema: string;
 
   constructor(private 選項: MssqlConnectOptions) {
@@ -210,28 +209,8 @@ export class MssqlAdapter implements DatabaseAdapter {
   }
 
   async initialize(model: string): Promise<void> {
-    if (this.已初始化.has(model)) return;
     try {
       await this.確保資料表(model);
-      this.已初始化.add(model);
-
-      const count = await this.count(model);
-      if (count === 0) {
-        const { loadSeeds } = await import('../seed-loader.ts');
-        const items = await loadSeeds(model);
-
-        if (items && items.length > 0) {
-          for (const 實例 of items) {
-            try {
-              await 實例.init();
-              await this.create(model, 實例.id, 實例.toJSON());
-            } catch (err) {
-              await error('MssqlAdapter', `匯入種子失敗 ${model}/${實例.id}: ${err}`);
-            }
-          }
-          await info('MssqlAdapter', `${model} 種子匯入完成，共 ${items.length} 筆`);
-        }
-      }
     } catch (err) {
       await error('MssqlAdapter', `初始化 ${model} 失敗: ${err}`);
     }

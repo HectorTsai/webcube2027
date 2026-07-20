@@ -21,7 +21,7 @@ import {
   ScanCommand,
 } from '@aws-sdk/lib-dynamodb';
 import type { DatabaseAdapter, QueryOptions, FieldFilter } from './adapter-interface.ts';
-import { info, error } from '../logger.ts';
+import { error } from '../logger.ts';
 
 export interface DynamoDBConnectOptions {
   /** AWS Region，例如 "ap-northeast-1" */
@@ -35,7 +35,6 @@ export interface DynamoDBConnectOptions {
 export class DynamoDBAdapter implements DatabaseAdapter {
   readonly type = 'dynamodb';
   private docClient!: DynamoDBDocumentClient;
-  private 已初始化 = new Set<string>();
 
   constructor(private 選項: DynamoDBConnectOptions) {
   }
@@ -200,7 +199,6 @@ export class DynamoDBAdapter implements DatabaseAdapter {
   }
 
   async initialize(model: string): Promise<void> {
-    if (this.已初始化.has(model)) return;
     try {
       // 檢查 Table 是否存在（必須預先建立）
       const client = new DynamoDBClient({ region: this.選項.region });
@@ -211,26 +209,6 @@ export class DynamoDBAdapter implements DatabaseAdapter {
         const msg = `DynamoDB Table "${model}" 不存在，請先在 AWS Console 中建立（需含 id(String) 作為 Partition Key）`;
         await error('DynamoDBAdapter', msg);
         throw new Error(msg);
-      }
-
-      this.已初始化.add(model);
-
-      const count = await this.count(model);
-      if (count === 0) {
-        const { loadSeeds } = await import('../seed-loader.ts');
-        const items = await loadSeeds(model);
-
-        if (items && items.length > 0) {
-          for (const 實例 of items) {
-            try {
-              await 實例.init();
-              await this.create(model, 實例.id, 實例.toJSON());
-            } catch (err) {
-              await error('DynamoDBAdapter', `匯入種子失敗 ${model}/${實例.id}: ${err}`);
-            }
-          }
-          await info('DynamoDBAdapter', `${model} 種子匯入完成，共 ${items.length} 筆`);
-        }
       }
     } catch (err) {
       await error('DynamoDBAdapter', `初始化 ${model} 失敗: ${err}`);
