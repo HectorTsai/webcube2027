@@ -1,5 +1,5 @@
 // PostgreSQL Adapter — 使用 npm:pg 實作 DatabaseAdapter 介面
-// 每個 model = 一張表，JSON 欄位儲存完整記錄
+// 每個 collection = 一張表，JSON 欄位儲存完整記錄
 // 注意：MySQL/MariaDB 不相容（需使用 mysql.ts adapter）
 //
 // 此 adapter 同時相容 **Supabase**（設定方式見下方註解）：
@@ -53,11 +53,12 @@ export class PgsqlAdapter implements DatabaseAdapter {
     return this.client;
   }
 
-  async getById(model: string, id: string): Promise<Record<string, unknown> | null> {
+  async getById(id: string): Promise<Record<string, unknown> | null> {
+    const collection = id.split(':')[0];
     try {
       const client = this.拿到連線();
       const result = await client.query(
-        `SELECT data FROM "${model}" WHERE id = $1 LIMIT 1;`,
+        `SELECT data FROM "${collection}" WHERE id = $1 LIMIT 1;`,
         [id]
       );
       if (result.rows.length > 0 && result.rows[0].data) {
@@ -71,15 +72,21 @@ export class PgsqlAdapter implements DatabaseAdapter {
     }
   }
 
-  async list(model: string, options?: QueryOptions): Promise<Record<string, unknown>[]> {
+  async list(collection: string, modelType?: string, options?: QueryOptions): Promise<Record<string, unknown>[]> {
     const limitNum = options?.limit ?? 50;
     const offsetNum = options?.offset ?? 0;
     try {
       const client = this.拿到連線();
-      const result = await client.query(
-        `SELECT data FROM "${model}" ORDER BY updatedAt DESC LIMIT $1 OFFSET $2;`,
-        [limitNum, offsetNum]
-      );
+      let sql: string;
+      let params: unknown[];
+      if (modelType) {
+        sql = `SELECT data FROM "${collection}" WHERE id LIKE $3 ORDER BY updatedAt DESC LIMIT $1 OFFSET $2;`;
+        params = [limitNum, offsetNum, `${collection}:${modelType}:%`];
+      } else {
+        sql = `SELECT data FROM "${collection}" ORDER BY updatedAt DESC LIMIT $1 OFFSET $2;`;
+        params = [limitNum, offsetNum];
+      }
+      const result = await client.query(sql, params);
       return result.rows.map((r: any) =>
         typeof r.data === 'string'
           ? JSON.parse(r.data) as Record<string, unknown>
@@ -90,39 +97,45 @@ export class PgsqlAdapter implements DatabaseAdapter {
     }
   }
 
-  async create(model: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async create(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
     const dataWithId = { ...data, id, updatedAt: new Date().toISOString() };
-    await this.確保資料表(model);
+    await this.確保資料表(collection);
     const client = this.拿到連線();
     await client.query(
-      `INSERT INTO "${model}" (id, data, updatedAt) VALUES ($1, $2, $3);`,
+      `INSERT INTO "${collection}" (id, data, updatedAt) VALUES ($1, $2, $3);`,
       [id, JSON.stringify(dataWithId), dataWithId.updatedAt]
     );
     return dataWithId;
   }
 
-  async update(model: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async update(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
     const 序列化資料 = typeof (data as { toJSON?: () => Record<string, unknown> }).toJSON === 'function'
       ? (data as { toJSON: () => Record<string, unknown> }).toJSON()
       : data;
     const dataWithId = { ...序列化資料, id, updatedAt: new Date().toISOString() };
-    await this.確保資料表(model);
+    await this.確保資料表(collection);
     const client = this.拿到連線();
     await client.query(
-      `INSERT INTO "${model}" (id, data, updatedAt) VALUES ($1, $2, $3)
+      `INSERT INTO "${collection}" (id, data, updatedAt) VALUES ($1, $2, $3)
        ON CONFLICT (id) DO UPDATE SET data = $2, updatedAt = $3;`,
       [id, JSON.stringify(dataWithId), dataWithId.updatedAt]
     );
     return dataWithId;
   }
 
-  async queryByField(model: string, filter: FieldFilter): Promise<Record<string, unknown>[]> {
+  async queryByField(collection: string, filter: FieldFilter, modelType?: string): Promise<Record<string, unknown>[]> {
     try {
       const client = this.拿到連線();
-      const result = await client.query(
-        `SELECT data FROM "${model}" WHERE data->>'${filter.field}' = $1;`,
-        [filter.value]
-      );
+      let sql: string;
+      let params: unknown[];
+      if (modelType) {
+        sql = `SELECT data FROM "${collection}" WHERE data->>'${filter.field}' = $1 AND id LIKE $2;`;
+        params = [filter.value, `${collection}:${modelType}:%`];
+      } else {
+        sql = `SELECT data FROM "${collection}" WHERE data->>'${filter.field}' = $1;`;
+        params = [filter.value];
+      }
+      const result = await client.query(sql, params);
       return result.rows.map((r: any) =>
         typeof r.data === 'string'
           ? JSON.parse(r.data) as Record<string, unknown>
@@ -133,11 +146,12 @@ export class PgsqlAdapter implements DatabaseAdapter {
     }
   }
 
-  async delete(model: string, id: string): Promise<boolean> {
+  async delete(id: string): Promise<boolean> {
+    const collection = id.split(':')[0];
     try {
       const client = this.拿到連線();
       const result = await client.query(
-        `DELETE FROM "${model}" WHERE id = $1;`,
+        `DELETE FROM "${collection}" WHERE id = $1;`,
         [id]
       );
       return (result.rowCount ?? 0) > 0;
@@ -146,12 +160,12 @@ export class PgsqlAdapter implements DatabaseAdapter {
     }
   }
 
-  async patch(model: string, id: string, fields: Record<string, unknown>): Promise<Record<string, unknown> | null> {
+  async patch(collection: string, id: string, fields: Record<string, unknown>): Promise<Record<string, unknown> | null> {
     try {
       const client = this.拿到連線();
       const patchJson = JSON.stringify({ ...fields, updatedAt: fields.updatedAt || new Date().toISOString() });
       const result = await client.query(
-        `UPDATE "${model}" SET data = data::jsonb || $1::jsonb, updatedAt = $2 WHERE id = $3 RETURNING data;`,
+        `UPDATE "${collection}" SET data = data::jsonb || $1::jsonb, updatedAt = $2 WHERE id = $3 RETURNING data;`,
         [patchJson, fields.updatedAt || new Date().toISOString(), id]
       );
       if (result.rows.length > 0) {
@@ -165,38 +179,45 @@ export class PgsqlAdapter implements DatabaseAdapter {
     }
   }
 
-  async count(model: string): Promise<number> {
+  async count(collection: string, modelType?: string): Promise<number> {
     try {
       const client = this.拿到連線();
-      const result = await client.query(
-        `SELECT COUNT(*) AS count FROM "${model}";`
-      );
+      let sql: string;
+      let params: unknown[];
+      if (modelType) {
+        sql = `SELECT COUNT(*) AS count FROM "${collection}" WHERE id LIKE $1;`;
+        params = [`${collection}:${modelType}:%`];
+      } else {
+        sql = `SELECT COUNT(*) AS count FROM "${collection}";`;
+        params = [];
+      }
+      const result = await client.query(sql, params);
       return parseInt(result.rows[0]?.count ?? '0', 10);
     } catch {
       return 0;
     }
   }
 
-  async initialize(model: string): Promise<void> {
+  async initialize(collection: string): Promise<void> {
     try {
-      await this.確保資料表(model);
+      await this.確保資料表(collection);
     } catch (err) {
-      await error('PgsqlAdapter', `初始化 ${model} 失敗: ${err}`);
+      await error('PgsqlAdapter', `初始化 ${collection} 失敗: ${err}`);
     }
   }
 
   /** 確保指定模型的資料表存在 */
-  private async 確保資料表(model: string): Promise<void> {
+  private async 確保資料表(collection: string): Promise<void> {
     const client = this.拿到連線();
     await client.query(`
-      CREATE TABLE IF NOT EXISTS "${model}" (
+      CREATE TABLE IF NOT EXISTS "${collection}" (
         id TEXT PRIMARY KEY,
         data JSONB NOT NULL,
         updatedAt TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
     `);
     await client.query(`
-      CREATE INDEX IF NOT EXISTS "idx_${model}_updated" ON "${model}" (updatedAt DESC);
+      CREATE INDEX IF NOT EXISTS "idx_${collection}_updated" ON "${collection}" (updatedAt DESC);
     `);
   }
 

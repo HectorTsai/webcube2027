@@ -91,40 +91,49 @@ export class SurrealAdapter implements DatabaseAdapter {
 
   // ── DatabaseAdapter 實作 ──
 
-  async getById(model: string, id: string): Promise<Record<string, unknown> | null> {
-    const 結果 = await this.查詢(`SELECT * FROM ${model} WHERE _id = '${id}' LIMIT 1;`);
+  async getById(id: string): Promise<Record<string, unknown> | null> {
+    const collection = id.split(':')[0];
+    const 結果 = await this.查詢(`SELECT * FROM ${collection} WHERE _id = '${id}' LIMIT 1;`);
     if (結果[0]?.result && Array.isArray(結果[0].result) && 結果[0].result.length > 0) {
       return this.正規化(結果[0].result[0] as Record<string, unknown>);
     }
     return null;
   }
 
-  async list(model: string, options: QueryOptions = {}): Promise<Record<string, unknown>[]> {
-    const limit = options.limit ?? 50;
-    const offset = options.offset ?? 0;
-    const 結果 = await this.查詢(
-      `SELECT * FROM ${model} ORDER BY updatedAt DESC LIMIT ${limit} START ${offset};`
-    );
+  async list(collection: string, modelType?: string, options?: QueryOptions): Promise<Record<string, unknown>[]> {
+    const limit = options?.limit ?? 50;
+    const offset = options?.offset ?? 0;
+    let sql: string;
+    if (modelType) {
+      sql = `SELECT * FROM ${collection} WHERE _id LIKE '${collection}:${modelType}:%' ORDER BY updatedAt DESC LIMIT ${limit} START ${offset};`;
+    } else {
+      sql = `SELECT * FROM ${collection} ORDER BY updatedAt DESC LIMIT ${limit} START ${offset};`;
+    }
+    const 結果 = await this.查詢(sql);
     if (結果[0]?.result && Array.isArray(結果[0].result)) {
       return (結果[0].result as Record<string, unknown>[]).map(r => this.正規化(r));
     }
     return [];
   }
 
-  async queryByField(model: string, filter: FieldFilter): Promise<Record<string, unknown>[]> {
-    const 結果 = await this.查詢(
-      `SELECT * FROM ${model} WHERE ${filter.field} = '${filter.value}' LIMIT 1;`
-    );
+  async queryByField(collection: string, filter: FieldFilter, modelType?: string): Promise<Record<string, unknown>[]> {
+    let sql: string;
+    if (modelType) {
+      sql = `SELECT * FROM ${collection} WHERE ${filter.field} = '${filter.value}' AND _id LIKE '${collection}:${modelType}:%' LIMIT 1;`;
+    } else {
+      sql = `SELECT * FROM ${collection} WHERE ${filter.field} = '${filter.value}' LIMIT 1;`;
+    }
+    const 結果 = await this.查詢(sql);
     if (結果[0]?.result && Array.isArray(結果[0].result)) {
       return (結果[0].result as Record<string, unknown>[]).map(r => this.正規化(r));
     }
     return [];
   }
 
-  async create(model: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async create(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
     // 用 _id 儲存 composite ID，保留 id 給 SurrealDB 自己管理
     const forSurreal = { ...data, _id: id };
-    const 結果 = await this.查詢(`CREATE ${model} CONTENT ${JSON.stringify(forSurreal)};`);
+    const 結果 = await this.查詢(`CREATE ${collection} CONTENT ${JSON.stringify(forSurreal)};`);
     if (結果[0]?.result && Array.isArray(結果[0].result) && 結果[0].result.length > 0) {
       return this.正規化(結果[0].result[0] as Record<string, unknown>);
     }
@@ -132,41 +141,48 @@ export class SurrealAdapter implements DatabaseAdapter {
     return { id, ...data };
   }
 
-  async update(model: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async update(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
     // 用 _id 查詢，保留 id 給 SurrealDB 自己管理
     const forSurreal = { ...data, _id: id };
-    const 結果 = await this.查詢(`UPDATE ${model} CONTENT ${JSON.stringify(forSurreal)} WHERE _id = '${id}';`);
+    const 結果 = await this.查詢(`UPDATE ${collection} CONTENT ${JSON.stringify(forSurreal)} WHERE _id = '${id}';`);
     if (結果[0]?.result && Array.isArray(結果[0].result) && 結果[0].result.length > 0) {
       return this.正規化(結果[0].result[0] as Record<string, unknown>);
     }
     return { id, ...data };
   }
 
-  async delete(model: string, id: string): Promise<boolean> {
+  async delete(id: string): Promise<boolean> {
     try {
-      await this.查詢(`DELETE FROM ${model} WHERE _id = '${id}';`);
+      const collection = id.split(':')[0];
+      await this.查詢(`DELETE FROM ${collection} WHERE _id = '${id}';`);
       return true;
     } catch {
       return false;
     }
   }
 
-  async patch(model: string, id: string, fields: Record<string, unknown>): Promise<Record<string, unknown> | null> {
+  async patch(collection: string, id: string, fields: Record<string, unknown>): Promise<Record<string, unknown> | null> {
     try {
       const setClauses = Object.entries(fields)
         .map(([key, val]) => `${key} = ${typeof val === 'string' ? `'${val.replace(/'/g, "\\'")}'` : JSON.stringify(val)}`)
         .join(', ');
       const updatedAt = fields.updatedAt || new Date().toISOString();
-      await this.查詢(`UPDATE ${model} SET ${setClauses}, updatedAt = '${updatedAt}' WHERE _id = '${id}';`);
-      return this.getById(model, id);
+      await this.查詢(`UPDATE ${collection} SET ${setClauses}, updatedAt = '${updatedAt}' WHERE _id = '${id}';`);
+      return this.getById(id);
     } catch {
       return null;
     }
   }
 
-  async count(model: string): Promise<number> {
+  async count(collection: string, modelType?: string): Promise<number> {
     try {
-      const res = await this.查詢(`SELECT count() FROM ${model};`);
+      let sql: string;
+      if (modelType) {
+        sql = `SELECT count() FROM ${collection} WHERE _id LIKE '${collection}:${modelType}:%';`;
+      } else {
+        sql = `SELECT count() FROM ${collection};`;
+      }
+      const res = await this.查詢(sql);
       const first = res?.[0] as Record<string, unknown> | undefined;
       const val = first?.count ?? (first as Record<string, unknown[]>)?.count?.[0];
       return typeof val === 'number' ? val : 0;
@@ -175,7 +191,7 @@ export class SurrealAdapter implements DatabaseAdapter {
     }
   }
 
-  async initialize(_model: string): Promise<void> {
+  async initialize(_collection: string): Promise<void> {
     try {
       await this.查詢('INFO FOR DB;');
     } catch {

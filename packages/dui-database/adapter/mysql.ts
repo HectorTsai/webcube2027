@@ -1,5 +1,5 @@
 // MySQL Adapter — 使用 npm:mysql2/promise 實作 DatabaseAdapter 介面
-// 每個 model = 一張表，JSON 欄位儲存完整記錄
+// 每個 collection = 一張表，JSON 欄位儲存完整記錄
 // 相容 MariaDB、TiDB 等 MySQL 協定資料庫
 // 注意：PostgreSQL 不相容（協定、SQL 語法、JSON 函數皆不同）
 
@@ -42,11 +42,12 @@ export class MysqlAdapter implements DatabaseAdapter {
     return this.conn;
   }
 
-  async getById(model: string, id: string): Promise<Record<string, unknown> | null> {
+  async getById(id: string): Promise<Record<string, unknown> | null> {
+    const collection = id.split(':')[0];
     try {
       const conn = this.拿到連線();
       const [rows] = await conn.execute(
-        `SELECT data FROM \`${model}\` WHERE id = ? LIMIT 1;`,
+        `SELECT data FROM \`${collection}\` WHERE id = ? LIMIT 1;`,
         [id]
       ) as [any[], unknown];
       if (rows.length > 0 && rows[0].data) {
@@ -60,15 +61,21 @@ export class MysqlAdapter implements DatabaseAdapter {
     }
   }
 
-  async list(model: string, options?: QueryOptions): Promise<Record<string, unknown>[]> {
+  async list(collection: string, modelType?: string, options?: QueryOptions): Promise<Record<string, unknown>[]> {
     const limitNum = options?.limit ?? 50;
     const offsetNum = options?.offset ?? 0;
     try {
       const conn = this.拿到連線();
-      const [rows] = await conn.execute(
-        `SELECT data FROM \`${model}\` ORDER BY updatedAt DESC LIMIT ? OFFSET ?;`,
-        [limitNum, offsetNum]
-      ) as [any[], unknown];
+      let sql: string;
+      let params: any[];
+      if (modelType) {
+        sql = `SELECT data FROM \`${collection}\` WHERE id LIKE ? ORDER BY updatedAt DESC LIMIT ? OFFSET ?;`;
+        params = [`${collection}:${modelType}:%`, limitNum, offsetNum];
+      } else {
+        sql = `SELECT data FROM \`${collection}\` ORDER BY updatedAt DESC LIMIT ? OFFSET ?;`;
+        params = [limitNum, offsetNum];
+      }
+      const [rows] = await conn.execute(sql, params) as [any[], unknown];
       return rows.map((r: any) =>
         typeof r.data === 'string'
           ? JSON.parse(r.data) as Record<string, unknown>
@@ -79,38 +86,44 @@ export class MysqlAdapter implements DatabaseAdapter {
     }
   }
 
-  async create(model: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async create(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
     const dataWithId = { ...data, id, updatedAt: new Date().toISOString() };
-    await this.確保資料表(model);
+    await this.確保資料表(collection);
     const conn = this.拿到連線();
     await conn.execute(
-      `INSERT INTO \`${model}\` (id, data, updatedAt) VALUES (?, ?, ?);`,
+      `INSERT INTO \`${collection}\` (id, data, updatedAt) VALUES (?, ?, ?);`,
       [id, JSON.stringify(dataWithId), dataWithId.updatedAt]
     );
     return dataWithId;
   }
 
-  async update(model: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async update(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
     const 序列化資料 = typeof (data as { toJSON?: () => Record<string, unknown> }).toJSON === 'function'
       ? (data as { toJSON: () => Record<string, unknown> }).toJSON()
       : data;
     const dataWithId = { ...序列化資料, id, updatedAt: new Date().toISOString() };
-    await this.確保資料表(model);
+    await this.確保資料表(collection);
     const conn = this.拿到連線();
     await conn.execute(
-      `REPLACE INTO \`${model}\` (id, data, updatedAt) VALUES (?, ?, ?);`,
+      `REPLACE INTO \`${collection}\` (id, data, updatedAt) VALUES (?, ?, ?);`,
       [id, JSON.stringify(dataWithId), dataWithId.updatedAt]
     );
     return dataWithId;
   }
 
-  async queryByField(model: string, filter: FieldFilter): Promise<Record<string, unknown>[]> {
+  async queryByField(collection: string, filter: FieldFilter, modelType?: string): Promise<Record<string, unknown>[]> {
     try {
       const conn = this.拿到連線();
-      const [rows] = await conn.execute(
-        `SELECT data FROM \`${model}\` WHERE JSON_UNQUOTE(JSON_EXTRACT(data, '$.${filter.field}')) = ?;`,
-        [filter.value]
-      ) as [any[], unknown];
+      let sql: string;
+      let params: any[];
+      if (modelType) {
+        sql = `SELECT data FROM \`${collection}\` WHERE JSON_UNQUOTE(JSON_EXTRACT(data, '$.${filter.field}')) = ? AND id LIKE ?;`;
+        params = [filter.value, `${collection}:${modelType}:%`];
+      } else {
+        sql = `SELECT data FROM \`${collection}\` WHERE JSON_UNQUOTE(JSON_EXTRACT(data, '$.${filter.field}')) = ?;`;
+        params = [filter.value];
+      }
+      const [rows] = await conn.execute(sql, params) as [any[], unknown];
       return rows.map((r: any) =>
         typeof r.data === 'string'
           ? JSON.parse(r.data) as Record<string, unknown>
@@ -121,11 +134,12 @@ export class MysqlAdapter implements DatabaseAdapter {
     }
   }
 
-  async delete(model: string, id: string): Promise<boolean> {
+  async delete(id: string): Promise<boolean> {
+    const collection = id.split(':')[0];
     try {
       const conn = this.拿到連線();
       const [result] = await conn.execute(
-        `DELETE FROM \`${model}\` WHERE id = ?;`,
+        `DELETE FROM \`${collection}\` WHERE id = ?;`,
         [id]
       ) as [any, unknown];
       return result.affectedRows > 0;
@@ -134,49 +148,56 @@ export class MysqlAdapter implements DatabaseAdapter {
     }
   }
 
-  async patch(model: string, id: string, fields: Record<string, unknown>): Promise<Record<string, unknown> | null> {
+  async patch(collection: string, id: string, fields: Record<string, unknown>): Promise<Record<string, unknown> | null> {
     try {
       const conn = this.拿到連線();
       const patchJson = JSON.stringify({ ...fields, updatedAt: fields.updatedAt || new Date().toISOString() });
       await conn.query(
-        `UPDATE \`${model}\` SET data = JSON_MERGE_PATCH(data, ?), updatedAt = ? WHERE id = ?`,
+        `UPDATE \`${collection}\` SET data = JSON_MERGE_PATCH(data, ?), updatedAt = ? WHERE id = ?`,
         [patchJson, fields.updatedAt || new Date().toISOString(), id]
       );
-      return this.getById(model, id);
+      return this.getById(id);
     } catch {
       return null;
     }
   }
 
-  async count(model: string): Promise<number> {
+  async count(collection: string, modelType?: string): Promise<number> {
     try {
       const conn = this.拿到連線();
-      const [rows] = await conn.execute(
-        `SELECT COUNT(*) AS count FROM \`${model}\`;`
-      ) as [any[], unknown];
+      let sql: string;
+      let params: any[];
+      if (modelType) {
+        sql = `SELECT COUNT(*) AS count FROM \`${collection}\` WHERE id LIKE ?;`;
+        params = [`${collection}:${modelType}:%`];
+      } else {
+        sql = `SELECT COUNT(*) AS count FROM \`${collection}\`;`;
+        params = [];
+      }
+      const [rows] = await conn.execute(sql, params) as [any[], unknown];
       return rows[0]?.count ?? 0;
     } catch {
       return 0;
     }
   }
 
-  async initialize(model: string): Promise<void> {
+  async initialize(collection: string): Promise<void> {
     try {
-      await this.確保資料表(model);
+      await this.確保資料表(collection);
     } catch (err) {
-      await error('MysqlAdapter', `初始化 ${model} 失敗: ${err}`);
+      await error('MysqlAdapter', `初始化 ${collection} 失敗: ${err}`);
     }
   }
 
   /** 確保指定模型的資料表存在 */
-  private async 確保資料表(model: string): Promise<void> {
+  private async 確保資料表(collection: string): Promise<void> {
     const conn = this.拿到連線();
     await conn.execute(`
-      CREATE TABLE IF NOT EXISTS \`${model}\` (
+      CREATE TABLE IF NOT EXISTS \`${collection}\` (
         id VARCHAR(255) PRIMARY KEY,
         data JSON NOT NULL,
         updatedAt DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-        INDEX \`idx_${model}_updated\` (updatedAt DESC)
+        INDEX \`idx_${collection}_updated\` (updatedAt DESC)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
   }

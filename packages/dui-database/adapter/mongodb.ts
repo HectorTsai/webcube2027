@@ -1,5 +1,5 @@
 // MongoDB Adapter — 使用 npm:mongodb 實作 DatabaseAdapter 介面
-// 每個 model = 一個 collection，文件原生 JSON 儲存（無序列化開銷）
+// 每個 collection = 一個 MongoDB collection，文件原生 JSON 儲存（無序列化開銷）
 // 適用於租戶自備 MongoDB 實例
 
 import { MongoClient, type Db, type Collection } from 'mongodb';
@@ -35,9 +35,9 @@ export class MongoAdapter implements DatabaseAdapter {
     return this.db!;
   }
 
-  private async 取得集合(model: string): Promise<Collection<WebCubeDoc>> {
+  private async 取得集合(collection: string): Promise<Collection<WebCubeDoc>> {
     const db = await this.取得資料庫();
-    const 集合名 = model.replace(/:/g, '_').toLowerCase();
+    const 集合名 = collection.replace(/:/g, '_').toLowerCase();
     return db.collection<WebCubeDoc>(集合名);
   }
 
@@ -50,9 +50,10 @@ export class MongoAdapter implements DatabaseAdapter {
     return rest;
   }
 
-  async getById(model: string, id: string): Promise<Record<string, unknown> | null> {
+  async getById(id: string): Promise<Record<string, unknown> | null> {
+    const collection = id.split(':')[0];
     try {
-      const 集合 = await this.取得集合(model);
+      const 集合 = await this.取得集合(collection);
       const doc = await 集合.findOne({ _id: id } as Record<string, unknown>);
       if (doc) {
         return this.正規化ID(doc as Record<string, unknown>);
@@ -64,13 +65,18 @@ export class MongoAdapter implements DatabaseAdapter {
     }
   }
 
-  async list(model: string, options: QueryOptions): Promise<Record<string, unknown>[]> {
+  async list(collection: string, modelType?: string, options: QueryOptions = {}): Promise<Record<string, unknown>[]> {
     const limit = options.limit ?? 50;
     const offset = options.offset ?? 0;
     try {
-      const 集合 = await this.取得集合(model);
+      const 集合 = await this.取得集合(collection);
+      const filter: Record<string, unknown> = {};
+      if (modelType) {
+        // 以 _id（composite id）正則前綴篩選 model type
+        filter._id = { $regex: `^${collection}:${modelType}:` };
+      }
       const cursor = 集合
-        .find()
+        .find(filter)
         .sort({ updatedAt: -1 })
         .skip(offset)
         .limit(limit);
@@ -81,10 +87,10 @@ export class MongoAdapter implements DatabaseAdapter {
     }
   }
 
-  async create(model: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async create(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
     const dataWithId = { ...data, _id: id, id, updatedAt: new Date() };
     try {
-      const 集合 = await this.取得集合(model);
+      const 集合 = await this.取得集合(collection);
       await 集合.insertOne(dataWithId as WebCubeDoc);
       return dataWithId;
     } catch (err) {
@@ -93,10 +99,10 @@ export class MongoAdapter implements DatabaseAdapter {
     }
   }
 
-  async update(model: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async update(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
     const dataWithId = { ...data, _id: id, id, updatedAt: new Date() };
     try {
-      const 集合 = await this.取得集合(model);
+      const 集合 = await this.取得集合(collection);
       await 集合.replaceOne(
         { _id: id } as Record<string, unknown>,
         dataWithId as WebCubeDoc,
@@ -109,10 +115,14 @@ export class MongoAdapter implements DatabaseAdapter {
     }
   }
 
-  async queryByField(model: string, filter: FieldFilter): Promise<Record<string, unknown>[]> {
+  async queryByField(collection: string, filter: FieldFilter, modelType?: string): Promise<Record<string, unknown>[]> {
     try {
-      const 集合 = await this.取得集合(model);
-      const cursor = 集合.find({ [filter.field]: filter.value } as Record<string, unknown>).limit(1);
+      const 集合 = await this.取得集合(collection);
+      const query: Record<string, unknown> = { [filter.field]: filter.value };
+      if (modelType) {
+        query._id = { $regex: `^${collection}:${modelType}:` };
+      }
+      const cursor = 集合.find(query).limit(1);
       const docs = await cursor.toArray() as Record<string, unknown>[];
       return docs.map(d => this.正規化ID(d));
     } catch {
@@ -120,9 +130,10 @@ export class MongoAdapter implements DatabaseAdapter {
     }
   }
 
-  async delete(model: string, id: string): Promise<boolean> {
+  async delete(id: string): Promise<boolean> {
+    const collection = id.split(':')[0];
     try {
-      const 集合 = await this.取得集合(model);
+      const 集合 = await this.取得集合(collection);
       const result = await 集合.deleteOne({ _id: id } as Record<string, unknown>);
       return result.deletedCount > 0;
     } catch {
@@ -130,31 +141,34 @@ export class MongoAdapter implements DatabaseAdapter {
     }
   }
 
-  async patch(model: string, id: string, fields: Record<string, unknown>): Promise<Record<string, unknown> | null> {
+  async patch(collection: string, id: string, fields: Record<string, unknown>): Promise<Record<string, unknown> | null> {
     try {
       const db = await this.取得資料庫();
       const updatedFields = { ...fields, updatedAt: fields.updatedAt || new Date() };
-      await db.collection(model).updateOne({ _id: id } as Record<string, unknown>, { $set: updatedFields });
-      return this.getById(model, id);
+      await db.collection(collection).updateOne({ _id: id } as Record<string, unknown>, { $set: updatedFields });
+      return this.getById(id);
     } catch {
       return null;
     }
   }
 
-  async count(model: string): Promise<number> {
+  async count(collection: string, modelType?: string): Promise<number> {
     try {
-      const 集合 = await this.取得集合(model);
+      const 集合 = await this.取得集合(collection);
+      if (modelType) {
+        return await 集合.countDocuments({ _id: { $regex: `^${collection}:${modelType}:` } } as Record<string, unknown>);
+      }
       return await 集合.countDocuments();
     } catch {
       return 0;
     }
   }
 
-  async initialize(model: string): Promise<void> {
+  async initialize(collection: string): Promise<void> {
     try {
-      await this.取得集合(model);
+      await this.取得集合(collection);
     } catch (err) {
-      await error('MongoAdapter', `初始化 ${model} 失敗: ${err}`);
+      await error('MongoAdapter', `初始化 ${collection} 失敗: ${err}`);
     }
   }
 

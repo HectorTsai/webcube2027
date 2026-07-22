@@ -1,5 +1,5 @@
 // SQL Server (MSSQL) Adapter — 使用 npm:mssql 實作 DatabaseAdapter 介面
-// 每個 model = 一張表，JSON 欄位儲存完整記錄
+// 每個 collection = 一張表，JSON 欄位儲存完整記錄
 // 相容 Azure SQL Database
 //
 // 連線資訊對應（L2連線資訊 → SQL Server）：
@@ -60,12 +60,13 @@ export class MssqlAdapter implements DatabaseAdapter {
     return `[${this.schema}].[${模型}]`;
   }
 
-  async getById(model: string, id: string): Promise<Record<string, unknown> | null> {
+  async getById(id: string): Promise<Record<string, unknown> | null> {
+    const collection = id.split(':')[0];
     try {
       const pool = this.拿到Pool();
       const result = await pool.request()
         .input('id', sql.NVarChar, id)
-        .query(`SELECT data, updatedAt FROM ${this.表名(model)} WHERE id = @id;`);
+        .query(`SELECT data, updatedAt FROM ${this.表名(collection)} WHERE id = @id;`);
 
       if (result.recordset.length === 0) return null;
       const row = result.recordset[0];
@@ -78,19 +79,22 @@ export class MssqlAdapter implements DatabaseAdapter {
     }
   }
 
-  async list(model: string, options?: QueryOptions): Promise<Record<string, unknown>[]> {
+  async list(collection: string, modelType?: string, options?: QueryOptions): Promise<Record<string, unknown>[]> {
     const limitNum = options?.limit ?? 50;
     const offsetNum = options?.offset ?? 0;
     try {
       const pool = this.拿到Pool();
-      const result = await pool.request()
+      const req = pool.request()
         .input('limit', sql.Int, limitNum)
-        .input('offset', sql.Int, offsetNum)
-        .query(
-          `SELECT data, updatedAt FROM ${this.表名(model)}
-           ORDER BY updatedAt DESC
-           OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;`
-        );
+        .input('offset', sql.Int, offsetNum);
+      let querySql: string;
+      if (modelType) {
+        req.input('prefix', sql.NVarChar, `${collection}:${modelType}:%`);
+        querySql = `SELECT data, updatedAt FROM ${this.表名(collection)} WHERE id LIKE @prefix ORDER BY updatedAt DESC OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;`;
+      } else {
+        querySql = `SELECT data, updatedAt FROM ${this.表名(collection)} ORDER BY updatedAt DESC OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;`;
+      }
+      const result = await req.query(querySql);
 
       return result.recordset.map((row: any) => {
         const raw = typeof row.data === 'string'
@@ -103,7 +107,7 @@ export class MssqlAdapter implements DatabaseAdapter {
     }
   }
 
-  async create(model: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async create(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
     const dataWithId = { ...data, id, updatedAt: new Date().toISOString() };
     const pool = this.拿到Pool();
     await pool.request()
@@ -111,12 +115,12 @@ export class MssqlAdapter implements DatabaseAdapter {
       .input('data', sql.NVarChar(sql.MAX), JSON.stringify(dataWithId))
       .input('updatedAt', sql.DateTime2, new Date(dataWithId.updatedAt))
       .query(
-        `INSERT INTO ${this.表名(model)} (id, data, updatedAt) VALUES (@id, @data, @updatedAt);`
+        `INSERT INTO ${this.表名(collection)} (id, data, updatedAt) VALUES (@id, @data, @updatedAt);`
       );
     return dataWithId;
   }
 
-  async update(model: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async update(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
     const 序列化資料 = typeof (data as { toJSON?: () => Record<string, unknown> }).toJSON === 'function'
       ? (data as { toJSON: () => Record<string, unknown> }).toJSON()
       : data;
@@ -129,7 +133,7 @@ export class MssqlAdapter implements DatabaseAdapter {
       .input('data', sql.NVarChar(sql.MAX), JSON.stringify(dataWithId))
       .input('updatedAt', sql.DateTime2, new Date(dataWithId.updatedAt))
       .query(`
-        MERGE ${this.表名(model)} AS target
+        MERGE ${this.表名(collection)} AS target
         USING (SELECT @id AS id) AS source ON target.id = source.id
         WHEN MATCHED THEN UPDATE SET data = @data, updatedAt = @updatedAt
         WHEN NOT MATCHED THEN INSERT (id, data, updatedAt) VALUES (@id, @data, @updatedAt);`
@@ -138,15 +142,19 @@ export class MssqlAdapter implements DatabaseAdapter {
     return dataWithId;
   }
 
-  async queryByField(model: string, filter: FieldFilter): Promise<Record<string, unknown>[]> {
+  async queryByField(collection: string, filter: FieldFilter, modelType?: string): Promise<Record<string, unknown>[]> {
     try {
       const pool = this.拿到Pool();
-      const result = await pool.request()
-        .input('val', sql.NVarChar, filter.value)
-        .query(
-          `SELECT data, updatedAt FROM ${this.表名(model)}
-           WHERE JSON_VALUE(data, '$.${filter.field}') = @val;`
-        );
+      const req = pool.request()
+        .input('val', sql.NVarChar, filter.value);
+      let querySql: string;
+      if (modelType) {
+        req.input('prefix', sql.NVarChar, `${collection}:${modelType}:%`);
+        querySql = `SELECT data, updatedAt FROM ${this.表名(collection)} WHERE JSON_VALUE(data, '$.${filter.field}') = @val AND id LIKE @prefix;`;
+      } else {
+        querySql = `SELECT data, updatedAt FROM ${this.表名(collection)} WHERE JSON_VALUE(data, '$.${filter.field}') = @val;`;
+      }
+      const result = await req.query(querySql);
 
       return result.recordset.map((row: any) => {
         const raw = typeof row.data === 'string'
@@ -159,12 +167,13 @@ export class MssqlAdapter implements DatabaseAdapter {
     }
   }
 
-  async delete(model: string, id: string): Promise<boolean> {
+  async delete(id: string): Promise<boolean> {
+    const collection = id.split(':')[0];
     try {
       const pool = this.拿到Pool();
       const result = await pool.request()
         .input('id', sql.NVarChar, id)
-        .query(`DELETE FROM ${this.表名(model)} WHERE id = @id;`);
+        .query(`DELETE FROM ${this.表名(collection)} WHERE id = @id;`);
 
       return result.rowsAffected[0] > 0;
     } catch {
@@ -172,13 +181,13 @@ export class MssqlAdapter implements DatabaseAdapter {
     }
   }
 
-  async patch(model: string, id: string, fields: Record<string, unknown>): Promise<Record<string, unknown> | null> {
+  async patch(collection: string, id: string, fields: Record<string, unknown>): Promise<Record<string, unknown> | null> {
     try {
       const pool = this.拿到Pool();
       // Read current data
       const result = await pool.request()
         .input('id', sql.NVarChar, id)
-        .query(`SELECT data, updatedAt FROM ${this.表名(model)} WHERE id = @id;`);
+        .query(`SELECT data, updatedAt FROM ${this.表名(collection)} WHERE id = @id;`);
       if (result.recordset.length === 0) return null;
       const currentData = JSON.parse(result.recordset[0].data) as Record<string, unknown>;
       // Merge fields
@@ -188,7 +197,7 @@ export class MssqlAdapter implements DatabaseAdapter {
         .input('id', sql.NVarChar, id)
         .input('data', sql.NVarChar(sql.MAX), JSON.stringify(merged))
         .input('updatedAt', sql.DateTime2, new Date(merged.updatedAt as string))
-        .query(`UPDATE ${this.表名(model)} SET data = @data, updatedAt = @updatedAt WHERE id = @id;`);
+        .query(`UPDATE ${this.表名(collection)} SET data = @data, updatedAt = @updatedAt WHERE id = @id;`);
       if (updateResult.rowsAffected[0] > 0) return merged;
       return null;
     } catch {
@@ -196,11 +205,18 @@ export class MssqlAdapter implements DatabaseAdapter {
     }
   }
 
-  async count(model: string): Promise<number> {
+  async count(collection: string, modelType?: string): Promise<number> {
     try {
       const pool = this.拿到Pool();
-      const result = await pool.request()
-        .query(`SELECT COUNT(*) AS count FROM ${this.表名(model)};`);
+      const req = pool.request();
+      let querySql: string;
+      if (modelType) {
+        req.input('prefix', sql.NVarChar, `${collection}:${modelType}:%`);
+        querySql = `SELECT COUNT(*) AS count FROM ${this.表名(collection)} WHERE id LIKE @prefix;`;
+      } else {
+        querySql = `SELECT COUNT(*) AS count FROM ${this.表名(collection)};`;
+      }
+      const result = await req.query(querySql);
 
       return result.recordset[0]?.count ?? 0;
     } catch {
@@ -208,11 +224,11 @@ export class MssqlAdapter implements DatabaseAdapter {
     }
   }
 
-  async initialize(model: string): Promise<void> {
+  async initialize(collection: string): Promise<void> {
     try {
-      await this.確保資料表(model);
+      await this.確保資料表(collection);
     } catch (err) {
-      await error('MssqlAdapter', `初始化 ${model} 失敗: ${err}`);
+      await error('MssqlAdapter', `初始化 ${collection} 失敗: ${err}`);
     }
   }
 

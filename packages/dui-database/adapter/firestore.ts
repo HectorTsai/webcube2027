@@ -1,5 +1,5 @@
 // Firestore (Google Firebase) Adapter — 使用 firebase-admin 實作 DatabaseAdapter
-// 每個 model = 一個 Firestore collection，文件內以 data map 儲存完整記錄
+// 每個 collection = 一個 Firestore collection，文件內以 data map 儲存完整記錄
 //
 // 連線資訊一律從 L2連線資訊 / L3連線資訊 的設定欄位傳入，不使用環境變數：
 //   - projectId  ← L2連線資訊.主機 或 .資料庫名稱
@@ -78,24 +78,35 @@ export class FirestoreAdapter implements DatabaseAdapter {
     return result;
   }
 
-  async getById(model: string, id: string): Promise<Record<string, unknown> | null> {
+  async getById(id: string): Promise<Record<string, unknown> | null> {
+    const collection = id.split(':')[0];
     try {
       const db = this.拿到DB();
-      const doc = await db.collection(model).doc(id).get();
+      const doc = await db.collection(collection).doc(id).get();
       return this.快照取資料(doc);
     } catch {
       return null;
     }
   }
 
-  async list(model: string, options?: QueryOptions): Promise<Record<string, unknown>[]> {
+  async list(collection: string, modelType?: string, options?: QueryOptions): Promise<Record<string, unknown>[]> {
     const limitNum = options?.limit ?? 50;
     const offsetNum = options?.offset ?? 0;
     try {
       const db = this.拿到DB();
-      let query: any = db.collection(model)
-        .orderBy('data.updatedAt', 'desc')
-        .limit(limitNum);
+      let query: any = db.collection(collection);
+
+      if (modelType) {
+        // 以 data.id（composite id）前綴範圍篩選 model type
+        query = query
+          .where('data.id', '>=', `${collection}:${modelType}:`)
+          .where('data.id', '<=', `${collection}:${modelType}:\uf8ff`)
+          .orderBy('data.id');
+      } else {
+        query = query.orderBy('data.updatedAt', 'desc');
+      }
+
+      query = query.limit(limitNum);
 
       if (offsetNum > 0) {
         query = query.offset(offsetNum);
@@ -113,29 +124,37 @@ export class FirestoreAdapter implements DatabaseAdapter {
     }
   }
 
-  async create(model: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async create(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
     const dataWithId = { ...data, id, updatedAt: new Date().toISOString() };
     const db = this.拿到DB();
-    await db.collection(model).doc(id).set({ data: dataWithId });
+    await db.collection(collection).doc(id).set({ data: dataWithId });
     return dataWithId;
   }
 
-  async update(model: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async update(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
     const 序列化資料 = typeof (data as { toJSON?: () => Record<string, unknown> }).toJSON === 'function'
       ? (data as { toJSON: () => Record<string, unknown> }).toJSON()
       : data;
     const dataWithId = { ...序列化資料, id, updatedAt: new Date().toISOString() };
     const db = this.拿到DB();
-    await db.collection(model).doc(id).set({ data: dataWithId });
+    await db.collection(collection).doc(id).set({ data: dataWithId });
     return dataWithId;
   }
 
-  async queryByField(model: string, filter: FieldFilter): Promise<Record<string, unknown>[]> {
+  async queryByField(collection: string, filter: FieldFilter, modelType?: string): Promise<Record<string, unknown>[]> {
     try {
       const db = this.拿到DB();
-      const snapshot = await db.collection(model)
-        .where(`data.${filter.field}`, '==', filter.value)
-        .get();
+      let query: any = db.collection(collection)
+        .where(`data.${filter.field}`, '==', filter.value);
+
+      if (modelType) {
+        query = query
+          .where('data.id', '>=', `${collection}:${modelType}:`)
+          .where('data.id', '<=', `${collection}:${modelType}:\uf8ff`)
+          .orderBy('data.id');
+      }
+
+      const snapshot = await query.get();
 
       const results: Record<string, unknown>[] = [];
       snapshot.forEach((doc: any) => {
@@ -148,20 +167,21 @@ export class FirestoreAdapter implements DatabaseAdapter {
     }
   }
 
-  async delete(model: string, id: string): Promise<boolean> {
+  async delete(id: string): Promise<boolean> {
+    const collection = id.split(':')[0];
     try {
       const db = this.拿到DB();
-      await db.collection(model).doc(id).delete();
+      await db.collection(collection).doc(id).delete();
       return true;
     } catch {
       return false;
     }
   }
 
-  async patch(model: string, id: string, fields: Record<string, unknown>): Promise<Record<string, unknown> | null> {
+  async patch(collection: string, id: string, fields: Record<string, unknown>): Promise<Record<string, unknown> | null> {
     try {
       const db = this.拿到DB();
-      const docRef = db.collection(model).doc(id);
+      const docRef = db.collection(collection).doc(id);
       const updatedFields = { ...fields, updatedAt: fields.updatedAt || new Date().toISOString() };
       await docRef.update(updatedFields);
       const updated = await docRef.get();
@@ -172,17 +192,24 @@ export class FirestoreAdapter implements DatabaseAdapter {
     }
   }
 
-  async count(model: string): Promise<number> {
+  async count(collection: string, modelType?: string): Promise<number> {
     try {
       const db = this.拿到DB();
-      const snapshot = await db.collection(model).count().get();
+      let query: any = db.collection(collection);
+      if (modelType) {
+        query = query
+          .where('data.id', '>=', `${collection}:${modelType}:`)
+          .where('data.id', '<=', `${collection}:${modelType}:\uf8ff`)
+          .orderBy('data.id');
+      }
+      const snapshot = await query.count().get();
       return snapshot.data().count;
     } catch {
       return 0;
     }
   }
 
-  async initialize(_model: string): Promise<void> {
+  async initialize(_collection: string): Promise<void> {
     // Firestore collection 自動建立，不需 CREATE TABLE
   }
 

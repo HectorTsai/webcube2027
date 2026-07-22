@@ -14,7 +14,7 @@
 //   await dataPool.initL2()       // read L2 conn info from L1 → connect
 //   await dataPool.initL3(host)   // auto-triggered on first query for that host
 
-import type { DatabaseAdapter } from './adapter/adapter-interface.ts';
+import type { DatabaseAdapter, QueryOptions } from './adapter/adapter-interface.ts';
 import type { L2ConnectionInfo } from './index.ts';
 import { L1Store } from './l1-store.ts';
 import { info, error } from './logger.ts';
@@ -156,13 +156,10 @@ export class PoolCore {
    * Searches through L3 → L2 and returns the first match.
    */
   async getById<T extends { id: string }>(id: string, host?: string): Promise<QueryResult<T>> {
-    const model = this.parseModel(id);
-    if (!model) return { data: null, source: 'L3', success: false, error: 'Invalid ID format' };
-
     for (const key of await this.getLayerKeys(host)) {
       const db = this.連線池.get(key)!;
       try {
-        const raw = await db.getById(model, id);
+        const raw = await db.getById(id);
         if (raw) {
           return { data: raw as T, source: this.keyToLayer(key), success: true };
         }
@@ -173,19 +170,29 @@ export class PoolCore {
   }
 
   /**
-   * List records from the highest available layer (L3 → L2).
-   * Returns the first layer that has data.
+   * List records from a collection (table), optionally filtered by model type.
+   *
+   * Supports two call signatures:
+   * - list(collection, modelType?, options?, host?)  ← preferred
+   * - list(collection, limit, offset, host?)         ← backward compat
    */
   async list<T extends { id: string }>(
-    model: string,
-    limit: number = 50,
-    offset: number = 0,
+    collection: string,
+    modelType?: string | number,
+    options?: QueryOptions | number,
     host?: string
   ): Promise<QueryResult<T[]>> {
+    // Backward compat: list(collection, limit, offset)
+    if (typeof modelType === 'number') {
+      options = { limit: modelType, offset: (options as number) ?? 0 };
+      modelType = undefined;
+    }
+    const opts: QueryOptions = (options as QueryOptions) ?? {};
+
     for (const key of await this.getLayerKeys(host)) {
       const db = this.連線池.get(key)!;
       try {
-        const rows = await db.list(model, { limit, offset });
+        const rows = await db.list(collection, modelType as string | undefined, opts);
         if (rows.length > 0) {
           return { data: rows as T[], source: this.keyToLayer(key), success: true };
         }
@@ -200,18 +207,24 @@ export class PoolCore {
    * Unlike list(), this returns data from ALL available layers.
    */
   async listAll<T extends { id: string }>(
-    model: string,
-    limit: number = 50,
-    offset: number = 0,
+    collection: string,
+    modelType?: string | number,
+    options?: QueryOptions | number,
     host?: string
   ): Promise<QueryResult<T[]>> {
+    if (typeof modelType === 'number') {
+      options = { limit: modelType, offset: (options as number) ?? 0 };
+      modelType = undefined;
+    }
+    const opts: QueryOptions = (options as QueryOptions) ?? {};
+
     const allData: T[] = [];
     const seen = new Set<string>();
 
     for (const key of await this.getLayerKeys(host)) {
       const db = this.連線池.get(key)!;
       try {
-        const rows = await db.list(model, { limit, offset });
+        const rows = await db.list(collection, modelType as string | undefined, opts);
         for (const row of rows) {
           const rid = row.id as string;
           if (seen.has(rid)) continue;
@@ -225,11 +238,54 @@ export class PoolCore {
   }
 
   /**
+   * Query records by field value, optionally filtered by model type.
+   */
+  async queryByField<T extends Record<string, unknown>>(
+    collection: string,
+    filter: { field: string; value: string },
+    modelType?: string,
+    host?: string,
+  ): Promise<T[]> {
+    for (const key of await this.getLayerKeys(host)) {
+      const db = this.連線池.get(key)!;
+      try {
+        const rows = await db.queryByField(collection, filter, modelType);
+        if (rows.length > 0) {
+          return rows as T[];
+        }
+      } catch { /* degrade */ }
+    }
+    return [];
+  }
+
+  /**
+   * List all distinct model types within a collection.
+   * Parses the 2nd segment of composite IDs.
+   */
+  async listModelTypes(collection: string, host?: string): Promise<string[]> {
+    const types = new Set<string>();
+    for (const key of await this.getLayerKeys(host)) {
+      const db = this.連線池.get(key)!;
+      try {
+        if (db.listModelTypes) {
+          const t = await db.listModelTypes(collection);
+          for (const type of t) types.add(type);
+        }
+      } catch { /* skip */ }
+    }
+    return [...types].sort();
+  }
+
+  /**
    * Upsert (create or update) a record in the target layer.
    * If the record exists it is updated; otherwise a new record is created.
+   *
+   * @param collection - Collection (table) name
+   * @param data - Record data (may include id in collection:model:nanoid format)
+   * @param host - Optional: L3 host
    */
   async upsert<T extends { id?: string }>(
-    model: string,
+    collection: string,
     data: Partial<T>,
     host?: string
   ): Promise<QueryResult<T>> {
@@ -237,14 +293,14 @@ export class PoolCore {
     const db = this.連線池.get(key);
     if (!db) return { data: null, source: 'L3', success: false, error: 'No writable database' };
 
-    const { id, isUpdate } = await this.resolveId(model, data);
+    const { id, isUpdate } = await this.resolveId(collection, data);
     const updateData = { ...data, id } as Record<string, unknown>;
 
     try {
       if (isUpdate) {
-        const existing = await db.getById(model, id);
+        const existing = await db.getById(id);
         if (!existing) {
-          const created = await db.create(model, id, updateData);
+          const created = await db.create(collection, id, updateData);
           if (created) {
             return { data: created as T, source: this.keyToLayer(key), success: true };
           }
@@ -252,8 +308,8 @@ export class PoolCore {
       }
 
       const result = isUpdate
-        ? await db.update(model, id, updateData)
-        : await db.create(model, id, updateData);
+        ? await db.update(collection, id, updateData)
+        : await db.create(collection, id, updateData);
       if (result) {
         return { data: result as T, source: this.keyToLayer(key), success: true };
       }
@@ -265,16 +321,13 @@ export class PoolCore {
   }
 
   /**
-   * Delete a record by its composite ID.
+   * Delete a record by composite ID.
    *
    * If the record exists in a different layer than the delete target,
    * the operation is rejected — you cannot delete a record from the wrong layer.
    * Layer-level access control is the responsibility of the API Gateway layer.
    */
   async delete(id: string, host?: string): Promise<QueryResult<boolean>> {
-    const model = this.parseModel(id);
-    if (!model) return { data: false, source: 'L3', success: false, error: 'Invalid ID format' };
-
     const existing = await this.getById(id, host);
 
     const key = this.writeLayer(host);
@@ -289,7 +342,7 @@ export class PoolCore {
     if (!db) return { data: false, source: 'L3', success: false, error: 'No writable database' };
 
     try {
-      const ok = await db.delete(model, id) as boolean;
+      const ok = await db.delete(id) as boolean;
       return { data: ok, source: targetLayer, success: ok };
     } catch (err) {
       return { data: false, source: targetLayer, success: false, error: String(err) };
@@ -300,7 +353,7 @@ export class PoolCore {
    * Partially update specific fields of a record without a full read-modify-write cycle.
    */
   async patch<T extends { id?: string }>(
-    model: string,
+    collection: string,
     id: string,
     fields: Partial<T>,
     host?: string
@@ -311,13 +364,37 @@ export class PoolCore {
 
     try {
       const updatedFields = { ...fields, updatedAt: new Date().toISOString() } as Record<string, unknown>;
-      const result = await db.patch(model, id, updatedFields);
+      const result = await db.patch(collection, id, updatedFields);
       if (result) {
         return { data: result as T, source: this.keyToLayer(key), success: true };
       }
       return { data: null, source: this.keyToLayer(key), success: false, error: 'Record not found' };
     } catch (err) {
       return { data: null, source: this.keyToLayer(key), success: false, error: String(err) };
+    }
+  }
+
+  /**
+   * Count records in a collection, optionally filtered by model type.
+   */
+  async count(collection: string, modelType?: string, host?: string): Promise<number> {
+    let total = 0;
+    for (const key of await this.getLayerKeys(host)) {
+      const db = this.連線池.get(key)!;
+      try {
+        total += await db.count(collection, modelType);
+      } catch { /* skip */ }
+    }
+    return total;
+  }
+
+  /**
+   * Initialize a collection (table).
+   */
+  async initialize(collection: string): Promise<void> {
+    const db = this.連線池.get('SYSTEM');
+    if (db) {
+      await db.initialize(collection);
     }
   }
 
@@ -367,11 +444,6 @@ export class PoolCore {
   private keyToLayer(key: string): SourceLevel {
     if (key === 'SYSTEM') return 'L2';
     return 'L3';
-  }
-
-  private parseModel(id: string): string | null {
-    const parts = id.split(':');
-    return parts.length >= 3 ? parts[1] : null;
   }
 
   // ═══════════════════════════════════════════
@@ -500,11 +572,11 @@ export class PoolCore {
   // ═══════════════════════════════════════════
 
   private async resolveId<T extends { id?: string }>(
-    model: string, data: Partial<T>
+    collection: string, data: Partial<T>
   ): Promise<{ id: string; isUpdate: boolean }> {
     if (!data.id) {
       const { nanoid } = await import('nanoid');
-      return { id: `${model}:${model}:${nanoid(12)}`, isUpdate: false };
+      return { id: `${collection}:${collection}:${nanoid(12)}`, isUpdate: false };
     }
 
     const idStr = data.id as string;
@@ -513,9 +585,9 @@ export class PoolCore {
       return { id: idStr, isUpdate: true };
     }
 
-    // Raw nanoid without prefix — compose it
+    // Raw nanoid without prefix — compose it with collection as both domain and type
     const { nanoid } = await import('nanoid');
-    return { id: `${model}:${model}:${nanoid(12)}`, isUpdate: false };
+    return { id: `${collection}:${collection}:${nanoid(12)}`, isUpdate: false };
   }
 
   // ═══════════════════════════════════════════

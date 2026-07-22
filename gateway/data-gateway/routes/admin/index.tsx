@@ -114,12 +114,12 @@ const Page = () => (
                   </tr>
                 </thead>
                 <tbody>
-                  <tr><td><span class="badge badge-success badge-xs">GET</span></td><td class="font-mono text-sm">/health</td><td>健康檢查</td></tr>
-                  <tr><td><span class="badge badge-info badge-xs">GET</span></td><td class="font-mono text-sm">/api/:model</td><td>列出某 Collection 的資料（支援 ?field &amp; ?value 過濾）</td></tr>
-                  <tr><td><span class="badge badge-info badge-xs">GET</span></td><td class="font-mono text-sm">/api/:model/:id</td><td>取得單筆資料</td></tr>
-                  <tr><td><span class="badge badge-warning badge-xs">POST</span></td><td class="font-mono text-sm">/api/:model</td><td>新增資料</td></tr>
-                  <tr><td><span class="badge badge-warning badge-xs">PUT</span></td><td class="font-mono text-sm">/api/:model/:id</td><td>更新資料</td></tr>
-                  <tr><td><span class="badge badge-error badge-xs">DEL</span></td><td class="font-mono text-sm">/api/:model/:id</td><td>刪除資料</td></tr>
+                  <tr><td><span class="badge badge-info badge-xs">GET</span></td><td class="font-mono text-sm">/api/:collection</td><td>列出 collection 下的所有 model type 與數量</td></tr>
+                  <tr><td><span class="badge badge-info badge-xs">GET</span></td><td class="font-mono text-sm">/api/:collection/:model</td><td>列出該 model type 的所有資料</td></tr>
+                  <tr><td><span class="badge badge-warning badge-xs">POST</span></td><td class="font-mono text-sm">/api/:collection/:model</td><td>新增資料（可選傳 id，格式須為 collection:model:nanoid）</td></tr>
+                  <tr><td><span class="badge badge-info badge-xs">GET</span></td><td class="font-mono text-sm">/api/:id</td><td>取得單筆（ID = collection:model:nanoid）</td></tr>
+                  <tr><td><span class="badge badge-warning badge-xs">PUT</span></td><td class="font-mono text-sm">/api/:id</td><td>更新單筆</td></tr>
+                  <tr><td><span class="badge badge-error badge-xs">DEL</span></td><td class="font-mono text-sm">/api/:id</td><td>刪除單筆</td></tr>
                 </tbody>
               </table>
             </div>

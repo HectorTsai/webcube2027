@@ -60,11 +60,12 @@ export class DynamoDBAdapter implements DatabaseAdapter {
     return this.docClient;
   }
 
-  async getById(model: string, id: string): Promise<Record<string, unknown> | null> {
+  async getById(id: string): Promise<Record<string, unknown> | null> {
+    const collection = id.split(':')[0];
     try {
       const client = this.拿到Client();
       const result = await client.send(new GetCommand({
-        TableName: model,
+        TableName: collection,
         Key: { id },
       }));
 
@@ -76,14 +77,20 @@ export class DynamoDBAdapter implements DatabaseAdapter {
     }
   }
 
-  async list(model: string, options?: QueryOptions): Promise<Record<string, unknown>[]> {
+  async list(collection: string, modelType?: string, options?: QueryOptions): Promise<Record<string, unknown>[]> {
     const limitNum = options?.limit ?? 50;
     try {
       const client = this.拿到Client();
-      const result = await client.send(new ScanCommand({
-        TableName: model,
+      const scanParams: Record<string, unknown> = {
+        TableName: collection,
         Limit: limitNum,
-      }));
+      };
+      if (modelType) {
+        scanParams['FilterExpression'] = 'begins_with(#id, :prefix)';
+        scanParams['ExpressionAttributeNames'] = { '#id': 'id' };
+        scanParams['ExpressionAttributeValues'] = { ':prefix': `${collection}:${modelType}:` };
+      }
+      const result = await client.send(new ScanCommand(scanParams as any));
 
       return (result.Items ?? []).map((item: any) => {
         const raw = typeof item.data === 'string'
@@ -96,11 +103,11 @@ export class DynamoDBAdapter implements DatabaseAdapter {
     }
   }
 
-  async create(model: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async create(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
     const dataWithId = { ...data, id, updatedAt: new Date().toISOString() };
     const client = this.拿到Client();
     await client.send(new PutCommand({
-      TableName: model,
+      TableName: collection,
       Item: {
         id,
         data: JSON.stringify(dataWithId),
@@ -110,22 +117,31 @@ export class DynamoDBAdapter implements DatabaseAdapter {
     return dataWithId;
   }
 
-  async update(model: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async update(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
     // DynamoDB PutCommand 會覆蓋整個 Item，等同 upsert
-    return this.create(model, id, data);
+    return this.create(collection, id, data);
   }
 
-  async queryByField(model: string, filter: FieldFilter): Promise<Record<string, unknown>[]> {
+  async queryByField(collection: string, filter: FieldFilter, modelType?: string): Promise<Record<string, unknown>[]> {
     try {
       const client = this.拿到Client();
-      const result = await client.send(new ScanCommand({
-        TableName: model,
+      const scanParams: Record<string, unknown> = {
+        TableName: collection,
         FilterExpression: 'contains(#data, :val)',
         ExpressionAttributeNames: { '#data': 'data' },
         ExpressionAttributeValues: {
           ':val': `"${filter.field}"`,
         },
-      }));
+      };
+      if (modelType) {
+        scanParams['FilterExpression'] = 'contains(#data, :val) AND begins_with(#id, :prefix)';
+        scanParams['ExpressionAttributeNames'] = { '#data': 'data', '#id': 'id' };
+        scanParams['ExpressionAttributeValues'] = {
+          ':val': `"${filter.field}"`,
+          ':prefix': `${collection}:${modelType}:`,
+        };
+      }
+      const result = await client.send(new ScanCommand(scanParams as any));
 
       const matched: Record<string, unknown>[] = [];
       for (const item of result.Items ?? []) {
@@ -142,11 +158,12 @@ export class DynamoDBAdapter implements DatabaseAdapter {
     }
   }
 
-  async delete(model: string, id: string): Promise<boolean> {
+  async delete(id: string): Promise<boolean> {
+    const collection = id.split(':')[0];
     try {
       const client = this.拿到Client();
       await client.send(new DeleteCommand({
-        TableName: model,
+        TableName: collection,
         Key: { id },
       }));
       return true;
@@ -155,14 +172,14 @@ export class DynamoDBAdapter implements DatabaseAdapter {
     }
   }
 
-  async patch(model: string, id: string, fields: Record<string, unknown>): Promise<Record<string, unknown> | null> {
+  async patch(collection: string, id: string, fields: Record<string, unknown>): Promise<Record<string, unknown> | null> {
     try {
       const client = this.拿到Client();
       const updatedAt = fields.updatedAt || new Date().toISOString();
 
       // Read current data
       const getResult = await client.send(new GetCommand({
-        TableName: model,
+        TableName: collection,
         Key: { id },
       }));
       if (!getResult.Item) return null;
@@ -172,7 +189,7 @@ export class DynamoDBAdapter implements DatabaseAdapter {
 
       // Write merged data back
       await client.send(new PutCommand({
-        TableName: model,
+        TableName: collection,
         Item: {
           id,
           data: JSON.stringify(merged),
@@ -185,33 +202,39 @@ export class DynamoDBAdapter implements DatabaseAdapter {
     }
   }
 
-  async count(model: string): Promise<number> {
+  async count(collection: string, modelType?: string): Promise<number> {
     try {
       const client = this.拿到Client();
-      const result = await client.send(new ScanCommand({
-        TableName: model,
+      const scanParams: Record<string, unknown> = {
+        TableName: collection,
         Select: 'COUNT',
-      }));
+      };
+      if (modelType) {
+        scanParams['FilterExpression'] = 'begins_with(#id, :prefix)';
+        scanParams['ExpressionAttributeNames'] = { '#id': 'id' };
+        scanParams['ExpressionAttributeValues'] = { ':prefix': `${collection}:${modelType}:` };
+      }
+      const result = await client.send(new ScanCommand(scanParams as any));
       return result.Count ?? 0;
     } catch {
       return 0;
     }
   }
 
-  async initialize(model: string): Promise<void> {
+  async initialize(collection: string): Promise<void> {
     try {
       // 檢查 Table 是否存在（必須預先建立）
       const client = new DynamoDBClient({ region: this.選項.region });
 
       try {
-        await client.send(new DescribeTableCommand({ TableName: model }));
+        await client.send(new DescribeTableCommand({ TableName: collection }));
       } catch {
-        const msg = `DynamoDB Table "${model}" 不存在，請先在 AWS Console 中建立（需含 id(String) 作為 Partition Key）`;
+        const msg = `DynamoDB Table "${collection}" 不存在，請先在 AWS Console 中建立（需含 id(String) 作為 Partition Key）`;
         await error('DynamoDBAdapter', msg);
         throw new Error(msg);
       }
     } catch (err) {
-      await error('DynamoDBAdapter', `初始化 ${model} 失敗: ${err}`);
+      await error('DynamoDBAdapter', `初始化 ${collection} 失敗: ${err}`);
     }
   }
 

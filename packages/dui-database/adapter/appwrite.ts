@@ -64,10 +64,11 @@ export class AppwriteAdapter implements DatabaseAdapter {
     return this.databases;
   }
 
-  async getById(model: string, id: string): Promise<Record<string, unknown> | null> {
+  async getById(id: string): Promise<Record<string, unknown> | null> {
+    const collection = id.split(':')[0];
     try {
       const db = this.拿到DB();
-      const doc = await db.getDocument(this.databaseId, model, id);
+      const doc = await db.getDocument(this.databaseId, collection, id);
       const raw = doc.data as string | undefined;
       if (!raw) return null;
       return {
@@ -80,18 +81,21 @@ export class AppwriteAdapter implements DatabaseAdapter {
     }
   }
 
-  async list(model: string, options?: QueryOptions): Promise<Record<string, unknown>[]> {
+  async list(collection: string, modelType?: string, options?: QueryOptions): Promise<Record<string, unknown>[]> {
     const limitNum = options?.limit ?? 50;
     const offsetNum = options?.offset ?? 0;
     try {
       const db = this.拿到DB();
-      const queries = [
+      const queries: any[] = [];
+      queries.push(
         Query.orderDesc('updatedAt'),
         Query.limit(limitNum),
         Query.offset(offsetNum),
-      ];
-      const result = await db.listDocuments(this.databaseId, model, queries);
-      return result.documents.map((doc: any) => {
+      );
+      const result = await db.listDocuments(this.databaseId, collection, queries);
+      return result.documents
+        .filter((doc: any) => modelType ? doc.$id.startsWith(`${collection}:${modelType}:`) : true)
+        .map((doc: any) => {
         const data = typeof doc.data === 'string'
           ? JSON.parse(doc.data) as Record<string, unknown>
           : (doc.data as Record<string, unknown> ?? {});
@@ -106,12 +110,12 @@ export class AppwriteAdapter implements DatabaseAdapter {
     }
   }
 
-  async create(model: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async create(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
     const dataWithId = { ...data, id, updatedAt: new Date().toISOString() };
     const db = this.拿到DB();
     await db.createDocument(
       this.databaseId,
-      model,
+      collection,
       id,
       {
         data: JSON.stringify(dataWithId),
@@ -121,7 +125,7 @@ export class AppwriteAdapter implements DatabaseAdapter {
     return dataWithId;
   }
 
-  async update(model: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+  async update(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
     const 序列化資料 = typeof (data as { toJSON?: () => Record<string, unknown> }).toJSON === 'function'
       ? (data as { toJSON: () => Record<string, unknown> }).toJSON()
       : data;
@@ -129,7 +133,7 @@ export class AppwriteAdapter implements DatabaseAdapter {
     const db = this.拿到DB();
     await db.updateDocument(
       this.databaseId,
-      model,
+      collection,
       id,
       {
         data: JSON.stringify(dataWithId),
@@ -139,15 +143,17 @@ export class AppwriteAdapter implements DatabaseAdapter {
     return dataWithId;
   }
 
-  async queryByField(model: string, filter: FieldFilter): Promise<Record<string, unknown>[]> {
+  async queryByField(collection: string, filter: FieldFilter, modelType?: string): Promise<Record<string, unknown>[]> {
     // Appwrite 無法對 JSON 字串內的欄位做伺服器端查詢
     // 這裡拉取所有文件後做客戶端過濾
     try {
       const db = this.拿到DB();
-      const result = await db.listDocuments(this.databaseId, model);
+      const result = await db.listDocuments(this.databaseId, collection);
       const matched: Record<string, unknown>[] = [];
 
       for (const doc of result.documents) {
+        // 以 $id（composite id）前綴篩選 model type
+        if (modelType && !doc.$id.startsWith(`${collection}:${modelType}:`)) continue;
         const raw = doc.data as string | undefined;
         if (!raw) continue;
         const data = JSON.parse(raw) as Record<string, unknown>;
@@ -166,23 +172,24 @@ export class AppwriteAdapter implements DatabaseAdapter {
     }
   }
 
-  async delete(model: string, id: string): Promise<boolean> {
+  async delete(id: string): Promise<boolean> {
+    const collection = id.split(':')[0];
     try {
       const db = this.拿到DB();
-      await db.deleteDocument(this.databaseId, model, id);
+      await db.deleteDocument(this.databaseId, collection, id);
       return true;
     } catch {
       return false;
     }
   }
 
-  async patch(model: string, id: string, fields: Record<string, unknown>): Promise<Record<string, unknown> | null> {
+  async patch(collection: string, id: string, fields: Record<string, unknown>): Promise<Record<string, unknown> | null> {
     try {
       const db = this.拿到DB();
       const updatedFields = { ...fields, updatedAt: fields.updatedAt || new Date().toISOString() };
       const doc = await db.updateDocument(
         this.databaseId,
-        model,
+        collection,
         id,
         updatedFields as any,
       );
@@ -196,32 +203,35 @@ export class AppwriteAdapter implements DatabaseAdapter {
     }
   }
 
-  async count(model: string): Promise<number> {
+  async count(collection: string, modelType?: string): Promise<number> {
     try {
       const db = this.拿到DB();
-      const result = await db.listDocuments(this.databaseId, model, [Query.limit(1)]);
-      return result.total;
+      const result = await db.listDocuments(this.databaseId, collection, [Query.limit(1)]);
+      if (!modelType) return result.total;
+      // Appwrite 無法對 $id 做伺服器端前綴查詢，改以 client 端計算匹配數
+      const all = await db.listDocuments(this.databaseId, collection);
+      return all.documents.filter((doc: any) => doc.$id.startsWith(`${collection}:${modelType}:`)).length;
     } catch {
       return 0;
     }
   }
 
-  async initialize(model: string): Promise<void> {
+  async initialize(collection: string): Promise<void> {
     try {
       // 確認 collection 存在（必須預先建立）
-      await this.確認集合存在(model);
+      await this.確認集合存在(collection);
     } catch (err) {
-      await error('AppwriteAdapter', `初始化 ${model} 失敗: ${err}`);
+      await error('AppwriteAdapter', `初始化 ${collection} 失敗: ${err}`);
     }
   }
 
   /** 確認 Collection 已存在，不存在則 log 錯誤並拋出 */
-  private async 確認集合存在(model: string): Promise<void> {
+  private async 確認集合存在(collection: string): Promise<void> {
     const db = this.拿到DB();
     try {
-      await db.getCollection(this.databaseId, model);
+      await db.getCollection(this.databaseId, collection);
     } catch {
-      const msg = `Collection "${model}" 不存在，請先在 Appwrite Console 中建立（需含 data string 與 updatedAt datetime 屬性）`;
+      const msg = `Collection "${collection}" 不存在，請先在 Appwrite Console 中建立（需含 data string 與 updatedAt datetime 屬性）`;
       await error('AppwriteAdapter', msg);
       throw new Error(msg);
     }

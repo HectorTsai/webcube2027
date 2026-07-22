@@ -3,6 +3,13 @@ import { createFileRouter } from '@dui/framework/file-router';
 import { 創建安裝檢查 } from '@dui/framework/setup-guard';
 import { dataPool } from '@dui/database';
 import { info, error } from '@dui/util';
+import { middleware as apiAuthMiddleware } from './routes/api/_middleware.ts';
+import { GET as listCollection } from './routes/api/list-collection.ts';
+import { GET as listModel } from './routes/api/list-model.ts';
+import { POST as createRecord } from './routes/api/create.ts';
+import { GET as getById } from './routes/api/get-by-id.ts';
+import { PUT as updateById } from './routes/api/update-by-id.ts';
+import { DELETE as deleteById } from './routes/api/delete-by-id.ts';
 
 const app = new Hono();
 
@@ -72,9 +79,8 @@ innerApi.post('/auth/verify-user', async (c) => {
   try {
     const { 帳號, 密碼 } = await c.req.json();
     const bcrypt = (await import('bcryptjs')) as any;
-    const result = await dataPool.list<any>('管理員', 100, 0);
-    const users = result.data ?? [];
-    const user = users.find((u: any) => u.帳號 === 帳號);
+    const users = await dataPool.queryByField<any>('管理員', { field: '帳號', value: 帳號 }, '管理員');
+    const user = users[0];
     if (!user) return c.json({ success: false, error: '帳號或密碼錯誤' });
     const match = await bcrypt.default.compare(密碼, user.密碼雜湊);
     if (!match) return c.json({ success: false, error: '帳號或密碼錯誤' });
@@ -98,6 +104,24 @@ const fileRoutes = await createFileRouter({
   dirPath: `${import.meta.dirname}/routes`,
 });
 app.route('/', fileRoutes);
+
+// ── Data API (manual routes — collection/model structure) ──
+// All data API routes require JWT authentication
+
+// GET /api/:collection → list model types in collection
+app.get('/api/:collection{[^:/]+}', apiAuthMiddleware, listCollection);
+
+// GET /api/:collection/:model → list records of a model type
+app.get('/api/:collection{[^:/]+}/:model{[^:/]+}', apiAuthMiddleware, listModel);
+
+// POST /api/:collection/:model → create new record (validates id if present)
+app.post('/api/:collection{[^:/]+}/:model{[^:/]+}', apiAuthMiddleware, createRecord);
+
+// GET/PUT/DELETE /api/:id → single record operations by composite ID
+// ID format: collection:model:nanoid (e.g. 圖片:標籤:abc123)
+app.get('/api/:id{[^:]+:[^:]+:[^:]+}', apiAuthMiddleware, getById);
+app.put('/api/:id{[^:]+:[^:]+:[^:]+}', apiAuthMiddleware, updateById);
+app.delete('/api/:id{[^:]+:[^:]+:[^:]+}', apiAuthMiddleware, deleteById);
 
 // ── Logout ────────────────────────────────────────
 
