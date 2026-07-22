@@ -22,7 +22,7 @@
 //   gw.start();
 
 import { Hono } from 'hono';
-import { createFileRouter } from './fileRouter.ts';
+import { loadRoutes } from './route-loader.ts';
 import { L1Store } from '@dui/kv';
 import { registerKey, info } from '@dui/util';
 
@@ -97,7 +97,7 @@ export async function createGateway(opts: CreateGatewayOptions): Promise<Gateway
   const routesUrl = new URL(`file://${routesDir}/`);
   try {
     await Deno.readDir(routesUrl); // probe if directory exists
-    const fileRoutes = await createFileRouter({ dirPath: routesDir });
+    const fileRoutes = await loadRoutes(routesUrl);
     app.route('/', fileRoutes);
     await info(name, `File routes loaded from ${routesDir}`);
   } catch {

@@ -29,6 +29,8 @@ export interface L2ConnectionInfo {
   database?: string;
   /** Namespace (SurrealDB-specific) */
   namespace?: string;
+  /** Firestore service account credential object */
+  credential?: Record<string, unknown>;
   /** Whether this connection is enabled */
   enabled: boolean;
 }

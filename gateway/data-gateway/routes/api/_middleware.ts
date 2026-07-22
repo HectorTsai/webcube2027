@@ -2,11 +2,19 @@
  * API area JWT auth middleware.
  *
  * API client 友善：驗證失敗時回傳 401 JSON，不重新導向。
+ *
+ * /api/setup 為公開安裝端點，不需 JWT 驗證。
  */
 
-import { extrairToken, verificarToken } from '../_utils.ts';
+import type { Context, Next } from 'hono';
+import { extrairToken, verificarToken } from '../../utils/jwt.ts';
 
-export const middleware = async (c: any, next: any) => {
+export const middleware = async (c: Context, next: Next) => {
+  // /api/setup 是公開安裝端點，跳過 JWT 驗證
+  if (c.req.path === '/api/setup') {
+    return await next();
+  }
+
   const token = extrairToken(c);
 
   if (!token) {
@@ -18,8 +26,9 @@ export const middleware = async (c: any, next: any) => {
     return c.json({ success: false, error: 'token 無效或已過期' }, 401);
   }
 
-  // 將 payload 存入 context，供後續 handler 使用
+  // 將 payload 存入 context，供後續 API handler 使用
   c.set('jwt_payload', payload);
 
-  await next();
+  // 記得要 return，讓非同步洋蔥模型完美閉環
+  return await next();
 };

@@ -4,11 +4,12 @@
  * 驗證失敗時導向 auth-gateway 登入頁面（瀏覽器友善）。
  */
 
-import { extrairToken, verificarToken, 寫入Cookie並重導 } from '../_utils.ts';
+import type { Context, Next } from 'hono';
+import { extrairToken, verificarToken, 寫入Cookie並重導 } from '../../utils/jwt.ts';
 
 const AUTH_GATEWAY_URL = Deno.env.get('AUTH_GATEWAY_URL') || 'http://localhost:8003';
 
-export const middleware = async (c: any, next: any) => {
+export const middleware = async (c: Context, next: Next) => {
   const url = new URL(c.req.url);
   const token = extrairToken(c);
 
@@ -25,5 +26,6 @@ export const middleware = async (c: any, next: any) => {
   const redirectRes = 寫入Cookie並重導(c, token, url);
   if (redirectRes) return redirectRes;
 
-  await next();
+  // 💡 記得加上 return，確保 Response 能正確順著洋蔥模型回傳
+  return await next();
 };

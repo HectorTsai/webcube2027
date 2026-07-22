@@ -1,5 +1,5 @@
 /**
- * GET /api/:id{[\\w]+:[\\w]+:[\\w\\-]+}
+ * GET /api/:id
  * Get a single record by composite ID.
  *
  * ID format: collection:model:nanoid

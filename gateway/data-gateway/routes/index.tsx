@@ -100,7 +100,7 @@ const Landing = () => (
               <div class="card-body items-center text-center py-5 px-4 gap-2">
                 <div class="text-3xl text-secondary mb-1">&#9889;</div>
                 <h3 class="font-semibold text-sm">多層儲存</h3>
-                <p class="text-xs text-base-content/50">L1 KV 快取 + L2 持久層</p>
+                <p class="text-xs text-base-content/50">L1 KV + L2/L3 持久層</p>
               </div>
             </div>
             <div class="card bg-base-100/70 backdrop-blur-sm shadow-xs border border-base-200">

@@ -9,6 +9,7 @@
 import { initializeApp, getApps, cert, type App } from 'firebase-admin/app';
 import { getFirestore, type Firestore, type Timestamp } from 'firebase-admin/firestore';
 import type { DatabaseAdapter, QueryOptions, FieldFilter } from './adapter-interface.ts';
+import { info, error as logError } from '@dui/util';
 
 export interface FirestoreConnectOptions {
   /** Firebase 專案 ID（必要）*/
@@ -84,7 +85,8 @@ export class FirestoreAdapter implements DatabaseAdapter {
       const db = this.拿到DB();
       const doc = await db.collection(collection).doc(id).get();
       return this.快照取資料(doc);
-    } catch {
+    } catch (err) {
+      await logError('FirestoreAdapter', `getById 失敗 (${id}): ${err instanceof Error ? err.message : String(err)}`);
       return null;
     }
   }
@@ -119,7 +121,8 @@ export class FirestoreAdapter implements DatabaseAdapter {
         if (obj) results.push(obj);
       });
       return results;
-    } catch {
+    } catch (err) {
+      await logError('FirestoreAdapter', `list 失敗 (${collection}): ${err instanceof Error ? err.message : String(err)}`);
       return [];
     }
   }
@@ -144,25 +147,31 @@ export class FirestoreAdapter implements DatabaseAdapter {
   async queryByField(collection: string, filter: FieldFilter, modelType?: string): Promise<Record<string, unknown>[]> {
     try {
       const db = this.拿到DB();
+
+      // 先以 field equality 查詢（這個不需要複合索引）
       let query: any = db.collection(collection)
         .where(`data.${filter.field}`, '==', filter.value);
 
-      if (modelType) {
-        query = query
-          .where('data.id', '>=', `${collection}:${modelType}:`)
-          .where('data.id', '<=', `${collection}:${modelType}:\uf8ff`)
-          .orderBy('data.id');
-      }
-
       const snapshot = await query.get();
 
-      const results: Record<string, unknown>[] = [];
+      let results: Record<string, unknown>[] = [];
       snapshot.forEach((doc: any) => {
         const obj = this.快照取資料(doc);
         if (obj) results.push(obj);
       });
+
+      // 若有指定 modelType，在記憶體中過濾（避免 Firestore 複合索引缺失問題）
+      if (modelType) {
+        const prefix = `${collection}:${modelType}:`;
+        results = results.filter((r) => {
+          const id = r.id as string;
+          return id >= prefix && id <= `${prefix}\uf8ff`;
+        });
+      }
+
       return results;
-    } catch {
+    } catch (err) {
+      await logError('FirestoreAdapter', `queryByField 失敗 (${collection}, ${filter.field}): ${err instanceof Error ? err.message : String(err)}`);
       return [];
     }
   }

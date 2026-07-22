@@ -1,3 +1,9 @@
+/**
+ * JWT 驗證共用工具
+ *
+ * 從 auth-gateway 取得 Ed25519 公鑰並快取，供 API 與 Admin middleware 使用。
+ */
+
 import { dataPool } from '@dui/database';
 
 const AUTH_GATEWAY_URL = Deno.env.get('AUTH_GATEWAY_URL') || 'http://localhost:8003';
@@ -13,7 +19,7 @@ export function parseId(compositeId: string): { model: string; id: string } {
   return { model: parts[0], id: parts[2] ?? parts[1] };
 }
 
-// ── JWT 驗證共用邏輯 ──────────────────────────────────
+// ── JWT 驗證共用邏輯 ──
 
 // Cached Ed25519 public key fetched from auth-gateway
 let cachedPublicKey: CryptoKey | null = null;

@@ -2,3 +2,4 @@ deno.lock
 data/
 node_modules/
 .env
+static/output.css

@@ -1,5 +1,5 @@
 /**
- * DELETE /api/:id{[\\w]+:[\\w]+:[\\w\\-]+}
+ * DELETE /api/:id
  * Delete a single record by composite ID.
  *
  * ID format: collection:model:nanoid

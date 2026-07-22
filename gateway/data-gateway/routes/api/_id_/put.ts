@@ -1,5 +1,5 @@
 /**
- * PUT /api/:id{[\\w]+:[\\w]+:[\\w\\-]+}
+ * PUT /api/:id
  * Update a single record by composite ID.
  *
  * ID format: collection:model:nanoid

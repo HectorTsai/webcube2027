@@ -389,7 +389,7 @@ export class PoolCore extends BasePool<string, DatabaseAdapter> {
           const { FirestoreAdapter } = await import('./adapter/firestore.ts');
           const adapter = new FirestoreAdapter({
             projectId: info.host || info.database || '',
-            credentials: info.password || '',
+            credential: info.credential,
             databaseId: info.namespace,
           });
           await adapter.connect();
