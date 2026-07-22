@@ -1,47 +1,99 @@
-import { Hono } from '@dui/framework';
-import { createFileRouter } from '@dui/framework/file-router';
+import { createGateway } from '@dui/framework';
 import { info } from '@dui/util';
 import { sign, verify } from 'hono/jwt';
 import { localProvider } from './providers/local.ts';
 
-const app = new Hono();
+// ── Hex helpers ──
 
-// ── 狀態 ──
-let 加密金鑰 = '';
+function bytesToHex(bytes: Uint8Array): string {
+  return Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
 
-// ── 共用 L1 設定檔（與 data-gateway 共享） ──
-const L1_PATH = `${import.meta.dirname}/../data/l1.json`;
-
-async function 讀取L1(): Promise<Record<string, string>> {
-  try {
-    return JSON.parse(await Deno.readTextFile(L1_PATH));
-  } catch {
-    return {};
+function hexToBytes(hex: string): Uint8Array<ArrayBuffer> {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < hex.length; i += 2) {
+    bytes[i / 2] = parseInt(hex.slice(i, i + 2), 16);
   }
+  return bytes;
 }
 
-async function 寫入L1(chaves: Record<string, string>): Promise<void> {
-  const data = await 讀取L1();
-  Object.assign(data, chaves);
-  await Deno.writeTextFile(L1_PATH, JSON.stringify(data, null, 2));
+// ── Gateway bootstrap (L1, crypto, file routes, Hono) ──
+
+const gw = await createGateway({
+  name: 'auth-gateway',
+  port: Number(Deno.env.get('AUTH_GATEWAY_PORT')) || 8003,
+  dirname: import.meta.dirname!,
+});
+
+const app = gw.app;
+
+// ── Ed25519 Key Management ──
+
+/**
+ * Get or create an Ed25519 key pair.
+ * Keys are stored in L1 as hex-encoded PKCS#8 / SPKI.
+ * On subsequent starts, keys are re-imported from L1.
+ *
+ * Private key stays in auth-gateway only. Other gateways fetch
+ * the public key via GET /api/jwt-public-key for local verification.
+ */
+async function getOrCreateKeyPair(): Promise<{ privateKey: CryptoKey; publicKey: CryptoKey }> {
+  const storedPrivateHex = await gw.l1.get('_jwt_private_key');
+
+  if (storedPrivateHex) {
+    const privateKeyBytes = hexToBytes(storedPrivateHex);
+    const privateKey = await crypto.subtle.importKey(
+      'pkcs8', privateKeyBytes, { name: 'Ed25519' }, false, ['sign'],
+    );
+
+    const storedPublicHex = await gw.l1.get('_jwt_public_key');
+    const publicKeyBytes = hexToBytes(storedPublicHex!);
+    const publicKey = await crypto.subtle.importKey(
+      'spki', publicKeyBytes, { name: 'Ed25519' }, false, ['verify'],
+    );
+
+    return { privateKey, publicKey };
+  }
+
+  // Generate new key pair
+  const keyPair = await crypto.subtle.generateKey(
+    { name: 'Ed25519' }, true, ['sign', 'verify'],
+  ) as CryptoKeyPair;
+
+  // Export and store in L1
+  const pkcs8 = new Uint8Array(await crypto.subtle.exportKey('pkcs8', keyPair.privateKey));
+  const spki = new Uint8Array(await crypto.subtle.exportKey('spki', keyPair.publicKey));
+
+  await gw.l1.set('_jwt_private_key', bytesToHex(pkcs8));
+  await gw.l1.set('_jwt_public_key', bytesToHex(spki));
+
+  await info('AuthGateway', 'Ed25519 key pair generated and stored in L1');
+
+  return { privateKey: keyPair.privateKey, publicKey: keyPair.publicKey };
 }
 
-// ── 登入 API ──
+const { privateKey, publicKey } = await getOrCreateKeyPair();
+const publicKeyHex = (await gw.l1.get('_jwt_public_key'))!;
+
+await info('AuthGateway', 'JWT Ed25519 key pair ready');
+
+// ── Login API ──
+
 app.post('/api/login', async (c) => {
   const result = await localProvider.login(c);
   if (!result.success || !result.payload) {
     return c.json({ success: false, error: result.error ?? '登入失敗' }, 401);
   }
 
-  // 簽發 JWT（24 小時有效）
+  // Sign JWT with Ed25519 (24h expiry)
   const payload = {
     ...result.payload,
     exp: Math.floor(Date.now() / 1000) + 86400,
     iat: Math.floor(Date.now() / 1000),
   };
-  const token = await sign(payload, 加密金鑰, 'HS256');
+  const token = await sign(payload, privateKey, 'EdDSA');
 
-  // 設定 httpOnly cookie
+  // Set httpOnly cookie
   c.header(
     'Set-Cookie',
     `jwt=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`,
@@ -53,12 +105,20 @@ app.post('/api/login', async (c) => {
   });
 });
 
-// ── Token 驗證 API（供其他 gateway 調用） ──
+// ── Public Key Endpoint (for other gateways to verify locally) ──
+
+app.get('/api/jwt-public-key', async (c) => {
+  return c.json({ publicKey: publicKeyHex, algorithm: 'EdDSA' });
+});
+
+// ── Token Verification API (for gateways that call via HTTP) ──
+
 app.post('/api/verify', async (c) => {
   try {
     const { token } = await c.req.json();
     if (!token) return c.json({ valid: false }, 401);
-    const payload = await verify(token, 加密金鑰, 'HS256');
+
+    const payload = await verify(token, publicKey, 'EdDSA');
     return c.json({ valid: true, payload });
   } catch {
     return c.json({ valid: false }, 401);
@@ -73,21 +133,17 @@ app.get('/api/verify', async (c) => {
     : cookieToken;
 
   if (!token) return c.json({ valid: false }, 401);
+
   try {
-    const payload = await verify(token, 加密金鑰, 'HS256');
+    const payload = await verify(token, publicKey, 'EdDSA');
     return c.json({ valid: true, payload });
   } catch {
     return c.json({ valid: false }, 401);
   }
 });
 
-// ── 檔案路由 ──
-const fileRoutes = await createFileRouter({
-  dirPath: `${import.meta.dirname}/routes`,
-});
-app.route('/', fileRoutes);
+// ── Health check (proxy to data-gateway) ──
 
-// ── 健康檢查（代理 data-gateway） ──
 const DATA_GATEWAY_URL = Deno.env.get('DATA_GATEWAY_URL') || 'http://localhost:8002';
 
 app.get('/health', async (c) => {
@@ -96,29 +152,15 @@ app.get('/health', async (c) => {
     const data = await r.json();
     return c.json(data);
   } catch {
-    return c.json({ status: 'error', service: 'auth-gateway', l1: 'disconnected', l2: 'disconnected' });
+    return c.json({
+      status: 'error',
+      service: 'auth-gateway',
+      l1: 'disconnected',
+      l2: 'disconnected',
+    });
   }
 });
 
-// ── 啟動 ──
-const PORT = Number(Deno.env.get('AUTH_GATEWAY_PORT')) || 8003;
+// ── Startup ──
 
-async function main() {
-  // 讀取或生成 JWT 加密金鑰（存於共用 L1）
-  const L1 = await 讀取L1();
-  加密金鑰 = L1.jwt_secret ?? '';
-  if (!加密金鑰) {
-    加密金鑰 = Array.from(crypto.getRandomValues(new Uint8Array(32)))
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('');
-    await 寫入L1({ jwt_secret: 加密金鑰 });
-    await info('AuthGateway', '已自動生成 JWT 加密金鑰');
-  }
-  Deno.env.set('SECRET_KEY', 加密金鑰);
-  await info('AuthGateway', 'JWT 加密金鑰已就緒');
-
-  Deno.serve({ port: PORT }, app.fetch);
-  await info('AuthGateway', `啟動於 port ${PORT}`);
-}
-
-await main();
+gw.start();

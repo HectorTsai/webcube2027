@@ -6,7 +6,7 @@
 
 import { DatabaseSync } from 'node:sqlite';
 import { DatabaseAdapter, QueryOptions, FieldFilter } from './adapter-interface.ts';
-import { error } from '../logger.ts';
+import { error } from '@dui/util';
 
 export class SqliteAdapter implements DatabaseAdapter {
   readonly type = 'sqlite';

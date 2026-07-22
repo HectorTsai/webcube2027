@@ -1,5 +1,4 @@
-import { Hono } from '@dui/framework';
-import { createFileRouter } from '@dui/framework/file-router';
+import { createGateway, Hono } from '@dui/framework';
 import { 創建安裝檢查 } from '@dui/framework/setup-guard';
 import { dataPool } from '@dui/database';
 import { info, error } from '@dui/util';
@@ -11,7 +10,17 @@ import { GET as getById } from './routes/api/get-by-id.ts';
 import { PUT as updateById } from './routes/api/update-by-id.ts';
 import { DELETE as deleteById } from './routes/api/delete-by-id.ts';
 
-const app = new Hono();
+// ── Gateway bootstrap (L1, crypto, file routes, Hono) ──
+const gw = await createGateway({
+  name: 'data-gateway',
+  port: Number(Deno.env.get('DATA_GATEWAY_PORT')) || 8002,
+  dirname: import.meta.dirname!,
+});
+
+// Provide L1 reference to pool (pool no longer manages L1 lifecycle)
+dataPool.setConfigStore(gw.l1);
+
+const app = gw.app;
 
 // ── 安裝狀態 ──
 let 已安裝 = false;
@@ -29,9 +38,9 @@ app.post('/api/setup', async (c) => {
       return c.json({ success: false, error: '請填寫管理員帳號與密碼' }, 400);
     }
 
-    // SQLite：只取檔名，放到共用 gateway/data/ 下
+    // SQLite：只取檔名，放到自己的 data/ 下
     if (l2?.type === 'sqlite' && l2?.filePath) {
-      l2.filePath = `${import.meta.dirname}/../data/${l2.filePath.split('/').pop() || 'l2.db'}`;
+      l2.filePath = `${import.meta.dirname}/data/${l2.filePath.split('/').pop() || 'l2.db'}`;
     }
 
     // 儲存 L2 連線資訊到 L1（加密）
@@ -98,13 +107,6 @@ innerApi.post('/auth/verify-user', async (c) => {
 
 app.route('/inner-api', innerApi);
 
-// ── File-based routes ────────────────────────────
-
-const fileRoutes = await createFileRouter({
-  dirPath: `${import.meta.dirname}/routes`,
-});
-app.route('/', fileRoutes);
-
 // ── Data API (manual routes — collection/model structure) ──
 // All data API routes require JWT authentication
 
@@ -134,9 +136,7 @@ app.get('/logout', (c) => {
 // ── Health check ──────────────────────────────────
 
 app.get('/health', async (c) => {
-  // 檢查 L1
   const l1Ok = dataPool.config !== undefined && dataPool.config !== null;
-  // 檢查 L2
   const l2Ok = dataPool.System !== undefined && dataPool.System !== null;
   const allOk = l1Ok && l2Ok;
   return c.json({
@@ -149,12 +149,7 @@ app.get('/health', async (c) => {
 
 // ── Startup ───────────────────────────────────────
 
-const PORT = Number(Deno.env.get('DATA_GATEWAY_PORT')) || 8002;
-
-await info('DataGateway', `Starting on port ${PORT}`);
-
-await dataPool.initL1(`${import.meta.dirname}/../data`);
-await info('DataGateway', 'L1 初始化完成');
+await info('DataGateway', `Starting on port ${gw.port}`);
 
 // 檢查 L2 是否已設定
 const connStr = await dataPool.config?.get('l2_connection');
@@ -170,4 +165,4 @@ if (connStr) {
   await info('DataGateway', '尚未安裝，請前往 /setup');
 }
 
-Deno.serve({ port: PORT }, app.fetch);
+gw.start();

@@ -1,0 +1,10 @@
+{
+  "name": "@dui/kv",
+  "version": "0.1.0",
+  "exports": {
+    ".": "./mod.ts"
+  },
+  "imports": {
+    "@dui/util": "./../../packages/dui-util/mod.ts"
+  }
+}

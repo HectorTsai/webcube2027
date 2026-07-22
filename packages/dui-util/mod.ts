@@ -1,6 +1,6 @@
 export { InnerAPI, 設定App, 取得域名 } from './InnerAPI.ts';
 export { logger, debug, info, warn, error } from './logger.ts';
-export { encrypt, decrypt, ensureKey } from './crypto.ts';
+export { encrypt, decrypt, ensureKey, registerKey } from './crypto.ts';
 export { default as SecretString } from './secretstring.ts';
 export {
   ErrorCode, type ErrorCodeType,

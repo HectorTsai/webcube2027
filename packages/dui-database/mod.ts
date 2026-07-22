@@ -13,7 +13,8 @@ export type { IdInfo } from './base-model.ts';
 export { BaseModel } from './base-model.ts';
 export { dataPool } from './pool.ts';
 export type { QueryResult } from './pool.ts';
-export { L1Store } from './l1-store.ts';
+// L1Store moved to @dui/kv — re-export for backward compatibility
+export { L1Store } from '@dui/kv';
 // Re-export crypto utilities from @dui/util
 export { encrypt, decrypt, ensureKey, SecretString } from '@dui/util';
 

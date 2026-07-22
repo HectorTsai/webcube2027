@@ -48,7 +48,7 @@ class 資料池Wrapper {
    * 刪除記錄（傳入 composite ID 如 "table:type:id"）
    */
   async 刪除(id: string): Promise<QueryResult<boolean>> {
-    return dataPool.delete(id);
+    return dataPool.deleteRecord(id);
   }
 }
 

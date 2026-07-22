@@ -4,7 +4,7 @@
 
 import { MongoClient, type Db, type Collection } from 'mongodb';
 import { DatabaseAdapter, QueryOptions, FieldFilter } from './adapter-interface.ts';
-import { error } from '../logger.ts';
+import { error } from '@dui/util';
 
 // MongoDB 文件型別 — _id 使用字串而非 ObjectId
 interface WebCubeDoc {

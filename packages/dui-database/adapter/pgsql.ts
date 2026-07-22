@@ -12,7 +12,7 @@
 
 import { Client, type ClientConfig } from 'pg';
 import type { DatabaseAdapter, QueryOptions, FieldFilter } from './adapter-interface.ts';
-import { error } from '../logger.ts';
+import { error } from '@dui/util';
 
 export interface PgsqlConnectOptions {
   host?: string;

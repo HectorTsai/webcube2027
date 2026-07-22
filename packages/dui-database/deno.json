@@ -5,7 +5,6 @@
     ".": "./mod.ts",
     "./pool": "./pool.ts",
     "./base-model": "./base-model.ts",
-    "./logger": "./logger.ts",
     "./types": "./types.ts"
   },
   "imports": {
@@ -17,6 +16,9 @@
     "node-appwrite": "npm:node-appwrite@^14.0.0",
     "@aws-sdk/client-dynamodb": "npm:@aws-sdk/client-dynamodb@^3.0.0",
     "@aws-sdk/lib-dynamodb": "npm:@aws-sdk/lib-dynamodb@^3.0.0",
-    "mssql": "npm:mssql@^11.0.0"
+    "mssql": "npm:mssql@^11.0.0",
+    "@dui/kv": "./../../packages/dui-kv/mod.ts",
+    "@dui/util": "./../../packages/dui-util/mod.ts",
+    "@dui/pool": "./../../packages/dui-pool/mod.ts"
   }
 }

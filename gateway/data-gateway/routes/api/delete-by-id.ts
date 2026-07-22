@@ -16,7 +16,7 @@ export const DELETE = async (c: any) => {
       return c.json({ success: false, error: 'ID 格式必須為 collection:model:nanoid' }, 400);
     }
 
-    const result = await dataPool.delete(id);
+    const result = await dataPool.deleteRecord(id);
 
     if (result.success) {
       return c.json({ success: true, data: result.data });

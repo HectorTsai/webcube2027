@@ -2425,6 +2425,14 @@
           "npm:bcryptjs@^3.0.3"
         ]
       },
+      "gateway/auth-gateway": {
+        "dependencies": [
+          "jsr:@hono/hono@^4.12.31",
+          "npm:@tailwindcss/cli@^4.3.3",
+          "npm:daisyui@^5.6.18",
+          "npm:tailwindcss@^4.3.3"
+        ]
+      },
       "gateway/data-gateway": {
         "dependencies": [
           "jsr:@hono/hono@^4.12.31",

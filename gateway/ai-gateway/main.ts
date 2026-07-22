@@ -158,7 +158,7 @@ async function main() {
         await dataPool.upsert("排程記錄", { id, 最後執行: time });
       },
       刪除排程: async (id: string) => {
-        await dataPool.delete(id);
+        await dataPool.deleteRecord(id);
       },
     });
   }

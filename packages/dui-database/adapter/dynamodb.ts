@@ -21,7 +21,7 @@ import {
   ScanCommand,
 } from '@aws-sdk/lib-dynamodb';
 import type { DatabaseAdapter, QueryOptions, FieldFilter } from './adapter-interface.ts';
-import { error } from '../logger.ts';
+import { error } from '@dui/util';
 
 export interface DynamoDBConnectOptions {
   /** AWS Region，例如 "ap-northeast-1" */

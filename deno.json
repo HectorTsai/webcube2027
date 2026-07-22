@@ -6,12 +6,15 @@
     "packages/dui-multilanguage",
     "packages/dui-translation",
     "packages/dui-util",
+    "packages/dui-kv",
+    "packages/dui-pool",
     "gateway/data-gateway",
     "gateway/ai-gateway",
     "gateway/render-gateway",
     "gateway/page-gateway",
     "gateway/cube-gateway",
-    "gateway/theme-gateway"
+    "gateway/theme-gateway",
+    "gateway/auth-gateway"
   ],
   "imports": {
     "hono": "jsr:@hono/hono@^4.12.31",

@@ -1,5 +1,7 @@
 import { dataPool } from '@dui/database';
 
+const AUTH_GATEWAY_URL = Deno.env.get('AUTH_GATEWAY_URL') || 'http://localhost:8003';
+
 /** Build composite ID for data pool queries */
 export function composeId(model: string, rawId: string): string {
   return `${model}:${model}:${rawId}`;
@@ -12,6 +14,30 @@ export function parseId(compositeId: string): { model: string; id: string } {
 }
 
 // ── JWT 驗證共用邏輯 ──────────────────────────────────
+
+// Cached Ed25519 public key fetched from auth-gateway
+let cachedPublicKey: CryptoKey | null = null;
+
+/**
+ * Fetch the Ed25519 public key from auth-gateway.
+ * On first call or after key rotation, this re-fetches and caches the key.
+ */
+async function fetchPublicKey(): Promise<CryptoKey> {
+  const res = await fetch(`${AUTH_GATEWAY_URL}/api/jwt-public-key`);
+  if (!res.ok) throw new Error(`Failed to fetch JWT public key: ${res.status}`);
+
+  const { publicKey: publicKeyHex } = await res.json();
+
+  // Hex → Uint8Array
+  const bytes = new Uint8Array(publicKeyHex.length / 2);
+  for (let i = 0; i < publicKeyHex.length; i += 2) {
+    bytes[i / 2] = parseInt(publicKeyHex.slice(i, i + 2), 16);
+  }
+
+  return await crypto.subtle.importKey(
+    'spki', bytes, { name: 'Ed25519' }, false, ['verify'],
+  );
+}
 
 /**
  * 從 request 中提取 JWT token（依序：query param → cookie → Authorization header）
@@ -32,27 +58,29 @@ export function extrairToken(c: any): string {
 }
 
 /**
- * 從共用 L1 讀取 JWT 加密金鑰
- */
-export async function getJwtSecret(): Promise<string> {
-  try {
-    return (await dataPool.config?.get('jwt_secret')) ?? '';
-  } catch {
-    return '';
-  }
-}
-
-/**
- * 驗證 JWT token，成功回傳 payload，失敗回傳 null
+ * 驗證 JWT token (Ed25519)，成功回傳 payload，失敗回傳 null
+ *
+ * 第一次呼叫時自動從 auth-gateway 取得 public key 並快取。
+ * 若驗證失敗會嘗試重新取得 public key（支援金鑰輪換）。
  */
 export async function verificarToken(token: string): Promise<any | null> {
   try {
+    if (!cachedPublicKey) {
+      cachedPublicKey = await fetchPublicKey();
+    }
+
     const { verify } = await import('hono/jwt');
-    const secret = await getJwtSecret();
-    if (!secret) return null;
-    return await verify(token, secret, 'HS256');
+    return await verify(token, cachedPublicKey, 'EdDSA');
   } catch {
-    return null;
+    // Public key might have been rotated — retry once
+    cachedPublicKey = null;
+    try {
+      cachedPublicKey = await fetchPublicKey();
+      const { verify } = await import('hono/jwt');
+      return await verify(token, cachedPublicKey, 'EdDSA');
+    } catch {
+      return null;
+    }
   }
 }
 
@@ -61,7 +89,10 @@ export async function verificarToken(token: string): Promise<any | null> {
  */
 export function 寫入Cookie並重導(c: any, token: string, url: URL): Response | null {
   if (url.searchParams.has('token')) {
-    c.header('Set-Cookie', `jwt=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`);
+    c.header(
+      'Set-Cookie',
+      `jwt=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`,
+    );
     url.searchParams.delete('token');
     return c.redirect(url.pathname + url.search);
   }

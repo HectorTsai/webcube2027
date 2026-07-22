@@ -13,6 +13,7 @@
     "hono/jwt": "jsr:@hono/hono@^4.12.31/jwt",
     "hono/html": "jsr:@hono/hono@^4.12.31/html",
     "@dui/util": "./../../packages/dui-util/mod.ts",
+    "@dui/kv": "./../../packages/dui-kv/mod.ts",
     "@dui/framework": "./../../packages/dui-framework/mod.ts",
     "@dui/framework/file-router": "./../../packages/dui-framework/fileRouter.ts",
     "@tailwindcss/cli": "npm:@tailwindcss/cli@^4.3.3",

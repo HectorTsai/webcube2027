@@ -16,7 +16,7 @@
 
 import { Client, Databases, Query } from 'node-appwrite';
 import type { DatabaseAdapter, QueryOptions, FieldFilter } from './adapter-interface.ts';
-import { error } from '../logger.ts';
+import { error } from '@dui/util';
 
 export interface AppwriteConnectOptions {
   /** Appwrite 端點 URL，例如 https://cloud.appwrite.io/v1 */

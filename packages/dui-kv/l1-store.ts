@@ -12,7 +12,7 @@
 //
 // Sensitive values should be encrypted with encrypt() before storing.
 
-import { info, debug } from './logger.ts';
+import { info, debug } from '@dui/util';
 
 const DEFAULT_DATA_PATH = './data/l1.json';
 

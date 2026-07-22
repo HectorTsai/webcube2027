@@ -5,7 +5,7 @@
 
 import { createConnection, type Connection } from 'mysql2/promise';
 import type { DatabaseAdapter, QueryOptions, FieldFilter } from './adapter-interface.ts';
-import { error } from '../logger.ts';
+import { error } from '@dui/util';
 
 export interface MysqlConnectOptions {
   host?: string;

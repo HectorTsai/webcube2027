@@ -12,6 +12,7 @@ const DEFAULT_KEY_PATH = './data/.crypto.key';
 // ── Key Resolution ──
 //
 // Priority:
+//   0. CRYPTO_KEY env var — set programmatically by framework via registerKey()
 //   1. SECRET_KEY environment variable (production deployments)
 //   2. .crypto.key file (auto-generated on first run, survives restarts)
 //   3. Auto-generate + write to .crypto.key (zero-setup first run)
@@ -20,7 +21,8 @@ const DEFAULT_KEY_PATH = './data/.crypto.key';
  * Resolve the encryption key.
  *
  * Checks (in order):
- * 1. `SECRET_KEY` env var
+ * 0. `CRYPTO_KEY` env var (set by framework/L1 runtime via registerKey())
+ * 1. `SECRET_KEY` env var (production deployments)
  * 2. `./data/.crypto.key` file (or `CRYPTO_KEY_PATH` env var)
  * 3. Auto-generates a new 256-bit key and writes it to the key file
  *
@@ -30,7 +32,14 @@ function getSecretKey(): string {
   const cached = _getCachedKey();
   if (cached) return cached;
 
-  // 1. Env var
+  // 0. CRYPTO_KEY env var — set by framework/L1 runtime
+  const runtimeKey = Deno.env.get('CRYPTO_KEY');
+  if (runtimeKey) {
+    _setCachedKey(runtimeKey);
+    return runtimeKey;
+  }
+
+  // 1. SECRET_KEY env var — production deployments
   const envKey = Deno.env.get('SECRET_KEY');
   if (envKey) {
     _setCachedKey(envKey);
@@ -66,6 +75,19 @@ function getSecretKey(): string {
       'Set SECRET_KEY environment variable or ensure write access to the directory.'
     );
   }
+}
+
+/**
+ * Register the crypto key programmatically.
+ *
+ * Sets the `CRYPTO_KEY` env var so subsequent `encrypt()` / `decrypt()`
+ * calls will use this key. This avoids the need for a separate file on disk.
+ *
+ * Call this during gateway startup after reading the key from L1 store.
+ */
+export function registerKey(hexKey: string): void {
+  Deno.env.set('CRYPTO_KEY', hexKey);
+  _setCachedKey(hexKey);
 }
 
 // Module-level key cache
