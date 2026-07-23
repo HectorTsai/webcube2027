@@ -147,3 +147,97 @@ export interface AITaskConfig {
   最低能力值: number;       // model 能力值需 >= 此值
   需求能力: AI能力[];       // model 擅長能力需全部包含（AND 匹配）
 }
+
+// ── Pool → Adapter Bridge ──
+
+/** Pool 層使用的請求格式（OpenAI 風格） */
+export interface AIRequest {
+  model: string;
+  messages: { role: string; content: string }[];
+  stream?: boolean;
+  maxTokens?: number;
+  temperature?: number;
+}
+
+/** Pool 層預期的回應格式 */
+export interface AIResponse {
+  id: string;
+  content: string;
+  model: string;
+  usage: { promptTokens: number; completionTokens: number; totalTokens: number };
+}
+
+/** 精簡的伺服器資訊（避免與 AI伺服器 model 產生循環相依） */
+export interface AIServerInfo {
+  url: string;
+  apiKey: string;
+  [key: string]: unknown;
+}
+
+/** Pool 層使用的 Adapter 介面（英文方法名） */
+export interface AIProviderAdapter {
+  chat(server: AIServerInfo, req: AIRequest): Promise<AIResponse>;
+  ping(server: AIServerInfo): Promise<void>;
+}
+
+/**
+ * 取得 provider adapter（動態 import 避免循環相依）
+ * 將中文 API（AIProvider）轉接為 Pool 層使用的英文 API（AIProviderAdapter）
+ */
+export async function getProviderAdapter(providerType: string): Promise<AIProviderAdapter | null> {
+  switch (providerType) {
+    case 'openai': {
+      const { OpenAIProvider } = await import('./openai.ts');
+      return createAdapter((url, apiKey) => new OpenAIProvider(url, apiKey));
+    }
+    case 'anthropic': {
+      const { AnthropicProvider } = await import('./anthropic.ts');
+      return createAdapter((url, apiKey) => new AnthropicProvider(url, apiKey));
+    }
+    case 'gemini': {
+      const { GeminiProvider } = await import('./gemini.ts');
+      return createAdapter((url, apiKey) => new GeminiProvider(url, apiKey));
+    }
+    case 'ollama': {
+      const { OllamaProvider } = await import('./ollama.ts');
+      return createAdapter((url, apiKey) => new OllamaProvider(url, apiKey));
+    }
+    default:
+      return null;
+  }
+}
+
+function createAdapter(
+  factory: (url: string, apiKey: string) => AIProvider,
+): AIProviderAdapter {
+  return {
+    async chat(server, req): Promise<AIResponse> {
+      const provider = factory(server.url, server.apiKey);
+      const systemPrompt = req.messages.find((m) => m.role === 'system')?.content ?? '';
+      const chatHistory: AI聊天訊息[] = req.messages
+        .filter((m) => m.role !== 'system')
+        .map((m) => ({ 角色: m.role as AI聊天訊息['角色'], 內容: m.content }));
+
+      const result = await provider.聊天(systemPrompt, chatHistory, {
+        model: req.model,
+        maxTokens: req.maxTokens,
+        temperature: req.temperature,
+      });
+
+      return {
+        id: crypto.randomUUID(),
+        content: result.內容,
+        model: req.model,
+        usage: {
+          promptTokens: result.token數,
+          completionTokens: result.token數,
+          totalTokens: result.token數,
+        },
+      };
+    },
+    async ping(server): Promise<void> {
+      const provider = factory(server.url, server.apiKey);
+      await provider.檢查可用性();
+    },
+  };
+}

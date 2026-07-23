@@ -8,25 +8,8 @@
 import { BasePool } from '@dui/pool';
 import { error, info } from '@dui/util';
 import { list } from '../dataGwClient.ts';
-import { getProviderAdapter, type AIProviderAdapter, type AI能力 } from './provider/adapter.ts';
+import { getProviderAdapter, type AIProviderAdapter, type AIRequest, type AIResponse, type AIServerInfo } from './provider/adapter.ts';
 import AI伺服器 from '../../database/models/AI伺服器.ts';
-
-// ── 型別 ──
-
-interface AIRequest {
-  model: string;
-  messages: { role: string; content: string }[];
-  stream?: boolean;
-  maxTokens?: number;
-  temperature?: number;
-}
-
-interface AIResponse {
-  id: string;
-  content: string;
-  model: string;
-  usage: { promptTokens: number; completionTokens: number; totalTokens: number };
-}
 
 interface AIResourcePoolOptions {
   cleanupIntervalMs?: number;
@@ -53,7 +36,7 @@ export class AIResourcePool extends BasePool<string, AI伺服器> {
 
         // 初始化 provider adapter
         if (!this.adapters.has(伺服器.provider)) {
-          const adapter = getProviderAdapter(伺服器.provider);
+          const adapter = await getProviderAdapter(伺服器.provider);
           if (adapter) {
             this.adapters.set(伺服器.provider, adapter);
             await info('AI Pool', `載入 provider adapter: ${伺服器.provider}`);
@@ -124,7 +107,7 @@ export class AIResourcePool extends BasePool<string, AI伺服器> {
   protected override async onHeartbeat(): Promise<void> {
     for (const 伺服器 of this.values()) {
       const adapter = this.getAdapter(伺服器.provider);
-      if (!adapter?.ping) continue;
+      if (!adapter) continue;
       try {
         await adapter.ping(伺服器);
       } catch {

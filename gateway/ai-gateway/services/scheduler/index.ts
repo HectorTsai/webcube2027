@@ -29,7 +29,7 @@ interface 排程記錄 {
 
 // ── 排程器 ──
 
-let timerId: number | null = null;
+let timerId: ReturnType<typeof setInterval> | null = null;
 const 間隔 = 60_000; // 每分鐘檢查一次
 
 export async function startScheduler(): Promise<void> {

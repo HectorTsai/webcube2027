@@ -48,7 +48,7 @@ async function fetchPublicKey(): Promise<CryptoKey> {
 /**
  * 從 request 中提取 JWT token（依序：query param → cookie → Authorization header）
  */
-export function extrairToken(c: any): string {
+export function extractToken(c: any): string {
   const url = new URL(c.req.url);
   let token = url.searchParams.get('token') || '';
   if (!token) {
@@ -69,7 +69,7 @@ export function extrairToken(c: any): string {
  * 第一次呼叫時自動從 auth-gateway 取得 public key 並快取。
  * 若驗證失敗會嘗試重新取得 public key（支援金鑰輪換）。
  */
-export async function verificarToken(token: string): Promise<any | null> {
+export async function verifyToken(token: string): Promise<any | null> {
   try {
     if (!cachedPublicKey) {
       cachedPublicKey = await fetchPublicKey();

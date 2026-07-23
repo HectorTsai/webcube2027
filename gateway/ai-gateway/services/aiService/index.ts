@@ -46,13 +46,13 @@ export async function handleChatCompletion(body: {
       {
         index: 0,
         message: { role: 'assistant', content: response.content },
-        finishReason: 'stop',
+        finish_reason: 'stop',
       },
     ],
     usage: {
-      promptTokens: response.usage.promptTokens,
-      completionTokens: response.usage.completionTokens,
-      totalTokens: response.usage.totalTokens,
+      prompt_tokens: response.usage.promptTokens,
+      completion_tokens: response.usage.completionTokens,
+      total_tokens: response.usage.totalTokens,
     },
   };
 }

@@ -40,7 +40,7 @@ async function getPublicKey(): Promise<CryptoKey> {
 }
 
 // ── 驗證 token ──
-export async function verificarToken(c: Context, next: Next) {
+export async function verifyToken(c: Context, next: Next) {
   const authHeader = c.req.header('Authorization');
   const token = authHeader?.startsWith('Bearer ')
     ? authHeader.slice(7)
@@ -97,7 +97,7 @@ export async function middleware(c: Context, next: Next) {
 
   // /api/* 需要驗證
   if (path.startsWith('/api/')) {
-    return await verificarToken(c, next);
+    return await verifyToken(c, next);
   }
 
   return await next();

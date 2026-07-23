@@ -5,19 +5,19 @@
  */
 
 import type { Context, Next } from 'hono';
-import { extrairToken, verificarToken, 寫入Cookie並重導 } from '../../utils/jwt.ts';
+import { extractToken, verifyToken, 寫入Cookie並重導 } from '../../utils/jwt.ts';
 
 const AUTH_GATEWAY_URL = Deno.env.get('AUTH_GATEWAY_URL') || 'http://localhost:8003';
 
 export const middleware = async (c: Context, next: Next) => {
   const url = new URL(c.req.url);
-  const token = extrairToken(c);
+  const token = extractToken(c);
 
   if (!token) {
     return c.redirect(`${AUTH_GATEWAY_URL}/login?redirect=${encodeURIComponent(url.href)}`);
   }
 
-  const payload = await verificarToken(token);
+  const payload = await verifyToken(token);
   if (!payload) {
     return c.redirect(`${AUTH_GATEWAY_URL}/login?redirect=${encodeURIComponent(url.href)}`);
   }

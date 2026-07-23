@@ -7,7 +7,7 @@
  */
 
 import type { Context, Next } from 'hono';
-import { extrairToken, verificarToken } from '../../utils/jwt.ts';
+import { extractToken, verifyToken } from '../../utils/jwt.ts';
 
 export const middleware = async (c: Context, next: Next) => {
   // /api/setup 是公開安裝端點，跳過 JWT 驗證
@@ -15,13 +15,13 @@ export const middleware = async (c: Context, next: Next) => {
     return await next();
   }
 
-  const token = extrairToken(c);
+  const token = extractToken(c);
 
   if (!token) {
     return c.json({ success: false, error: '未提供認證 token' }, 401);
   }
 
-  const payload = await verificarToken(token);
+  const payload = await verifyToken(token);
   if (!payload) {
     return c.json({ success: false, error: 'token 無效或已過期' }, 401);
   }
