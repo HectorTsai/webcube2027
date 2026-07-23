@@ -16,9 +16,9 @@ export abstract class BasePool<K, V> {
   /** Internal item map with LRU/LFU/dirty metadata */
   protected items = new Map<K, PoolItem<V>>();
 
-  private flushTimer?: number;
-  private cleanupTimer?: number;
-  private heartbeatTimer?: number;
+  private flushTimer?: ReturnType<typeof setInterval>;
+  private cleanupTimer?: ReturnType<typeof setInterval>;
+  private heartbeatTimer?: ReturnType<typeof setInterval>;
 
   constructor(protected options: PoolOptions = {}) {
     // 1. Flush timer — periodic write-back of dirty items
