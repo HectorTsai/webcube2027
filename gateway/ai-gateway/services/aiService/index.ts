@@ -68,7 +68,9 @@ export async function handleEmbeddings(body: {
 export async function listModels() {
   const models: { id: string; object: string; created: number; ownedBy: string }[] = [];
 
-  for (const 伺服器 of aiPool.values()) {
+  for (const key of aiPool.keys()) {
+    const 伺服器 = aiPool.get(key);
+    if (!伺服器) continue;
     for (const m of 伺服器.模型列表) {
       models.push({
         id: m.名稱.toString(),

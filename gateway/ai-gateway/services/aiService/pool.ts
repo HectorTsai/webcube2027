@@ -59,7 +59,9 @@ export class AIResourcePool extends BasePool<string, AI伺服器> {
     const now = Date.now();
     const candidates: AI伺服器[] = [];
 
-    for (const 伺服器 of this.values()) {
+    for (const key of this.keys()) {
+      const 伺服器 = this.get(key);
+      if (!伺服器) continue;
       if (!伺服器.啟用) continue;
       if (伺服器.解禁時間戳 > now) continue;
       if (伺服器.當前總併發 >= 伺服器.動態全域併發上限) continue;
@@ -87,7 +89,7 @@ export class AIResourcePool extends BasePool<string, AI伺服器> {
 
     伺服器.當前總併發++;
     try {
-      const response = await adapter.chat(伺服器, req);
+      const response = await adapter.chat({ url: 伺服器.url, apiKey: 伺服器.apiKey }, req);
       // 成功：重設失敗計數
       伺服器.連續失敗次數 = 0;
       return response;
@@ -105,11 +107,13 @@ export class AIResourcePool extends BasePool<string, AI伺服器> {
 
   /** Heartbeat：檢查 adapter 連線狀態 */
   protected override async onHeartbeat(): Promise<void> {
-    for (const 伺服器 of this.values()) {
+    for (const key of this.keys()) {
+      const 伺服器 = this.get(key);
+      if (!伺服器) continue;
       const adapter = this.getAdapter(伺服器.provider);
       if (!adapter) continue;
       try {
-        await adapter.ping(伺服器);
+        await adapter.ping({ url: 伺服器.url, apiKey: 伺服器.apiKey });
       } catch {
         await error('AI Pool', `Heartbeat 失敗：${伺服器.id} (${伺服器.provider})`);
       }
