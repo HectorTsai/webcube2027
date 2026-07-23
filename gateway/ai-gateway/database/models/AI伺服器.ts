@@ -1,13 +1,13 @@
 /**
  * AI伺服器 — schema 介面 + class 實作
  *
- * ── AI伺服器記錄（介面）──
+ * ── AI伺服器介面（介面）──
  * 定義完整的資料結構，所有 AI 伺服器相關操作統一使用此介面。
- * 從 data-gateway 取得的 JSON 可直接當作 AI伺服器記錄 使用，
+ * 從 data-gateway 取得的 JSON 可直接當作 AI伺服器介面 使用，
  * 不需要 always new class。
  *
  * ── AI伺服器（class）──
- * 實作 AI伺服器記錄，提供預設值與序列化。
+ * 實作 AI伺服器介面，提供預設值與序列化。
  * 用在「新增伺服器」表單等需要建構新記錄的場合。
  */
 
@@ -33,7 +33,7 @@ export interface AI模型定義 {
 
 // ── 主介面 ──
 
-export interface AI伺服器記錄 {
+export interface AI伺服器介面 {
   // 系統欄位
   id: string;
   createdAt: string;
@@ -70,7 +70,7 @@ export interface AI伺服器記錄 {
 
 // ── Class 實作 ──
 
-export default class AI伺服器 implements AI伺服器記錄 {
+export default class AI伺服器 implements AI伺服器介面 {
   // 系統欄位
   public id!: string;
   public createdAt!: string;
@@ -104,7 +104,7 @@ export default class AI伺服器 implements AI伺服器記錄 {
   public 網站ID: string | null;
   public 啟用: boolean;
 
-  constructor(data: Partial<AI伺服器記錄> = {}) {
+  constructor(data: Partial<AI伺服器介面> = {}) {
     this.id = data.id ?? '';
     this.createdAt = data.createdAt ?? new Date().toISOString();
     this.updatedAt = data.updatedAt ?? this.createdAt;
@@ -154,7 +154,7 @@ export default class AI伺服器 implements AI伺服器記錄 {
   }
 
   /** 序列化為持久化用 JSON（排除記憶體執行期狀態） */
-  toJSON(): AI伺服器記錄 {
+  toJSON(): AI伺服器介面 {
     return {
       id: this.id,
       createdAt: this.createdAt,

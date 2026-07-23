@@ -2,7 +2,7 @@
  * aiService/pool.ts — AI 資源池
  *
  * 管理 AI 伺服器連線設定、動態路由、容錯切換。
- * 資料從 data-gateway 以 JSON 載入，直接作為 AI伺服器記錄 使用，
+ * 資料從 data-gateway 以 JSON 載入，直接作為 AI伺服器介面 使用，
  * 不經過 class 建構（減少不必要的轉換開銷）。
  *
  * Runtime 狀態（當前併發數、連續失敗次數、解禁時間戳）獨立管理，
@@ -13,7 +13,7 @@ import { BasePool } from '@dui/pool';
 import { error, info } from '@dui/util';
 import { list } from '../dataGwClient.ts';
 import { getProviderAdapter, type AIProviderAdapter, type AIRequest, type AIResponse } from './provider/adapter.ts';
-import type { AI伺服器記錄, AI模型定義 } from '../../database/models/AI伺服器.ts';
+import type { AI伺服器介面, AI模型定義 } from '../../database/models/AI伺服器.ts';
 
 // ── Runtime 狀態型別 ──
 
@@ -25,7 +25,7 @@ interface ServerRuntime {
 
 // ── AI 資源池 ──
 
-export class AIResourcePool extends BasePool<string, AI伺服器記錄> {
+export class AIResourcePool extends BasePool<string, AI伺服器介面> {
   private adapters: Map<string, AIProviderAdapter> = new Map();
   private runtime = new Map<string, ServerRuntime>();
 
@@ -44,7 +44,7 @@ export class AIResourcePool extends BasePool<string, AI伺服器記錄> {
     try {
       const servers = await list<Record<string, unknown>>('AI伺服器', undefined, { limit: 100 });
       for (const raw of servers) {
-        const record = raw as unknown as AI伺服器記錄;
+        const record = raw as unknown as AI伺服器介面;
         if (!record.id) continue;
         this.set(record.id, record, false, true); // persistent=true
         this.runtime.delete(record.id); // runtime 狀態從預設開始
@@ -69,9 +69,9 @@ export class AIResourcePool extends BasePool<string, AI伺服器記錄> {
   }
 
   /** 根據模型名稱找到適合的伺服器（輪詢 + 容錯） */
-  selectServer(model: string): AI伺服器記錄 | null {
+  selectServer(model: string): AI伺服器介面 | null {
     const now = Date.now();
-    const candidates: AI伺服器記錄[] = [];
+    const candidates: AI伺服器介面[] = [];
 
     for (const key of this.keys()) {
       const record = this.get(key);
