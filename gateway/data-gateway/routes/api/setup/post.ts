@@ -25,6 +25,19 @@ export async function POST(c: Context) {
       return c.json({ success: false, error: '請填寫管理員帳號與密碼' }, 400);
     }
 
+    // Firestore：驗證上傳的服務帳號金鑰 JSON
+    if (l2?.type === 'firestore') {
+      if (!l2.credential) {
+        return c.json({ success: false, error: '請上傳服務帳號金鑰 JSON 檔' }, 400);
+      }
+      if (l2.credential.type !== 'service_account') {
+        return c.json({ success: false, error: '金鑰檔案錯誤：type 必須為 "service_account"' }, 400);
+      }
+      if (!l2.credential.project_id || !l2.credential.private_key_id || !l2.credential.private_key) {
+        return c.json({ success: false, error: '金鑰檔案缺少必要欄位（project_id / private_key_id / private_key）' }, 400);
+      }
+    }
+
     // SQLite：只取檔名，放到 gateway 的 data/ 下
     if (l2?.type === 'sqlite' && l2?.filePath) {
       const fileDir = import.meta.dirname; // .../gateway/data-gateway/routes/api/setup

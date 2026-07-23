@@ -18,6 +18,7 @@
 import type { DatabaseAdapter, QueryOptions } from './adapter/adapter-interface.ts';
 import type { L2ConnectionInfo } from './index.ts';
 import { BasePool } from '@dui/pool';
+import type { PoolItem } from '@dui/pool';
 import { L1Store } from '@dui/kv';
 import { info, error } from '@dui/util';
 
@@ -59,6 +60,7 @@ export class PoolCore extends BasePool<string, DatabaseAdapter> {
     super({
       cleanupIntervalMs: 10 * 60 * 1000,  // 每 10 分鐘掃描一次
       maxIdleMs: 30 * 60 * 1000,           // 超過 30 分鐘未存取視為冷資料
+      heartbeatIntervalMs: 5 * 60 * 1000,  // 每 5 分鐘對常駐連線發送 ping
     });
   }
 
@@ -119,8 +121,8 @@ export class PoolCore extends BasePool<string, DatabaseAdapter> {
       const l2 = await this.buildAdapter(l2Info);
       if (!l2) { this.初始化中.L2 = false; return; }
 
-      // DB connection — no need for write-back, so markDirty = false
-      this.set('SYSTEM', l2, false);
+      // DB connection — no write-back, mark as persistent (never evicted)
+      this.set('SYSTEM', l2, false, true);
       await info('Pool', 'L2 connected');
     } catch (err) {
       await error('Pool', `L2 init failed: ${err}`);
@@ -443,12 +445,31 @@ export class PoolCore extends BasePool<string, DatabaseAdapter> {
   //  BasePool Lifecycle Hooks
   // ═══════════════════════════════════════════
 
-  /**
-   * DB connection pool has no data to write back.
+  /**\n    * DB connection pool has no data to write back.
    * (Database adapters handle persistence themselves.)
    */
   protected async onFlush(_dirtyItems: Map<string, DatabaseAdapter>): Promise<void> {
     // no-op
+  }
+
+  /**
+   * Send a lightweight ping to persistent connections (L2 SYSTEM)
+   * to prevent server-side idle disconnection.
+   */
+  protected override async onHeartbeat(): Promise<void> {
+    const system = this.get('SYSTEM');
+    if (!system) return;
+    try {
+      // Lightweight query to keep the connection alive
+      await system.getById('_heartbeat_');
+    } catch {
+      await error('Pool', 'L2 heartbeat failed, attempting reconnect...');
+      try {
+        await this.initL2();
+      } catch (err) {
+        await error('Pool', `L2 reconnect failed: ${err}`);
+      }
+    }
   }
 
   /**

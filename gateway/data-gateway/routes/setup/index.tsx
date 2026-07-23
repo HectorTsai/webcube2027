@@ -19,14 +19,43 @@ document.addEventListener('DOMContentLoaded', () => {
     if (type === 'sqlite') {
       l2.filePath = data.l2_filePath || 'l2.db';
     } else if (type === 'firestore') {
-      l2.host = data.l2_projectId || '';
-      l2.database = data.l2_databaseId || '';
-      // 讀取上傳的服務帳號金鑰 JSON
+      // 從上傳的服務帳號金鑰 JSON 中讀取 project_id
       const fileInput = document.querySelector('input[name="l2_credential_file"]');
-      if (fileInput?.files?.[0]) {
-        const text = await fileInput.files[0].text();
-        l2.credential = JSON.parse(text);
+      if (!fileInput?.files?.[0]) {
+        errEl.textContent = '請上傳服務帳號金鑰 JSON 檔';
+        errEl.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = '開始安裝';
+        return;
       }
+      const text = await fileInput.files[0].text();
+      let credential;
+      try {
+        credential = JSON.parse(text);
+      } catch {
+        errEl.textContent = '金鑰檔案格式錯誤：無法解析 JSON';
+        errEl.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = '開始安裝';
+        return;
+      }
+      if (credential.type !== 'service_account') {
+        errEl.textContent = '金鑰檔案錯誤：type 必須為 "service_account"';
+        errEl.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = '開始安裝';
+        return;
+      }
+      if (!credential.project_id || !credential.private_key_id || !credential.private_key) {
+        errEl.textContent = '金鑰檔案缺少必要欄位（project_id / private_key_id / private_key）';
+        errEl.classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = '開始安裝';
+        return;
+      }
+      l2.host = credential.project_id;
+      l2.credential = credential;
+      l2.database = data.l2_databaseId || '';
     } else if (type === 'appwrite') {
       l2.host = data.l2_endpoint || '';
       l2.database = data.l2_project || '';
@@ -172,12 +201,9 @@ const SetupPage = () => (
 
               <div class="l2-field l2-field-firestore hidden">
                 <label class="form-control w-full">
-                  <span class="label-text text-sm mb-1">Project ID</span>
-                  <input name="l2_projectId" type="text" class="input input-bordered w-full" placeholder="my-project-123" />
-                </label>
-                <label class="form-control w-full mt-3">
                   <span class="label-text text-sm mb-1">服務帳號金鑰 JSON 檔</span>
-                  <input name="l2_credential_file" type="file" accept=".json" class="file-input file-input-bordered w-full" />
+                  <span class="label-text-alt text-xs text-base-content/40 mb-1">Project ID 會自動從 JSON 中的 <code>project_id</code> 讀取</span>
+                  <input name="l2_credential_file" type="file" accept=".json" class="file-input file-input-bordered w-full" required />
                 </label>
                 <label class="form-control w-full mt-3">
                   <span class="label-text text-sm mb-1">Database ID（選填，預設為 (default)）</span>

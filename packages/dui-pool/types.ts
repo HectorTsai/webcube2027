@@ -14,6 +14,14 @@ export interface PoolItem<V> {
   accessCount: number;
   /** Whether the value has been modified and needs to be flushed back to storage */
   isDirty: boolean;
+  /**
+   * Whether this item should never be evicted by idle cleanup.
+   * Persistent items are also pinged periodically by onHeartbeat()
+   * to keep the connection alive from the server side.
+   *
+   * Set via `pool.set(key, value, markDirty, persistent)`.
+   */
+  persistent: boolean;
 }
 
 /**

@@ -1,6 +1,16 @@
 // routes/_middleware.ts
 import type { Context, Next } from 'hono';
 import { dataPool } from '@dui/database';
+import { info, error } from '@dui/util';
+
+/**
+ * 判斷系統是否已安裝（L1 中有 l2_connection 記錄）。
+ * 不依賴 L2 當前是否連線，而是檢查 L1 設定檔。
+ */
+async function isInstalled(): Promise<boolean> {
+  const connStr = await dataPool.config?.get('l2_connection');
+  return !!connStr;
+}
 
 export async function middleware(c: Context, next: Next) {
   const path = c.req.path;
@@ -17,20 +27,36 @@ export async function middleware(c: Context, next: Next) {
     return await next();
   }
 
-  // 2. 動態判斷系統是否已安裝 (L2 就緒)
-  const isInstalled = dataPool.System !== undefined && dataPool.System !== null;
+  // 2. 檢查 L1 是否有安裝記錄
+  const 已安裝Flag = await isInstalled();
 
-  // 3. 寫入 Context，讓底下的所有 Handler / Middleware 都可以存取
-  c.set('已安裝', isInstalled);
-
-  // 4. 未安裝時：只有 /setup 相關路徑可存取
-  if (!isInstalled && !path.startsWith('/setup')) {
-    if (path.startsWith('/api') || path.startsWith('/inner-api')) {
-      return c.json({ success: false, message: '系統尚未安裝，請先前往 /setup' }, 403);
+  if (!已安裝Flag) {
+    // 未安裝：只有 /setup 相關路徑可存取
+    if (!path.startsWith('/setup')) {
+      if (path.startsWith('/api') || path.startsWith('/inner-api')) {
+        return c.json({ success: false, message: '系統尚未安裝，請先前往 /setup' }, 403);
+      }
+      return c.redirect('/setup');
     }
-    return c.redirect('/setup');
+    c.set('已安裝', false);
+    return await next();
   }
 
-  // 5. 其他狀況（已安裝，或正在訪問 /setup）直接放行
+  // 3. 已安裝，檢查 L2 是否在線，不在則嘗試重連
+  if (!dataPool.System) {
+    await error('Middleware', 'L2 連線已中斷，嘗試重新連線…');
+    try {
+      await dataPool.initL2();
+    } catch (err) {
+      await error('Middleware', `L2 重連失敗：${err}`);
+    }
+    if (!dataPool.System) {
+      await error('Middleware', 'L2 仍無法連線，以降級模式繼續服務');
+    } else {
+      await info('Middleware', 'L2 已成功重新連線');
+    }
+  }
+
+  c.set('已安裝', true);
   return await next();
 }

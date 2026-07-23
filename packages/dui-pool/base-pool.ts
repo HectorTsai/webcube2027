@@ -71,14 +71,18 @@ export abstract class BasePool<K, V> {
    *
    * @param markDirty — Whether to mark the entry as dirty (needs flush).
    *   Pass `false` for resources that don't need write-back (e.g. DB connections).
+   * @param persistent — Whether the entry should NEVER be evicted by idle cleanup.
+   *   Persistent entries are also pinged by `onHeartbeat()` to keep server-side
+   *   connections alive. Defaults to `false`.
    */
-  set(key: K, value: V, markDirty = true): void {
+  set(key: K, value: V, markDirty = true, persistent = false): void {
     const existing = this.items.get(key);
     this.items.set(key, {
       value,
       lastAccessed: Date.now(),
       accessCount: existing ? existing.accessCount + 1 : 1,
       isDirty: markDirty,
+      persistent,
     });
   }
 
@@ -134,7 +138,7 @@ export abstract class BasePool<K, V> {
     const evictedMap = new Map<K, V>();
 
     for (const [key, item] of this.items.entries()) {
-      if (now - item.lastAccessed > maxIdleMs) {
+      if (!item.persistent && now - item.lastAccessed > maxIdleMs) {
         evictedMap.set(key, item.value);
         this.items.delete(key);
       }

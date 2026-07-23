@@ -17,6 +17,42 @@ async function check() {
     document.getElementById('status-badge').className = 'badge badge-soft badge-error';
   }
 }
+
+async function openHealthModal() {
+  const modal = document.getElementById('health-modal');
+  const content = document.getElementById('health-content');
+  content.innerHTML = '<span class="loading loading-spinner loading-md"></span>';
+  modal.showModal();
+
+  try {
+    const r = await fetch('/health');
+    const data = await r.json();
+    const ok = data.status === 'ok';
+    content.innerHTML = \`
+      <div class="space-y-3">
+        <div class="flex items-center gap-2">
+          <span>服務狀態</span>
+          <span class="badge badge-soft \${ok ? 'badge-success' : 'badge-error'}">\${ok ? '正常運作' : '異常'}</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span>Service</span>
+          <code class="text-sm bg-base-200 px-2 py-0.5 rounded">\${data.service || '-'}</code>
+        </div>
+        <div class="flex items-center gap-2">
+          <span>L1</span>
+          <span class="badge badge-soft \${data.l1 === 'connected' ? 'badge-success' : 'badge-error'}">\${data.l1}</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span>L2</span>
+          <span class="badge badge-soft \${data.l2 === 'connected' ? 'badge-success' : 'badge-error'}">\${data.l2}</span>
+        </div>
+      </div>
+    \`;
+  } catch {
+    content.innerHTML = '<p class="text-error">無法連線至伺服器</p>';
+  }
+}
+
 check();
 `;
 
@@ -69,7 +105,7 @@ const Landing = () => (
               <div>
                 <h1 class="text-3xl font-bold tracking-tight">Data Gateway</h1>
                 <p class="text-base-content/50 text-sm mt-1.5">
-                  WebCube2027 資料層統一入口 — 輕量、高效、純 JSON
+                  WebCube2027 資料層代理 — L2/L3 資料庫統一管理
                 </p>
               </div>
 
@@ -78,10 +114,10 @@ const Landing = () => (
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                   管理後台
                 </a>
-                <a href="/health" class="btn btn-soft btn-outline">
+                <button onclick="openHealthModal()" class="btn btn-soft btn-outline">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
-                  Health API
-                </a>
+                  Health
+                </button>
               </div>
 
             </div>
@@ -91,23 +127,23 @@ const Landing = () => (
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div class="card bg-base-100/70 backdrop-blur-sm shadow-xs border border-base-200">
               <div class="card-body items-center text-center py-5 px-4 gap-2">
-                <div class="text-3xl text-primary mb-1 font-mono font-light">{'{ }'}</div>
-                <h3 class="font-semibold text-sm">純 JSON</h3>
-                <p class="text-xs text-base-content/50">資料存取直進直出，無多餘封裝</p>
+                <div class="text-3xl text-primary mb-1 font-mono font-light">L2</div>
+                <h3 class="font-semibold text-sm">L2 系統層</h3>
+                <p class="text-xs text-base-content/50">共用 SYSTEM 資料庫，存放平台設定、管理員、排程</p>
               </div>
             </div>
             <div class="card bg-base-100/70 backdrop-blur-sm shadow-xs border border-base-200">
               <div class="card-body items-center text-center py-5 px-4 gap-2">
-                <div class="text-3xl text-secondary mb-1">&#9889;</div>
+                <div class="text-3xl text-secondary mb-1 font-mono font-light">L3</div>
+                <h3 class="font-semibold text-sm">L3 租戶層</h3>
+                <p class="text-xs text-base-content/50">每個 Tenant 獨立資料庫，隔離商業資料</p>
+              </div>
+            </div>
+            <div class="card bg-base-100/70 backdrop-blur-sm shadow-xs border border-base-200">
+              <div class="card-body items-center text-center py-5 px-4 gap-2">
+                <div class="text-3xl text-accent mb-1">&#9889;</div>
                 <h3 class="font-semibold text-sm">多層儲存</h3>
-                <p class="text-xs text-base-content/50">L1 KV + L2/L3 持久層</p>
-              </div>
-            </div>
-            <div class="card bg-base-100/70 backdrop-blur-sm shadow-xs border border-base-200">
-              <div class="card-body items-center text-center py-5 px-4 gap-2">
-                <div class="text-3xl text-accent mb-1 font-mono font-light">/</div>
-                <h3 class="font-semibold text-sm">檔案路由</h3>
-                <p class="text-xs text-base-content/50">直覺的檔案系統路由配置</p>
+                <p class="text-xs text-base-content/50">L1 KV + L2/L3 Adapter 統一介面</p>
               </div>
             </div>
           </div>
@@ -127,6 +163,22 @@ const Landing = () => (
 
         </div>
       </main>
+
+      {/* ── Health Modal ── */}
+      <dialog id="health-modal" class="modal">
+        <div class="modal-box">
+          <form method="dialog">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+          </form>
+          <h3 class="text-lg font-bold mb-4">系統健康狀態</h3>
+          <div id="health-content" class="min-h-[80px] flex items-center justify-center">
+            <span class="loading loading-spinner loading-md"></span>
+          </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+          <button>close</button>
+        </form>
+      </dialog>
 
       {/* ── Footer ── */}
       <footer class="text-center text-base-content/25 text-xs py-4 relative z-1">
