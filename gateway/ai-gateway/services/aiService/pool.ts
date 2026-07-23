@@ -1,29 +1,42 @@
 /**
  * aiService/pool.ts — AI 資源池
  *
- * 管理 AI 伺服器實體、動態路由、容錯切換。
- * 資料讀寫透過 dataGwClient 與 data-gateway 互動。
+ * 管理 AI 伺服器連線設定、動態路由、容錯切換。
+ * 資料從 data-gateway 以 JSON 載入，直接作為 AI伺服器記錄 使用，
+ * 不經過 class 建構（減少不必要的轉換開銷）。
+ *
+ * Runtime 狀態（當前併發數、連續失敗次數、解禁時間戳）獨立管理，
+ * 不與持久化資料混雜。
  */
 
 import { BasePool } from '@dui/pool';
 import { error, info } from '@dui/util';
 import { list } from '../dataGwClient.ts';
-import { getProviderAdapter, type AIProviderAdapter, type AIRequest, type AIResponse, type AIServerInfo } from './provider/adapter.ts';
-import AI伺服器 from '../../database/models/AI伺服器.ts';
+import { getProviderAdapter, type AIProviderAdapter, type AIRequest, type AIResponse } from './provider/adapter.ts';
+import type { AI伺服器記錄, AI模型定義 } from '../../database/models/AI伺服器.ts';
 
-interface AIResourcePoolOptions {
-  cleanupIntervalMs?: number;
-  maxIdleMs?: number;
-  heartbeatIntervalMs?: number;
+// ── Runtime 狀態型別 ──
+
+interface ServerRuntime {
+  當前總併發: number;
+  連續失敗次數: number;
+  解禁時間戳: number;
 }
 
 // ── AI 資源池 ──
 
-export class AIResourcePool extends BasePool<string, AI伺服器> {
+export class AIResourcePool extends BasePool<string, AI伺服器記錄> {
   private adapters: Map<string, AIProviderAdapter> = new Map();
+  private runtime = new Map<string, ServerRuntime>();
 
-  constructor(options?: AIResourcePoolOptions) {
-    super(options);
+  /** 取得或初始化伺服器的 runtime 狀態 */
+  private getRuntime(serverId: string): ServerRuntime {
+    let state = this.runtime.get(serverId);
+    if (!state) {
+      state = { 當前總併發: 0, 連續失敗次數: 0, 解禁時間戳: 0 };
+      this.runtime.set(serverId, state);
+    }
+    return state;
   }
 
   /** 從 data-gateway 載入所有 AI 伺服器設定 */
@@ -31,15 +44,16 @@ export class AIResourcePool extends BasePool<string, AI伺服器> {
     try {
       const servers = await list<Record<string, unknown>>('AI伺服器', undefined, { limit: 100 });
       for (const raw of servers) {
-        const 伺服器 = new AI伺服器(raw);
-        this.set(伺服器.id, 伺服器, false, true); // persistent=true
+        const record = raw as unknown as AI伺服器記錄;
+        if (!record.id) continue;
+        this.set(record.id, record, false, true); // persistent=true
+        this.runtime.delete(record.id); // runtime 狀態從預設開始
 
-        // 初始化 provider adapter
-        if (!this.adapters.has(伺服器.provider)) {
-          const adapter = await getProviderAdapter(伺服器.provider);
+        if (!this.adapters.has(record.provider)) {
+          const adapter = await getProviderAdapter(record.provider);
           if (adapter) {
-            this.adapters.set(伺服器.provider, adapter);
-            await info('AI Pool', `載入 provider adapter: ${伺服器.provider}`);
+            this.adapters.set(record.provider, adapter);
+            await info('AI Pool', `載入 provider adapter: ${record.provider}`);
           }
         }
       }
@@ -55,77 +69,86 @@ export class AIResourcePool extends BasePool<string, AI伺服器> {
   }
 
   /** 根據模型名稱找到適合的伺服器（輪詢 + 容錯） */
-  selectServer(model: string): AI伺服器 | null {
+  selectServer(model: string): AI伺服器記錄 | null {
     const now = Date.now();
-    const candidates: AI伺服器[] = [];
+    const candidates: AI伺服器記錄[] = [];
 
     for (const key of this.keys()) {
-      const 伺服器 = this.get(key);
-      if (!伺服器) continue;
-      if (!伺服器.啟用) continue;
-      if (伺服器.解禁時間戳 > now) continue;
-      if (伺服器.當前總併發 >= 伺服器.動態全域併發上限) continue;
+      const record = this.get(key);
+      if (!record) continue;
+      const rt = this.getRuntime(record.id);
 
-      const hasModel = 伺服器.模型列表.some((m) => m.名稱.toString().includes(model));
+      if (!record.啟用) continue;
+      if (rt.解禁時間戳 > now) continue;
+      if (rt.當前總併發 >= record.動態全域併發上限) continue;
+
+      const hasModel = record.模型列表.some((m) =>
+        (m.名稱 && typeof m.名稱 === 'object' && 'toString' in m.名稱)
+          ? String(m.名稱).includes(model)
+          : false,
+      );
       if (!hasModel) continue;
 
-      candidates.push(伺服器);
+      candidates.push(record);
     }
 
     if (candidates.length === 0) return null;
 
     // 選擇當前併發數最低的伺服器（最不忙碌）
-    candidates.sort((a, b) => a.當前總併發 - b.當前總併發);
+    candidates.sort((a, b) => this.getRuntime(a.id).當前總併發 - this.getRuntime(b.id).當前總併發);
     return candidates[0];
   }
 
   /** 發送 AI 請求（自動路由 + 容錯） */
   async dispatch(req: AIRequest): Promise<AIResponse> {
-    const 伺服器 = this.selectServer(req.model);
-    if (!伺服器) throw new Error(`找不到可處理模型 ${req.model} 的 AI 伺服器`);
+    const record = this.selectServer(req.model);
+    if (!record) throw new Error(`找不到可處理模型 ${req.model} 的 AI 伺服器`);
 
-    const adapter = this.getAdapter(伺服器.provider);
-    if (!adapter) throw new Error(`不支援的 provider：${伺服器.provider}`);
+    const adapter = this.getAdapter(record.provider);
+    if (!adapter) throw new Error(`不支援的 provider：${record.provider}`);
 
-    伺服器.當前總併發++;
+    const rt = this.getRuntime(record.id);
+    rt.當前總併發++;
     try {
-      const response = await adapter.chat({ url: 伺服器.url, apiKey: 伺服器.apiKey }, req);
-      // 成功：重設失敗計數
-      伺服器.連續失敗次數 = 0;
+      const response = await adapter.chat({ url: record.url, apiKey: record.apiKey }, req);
+      rt.連續失敗次數 = 0;
       return response;
     } catch (err) {
-      伺服器.連續失敗次數++;
-      if (伺服器.連續失敗次數 >= 3) {
-        伺服器.解禁時間戳 = Date.now() + 伺服器.冷卻秒數 * 1000;
-        await error('AI Pool', `伺服器 ${伺服器.id} 連續失敗 3 次，冷卻 ${伺服器.冷卻秒數} 秒`);
+      rt.連續失敗次數++;
+      if (rt.連續失敗次數 >= 3) {
+        rt.解禁時間戳 = Date.now() + record.冷卻秒數 * 1000;
+        await error('AI Pool', `伺服器 ${record.id} 連續失敗 3 次，冷卻 ${record.冷卻秒數} 秒`);
       }
       throw err;
     } finally {
-      伺服器.當前總併發--;
+      rt.當前總併發--;
     }
   }
 
   /** Heartbeat：檢查 adapter 連線狀態 */
   protected override async onHeartbeat(): Promise<void> {
     for (const key of this.keys()) {
-      const 伺服器 = this.get(key);
-      if (!伺服器) continue;
-      const adapter = this.getAdapter(伺服器.provider);
+      const record = this.get(key);
+      if (!record) continue;
+      const adapter = this.getAdapter(record.provider);
       if (!adapter) continue;
       try {
-        await adapter.ping({ url: 伺服器.url, apiKey: 伺服器.apiKey });
+        await adapter.ping({ url: record.url, apiKey: record.apiKey });
       } catch {
-        await error('AI Pool', `Heartbeat 失敗：${伺服器.id} (${伺服器.provider})`);
+        await error('AI Pool', `Heartbeat 失敗：${record.id} (${record.provider})`);
       }
     }
   }
 
-  protected override async onFlush(_dirty: Map<string, AI伺服器>): Promise<void> {
-    // no-op: AI 伺服器狀態為記憶體即時狀態，不延遲寫回
+  protected override async onFlush(_dirty: Map<string, unknown>): Promise<void> {
+    // no-op: AI 伺服器設定由 data-gateway 直接管理，不經由 pool flush
   }
 
-  protected override async onEvict(_evicted: Map<string, AI伺服器>): Promise<void> {
-    // 目前沒有需要清理的資源
+  protected override async onEvict(_evicted: Map<string, unknown>): Promise<void> {
+    // 被淘汰時清理 runtime 狀態
+    for (const key of _evicted.keys()) {
+      this.runtime.delete(key);
+    }
   }
 }
 
