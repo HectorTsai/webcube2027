@@ -3,7 +3,6 @@
   "specifiers": {
     "jsr:@deno/gfm@0.6": "0.6.2",
     "jsr:@denosaurs/emoji@0.3": "0.3.1",
-    "jsr:@dui/database@^1.0.2": "1.0.2",
     "jsr:@hono/hono@^4.12.31": "4.12.31",
     "jsr:@std/assert@0.224": "0.224.0",
     "jsr:@std/collections@^1.1.3": "1.3.0",
@@ -19,7 +18,6 @@
     "npm:@unocss/preset-wind3@^66.6.7": "66.7.5",
     "npm:@unocss/rule-utils@^66.6.8": "66.7.5",
     "npm:bcryptjs@^2.4.3": "2.4.3",
-    "npm:bcryptjs@^3.0.3": "3.0.3",
     "npm:daisyui@^5.6.18": "5.6.18",
     "npm:firebase-admin@12": "12.7.0",
     "npm:github-slugger@2": "2.0.0",
@@ -34,7 +32,6 @@
     "npm:mssql@11": "11.0.1",
     "npm:mysql2@3": "3.23.1_@types+node@26.1.1",
     "npm:nanoid@5": "5.1.16",
-    "npm:nanoid@^5.1.7": "5.1.16",
     "npm:node-appwrite@14": "14.2.0",
     "npm:pg@8": "8.22.0",
     "npm:prismjs@^1.29.0": "1.30.0",
@@ -61,20 +58,6 @@
     },
     "@denosaurs/emoji@0.3.1": {
       "integrity": "b0aed5f55dec99e83da7c9637fe0a36d1d6252b7c99deaaa3fc5dea3fcf3da8b"
-    },
-    "@dui/database@1.0.2": {
-      "integrity": "2bacb7db44e77979af3672022d3c9f1b5ea665499429162863d73facad1d14d5",
-      "dependencies": [
-        "npm:@aws-sdk/client-dynamodb",
-        "npm:@aws-sdk/lib-dynamodb",
-        "npm:firebase-admin",
-        "npm:mongodb@6",
-        "npm:mssql",
-        "npm:mysql2",
-        "npm:nanoid@5",
-        "npm:node-appwrite",
-        "npm:pg"
-      ]
     },
     "@hono/hono@4.12.31": {
       "integrity": "6a31d6811a4e217ab7c59655e68f881372c39e191ace73e4aeed02fc1227185d"
@@ -1078,10 +1061,6 @@
     },
     "bcryptjs@2.4.3": {
       "integrity": "sha512-V/Hy/X9Vt7f3BbPJEi8BdVFMByHi+jNXrYkW3huaybV/kQ0KJg0Y6PkEMbn+zeT+i+SiKZ/HMqJGIIt4LZDqNQ=="
-    },
-    "bcryptjs@3.0.3": {
-      "integrity": "sha512-GlF5wPWnSa/X5LKM1o0wz0suXIINz1iHRLvTS+sLyi7XPbe5ycmYI3DlZqVGZZtDgl4DmasFg7gOB3JYbphV5g==",
-      "bin": true
     },
     "bignumber.js@9.3.1": {
       "integrity": "sha512-Ko0uX15oIUS7wJ3Rb30Fs6SkVbLmPBAKdlm7q9+ak9bbIeFf0MwuBsQV6z7+X768/cHsfg+WlysDWJcmthjsjQ=="
@@ -2420,9 +2399,10 @@
     "members": {
       "gateway/ai-gateway": {
         "dependencies": [
-          "jsr:@dui/database@^1.0.2",
-          "jsr:@std/assert@^1.0.19",
-          "npm:bcryptjs@^3.0.3"
+          "jsr:@hono/hono@^4.12.31",
+          "npm:@tailwindcss/cli@^4.3.3",
+          "npm:daisyui@^5.6.18",
+          "npm:tailwindcss@^4.3.3"
         ]
       },
       "gateway/auth-gateway": {

@@ -1,13 +1,22 @@
 {
   "tasks": {
-    "dev": "deno run -A --unstable-cron --watch main.ts",
-    "build:css": "deno run -A npm:@tailwindcss/cli -i input.css -o static/style.css",
-    "dev:css": "deno run -A npm:@tailwindcss/cli -i input.css -o static/style.css --watch"
+    "dev": "deno run --allow-all --env --watch main.ts",
+    "start": "deno run --allow-all --env main.ts",
+    "build:css": "npx @tailwindcss/cli -i routes/css/input.css -o routes/css/output.css"
+  },
+  "compilerOptions": {
+    "jsx": "precompile",
+    "jsxImportSource": "hono/jsx"
   },
   "imports": {
-    "@dui/database": "jsr:@dui/database@^1.0.2",
-    "@dui/smartmultilingual": "./../../packages/dui-multilanguage/mod.ts",
-    "@std/assert": "jsr:@std/assert@^1.0.19",
-    "bcryptjs": "npm:bcryptjs@^3.0.3"
+    "hono": "jsr:@hono/hono@^4.12.31",
+    "hono/jwt": "jsr:@hono/hono@^4.12.31/jwt",
+    "hono/html": "jsr:@hono/hono@^4.12.31/html",
+    "@dui/util": "./../../packages/dui-util/mod.ts",
+    "@dui/framework": "./../../packages/dui-framework/mod.ts",
+    "@dui/pool": "./../../packages/dui-pool/mod.ts",
+    "@tailwindcss/cli": "npm:@tailwindcss/cli@^4.3.3",
+    "tailwindcss": "npm:tailwindcss@^4.3.3",
+    "daisyui": "npm:daisyui@^5.6.18"
   }
 }

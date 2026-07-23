@@ -1,70 +1,86 @@
-// AI Service Router — Pool 相關路由
-
-import { Context } from "hono";
-import { info, error } from "../../utils/logger.ts";
-import { 資料池 } from "../../database/資料池.ts";
-import { AIPoolManager } from "./pool.ts";
 /**
- * 處理 AI Service 請求（由 main.ts 分發）
+ * aiService/index.ts — AI 服務入口
+ *
+ * 提供：
+ * 1. 初始化 AI 資源池（從 data-gateway 載入伺服器設定）
+ * 2. OpenAI 相容 API 的實作（chat completions、embeddings、models）
  */
-export async function 處理AI請求(c: Context): Promise<Response> {
-  const path = c.req.path;
-  const method = c.req.method;
 
-  // 解析路徑: /api/v1/ai/xxx
-  const aiPath = path.replace("/api/v1/ai/", "").replace("/api/v1/ai", "");
+import { error, info } from '@dui/util';
+import { aiPool } from './pool.ts';
 
-  try {
-    switch (true) {
-      // ── AI Server 列表 ──
-      case method === "GET" && aiPath === "servers": {
-        const pool = new AIPoolManager(c);
-        await pool.觸發Pool載入();
-        return c.json({ success: true, data: AIPoolManager.列出Server() });
-      }
+// ── 初始化 ──
 
-      // ── AI Pool 自適應恢復（排程呼叫） ──
-      case method === "POST" && aiPath === "pool/restore": {
-        await AIPoolManager.自適應恢復();
-        return c.json({ success: true, data: { message: "Pool 自適應恢復完成" } });
-      }
+let initialized = false;
 
-      // ── AI Model 狀態大綱 ──
-      case method === "GET" && aiPath === "models": {
-        const pool = new AIPoolManager(c);
-        await pool.觸發Pool載入();
-        return c.json({ success: true, data: AIPoolManager.列出模型狀態() });
-      }
+export async function initAIService(): Promise<void> {
+  if (initialized) return;
+  await aiPool.loadServers();
+  initialized = true;
+  await info('AI Service', 'AI 服務初始化完成');
+}
 
-      // ── AI Model 細節 ──
-      case method === "GET" && aiPath.startsWith("models/"): {
-        const modelId = aiPath.replace("models/", "");
-        const pool = new AIPoolManager(c);
-        await pool.觸發Pool載入();
-        const detail = AIPoolManager.取得模型細節(modelId);
-        if (!detail) {
-          return c.json(
-            { success: false, error: { code: "NOT_FOUND", message: "模型不存在" } },
-            404,
-          );
-        }
-        return c.json({ success: true, data: detail });
-      }
+// ── OpenAI 相容 API ──
 
-      default:
-        return c.json({
-          success: false,
-          error: { code: "NOT_FOUND", message: `未知的 AI 端點: ${method} ${path}` },
-        }, 404);
-    }
-  } catch (err) {
-    await error("AI Service", `請求失敗: ${err}`);
-    return c.json({
-      success: false,
-      error: {
-        code: "AI_ERROR",
-        message: err instanceof Error ? err.message : "AI 服務錯誤",
+export async function handleChatCompletion(body: {
+  model: string;
+  messages: { role: string; content: string }[];
+  stream?: boolean;
+  maxTokens?: number;
+  temperature?: number;
+}) {
+  const response = await aiPool.dispatch({
+    model: body.model,
+    messages: body.messages,
+    stream: body.stream ?? false,
+    maxTokens: body.maxTokens,
+    temperature: body.temperature,
+  });
+
+  return {
+    id: response.id,
+    object: 'chat.completion',
+    created: Math.floor(Date.now() / 1000),
+    model: response.model,
+    choices: [
+      {
+        index: 0,
+        message: { role: 'assistant', content: response.content },
+        finishReason: 'stop',
       },
-    }, 500);
+    ],
+    usage: {
+      promptTokens: response.usage.promptTokens,
+      completionTokens: response.usage.completionTokens,
+      totalTokens: response.usage.totalTokens,
+    },
+  };
+}
+
+export async function handleEmbeddings(body: {
+  model: string;
+  input: string | string[];
+}) {
+  // TODO: implement embedding support when providers expose it
+  throw new Error('Embedding API 尚未實作');
+}
+
+export async function listModels() {
+  const models: { id: string; object: string; created: number; ownedBy: string }[] = [];
+
+  for (const 伺服器 of aiPool.values()) {
+    for (const m of 伺服器.模型列表) {
+      models.push({
+        id: m.名稱.toString(),
+        object: 'model',
+        created: Math.floor(Date.now() / 1000),
+        ownedBy: 伺服器.provider,
+      });
+    }
   }
+
+  return {
+    object: 'list',
+    data: models,
+  };
 }

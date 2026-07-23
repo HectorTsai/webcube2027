@@ -1,4 +1,7 @@
-// 共用版面 — HTML 外殼
+/**
+ * 共用版面
+ */
+
 import type { FC } from "hono/jsx";
 
 interface Props {
@@ -13,8 +16,8 @@ export const Layout: FC<Props> = (props) => (
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title>{props.title ?? "AI 中心"}</title>
-      <link rel="stylesheet" href="/static/style.css" />
+      <link rel="stylesheet" href="/css/output.css" />
     </head>
-    <body>{props.children}</body>
+    <body class="min-h-screen bg-base-200">{props.children}</body>
   </html>
 );
