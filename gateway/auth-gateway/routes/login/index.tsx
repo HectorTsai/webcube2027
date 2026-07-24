@@ -1,9 +1,8 @@
-const SCRIPT = `
+const SCRIPT = (dataGwUrl: string) => `
+const DATA_GATEWAY_URL = ${JSON.stringify(dataGwUrl)};
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('login-form');
   if (!form) return;
-
-  const DATA_GATEWAY_URL = window.location.port === '8003' ? 'http://localhost:8002' : '/';
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -35,8 +34,13 @@ document.addEventListener('DOMContentLoaded', () => {
 `;
 
 import { raw } from 'hono/html';
+import { sign } from 'hono/jwt';
+import { getKeys } from '../../utils/keys.ts';
 
-const LoginPage = () => (
+/** 匿名 JWT 有效期（秒）— 1 小時 */
+const ANONYMOUS_TTL = 3600;
+
+const LoginPage = ({ dataGwUrl }: { dataGwUrl: string }) => (
   <html lang="zh-TW" data-theme="light">
     <head>
       <meta charset="UTF-8" />
@@ -70,12 +74,50 @@ const LoginPage = () => (
         </div>
       </div>
 
-      <script>{raw(SCRIPT)}</script>
+      <script>{raw(SCRIPT(dataGwUrl))}</script>
     </body>
   </html>
 );
 
-export const GET = (c: any) => {
-  const markup = '<!DOCTYPE html>' + (<LoginPage />).toString();
+export const GET = async (c: any) => {
+  // 從 L1 或環境變數取得 data-gateway URL（不硬編碼）
+  let dataGwUrl = Deno.env.get('DATA_GATEWAY_URL');
+  if (!dataGwUrl) {
+    try {
+      const { getL1 } = await import('../../utils/l1.ts');
+      const l1 = getL1();
+      const stored = await l1.get('data_gateway_url');
+      if (stored) dataGwUrl = stored;
+    } catch {
+      // L1 尚未就緒
+    }
+  }
+
+  // 若無 JWT cookie 但有 tenant 參數，自動簽發匿名 JWT 並寫入 cookie
+  const cookieHeader = c.req.header('Cookie') || '';
+  const hasJwt = /jwt=([^;]+)/.test(cookieHeader);
+  const tenant = c.req.query('tenant');
+
+  if (!hasJwt && tenant) {
+    try {
+      const { privateKey } = getKeys();
+      const now = Math.floor(Date.now() / 1000);
+      const anonPayload = {
+        tenant,
+        type: 'anonymous',
+        iat: now,
+        exp: now + ANONYMOUS_TTL,
+      };
+      const anonToken = await sign(anonPayload, privateKey, 'EdDSA');
+      c.header(
+        'Set-Cookie',
+        `jwt=${anonToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${ANONYMOUS_TTL}`,
+      );
+    } catch {
+      // 簽發失敗不阻擋頁面渲染
+    }
+  }
+
+  const markup = '<!DOCTYPE html>' + (<LoginPage dataGwUrl={dataGwUrl || '/'} />).toString();
   return c.html(markup);
 };

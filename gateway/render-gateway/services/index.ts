@@ -78,7 +78,7 @@ export async function InnerAPI(c: Context, apiPath: string): Promise<Response> {
       const response = await _app.request(encodedPath, {
         headers: {
           'host': 取得域名(c),
-          'origin': c.req.header('origin') || 'http://localhost:8000',
+          'origin': c.req.header('origin') || `http://${c.req.header('host') || 'localhost'}`,
           'cookie': 原始Cookie
         }
       });

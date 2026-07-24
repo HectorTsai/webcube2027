@@ -6,7 +6,7 @@ async function loadStatus() {
     const health = await fetch('/health').then(r => r.json());
     const l1El = document.getElementById('l1-status');
     const l2El = document.getElementById('l2-status');
-    const healthEl = document.getElementById('health-indicator');
+    const l3El = document.getElementById('l3-status');
     const badgeEl = document.getElementById('health-badge');
 
     if (health.l1 === 'connected') {
@@ -25,15 +25,23 @@ async function loadStatus() {
       l2El.className = 'stat-value text-lg text-error';
     }
 
+    // L3：有資料庫類型就顯示，沒有就顯示「未設定」
+    if (health.l3 && health.l3.includes('\\u2713')) {
+      l3El.textContent = health.l3;
+      l3El.className = 'stat-value text-lg text-success';
+    } else if (health.l3 && health.l3.includes('\\u2717')) {
+      l3El.textContent = health.l3;
+      l3El.className = 'stat-value text-lg text-error';
+    } else {
+      l3El.textContent = health.l3 || '未設定';
+      l3El.className = 'stat-value text-lg text-base-content/50';
+    }
+
     const allOk = health.l1 === 'connected' && health.l2 === 'connected';
     if (allOk) {
-      healthEl.textContent = '\\u2713 正常';
-      healthEl.className = 'stat-value text-lg text-success';
       badgeEl.textContent = '運作中';
       badgeEl.className = 'badge badge-soft badge-success';
     } else {
-      healthEl.textContent = '\\u2717 異常';
-      healthEl.className = 'stat-value text-lg text-error';
       badgeEl.textContent = '降級';
       badgeEl.className = 'badge badge-soft badge-warning';
     }
@@ -42,8 +50,8 @@ async function loadStatus() {
     document.getElementById('l1-status').className = 'stat-value text-lg text-error';
     document.getElementById('l2-status').textContent = '\\u2717 無法連線';
     document.getElementById('l2-status').className = 'stat-value text-lg text-error';
-    document.getElementById('health-indicator').textContent = '\\u2717 離線';
-    document.getElementById('health-indicator').className = 'stat-value text-lg text-error';
+    document.getElementById('l3-status').textContent = '\\u2717 無法連線';
+    document.getElementById('l3-status').className = 'stat-value text-lg text-error';
     document.getElementById('health-badge').textContent = '離線';
     document.getElementById('health-badge').className = 'badge badge-soft badge-error';
   }
@@ -94,8 +102,8 @@ const Page = () => (
                 <div id="l2-status" class="stat-value text-lg">-</div>
               </div>
               <div class="stat">
-                <div class="stat-title">服務狀態</div>
-                <div id="health-indicator" class="stat-value text-lg">-</div>
+                <div class="stat-title">L3 (Tenant DB)</div>
+                <div id="l3-status" class="stat-value text-lg">-</div>
               </div>
             </div>
           </div>

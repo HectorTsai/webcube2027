@@ -152,7 +152,7 @@ const SetupPage = () => (
 
               <label class="form-control w-full">
                 <span class="label-text text-sm mb-1">auth-gateway URL</span>
-                <input name="auth_gateway_url" type="url" class="input input-bordered w-full" placeholder="http://localhost:8081" required />
+                <input name="auth_gateway_url" type="url" class="input input-bordered w-full" placeholder="http://localhost:8001" required />
                 <span class="label-text-alt text-xs text-base-content/40 mt-1">
                   JWT 簽發與驗證服務的位置
                 </span>

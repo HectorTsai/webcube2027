@@ -20,7 +20,7 @@ async function check() {
 check();
 `;
 
-const Landing = () => (
+const Landing = ({ dataGwAdminUrl }: { dataGwAdminUrl?: string }) => (
   <html lang="zh-TW" data-theme="light">
     <head>
       <meta charset="UTF-8" />
@@ -82,7 +82,7 @@ const Landing = () => (
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>
                   前往登入
                 </a>
-                <a href="http://localhost:8002/admin" class="btn btn-soft btn-outline">
+                <a id="data-gw-link" href={dataGwAdminUrl} class="btn btn-soft btn-outline">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                   Data Gateway
                 </a>
@@ -142,7 +142,20 @@ const Landing = () => (
   </html>
 );
 
-export const GET = (c: any) => {
-  const markup = '<!DOCTYPE html>' + (<Landing />).toString();
+export const GET = async (c: any) => {
+  // 從 L1 或環境變數取得 data-gateway URL（不硬編碼）
+  let dataGwUrl = Deno.env.get('DATA_GATEWAY_URL');
+  if (!dataGwUrl) {
+    try {
+      const { getL1 } = await import('../utils/l1.ts');
+      const l1 = getL1();
+      const stored = await l1.get('data_gateway_url');
+      if (stored) dataGwUrl = stored;
+    } catch {
+      // L1 尚未就緒
+    }
+  }
+  const dataGwAdminUrl = dataGwUrl ? `${dataGwUrl}/admin` : '#';
+  const markup = '<!DOCTYPE html>' + (<Landing dataGwAdminUrl={dataGwAdminUrl} />).toString();
   return c.html(markup);
 };

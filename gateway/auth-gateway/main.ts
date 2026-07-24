@@ -7,7 +7,7 @@ import { setL1 } from './utils/l1.ts';
 
 const gw = await createGateway({
   name: 'auth-gateway',
-  port: Number(Deno.env.get('AUTH_GATEWAY_PORT')) || 8081,
+  port: Number(Deno.env.get('AUTH_GATEWAY_PORT')) || 8001,
   dirname: import.meta.dirname!,
 });
 

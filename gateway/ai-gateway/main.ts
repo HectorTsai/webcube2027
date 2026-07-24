@@ -19,7 +19,7 @@ import { cors } from 'hono/cors';
 const gw = await createGateway({
   name: 'ai-gateway',
   dirname: import.meta.dirname!,
-  port: Number(Deno.env.get('AI_GATEWAY_PORT') || 8004),
+  port: Number(Deno.env.get('AI_GATEWAY_PORT') || 8003),
 });
 
 // ── CORS ──
@@ -43,4 +43,4 @@ globalThis.addEventListener('unload', () => {
 
 // ── 啟動 HTTP Server ──
 gw.start();
-await info('ai-gateway', `已啟動於 port ${Deno.env.get('AI_GATEWAY_PORT') || 8004}`);
+await info('ai-gateway', `已啟動於 port ${Deno.env.get('AI_GATEWAY_PORT') || 8003}`);

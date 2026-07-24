@@ -183,7 +183,7 @@ class 定時服務 {
   private async 執行命令(task: 排程記錄): Promise<void> {
     const baseUrl = task.host
       ? `http://${task.host}`
-      : 'http://localhost:8000';
+      : `http://localhost`;
     const url = `${baseUrl}${task.命令}`;
     const resp = await fetch(url, { method: 'POST' });
     if (!resp.ok) {

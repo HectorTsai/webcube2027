@@ -8,7 +8,7 @@
 import type { Context, Next } from 'hono';
 import { error } from '@dui/util';
 
-const AUTH_GW = Deno.env.get('AUTH_GATEWAY_URL') || 'http://localhost:8003';
+const AUTH_GW = Deno.env.get('AUTH_GATEWAY_URL');
 
 // ── 快取公鑰 ──
 let cachedPublicKey: CryptoKey | null = null;

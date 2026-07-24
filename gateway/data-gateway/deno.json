@@ -18,6 +18,7 @@
     "@dui/framework/file-router": "./../../packages/dui-framework/fileRouter.ts",
     "@dui/framework/setup-guard": "./../../packages/dui-framework/setup-guard.ts",
     "@dui/framework/route-loader": "./../../packages/dui-framework/route-loader.ts",
+    "@dui/smartmultilingual": "./../../packages/dui-multilanguage/mod.ts",
     "@tailwindcss/cli": "npm:@tailwindcss/cli@^4.3.3",
     "tailwindcss": "npm:tailwindcss@^4.3.3",
     "daisyui": "npm:daisyui@^5.6.18",

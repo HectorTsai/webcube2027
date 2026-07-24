@@ -5,7 +5,7 @@
  * 取代原本直接使用 @dui/database dataPool 的方式。
  */
 
-const DATA_GW = Deno.env.get('DATA_GATEWAY_URL') || 'http://localhost:8002';
+const DATA_GW = Deno.env.get('DATA_GATEWAY_URL');
 
 // ────────────────────────────────────────────────────
 //  響應型別（data-gateway API 回傳格式）

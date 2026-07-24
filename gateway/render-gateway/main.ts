@@ -73,8 +73,9 @@ async function 啟動伺服器() {
     // 4. UnoCSS
     await 初始化UnoCSS();
 
-    // 5. 啟動 HTTP 伺服器
-    Deno.serve({ port: 8000 }, app.fetch);
+    // 5. 啟動 HTTP 伺服器（port 可透過 RENDER_GATEWAY_PORT 環境變數設定）
+    const port = Number(Deno.env.get('RENDER_GATEWAY_PORT') || 8000);
+    Deno.serve({ port }, app.fetch);
 
   } catch (err) {
     await error('伺服器', `啟動失敗: ${err}`);
