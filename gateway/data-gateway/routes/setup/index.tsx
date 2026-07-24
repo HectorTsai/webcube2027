@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const r = await fetch('/api/setup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 管理員帳號: data.管理員帳號, 管理員密碼: data.管理員密碼, l2 }),
+        body: JSON.stringify({ 管理員帳號: data.管理員帳號, 管理員密碼: data.管理員密碼, auth_gateway_url: data.auth_gateway_url, l2 }),
       });
       const res = await r.json();
       if (res.success) {
@@ -146,6 +146,16 @@ const SetupPage = () => (
               <label class="form-control w-full">
                 <span class="label-text text-sm mb-1">管理員密碼</span>
                 <input name="管理員密碼" type="password" class="input input-bordered w-full" required />
+              </label>
+
+              <div class="divider text-xs text-base-content/40">auth-gateway</div>
+
+              <label class="form-control w-full">
+                <span class="label-text text-sm mb-1">auth-gateway URL</span>
+                <input name="auth_gateway_url" type="url" class="input input-bordered w-full" placeholder="http://localhost:8081" required />
+                <span class="label-text-alt text-xs text-base-content/40 mt-1">
+                  JWT 簽發與驗證服務的位置
+                </span>
               </label>
 
               <div class="divider text-xs text-base-content/40">L2 資料庫連線</div>

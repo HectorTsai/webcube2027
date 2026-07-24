@@ -1,12 +1,13 @@
 /**
  * JWT 驗證共用工具
  *
- * 從 auth-gateway 取得 Ed25519 公鑰並快取，供 API 與 Admin middleware 使用。
+ * 從 dataPool.config（L1）讀取 auth-gateway URL，取得 Ed25519 公鑰並快取。
+ * 支援金鑰輪換（驗證失敗時自動重新取得公鑰）。
  */
 
 import { dataPool } from '@dui/database';
 
-const AUTH_GATEWAY_URL = Deno.env.get('AUTH_GATEWAY_URL') || 'http://localhost:8003';
+// ── Helper ──
 
 /** Build composite ID for data pool queries */
 export function composeId(model: string, rawId: string): string {
@@ -19,18 +20,20 @@ export function parseId(compositeId: string): { model: string; id: string } {
   return { model: parts[0], id: parts[2] ?? parts[1] };
 }
 
-// ── JWT 驗證共用邏輯 ──
+// ── JWT Verification ──
 
-// Cached Ed25519 public key fetched from auth-gateway
 let cachedPublicKey: CryptoKey | null = null;
 
-/**
- * Fetch the Ed25519 public key from auth-gateway.
- * On first call or after key rotation, this re-fetches and caches the key.
- */
+/** 從 auth-gateway 取得 Ed25519 公鑰 */
 async function fetchPublicKey(): Promise<CryptoKey> {
-  const res = await fetch(`${AUTH_GATEWAY_URL}/api/jwt-public-key`);
-  if (!res.ok) throw new Error(`Failed to fetch JWT public key: ${res.status}`);
+  const l1 = dataPool.config;
+  if (!l1) throw new Error('L1 尚未就緒，請先呼叫 dataPool.setConfigStore()');
+
+  const authUrl = await l1.get('auth_gateway_url');
+  if (!authUrl) throw new Error('auth-gateway URL 尚未設定，請先完成 /setup');
+
+  const res = await fetch(`${authUrl}/api/jwt-public-key`);
+  if (!res.ok) throw new Error(`取得 JWT 公鑰失敗：${res.status}`);
 
   const { publicKey: publicKeyHex } = await res.json();
 

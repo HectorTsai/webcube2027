@@ -8,6 +8,9 @@
  *   - 靜態檔案（.css, .svg, .png 等 → 自動服務）
  *   - _middleware.ts（目錄層級 middleware，支援 async 及 Context 傳遞）
  *   - _name_ 目錄（動態路徑參數 → :name）
+ *   - .md 檔案（自動轉為 HTML 頁面→ GET，使用 _layout.tsx 的 renderPage() 或預設模板）
+ *
+ * 路由優先順序：.tsx > .md > index.tsx > index.md
  */
 
 import { Hono, type Context, type Next } from 'hono';
@@ -39,6 +42,19 @@ const STATIC_EXTS = new Set(Object.keys(MIME_MAP));
 
 export type MiddlewareFn = (c: Context, next: Next) => Promise<Response | void | undefined> | Response | void;
 
+// ── Helper ──
+
+/** 從 Markdown 內容萃取第一個 # 標題 */
+function extractTitle(md: string): string | null {
+  const match = md.match(/^#\s+(.+)$/m);
+  return match ? match[1].trim() : null;
+}
+
+/** HTML 跳脫（防止 XSS） */
+function ehtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 interface MethodRoute {
   method: HttpMethod;
   pathPattern: string;
@@ -52,9 +68,16 @@ interface StaticRoute {
   mime: string;
 }
 
+interface MdRoute {
+  pathPattern: string;
+  filePath: string;
+  middleware: MiddlewareFn[];
+}
+
 interface CollectResult {
   methodRoutes: MethodRoute[];
   staticRoutes: StaticRoute[];
+  mdRoutes: MdRoute[];
 }
 
 // ── File parsing ──
@@ -153,7 +176,31 @@ async function collectRoutes(
       continue;
     }
 
-    // 3. Method handler / index
+    // 3. .md 檔案 → 自動註冊 GET 路由
+    if (ext === '.md') {
+      // 忽略 _layout.md、_middleware.md
+      const nameWithoutExt = entry.name.substring(0, entry.name.length - 3);
+      if (nameWithoutExt === '_layout' || nameWithoutExt === '_middleware') continue;
+
+      let pathSegment: string;
+      if (nameWithoutExt === 'index') {
+        pathSegment = '';
+      } else if (nameWithoutExt.startsWith('_') && nameWithoutExt.endsWith('_')) {
+        pathSegment = ':' + nameWithoutExt.slice(1, -1);
+      } else {
+        pathSegment = nameWithoutExt;
+      }
+
+      const pathPattern = basePath + (pathSegment ? '/' + pathSegment : '');
+      result.mdRoutes.push({
+        pathPattern: pathPattern || '/',
+        filePath: normalizedUrl + entry.name,
+        middleware: newStack,
+      });
+      continue;
+    }
+
+    // 4. Method handler / index
     const info = parseRouteFileInfo(entry.name);
     if (!info) continue;
 
@@ -182,13 +229,13 @@ async function collectRoutes(
  */
 export async function loadRoutes(dirUrl: URL): Promise<Hono> {
   const app = new Hono();
-  const result: CollectResult = { methodRoutes: [], staticRoutes: [] };
+  const result: CollectResult = { methodRoutes: [], staticRoutes: [], mdRoutes: [] };
 
   await collectRoutes(dirUrl.href, '', [], result);
 
   // 註冊靜態檔案路由
   for (const sr of result.staticRoutes) {
-    app.get(sr.pathPattern as any, async (c) => {
+    app.get(sr.pathPattern as any, async (c: Context) => {
       try {
         const content = await Deno.readFile(new URL(sr.filePath));
         return c.body(content, 200, { 'content-type': sr.mime });
@@ -220,6 +267,48 @@ export async function loadRoutes(dirUrl: URL): Promise<Hono> {
 
     const handlers: any[] = [...route.middleware, handler];
     app.on(route.method, route.pathPattern as any, ...handlers);
+  }
+
+  // 註冊 .md 路由（在 method 路由之後，確保 .tsx 優先）
+  for (const md of result.mdRoutes) {
+    const handlers: any[] = [
+      ...md.middleware,
+      async (c: Context) => {
+        try {
+          const content = await Deno.readTextFile(new URL(md.filePath));
+          const { marked } = await import('marked');
+          const htmlContent = await marked.parse(content);
+
+          // 嘗試使用 routes/_layout.tsx 的 renderPage()
+          try {
+            const layoutUrl = new URL('_layout.tsx', dirUrl);
+            await Deno.stat(layoutUrl); // 確認檔案存在
+            const layoutMod = await import(layoutUrl.href);
+            if (typeof layoutMod.renderPage === 'function') {
+              const title = extractTitle(content) || md.pathPattern;
+              return c.html(layoutMod.renderPage(title, htmlContent));
+            }
+          } catch {
+            // _layout.tsx 不存在或沒有 renderPage → 使用預設
+          }
+
+          // 預設模板
+          const title = extractTitle(content) || md.pathPattern;
+          return c.html(`<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${ehtml(title)}</title>
+</head>
+<body class="min-h-screen bg-base-200 p-6 max-w-3xl mx-auto prose">${htmlContent}</body>
+</html>`);
+        } catch {
+          return c.notFound();
+        }
+      },
+    ];
+    app.on('GET', md.pathPattern as any, ...handlers);
   }
 
   return app;

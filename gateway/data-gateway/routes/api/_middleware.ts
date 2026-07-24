@@ -1,7 +1,10 @@
 /**
  * API area JWT auth middleware.
  *
- * API client 友善：驗證失敗時回傳 401 JSON，不重新導向。
+ * 接受任何有效 JWT（匿名或已認證），將 payload 存入 context。
+ * 個別 handler 可依 `jwt_type` 決定回傳資料範圍：
+ *   - "anonymous"     — 僅回傳公開資料
+ *   - "authenticated" — 回傳完整資料（含登入者專屬內容）
  *
  * /api/setup 為公開安裝端點，不需 JWT 驗證。
  */
@@ -28,7 +31,8 @@ export const middleware = async (c: Context, next: Next) => {
 
   // 將 payload 存入 context，供後續 API handler 使用
   c.set('jwt_payload', payload);
+  c.set('tenant', payload.tenant);
+  c.set('jwt_type', payload.type); // "anonymous" | "authenticated"
 
-  // 記得要 return，讓非同步洋蔥模型完美閉環
   return await next();
 };

@@ -17,11 +17,19 @@ const app = gw.app;
 
 // ── 2. 全域獨立/系統路由 (不走檔案路由者) ──────────
 
-// Logout 路由
-app.get('/logout', (c) => {
+// Logout 路由 — 清除 JWT cookie 並導向 auth-gateway 登入頁
+app.get('/logout', async (c) => {
   c.header('Set-Cookie', 'jwt=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0');
-  const AUTH_GATEWAY_URL = 'http://localhost:8003';
-  return c.redirect(`${AUTH_GATEWAY_URL}/login`);
+
+  // 從 L1 動態讀取 auth-gateway URL（避免在 main.ts 階段就強制設定）
+  let authUrl = 'http://localhost:8081';
+  try {
+    const storedAuthUrl = await gw.l1.get('auth_gateway_url');
+    if (storedAuthUrl) authUrl = storedAuthUrl;
+  } catch {
+    // 沿用預設值
+  }
+  return c.redirect(`${authUrl}/login`);
 });
 
 // Health check

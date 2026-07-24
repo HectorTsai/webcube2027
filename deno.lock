@@ -23,9 +23,10 @@
     "npm:github-slugger@2": "2.0.0",
     "npm:he@^1.2.0": "1.2.0",
     "npm:katex@0.16": "0.16.47",
-    "npm:marked-alert@2": "2.1.2_marked@11.2.0",
-    "npm:marked-footnote@^1.2.0": "1.4.0_marked@11.2.0",
+    "npm:marked-alert@2": "2.1.2_marked@15.0.12",
+    "npm:marked-footnote@^1.2.0": "1.4.0_marked@15.0.12",
     "npm:marked-gfm-heading-id@^3.1.0": "3.2.0_marked@11.2.0",
+    "npm:marked@15": "15.0.12",
     "npm:marked@^11.1.0": "11.2.0",
     "npm:mongodb@6": "6.21.0",
     "npm:mongodb@^7.2.0": "7.5.0",
@@ -48,10 +49,10 @@
         "npm:github-slugger",
         "npm:he",
         "npm:katex",
-        "npm:marked",
         "npm:marked-alert",
         "npm:marked-footnote",
         "npm:marked-gfm-heading-id",
+        "npm:marked@^11.1.0",
         "npm:prismjs",
         "npm:sanitize-html"
       ]
@@ -1795,27 +1796,31 @@
         "@jridgewell/sourcemap-codec"
       ]
     },
-    "marked-alert@2.1.2_marked@11.2.0": {
+    "marked-alert@2.1.2_marked@15.0.12": {
       "integrity": "sha512-EFNRZ08d8L/iEIPLTlQMDjvwIsj03gxWCczYTht6DCiHJIZhMk4NK5gtPY9UqAYb09eV5VGT+jD4lp396E0I+w==",
       "dependencies": [
-        "marked"
+        "marked@15.0.12"
       ]
     },
-    "marked-footnote@1.4.0_marked@11.2.0": {
+    "marked-footnote@1.4.0_marked@15.0.12": {
       "integrity": "sha512-fZTxAhI1TcLEs5UOjCfYfTHpyKGaWQevbxaGTEA68B51l7i87SctPFtHETYqPkEN0ka5opvy4Dy1l/yXVC+hmg==",
       "dependencies": [
-        "marked"
+        "marked@15.0.12"
       ]
     },
     "marked-gfm-heading-id@3.2.0_marked@11.2.0": {
       "integrity": "sha512-Xfxpr5lXLDLY10XqzSCA9l2dDaiabQUgtYM9hw8yunyVsB/xYBRpiic6BOiY/EAJw1ik1eWr1ET1HKOAPZBhXg==",
       "dependencies": [
         "github-slugger",
-        "marked"
+        "marked@11.2.0"
       ]
     },
     "marked@11.2.0": {
       "integrity": "sha512-HR0m3bvu0jAPYiIvLUUQtdg1g6D247//lvcekpHO1WMvbwDlwSkZAX9Lw4F4YHE1T0HaaNve0tuAWuV1UJ6vtw==",
+      "bin": true
+    },
+    "marked@15.0.12": {
+      "integrity": "sha512-8dD6FusOQSrpv9Z1rdNMdlSgQOIP880DHqnohobOmYLElGEqAL/JvxvuxZO16r4HtjTlfPRDC1hbvxC9dPN2nA==",
       "bin": true
     },
     "math-intrinsics@1.1.0": {
@@ -2453,6 +2458,7 @@
           "jsr:@hono/hono@^4.12.31",
           "npm:@tailwindcss/cli@^4.3.3",
           "npm:daisyui@^5.6.18",
+          "npm:marked@15",
           "npm:tailwindcss@^4.3.3"
         ]
       },

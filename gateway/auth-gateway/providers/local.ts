@@ -2,12 +2,17 @@
  * Local Auth Provider — 帳號/密碼登入
  *
  * 呼叫 data-gateway 的 InnerAPI 驗證使用者。
+ *
+ * data-gateway URL 從 L1 動態讀取（而非 env var），
+ * 確保在 setup 完成後即可使用，不需重啟。
  */
 
 import type { Context } from 'hono';
 import type { AuthProvider, AuthResult } from './provider.ts';
+import { getL1 } from '../utils/l1.ts';
 
-const DATA_GATEWAY = Deno.env.get('DATA_GATEWAY_URL') || 'http://localhost:8002';
+/** 預設 data-gateway URL（當 L1 尚未設定時） */
+const DEFAULT_DATA_GATEWAY = 'http://localhost:8002';
 
 export const localProvider: AuthProvider = {
   type: 'local',
@@ -19,7 +24,17 @@ export const localProvider: AuthProvider = {
         return { success: false, error: '請輸入帳號與密碼' };
       }
 
-      const r = await fetch(`${DATA_GATEWAY}/inner-api/auth/verify-user`, {
+      // 從 L1 動態讀取 data-gateway URL
+      let dataGatewayUrl = DEFAULT_DATA_GATEWAY;
+      try {
+        const l1 = getL1();
+        const stored = await l1.get('data_gateway_url');
+        if (stored) dataGatewayUrl = stored;
+      } catch {
+        // L1 尚未初始化，使用預設值
+      }
+
+      const r = await fetch(`${dataGatewayUrl}/inner-api/auth/verify-user`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 帳號, 密碼 }),

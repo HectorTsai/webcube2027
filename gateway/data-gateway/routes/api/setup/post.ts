@@ -1,11 +1,11 @@
 /**
  * POST /api/setup
- * 首次安裝 — 設定 L2 連線、建立預設角色與超級管理員
+ * 首次安裝 — 設定 L2 連線、auth-gateway URL、建立預設角色與管理員
  */
 
 import type { Context } from 'hono';
 import { dataPool } from '@dui/database';
-import { info } from '@dui/util';
+import { info, error as logError } from '@dui/util';
 
 /** 預設角色清單 */
 const DEFAULT_ROLES = [
@@ -19,11 +19,24 @@ const DEFAULT_ROLES = [
 export async function POST(c: Context) {
   try {
     const body = await c.req.json();
-    const { 管理員帳號, 管理員密碼, l2 } = body;
+    const { 管理員帳號, 管理員密碼, l2, auth_gateway_url } = body;
 
     if (!管理員帳號 || !管理員密碼) {
       return c.json({ success: false, error: '請填寫管理員帳號與密碼' }, 400);
     }
+
+    // ── 1. 儲存 auth-gateway URL 到 L1 ──
+    if (auth_gateway_url) {
+      try {
+        new URL(auth_gateway_url); // 格式驗證
+      } catch {
+        return c.json({ success: false, error: 'auth-gateway URL 格式不正確' }, 400);
+      }
+      await dataPool.config?.set('auth_gateway_url', auth_gateway_url);
+      await info('DataGateway', `auth-gateway URL 已設定：${auth_gateway_url}`);
+    }
+
+    // ── 2. 處理 L2 連線設定 ──
 
     // Firestore：驗證上傳的服務帳號金鑰 JSON
     if (l2?.type === 'firestore') {
@@ -53,7 +66,7 @@ export async function POST(c: Context) {
       await dataPool.config?.set('l2_connection', encrypted);
     }
 
-    // 初始化 L2
+    // ── 3. 初始化 L2 ──
     await dataPool.initL2();
     const system = dataPool.System;
     if (!system) {
@@ -79,9 +92,8 @@ export async function POST(c: Context) {
     await info('DataGateway', '安裝完成');
     return c.json({ success: true });
   } catch (err) {
-    return c.json(
-      { success: false, error: `安裝失敗: ${err instanceof Error ? err.message : String(err)}` },
-      500,
-    );
+    const msg = err instanceof Error ? err.message : String(err);
+    await logError('DataGateway', `安裝失敗：${msg}`);
+    return c.json({ success: false, error: `安裝失敗：${msg}` }, 500);
   }
 }
