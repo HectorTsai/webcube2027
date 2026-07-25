@@ -36,21 +36,43 @@ export class SqliteAdapter implements DatabaseAdapter {
   }
 
   list(collection: string, modelType?: string, options?: QueryOptions): Promise<Record<string, unknown>[]> {
-    const limitNum = options?.limit ?? 50;
-    const offsetNum = options?.offset ?? 0;
     try {
-      let sql: string;
+      const limitNum = options?.limit ?? 50;
+      const offsetNum = options?.offset ?? 0;
+      const filter = options?.filter;
+      const sortField = options?.sort;
+      const sortOrder = options?.order === 'asc' ? 'ASC' : 'DESC';
+
+      const conditions: string[] = [];
+      const params: unknown[] = [];
+
       if (modelType) {
-        // 篩選特定 model type：id 的第 2 段 = modelType
-        sql = `SELECT data FROM "${collection}" WHERE id LIKE ? ORDER BY updatedAt DESC LIMIT ? OFFSET ?;`;
-        const rows = this.db.prepare(sql).all(`${collection}:${modelType}:%`, limitNum, offsetNum) as { data: string }[];
-        return Promise.resolve(rows.map((r) => JSON.parse(r.data) as Record<string, unknown>));
-      } else {
-        sql = `SELECT data FROM "${collection}" ORDER BY updatedAt DESC LIMIT ? OFFSET ?;`;
-        const rows = this.db.prepare(sql).all(limitNum, offsetNum) as { data: string }[];
-        return Promise.resolve(rows.map((r) => JSON.parse(r.data) as Record<string, unknown>));
+        conditions.push('id LIKE ?');
+        params.push(`${collection}:${modelType}:%`);
       }
-    } catch {
+
+      // 欄位篩選：WHERE json_extract(data, '$.field') = ?
+      if (filter) {
+        for (const [field, value] of Object.entries(filter)) {
+          conditions.push(`json_extract(data, '$.${field}') = ?`);
+          params.push(value);
+        }
+      }
+
+      // 排序：ORDER BY json_extract(data, '$.field')
+      let orderClause = 'ORDER BY updatedAt DESC';
+      if (sortField) {
+        orderClause = `ORDER BY json_extract(data, '$.${sortField}') ${sortOrder}`;
+      }
+
+      const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+      const sql = `SELECT data FROM "${collection}" ${where} ${orderClause} LIMIT ? OFFSET ?;`;
+      params.push(limitNum, offsetNum);
+
+      console.log('[sqlite-list]', sql, params);
+      const rows = this.db.prepare(sql).all(...params as []) as { data: string }[];
+      return Promise.resolve(rows.map((r) => JSON.parse(r.data) as Record<string, unknown>));
+    } catch (err) {
       return Promise.resolve([]);
     }
   }

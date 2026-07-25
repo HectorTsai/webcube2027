@@ -25,6 +25,12 @@ export async function POST(c: Context) {
       return c.json({ success: false, error: '請填寫管理員帳號與密碼' }, 400);
     }
 
+    // ── 0. 檢查是否已安裝（防止重複覆蓋） ──
+    const existingL2 = await dataPool.config?.get('l2_connection');
+    if (existingL2) {
+      return c.json({ success: false, error: '系統已安裝，無法重複安裝' }, 400);
+    }
+
     // ── 1. 儲存 auth-gateway URL 到 L1 ──
     if (auth_gateway_url) {
       try {

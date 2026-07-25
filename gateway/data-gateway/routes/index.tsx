@@ -61,18 +61,10 @@ check();
 `;
 
 const Landing = () => (
-  <html lang="zh-TW" data-theme="light">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>Data Gateway — WebCube2027</title>
-      <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M4 7v10c0 2 4 3 8 3s8-1 8-3V7M4 7c0-2 4-3 8-3s8 1 8 3M4 7c0 2 4 3 8 3s8-1 8-3'/%3E%3C/svg%3E" />
-      <link href="/css/output.css" rel="stylesheet" />
-      <style>{`.wave-bg { position: fixed; bottom: 0; left: 0; width: 100%; height: 280px; overflow: hidden; z-index: 0; pointer-events: none; } .wave-svg { position: absolute; bottom: 0; width: 200%; animation: wave 18s linear infinite; } .wave-svg:nth-child(1) { animation-duration: 18s; opacity: 0.5; } .wave-svg:nth-child(2) { animation-duration: 24s; opacity: 0.3; animation-direction: reverse; } @keyframes wave { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }`}</style>
-    </head>
-    <body class="min-h-screen bg-base-200 flex flex-col relative overflow-x-hidden">
+      <div class="relative overflow-x-hidden w-full">
 
       {/* ── Decorative wave background ── */}
+      <style>{`.wave-bg { position: fixed; bottom: 0; left: 0; width: 100%; height: 280px; overflow: hidden; z-index: 0; pointer-events: none; } .wave-svg { position: absolute; bottom: 0; width: 200%; animation: wave 18s linear infinite; } .wave-svg:nth-child(1) { animation-duration: 18s; opacity: 0.5; } .wave-svg:nth-child(2) { animation-duration: 24s; opacity: 0.3; animation-direction: reverse; } @keyframes wave { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }`}</style>
       <div class="wave-bg">
         <svg class="wave-svg" viewBox="0 0 1440 320" preserveAspectRatio="none" style="position: absolute; bottom: 0; width: 200%; height: 100%;">
           <path fill="oklch(var(--p)/0.06)" d="M0,224L80,213C160,203,320,181,480,181C640,181,800,203,960,213C1120,224,1280,224,1360,224L1440,224L1440,320L1360,320C1280,320,1120,320,960,320C800,320,640,320,480,320C320,320,160,320,80,320L0,320Z"></path>
@@ -82,21 +74,8 @@ const Landing = () => (
         </svg>
       </div>
 
-      {/* ── Navbar ── */}
-      <div class="navbar bg-base-100/80 backdrop-blur-sm shadow-xs border-b border-base-200 px-6 sticky top-0 z-10">
-        <div class="flex-1 flex items-center gap-3">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 4 3 8 3s8-1 8-3V7M4 7c0-2 4-3 8-3s8 1 8 3M4 7c0 2 4 3 8 3s8-1 8-3" /></svg>
-          <span class="text-lg font-bold tracking-tight">Data Gateway</span>
-          <span class="badge badge-soft badge-primary badge-xs">v0.1</span>
-        </div>
-        <div class="flex-none flex items-center gap-2">
-          <span class="text-xs text-base-content/50 hidden sm:inline">服務狀態</span>
-          <span id="status-badge" class="badge badge-soft badge-warning">檢查中…</span>
-        </div>
-      </div>
-
-      {/* ── Main content ── */}
-      <main class="flex-1 flex items-center justify-center px-4 py-12 relative z-1">
+      {/* ── Content ── */}
+      <div class="flex items-center justify-center px-4 py-12 relative z-1">
 
         <div class="max-w-2xl w-full space-y-6">
 
@@ -117,6 +96,10 @@ const Landing = () => (
                 <a href="/admin" class="btn btn-primary">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                   管理後台
+                </a>
+                <a href="/doc" class="btn btn-soft">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                  文件
                 </a>
                 <button onclick="openHealthModal()" class="btn btn-soft btn-outline">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
@@ -226,7 +209,7 @@ const Landing = () => (
           </div>
 
         </div>
-      </main>
+      </div>
 
       {/* ── Health Modal ── */}
       <dialog id="health-modal" class="modal">
@@ -245,16 +228,8 @@ const Landing = () => (
       </dialog>
 
       {/* ── Footer ── */}
-      <footer class="text-center text-base-content/25 text-xs py-4 relative z-1">
-        WebCube2027 &mdash; Data Gateway
-      </footer>
-
       <script>{raw(SCRIPT)}</script>
-    </body>
-  </html>
+    </div>
 );
 
-export const GET = (c: any) => {
-  const markup = '<!DOCTYPE html>' + (<Landing />).toString();
-  return c.html(markup);
-};
+export default Landing;

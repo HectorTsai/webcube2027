@@ -115,16 +115,8 @@ document.addEventListener('DOMContentLoaded', () => {
 import { raw } from 'hono/html';
 
 const SetupPage = () => (
-  <html lang="zh-TW" data-theme="light">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>系統安裝 — Data Gateway</title>
-      <link rel="icon" type="image/svg+xml" href="/images/webcube.svg" />
-      <link href="/css/output.css" rel="stylesheet" />
-    </head>
-    <body class="min-h-screen bg-base-200 flex items-center justify-center px-4 py-8">
-      <div class="max-w-lg w-full">
+  <>
+      <div class="max-w-lg w-full mx-auto px-4 py-8">
 
         <div id="setup-card" class="card bg-base-100 shadow-md">
           <div class="card-body gap-5 py-8 px-6">
@@ -274,11 +266,7 @@ const SetupPage = () => (
       </div>
 
       <script>{raw(SCRIPT)}</script>
-    </body>
-  </html>
+    </>
 );
 
-export const GET = (c: any) => {
-  const markup = '<!DOCTYPE html>' + (<SetupPage />).toString();
-  return c.html(markup);
-};
+export default SetupPage;

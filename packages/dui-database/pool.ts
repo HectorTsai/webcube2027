@@ -208,23 +208,67 @@ export class PoolCore extends BasePool<string, DatabaseAdapter> {
     options?: QueryOptions,
     host?: string,
   ): Promise<QueryResult<Record<string, unknown>[]>> {
-    if (host) {
-      await this.initL3(host);
-      const l3 = this.get(host);
-      if (l3) {
-        const data = await l3.list(collection, modelType, options);
-        return { data, source: 'L3', success: true };
+    const getData = async () => {
+      if (host) {
+        await this.initL3(host);
+        const l3 = this.get(host);
+        if (l3) return await l3.list(collection, modelType, options);
       }
+      await this.initL2();
+      const l2 = this.get('SYSTEM');
+      if (l2) return await l2.list(collection, modelType, options);
+      return null;
+    };
+
+    // ── 有 filter/sort 時，撈全部資料再做記憶體過濾 ──
+    const needsPost = options?.filter || options?.sort;
+    if (needsPost) {
+      // 先不帶 limit/offset 撈全部
+      const raw = await getData();
+      if (!raw) return { data: [], source: 'L2', success: false };
+      const source = host ? 'L3' : 'L2';
+
+      // 記憶體過濾
+      let filtered = raw;
+      if (options?.filter) {
+        filtered = raw.filter((r) =>
+          Object.entries(options.filter!).every(([field, value]) => {
+            let cur: unknown = r;
+            for (const part of field.split('.')) {
+              if (cur === null || cur === undefined) return false;
+              cur = (cur as Record<string, unknown>)[part];
+            }
+            return String(cur) === value;
+          }),
+        );
+      }
+
+      // 記憶體排序
+      if (options?.sort) {
+        const dir = options.order === 'asc' ? 1 : -1;
+        filtered.sort((a, b) => {
+          let va: unknown = a, vb: unknown = b;
+          for (const part of options.sort!.split('.')) {
+            va = (va as Record<string, unknown>)?.[part];
+            vb = (vb as Record<string, unknown>)?.[part];
+          }
+          return (String(va) > String(vb) ? 1 : -1) * dir;
+        });
+      }
+
+      // 分頁（對過濾後的結果）
+      const limit = Math.min(100, options?.limit ?? 50);
+      const offset = options?.offset ?? 0;
+      const paged = filtered.slice(offset, offset + limit);
+
+      return { data: paged, source, success: true };
     }
 
-    await this.initL2();
-    const l2 = this.get('SYSTEM');
-    if (l2) {
-      const data = await l2.list(collection, modelType, options);
-      return { data, source: 'L2', success: true };
-    }
-
-    return { data: [], source: 'L2', success: false };
+    // ── 無 filter，直接走 adapter ──
+    const data = await getData();
+    return data
+      ? { data, source: host ? 'L3' : 'L2', success: true }
+      : { data: [], source: 'L2', success: false };
   }
 
   /**
@@ -278,6 +322,34 @@ export class PoolCore extends BasePool<string, DatabaseAdapter> {
     if (l2) {
       const result = await l2.update(collection, id, data);
       return { data: result, source: 'L2', success: true };
+    }
+
+    return { data: null, source: 'L2', success: false };
+  }
+
+  /**
+   * Partially update specific fields of a record.
+   */
+  async patch(
+    collection: string,
+    id: string,
+    fields: Record<string, unknown>,
+    host?: string,
+  ): Promise<QueryResult<Record<string, unknown>>> {
+    if (host) {
+      await this.initL3(host);
+      const l3 = this.get(host);
+      if (l3) {
+        const result = await l3.patch(collection, id, fields);
+        return { data: result, source: 'L3', success: !!result };
+      }
+    }
+
+    await this.initL2();
+    const l2 = this.get('SYSTEM');
+    if (l2) {
+      const result = await l2.patch(collection, id, fields);
+      return { data: result, source: 'L2', success: !!result };
     }
 
     return { data: null, source: 'L2', success: false };

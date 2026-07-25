@@ -2,6 +2,12 @@
 export interface QueryOptions {
   limit?: number;
   offset?: number;
+  /** 欄位篩選：field → value 配對，所有條件 AND 疊加 */
+  filter?: Record<string, string>;
+  /** 排序欄位名稱（data JSON 中的路徑，如 "updatedAt"、"名稱.zh-tw"） */
+  sort?: string;
+  /** 排序方向 */
+  order?: 'asc' | 'desc';
 }
 
 /** Filter by field/value for querying non-ID columns */

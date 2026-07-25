@@ -13,7 +13,9 @@
  * 路由優先順序：.tsx > .md > index.tsx > index.md
  */
 
+import { renderToString } from 'hono/jsx/dom/server';
 import { Hono, type Context, type Next } from 'hono';
+import { jsx } from 'hono/jsx';
 
 // ── Types ──
 
@@ -245,6 +247,16 @@ export async function loadRoutes(dirUrl: URL): Promise<Hono> {
     });
   }
 
+  // 載入 _layout.tsx（若存在），供 .tsx 元件包裹使用
+  let layoutMod: any = null;
+  try {
+    const layoutUrl = new URL('_layout.tsx', dirUrl);
+    await Deno.stat(layoutUrl);
+    layoutMod = await import(layoutUrl.href);
+  } catch {
+    console.warn('[route-loader] _layout.tsx not found or failed to load — pages will render without shared layout');
+  }
+
   // 註冊 method 路由
   for (const route of result.methodRoutes) {
     let mod;
@@ -257,7 +269,33 @@ export async function loadRoutes(dirUrl: URL): Promise<Hono> {
       continue;
     }
 
-    const handler = mod[route.method] ?? mod.default;
+    let handler: any;
+
+    const isTsxPage = route.fileUrl.endsWith('.tsx');
+
+    if (isTsxPage && mod.default && layoutMod?.Layout) {
+      // .tsx 頁面元件（如 index.tsx、admin/index.tsx）→ 自動包裹 Layout
+      const pageTitle = mod.title || route.pathPattern || 'Data Gateway';
+      const PageComponent = mod.default;
+      handler = async (c: Context) => {
+        const content = await PageComponent(c);
+        const html = '<!DOCTYPE html>' + renderToString(
+          jsx(layoutMod.Layout, { title: pageTitle, children: content }),
+        );
+        return c.html(html);
+      };
+    } else if (mod[route.method]) {
+      // .ts API handler（如 get.ts、post.ts）→ 直接使用，不包 Layout
+      handler = mod[route.method];
+    } else if (mod.default) {
+      handler = mod.default;
+    } else {
+      console.warn(
+        `[route-loader] ${route.fileUrl} has no usable export`,
+      );
+      continue;
+    }
+
     if (!handler) {
       console.warn(
         `[route-loader] ${route.fileUrl} does not export '${route.method}' or default`,
@@ -279,20 +317,24 @@ export async function loadRoutes(dirUrl: URL): Promise<Hono> {
           const { marked } = await import('marked');
           const htmlContent = await marked.parse(content);
 
-          // 嘗試使用 routes/_layout.tsx 的 renderPage()
-          try {
-            const layoutUrl = new URL('_layout.tsx', dirUrl);
-            await Deno.stat(layoutUrl); // 確認檔案存在
-            const layoutMod = await import(layoutUrl.href);
-            if (typeof layoutMod.renderPage === 'function') {
-              const title = extractTitle(content) || md.pathPattern;
-              return c.html(layoutMod.renderPage(title, htmlContent));
-            }
-          } catch {
-            // _layout.tsx 不存在或沒有 renderPage → 使用預設
+          // 為 heading 加上 ID（支援 TOC anchor 連結）
+          const withHeadingIds = htmlContent.replace(
+            /<h([1-6])([^>]*)>(.*?)<\/h\1>/gs,
+            (match: string, level: string, attrs: string, inner: string) => {
+              if (/id\s*=/.test(attrs)) return match; // 已有 ID 則跳過
+              const raw = inner.replace(/<[^>]*>/g, '');
+              const id = raw.toLowerCase().replace(/[^\w\u4e00-\u9fff]+/g, '-').replace(/^-+|-+$/g, '');
+              return `<h${level} id="${id}"${attrs}>${inner}</h${level}>`;
+            },
+          );
+
+          // 使用 routes/_layout.tsx 的 renderPage()（已在函數頂層載入）
+          if (layoutMod && typeof layoutMod.renderPage === 'function') {
+            const title = extractTitle(content) || md.pathPattern;
+            return c.html(layoutMod.renderPage(title, withHeadingIds));
           }
 
-          // 預設模板
+          // 預設模板（無 _layout.tsx 時使用）
           const title = extractTitle(content) || md.pathPattern;
           return c.html(`<!DOCTYPE html>
 <html lang="zh-TW">
@@ -301,7 +343,7 @@ export async function loadRoutes(dirUrl: URL): Promise<Hono> {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${ehtml(title)}</title>
 </head>
-<body class="min-h-screen bg-base-200 p-6 max-w-3xl mx-auto prose">${htmlContent}</body>
+<body class="min-h-screen bg-base-200 p-6 max-w-3xl mx-auto prose">${withHeadingIds}</body>
 </html>`);
         } catch {
           return c.notFound();
