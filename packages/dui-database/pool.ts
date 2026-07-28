@@ -66,6 +66,8 @@ export interface QueryResult<T> {
   source: SourceLevel;
   success: boolean;
   error?: string;
+  /** 記憶體過濾後的總筆數（僅在 list() 有 filter 時提供） */
+  totalCount?: number;
 }
 
 // ── Adapter Registry (取代 switch-case factory) ──
@@ -466,7 +468,7 @@ export class PoolCore extends BasePool<string, DatabaseAdapter> {
       const offset = options?.offset ?? 0;
       const paged = filtered.slice(offset, offset + limit);
 
-      return { data: paged, source, success: true };
+      return { data: paged, source, success: true, totalCount: filtered.length };
     }
 
     // ── 無 filter，直接走 adapter ──
