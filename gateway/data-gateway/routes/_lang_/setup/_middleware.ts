@@ -14,8 +14,9 @@ export async function middleware(c: Context, next: Next) {
       return c.json({ success: false, message: '系統已完成安裝，禁止重複設定！' }, 400);
     }
 
-    // 如果是瀏覽器存取 /setup 頁面，直接重定向回首頁或管理後台
-    return c.redirect('/admin');
+    // 如果是瀏覽器存取 /setup 頁面，直接重定向至該語系的管理後台
+    const lang = c.get('lang') || 'zh-tw';
+    return c.redirect(`/${lang}/admin`);
   }
 
   // 3. 還沒安裝才放行進入 /setup 相關頁面/API

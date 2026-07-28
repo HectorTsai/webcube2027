@@ -9,10 +9,37 @@
  */
 
 import { dataPool } from '@dui/database';
+import { checkAccess } from './permission.ts';
 
 const RESERVED_PARAMS = new Set([
-  'page', 'pageSize', 'limit', 'offset', 'sort', 'order', 'token',
+  'page', 'pageSize', 'limit', 'offset', 'sort', 'order', 'token', '作者',
 ]);
+
+/** 從 effective_host 判斷操作層級：有 host → L3，無 host → L2 */
+function getLevel(host: string | undefined): 'l2' | 'l3' {
+  return host ? 'l3' : 'l2';
+}
+
+/** 檢查讀取權限（未登入時視為允許公開讀取） */
+function canRead(c: any, collection: string): boolean {
+  const payload = c.get('jwt_payload');
+  if (!payload) return true; // 無 JWT → 公開讀取
+  const host = c.get('effective_host');
+  return checkAccess(payload, getLevel(host), collection, '讀');
+}
+
+/** 檢查寫入權限（未登入時拒絕） */
+function canWrite(c: any, collection: string, authorId?: string): boolean {
+  const payload = c.get('jwt_payload');
+  if (!payload) return false;
+  const host = c.get('effective_host');
+  return checkAccess(payload, getLevel(host), collection, '寫', authorId);
+}
+
+/** 從 JWT payload 取得使用者 ID（sub） */
+function getUserId(c: any): string | undefined {
+  return c.get('jwt_payload')?.sub as string | undefined;
+}
 
 function isValidCompositeId(id: string): boolean {
   const parts = id.split(':');
@@ -79,6 +106,11 @@ export async function handleCollection(c: any) {
   // ── composite ID → getById ──
   if (isValidCompositeId(param)) {
     return handleGetById(c);
+  }
+
+  // ── 權限檢查：讀取 collection 資訊 ──
+  if (!canRead(c, param)) {
+    return c.json({ success: false, error: '無此權限' }, 403);
   }
 
   // ── collection 名稱 → 列出 model types ──
@@ -156,6 +188,11 @@ export async function handleList(c: any) {
     const model = c.req.param('model');
     const host = c.get('effective_host');
 
+    // ── 權限檢查 ──
+    if (!canRead(c, collection)) {
+      return c.json({ success: false, error: '無讀取權限' }, 403);
+    }
+
     // 判斷是否要 L2+L3 合併模式
     const rest = c.get('rest_path') || '';
     const scopeAll = c.req.query('scope') === 'all' || !!rest;
@@ -186,6 +223,17 @@ export async function handleList(c: any) {
       if (val && !RESERVED_PARAMS.has(key)) filter[key] = val;
     }
     const hasFilter = Object.keys(filter).length > 0;
+
+    // ── self 權限自動加入作者過濾 ──
+    const userId = getUserId(c);
+    if (userId) {
+      const payload = c.get('jwt_payload');
+      const level = getLevel(host);
+      const perm = payload?.權限?.[level]?.[collection] ?? payload?.權限?.[level]?.default;
+      if (perm?.讀 === 'self') {
+        filter.作者 = userId;
+      }
+    }
 
     let result;
     if (useListAll) {
@@ -238,6 +286,17 @@ export async function handleCreate(c: any) {
     const host = c.get('effective_host');
     const body = await c.req.json();
 
+    // ── 權限檢查：寫入權限 ──
+    if (!canWrite(c, collection)) {
+      return c.json({ success: false, error: '無寫入權限' }, 403);
+    }
+
+    // 自動填入 作者（若 JWT 有 sub）
+    const userId = getUserId(c);
+    if (userId && !body.作者) {
+      body.作者 = userId;
+    }
+
     // ID 格式驗證
     if (body.id !== undefined) {
       if (typeof body.id !== 'string') {
@@ -279,8 +338,27 @@ export async function handleGetById(c: any) {
       return c.json({ success: false, error: 'ID 格式必須為 collection:model:nanoid' }, 400);
     }
 
+    const collection = id.split(':')[0];
+
+    // ── 權限檢查 ──
+    if (!canRead(c, collection)) {
+      return c.json({ success: false, error: '無讀取權限' }, 403);
+    }
+
     const result = await dataPool.getById(id, host);
     if (result.success) {
+      // ── self 權限：檢查作者是否為本人 ──
+      const payload = c.get('jwt_payload');
+      if (payload) {
+        const level = getLevel(host);
+        const perm = payload?.權限?.[level]?.[collection] ?? payload?.權限?.[level]?.default;
+        if (perm?.讀 === 'self') {
+          const userId = getUserId(c);
+          if (!userId || (result.data as any)?.作者 !== userId) {
+            return c.json({ success: false, error: '無此權限' }, 403);
+          }
+        }
+      }
       return c.json({ success: true, data: result.data, source: result.source });
     }
     return c.json({ success: false, error: '找不到資料' }, 404);
@@ -303,6 +381,14 @@ export async function handleUpdate(c: any) {
     }
 
     const collection = id.split(':')[0];
+
+    // ── 權限檢查（含 self：先查原資料取得作者） ──
+    const existing = await dataPool.getById(id, host);
+    const authorId = (existing.data as any)?.作者 as string | undefined;
+    if (!canWrite(c, collection, authorId)) {
+      return c.json({ success: false, error: '無寫入權限' }, 403);
+    }
+
     const body = await c.req.json();
 
     if (body.id !== undefined && body.id !== id) {
@@ -336,6 +422,14 @@ export async function handlePatch(c: any) {
     }
 
     const collection = id.split(':')[0];
+
+    // ── 權限檢查（含 self：先查原資料取得作者） ──
+    const existing = await dataPool.getById(id, host);
+    const authorId = (existing.data as any)?.作者 as string | undefined;
+    if (!canWrite(c, collection, authorId)) {
+      return c.json({ success: false, error: '無寫入權限' }, 403);
+    }
+
     const body = await c.req.json();
 
     if (!body || typeof body !== 'object' || Array.isArray(body)) {
@@ -366,6 +460,15 @@ export async function handleDelete(c: any) {
 
     if (!isValidCompositeId(id)) {
       return c.json({ success: false, error: 'ID 格式必須為 collection:model:nanoid' }, 400);
+    }
+
+    const collection = id.split(':')[0];
+
+    // ── 權限檢查（含 self：先查原資料取得作者） ──
+    const existing = await dataPool.getById(id, host);
+    const authorId = (existing.data as any)?.作者 as string | undefined;
+    if (!canWrite(c, collection, authorId)) {
+      return c.json({ success: false, error: '無刪除權限' }, 403);
     }
 
     const result = await dataPool.deleteRecord(id, host);

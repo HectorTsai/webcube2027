@@ -10,25 +10,30 @@
  */
 
 import type { Context } from 'hono';
+import { verify } from 'hono/jwt';
 import type { AuthProvider, AuthResult } from './provider.ts';
-import { getL1 } from '../utils/l1.ts';
+import { getKeys } from '../utils/keys.ts';
+import { getDataGatewayUrl } from '../utils/l1.ts';
+
+/** JWT cookie 名稱 */
+const JWT_COOKIE = 'jwt';
 
 /**
- * 取得 data-gateway URL，依序嘗試：
- * 1. L1 設定（auth-gateway 安裝時儲存）
- * 2. DATA_GATEWAY_URL 環境變數
+ * 從請求中提取現有 JWT 並驗證，回傳 tenant。
  */
-async function getDataGatewayUrl(): Promise<string> {
+async function extractTenantFromJWT(c: Context): Promise<string | null> {
+  const cookieHeader = c.req.header('Cookie') || '';
+  const jwtMatch = cookieHeader.match(new RegExp(`${JWT_COOKIE}=([^;]+)`));
+  const token = jwtMatch?.[1];
+  if (!token) return null;
+
   try {
-    const l1 = getL1();
-    const stored = await l1.get('data_gateway_url');
-    if (stored) return stored;
+    const { publicKey } = getKeys();
+    const payload = await verify(token, publicKey, 'EdDSA') as Record<string, unknown>;
+    return (payload.tenant as string) || null;
   } catch {
-    // L1 尚未就緒
+    return null;
   }
-  const envUrl = Deno.env.get('DATA_GATEWAY_URL');
-  if (envUrl) return envUrl;
-  throw new Error('data-gateway URL 尚未設定。請先完成安裝或設定 DATA_GATEWAY_URL 環境變數。');
 }
 
 export const localProvider: AuthProvider = {
@@ -41,12 +46,15 @@ export const localProvider: AuthProvider = {
         return { success: false, error: '請輸入帳號與密碼' };
       }
 
+      // 從現有 JWT 提取 tenant
+      const tenant = await extractTenantFromJWT(c);
+
       const dataGatewayUrl = await getDataGatewayUrl();
 
       const r = await fetch(`${dataGatewayUrl}/inner-api/auth/verify-user`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 帳號, 密碼 }),
+        body: JSON.stringify({ 帳號, 密碼, tenant }),
       });
       const res = await r.json();
 

@@ -51,17 +51,23 @@ export async function POST(c: Context) {
     return c.json({ success: false, error: result.error ?? '登入失敗' }, 401);
   }
 
-  // 3. 簽發已認證 JWT（含 tenant + 使用者身份）
+  // 3. 簽發已認證 JWT（含 tenant + 使用者身份 + 角色權限）
   const { privateKey } = getKeys();
   const now = Math.floor(Date.now() / 1000);
-  const payload = {
+  const payload: Record<string, unknown> = {
     tenant,
+    sub: result.payload.sub,
     帳號: result.payload.帳號,
     角色: result.payload.角色,
     type: 'authenticated',
     iat: now,
     exp: now + 86400, // 24 小時
   };
+
+  // 若 verify-user 有回傳權限則帶入 JWT payload
+  if ((result.payload as any).權限) {
+    payload.權限 = (result.payload as any).權限;
+  }
 
   const token = await sign(payload, privateKey, 'EdDSA');
 

@@ -3,7 +3,7 @@ import { raw } from 'hono/html';
 const SCRIPT = `
 async function check() {
   try {
-    const r = await fetch('/health').then(r => r.json());
+    const r = await fetch('/api/health').then(r => r.json());
     const el = document.getElementById('status-badge');
     if (r.status === 'ok') {
       el.textContent = '正常運作';
@@ -25,7 +25,7 @@ async function openHealthModal() {
   modal.showModal();
 
   try {
-    const r = await fetch('/health');
+    const r = await fetch('/api/health');
     const data = await r.json();
     const ok = data.status === 'ok';
     content.innerHTML = \`
@@ -60,7 +60,10 @@ async function openHealthModal() {
 check();
 `;
 
-const Landing = () => (
+const Landing = (c?: any) => {
+  const lang = c?.get?.('lang') || 'zh-tw';
+  const prefix = `/${lang}`;
+  return (
       <div class="relative overflow-x-hidden w-full">
 
       {/* ── Decorative wave background ── */}
@@ -93,11 +96,11 @@ const Landing = () => (
               </div>
 
               <div class="flex items-center gap-2 mt-1">
-                <a href="/admin" class="btn btn-primary">
+                <a href={`${prefix}/admin`} class="btn btn-primary">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                   管理後台
                 </a>
-                <a href="/doc" class="btn btn-soft">
+                <a href={`${prefix}/doc`} class="btn btn-soft">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                   文件
                 </a>
@@ -230,6 +233,7 @@ const Landing = () => (
       {/* ── Footer ── */}
       <script>{raw(SCRIPT)}</script>
     </div>
-);
+  );
+};
 
 export default Landing;

@@ -6,15 +6,7 @@
 import type { Context } from 'hono';
 import { dataPool } from '@dui/database';
 import { info, error as logError, encrypt } from '@dui/util';
-
-/** 預設角色清單 */
-const DEFAULT_ROLES = [
-  { id: '使用者:角色:超級管理員', 名稱: { 'zh-tw': '超級管理員', en: 'superadmin' } },
-  { id: '使用者:角色:管理員',     名稱: { 'zh-tw': '管理員', en: 'admin' } },
-  { id: '使用者:角色:會員',       名稱: { 'zh-tw': '會員', en: 'member' } },
-  { id: '使用者:角色:貴賓',       名稱: { 'zh-tw': '貴賓', en: 'vip' } },
-  { id: '使用者:角色:黑名單',     名稱: { 'zh-tw': '黑名單', en: 'blacklist' } },
-];
+import { loadSeedsRecursive } from '../../../database/seed-loader.ts';
 
 export async function POST(c: Context) {
   try {
@@ -89,12 +81,15 @@ export async function POST(c: Context) {
     }
     await system.initialize('使用者');
 
-    // 建立預設角色（加上防重 try-catch）
-    for (const role of DEFAULT_ROLES) {
+    // 從 seed 載入 L2 下所有預設資料（角色、使用者等）
+    // 自動掃描 L2/ 下每個子目錄，未來新增分類只需加目錄 + JSON 檔案
+    const seeds = await loadSeedsRecursive('L2');
+    for (const item of seeds) {
       try {
-        await system.create('使用者', role.id, { 名稱: role.名稱 });
+        const { id, ...data } = item;
+        await system.create('使用者', id as string, data);
       } catch {
-        // 若角色已存在則忽略
+        // 若已存在則忽略
       }
     }
 

@@ -2,7 +2,7 @@
  * 網站資訊介面 — 租戶（網站）的資料結構定義
  *
  * ── 用途 ──
- * 從 data-gateway 的 L2 (`site:config:{host}`) 取得的 JSON
+ * 從 data-gateway 的 L2 (`網站資訊:網站資訊:{host}`) 取得的 JSON
  * 可直接當作 網站資訊介面 使用，不需要 new class。
  *
  * 需要建構新記錄時（如安裝流程），使用 `new 網站資訊()`。
@@ -13,7 +13,7 @@ export type 多語字串 = Record<string, string>;
 
 export interface 網站資訊介面 {
   // ── 系統欄位 ──
-  /** Composite ID，格式為 site:config:{host}，如 site:config:localhost */
+  /** Composite ID，格式為 網站資訊:網站資訊:{host}，如 網站資訊:網站資訊:localhost */
   id: string;
   /** 最後修改時間 ISO 字串 */
   最後修改: string;

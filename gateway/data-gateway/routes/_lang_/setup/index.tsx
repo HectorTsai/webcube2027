@@ -205,7 +205,7 @@ const SetupPage = () => (
                 <label class="form-control w-full">
                   <span class="label-text text-sm mb-1">服務帳號金鑰 JSON 檔</span>
                   <span class="label-text-alt text-xs text-base-content/40 mb-1">Project ID 會自動從 JSON 中的 <code>project_id</code> 讀取</span>
-                  <input name="l2_credential_file" type="file" accept=".json" class="file-input file-input-bordered w-full" required />
+                  <input name="l2_credential_file" type="file" accept=".json" class="file-input file-input-bordered w-full" />
                 </label>
                 <label class="form-control w-full mt-3">
                   <span class="label-text text-sm mb-1">Database ID（選填，預設為 (default)）</span>

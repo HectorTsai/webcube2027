@@ -1,38 +1,59 @@
 /**
- * API area JWT auth middleware.
+ * 通用 API Middleware
  *
- * 接受任何有效 JWT（匿名或已認證），將 payload 存入 context。
- * 個別 handler 可依 `jwt_type` 決定回傳資料範圍：
- *   - "anonymous"     — 僅回傳公開資料
- *   - "authenticated" — 回傳完整資料（含登入者專屬內容）
+ * GET 開放任何有效 JWT（含匿名/訪客）。
+ * POST / PUT / PATCH / DELETE 需已認證 JWT（拒絕匿名/訪客）。
  *
- * /api/setup 為公開安裝端點，不需 JWT 驗證。
+ * 當 JWT 帶有 tenant（路由至 L3）時，會檢查 `權限.l3` 是否存在。
+ * 特殊端點（health/me/logout/setup/site）不受 L3 權限檢查。
  */
 
 import type { Context, Next } from 'hono';
-import { extractToken, verifyToken } from '../../utils/jwt.ts';
+import { extractToken, verifyToken } from '@dui/util/jwt';
+
+/** 不需 L3 權限檢查的端點前綴 */
+const NO_L3_CHECK = [
+  '/api/setup', '/api/health', '/api/me', '/api/logout',
+  '/api/site', '/api/anonymous-token',
+];
 
 export const middleware = async (c: Context, next: Next) => {
-  // /api/setup 是公開安裝端點，跳過 JWT 驗證
-  if (c.req.path === '/api/setup') {
-    return await next();
-  }
-
   const token = extractToken(c);
+  let payload: any = null;
 
-  if (!token) {
-    return c.json({ success: false, error: '未提供認證 token' }, 401);
+  if (token) {
+    try {
+      payload = await verifyToken(token);
+    } catch {
+      // token 無效 → 視為未攜帶 JWT
+    }
   }
 
-  const payload = await verifyToken(token);
-  if (!payload) {
-    return c.json({ success: false, error: 'token 無效或已過期' }, 401);
+  if (payload) {
+    c.set('jwt_payload', payload);
+    if (payload.tenant) {
+      c.set('effective_host', payload.tenant);
+    }
   }
 
-  // 將 payload 存入 context，供後續 API handler 使用
-  c.set('jwt_payload', payload);
-  c.set('tenant', payload.tenant);
-  c.set('jwt_type', payload.type); // "anonymous" | "authenticated"
+  const method = c.req.method;
 
-  return await next();
+  // 寫入操作需已認證 JWT（拒絕訪客/未登入）
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+    if (!payload || payload.type !== 'authenticated') {
+      return c.json({ success: false, error: '請先登入後再操作' }, 401);
+    }
+  }
+
+  // ── L3 權限檢查：有 tenant（路由至 L3）且非特殊端點 ──
+  // 匿名 JWT 若無 `權限.l3` 也拒絕（服務需使用已認證帳號）
+  const path = c.req.path;
+  const needsL3Check = payload?.tenant
+    && !NO_L3_CHECK.some((prefix) => path.startsWith(prefix));
+
+  if (needsL3Check && !payload?.權限?.l3) {
+    return c.json({ success: false, error: '無 L3 操作權限' }, 403);
+  }
+
+  await next();
 };

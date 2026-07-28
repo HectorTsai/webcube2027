@@ -1,21 +1,12 @@
 /**
- * /api/l2/* — 超管專用 L2 操作 API
+ * /api/l2/* — L2 系統資料操作 API
  *
- * 限定超級管理員存取，effective_host = undefined（操作 L2 系統資料庫）。
+ * 需已認證 JWT 且具備 L2 權限，effective_host = undefined（操作 L2 系統資料庫）。
+ * 細部 collection 層級的權限檢查由 crud.ts 處理。
  */
 
 import type { Context, Next } from 'hono';
 import { extractToken, verifyToken } from '@dui/util/jwt';
-
-const 超級管理員角色 = '使用者:角色:超級管理員';
-
-function 是超級管理員(payload: any): boolean {
-  // 優先支援中文 key「角色」，次要支援英文 key「roles」
-  const roles = payload.角色 ?? payload.roles;
-  if (!roles) return false;
-  if (Array.isArray(roles)) return roles.includes(超級管理員角色);
-  return roles === 超級管理員角色;
-}
 
 export const middleware = async (c: Context, next: Next) => {
   const token = extractToken(c);
@@ -28,11 +19,17 @@ export const middleware = async (c: Context, next: Next) => {
     return c.json({ success: false, error: 'Token 無效或已過期' }, 401);
   }
 
-  if (!是超級管理員(payload)) {
-    return c.json({ success: false, error: '僅超級管理員可存取' }, 403);
+  if (payload.type !== 'authenticated') {
+    return c.json({ success: false, error: '請先登入後再操作' }, 401);
   }
 
-  // 超管操作 L2（系統資料庫）
+  // 檢查是否有任何 L2 權限
+  const perms = (payload as any).權限;
+  if (!perms?.l2) {
+    return c.json({ success: false, error: '無 L2 操作權限' }, 403);
+  }
+
+  // 操作 L2（系統資料庫）
   c.set('jwt_payload', payload);
   c.set('effective_host', undefined);
 

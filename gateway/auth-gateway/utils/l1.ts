@@ -23,3 +23,21 @@ export async function isInstalled(): Promise<boolean> {
   const url = await _l1?.get('data_gateway_url');
   return !!url;
 }
+
+/**
+ * 取得 data-gateway URL，依序嘗試：
+ * 1. L1 設定（auth-gateway 安裝時儲存）
+ * 2. DATA_GATEWAY_URL 環境變數
+ */
+export async function getDataGatewayUrl(): Promise<string> {
+  try {
+    const l1 = getL1();
+    const stored = await l1.get('data_gateway_url');
+    if (stored) return stored;
+  } catch {
+    // L1 尚未就緒
+  }
+  const envUrl = Deno.env.get('DATA_GATEWAY_URL');
+  if (envUrl) return envUrl;
+  throw new Error('data-gateway URL 尚未設定。請先完成安裝或設定 DATA_GATEWAY_URL 環境變數。');
+}

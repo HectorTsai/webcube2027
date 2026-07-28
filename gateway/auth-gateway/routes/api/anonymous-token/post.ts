@@ -1,8 +1,8 @@
 /**
- * POST /api/anonymous-token — 簽發匿名 JWT
+ * POST /api/anonymous-token — 簽發訪客 JWT
  *
- * 提供無 JWT 的服務（WebCube 或其他 Gateway）向 auth-gateway 取得匿名 JWT。
- * 匿名 JWT 僅含 tenant 資訊，不含使用者身份。
+ * 提供無 JWT 的服務（WebCube 或其他 Gateway）向 auth-gateway 取得訪客 JWT。
+ * 訪客 JWT 包含 tenant 資訊、訪客使用者身份，以及從 data-gateway 取得的角色權限。
  *
  * Request body:  { domain: "www.dui.com.tw" }
  * Response:      { success: true, data: { token: "eyJ..." } }
@@ -11,9 +11,22 @@
 import type { Context } from 'hono';
 import { sign } from 'hono/jwt';
 import { getKeys } from '../../../utils/keys.ts';
+import { getDataGatewayUrl } from '../../../utils/l1.ts';
 
-/** 匿名 JWT 有效期（秒）— 1 小時 */
-const ANONYMOUS_TTL = 3600;
+/** 訪客 JWT 有效期（秒）— 1 小時 */
+const VISITOR_TTL = 3600;
+
+/** 從 data-gateway 取得訪客角色的權限設定 */
+async function getVisitorPermissions(): Promise<Record<string, unknown>> {
+  const dataGatewayUrl = await getDataGatewayUrl();
+  const r = await fetch(`${dataGatewayUrl}/inner-api/role`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: '使用者:角色:訪客' }),
+  });
+  const res = await r.json();
+  return res.success ? (res.data?.權限 || {}) : {};
+}
 
 export async function POST(c: Context) {
   try {
@@ -26,11 +39,23 @@ export async function POST(c: Context) {
     const { privateKey } = getKeys();
     const now = Math.floor(Date.now() / 1000);
 
+    // 取得訪客角色權限（若 data-gateway 尚未就緒則給空權限）
+    let 權限: Record<string, unknown> = {};
+    try {
+      權限 = await getVisitorPermissions();
+    } catch {
+      // data-gateway 尚未就緒，訪客預設無權限
+    }
+
     const payload = {
       tenant: domain,
-      type: 'anonymous',
+      sub: '使用者:使用者:訪客',
+      帳號: '訪客',
+      角色: ['使用者:角色:訪客'],
+      type: 'visitor',
+      權限,
       iat: now,
-      exp: now + ANONYMOUS_TTL,
+      exp: now + VISITOR_TTL,
     };
 
     const token = await sign(payload, privateKey, 'EdDSA');
@@ -38,6 +63,6 @@ export async function POST(c: Context) {
     return c.json({ success: true, data: { token } });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    return c.json({ success: false, error: `簽發匿名 JWT 失敗：${msg}` }, 500);
+    return c.json({ success: false, error: `簽發訪客 JWT 失敗：${msg}` }, 500);
   }
 }

@@ -28,6 +28,7 @@ export async function GET(c: Context) {
         帳號: payload.帳號,
         角色: payload.角色,
         type: payload.type,
+        權限: (payload as any).權限,
       },
     });
   } catch {

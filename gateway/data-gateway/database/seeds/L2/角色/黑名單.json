@@ -1,0 +1,12 @@
+{
+  "id": "使用者:角色:黑名單",
+  "名稱": { "zh-tw": "黑名單", "en": "blacklist" },
+  "權限": {
+    "l2": {
+      "default": { "讀": false, "寫": false }
+    },
+    "l3": {
+      "default": { "讀": false, "寫": false }
+    }
+  }
+}

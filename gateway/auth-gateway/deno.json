@@ -2,7 +2,7 @@
   "tasks": {
     "dev": "deno run --allow-all --env --watch main.ts",
     "start": "deno run --allow-all --env main.ts",
-    "build:css": "npx @tailwindcss/cli -i routes/css/input.css -o routes/css/output.css"
+    "build:css": "deno run -A --node-modules-dir npm:@tailwindcss/cli@^4.3.3 -i routes/css/input.css -o routes/css/output.css"
   },
   "compilerOptions": {
     "jsx": "precompile",
@@ -15,9 +15,10 @@
     "@dui/util": "./../../packages/dui-util/mod.ts",
     "@dui/kv": "./../../packages/dui-kv/mod.ts",
     "@dui/framework": "./../../packages/dui-framework/mod.ts",
-    "@dui/framework/file-router": "./../../packages/dui-framework/fileRouter.ts",
+    "@dui/smartmultilingual": "./../../packages/dui-multilanguage/mod.ts",
     "@tailwindcss/cli": "npm:@tailwindcss/cli@^4.3.3",
     "tailwindcss": "npm:tailwindcss@^4.3.3",
+    "@tailwindcss/typography": "npm:@tailwindcss/typography",
     "daisyui": "npm:daisyui@^5.6.18"
   }
 }

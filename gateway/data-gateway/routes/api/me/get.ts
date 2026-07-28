@@ -28,8 +28,8 @@ export const GET = async (c: Context) => {
   }
 
   const payload = await verifyToken(token);
-  // 無效 token 或 anonymous 訪客 token → 視為未登入
-  if (!payload || payload.type === 'anonymous') {
+  // 無效 token 或非已認證 token → 視為未登入
+  if (!payload || payload.type !== 'authenticated') {
     return c.json({
       authenticated: false,
       auth_gateway_url: authGatewayUrl || undefined,

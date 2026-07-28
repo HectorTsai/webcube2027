@@ -18,10 +18,11 @@ export interface AuthResult {
 
 /** JWT payload 中攜帶的使用者資訊 */
 export interface AuthPayload {
-  sub: string;       // 使用者 ID（如 "管理員:管理員:admin"）
+  sub: string;       // 使用者 ID（如 "使用者:使用者:admin"）
   帳號: string;
-  角色: string;
+  角色: string[];
   provider: string;  // "local" | "oauth:google" | ...
+  權限?: Record<string, unknown>;  // 角色權限設定
 }
 
 /** 認證 Provider 需實作的介面 */
