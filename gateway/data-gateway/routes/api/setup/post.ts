@@ -5,7 +5,7 @@
 
 import type { Context } from 'hono';
 import { dataPool } from '@dui/database';
-import { info, error as logError } from '@dui/util';
+import { info, error as logError, encrypt } from '@dui/util';
 
 /** 預設角色清單 */
 const DEFAULT_ROLES = [
@@ -21,31 +21,38 @@ export async function POST(c: Context) {
     const body = await c.req.json();
     const { 管理員帳號, 管理員密碼, l2, auth_gateway_url } = body;
 
+    // ── 0. 基礎參數校驗 ──
     if (!管理員帳號 || !管理員密碼) {
       return c.json({ success: false, error: '請填寫管理員帳號與密碼' }, 400);
     }
 
-    // ── 0. 檢查是否已安裝（防止重複覆蓋） ──
-    const existingL2 = await dataPool.config?.get('l2_connection');
+    if (!l2 || !l2.type) {
+      return c.json({ success: false, error: '請提供有效的 L2 資料庫設定' }, 400);
+    }
+
+    if (!dataPool.config) {
+      return c.json({ success: false, error: 'L1 設定資料庫未就緒' }, 500);
+    }
+
+    // 檢查是否已安裝（防止重複覆蓋）
+    const existingL2 = await dataPool.config.get('l2_connection');
     if (existingL2) {
       return c.json({ success: false, error: '系統已安裝，無法重複安裝' }, 400);
     }
 
-    // ── 1. 儲存 auth-gateway URL 到 L1 ──
+    // ── 1. 驗證 auth-gateway URL 格式 ──
     if (auth_gateway_url) {
       try {
-        new URL(auth_gateway_url); // 格式驗證
+        new URL(auth_gateway_url);
       } catch {
         return c.json({ success: false, error: 'auth-gateway URL 格式不正確' }, 400);
       }
-      await dataPool.config?.set('auth_gateway_url', auth_gateway_url);
-      await info('DataGateway', `auth-gateway URL 已設定：${auth_gateway_url}`);
     }
 
     // ── 2. 處理 L2 連線設定 ──
 
     // Firestore：驗證上傳的服務帳號金鑰 JSON
-    if (l2?.type === 'firestore') {
+    if (l2.type === 'firestore') {
       if (!l2.credential) {
         return c.json({ success: false, error: '請上傳服務帳號金鑰 JSON 檔' }, 400);
       }
@@ -58,36 +65,43 @@ export async function POST(c: Context) {
     }
 
     // SQLite：只取檔名，放到 gateway 的 data/ 下
-    if (l2?.type === 'sqlite' && l2?.filePath) {
-      const fileDir = import.meta.dirname; // .../gateway/data-gateway/routes/api/setup
+    if (l2.type === 'sqlite' && l2.filePath) {
+      const fileDir = import.meta.dirname;
       const dataDir = fileDir ? `${fileDir}/../../../data` : './data';
       l2.filePath = `${dataDir}/${l2.filePath.split('/').pop() || 'l2.db'}`;
     }
 
-    // 儲存 L2 連線資訊到 L1（加密）
-    if (l2) {
-      l2.enabled = true;
-      const { encrypt } = await import('@dui/util');
-      const encrypted = await encrypt(JSON.stringify(l2));
-      await dataPool.config?.set('l2_connection', encrypted);
+    // ── 3. 儲存設定至 L1 ──
+    if (auth_gateway_url) {
+      await dataPool.config.set('auth_gateway_url', auth_gateway_url);
+      await info('DataGateway', `auth-gateway URL 已設定：${auth_gateway_url}`);
     }
 
-    // ── 3. 初始化 L2 ──
+    l2.enabled = true;
+    const encryptedL2 = await encrypt(JSON.stringify(l2));
+    await dataPool.config.set('l2_connection', encryptedL2);
+
+    // ── 4. 初始化 L2 ──
     await dataPool.initL2();
     const system = dataPool.System;
     if (!system) {
-      return c.json({ success: false, error: 'L2 資料庫連線失敗' }, 500);
+      return c.json({ success: false, error: 'L2 資料庫連線失敗，請檢查資料庫設定' }, 500);
     }
     await system.initialize('使用者');
 
-    // 建立預設角色
+    // 建立預設角色（加上防重 try-catch）
     for (const role of DEFAULT_ROLES) {
-      await system.create('使用者', role.id, { 名稱: role.名稱 });
+      try {
+        await system.create('使用者', role.id, { 名稱: role.名稱 });
+      } catch {
+        // 若角色已存在則忽略
+      }
     }
 
-    // 建立超級管理員
-    const bcrypt = (await import('bcryptjs')) as any;
-    const 密碼雜湊 = await bcrypt.default.hash(管理員密碼, 10);
+    // 建立超級管理員（相容不同 module 載入情境）
+    const bcryptModule = (await import('bcryptjs')) as any;
+    const hashFn = bcryptModule.default?.hash || bcryptModule.hash;
+    const 密碼雜湊 = await hashFn(管理員密碼, 10);
     const 管理員ID = `使用者:使用者:${管理員帳號}`;
     await system.create('使用者', 管理員ID, {
       帳號: 管理員帳號,
