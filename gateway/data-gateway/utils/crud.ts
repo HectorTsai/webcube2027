@@ -23,65 +23,120 @@ function isValidCompositeId(id: string): boolean {
 // Collection 層級 — 自動判斷：有 : 則 getById，否則列出 model types
 // ──────────────────────────────────────────
 
+/** 取得 adapter 中指定 collection 的 model types 與計數 */
+async function getModelTypes(adapter: any, collection: string): Promise<{ type: string; count: number }[]> {
+  let modelTypes: string[];
+  if (typeof adapter.listModelTypes === 'function') {
+    modelTypes = await adapter.listModelTypes(collection);
+  } else {
+    const all = await adapter.list(collection);
+    const models = new Set<string>();
+    for (const item of all.data || all || []) {
+      if (item.id && item.id.includes(':')) {
+        models.add(item.id.split(':')[1]);
+      }
+    }
+    modelTypes = Array.from(models).sort();
+  }
+
+  return Promise.all(
+    modelTypes.map(async (type: string) => {
+      const count = await adapter.count(collection, type);
+      return { type, count };
+    }),
+  );
+}
+
+/** 合併 L2 + L3 的 model types（同 type 的 count 相加） */
+function mergeModels(
+  l2: { type: string; count: number }[],
+  l3: { type: string; count: number }[],
+): { type: string; count: number }[] {
+  const map = new Map<string, number>();
+  for (const m of l2) map.set(m.type, m.count);
+  for (const m of l3) {
+    map.set(m.type, (map.get(m.type) || 0) + m.count);
+  }
+  return Array.from(map.entries()).map(([type, count]) => ({ type, count }));
+}
+
 /**
  * GET /:collection
  *
  * 根據 `:collection` 參數自動判斷：
  *   - 含有 `:`  → 當作 composite ID，執行 getById
  *   - 不含 `:`  → 當作 collection 名稱，列出其下的 model types
+ *
+ * 支援 ?scope=all（或 fallback route 的 rest_path）觸發 L2+L3 合併模式。
+ * L3 初始化或查詢失敗時自動降級為僅回傳 L2 資料。
  */
 export async function handleCollection(c: any) {
   const param = c.req.param('collection');
   const host = c.get('effective_host');
+  const rest = c.get('rest_path') || '';
+  const scopeAll = c.req.query('scope') === 'all' || !!rest;
 
-  // ── 含有 : → composite ID，執行 getById ──
+  // ── composite ID → getById ──
   if (isValidCompositeId(param)) {
     return handleGetById(c);
   }
 
-  // ── 不含 : → collection 名稱，列出 model types ──
+  // ── collection 名稱 → 列出 model types ──
   try {
-    let adapter: any;
-    if (host) {
-      await dataPool.initL3(host);
-      adapter = dataPool.get(host);
-    } else {
-      adapter = dataPool.System;
-    }
-
-    if (!adapter) {
+    const l2 = dataPool.System;
+    if (!l2) {
       return c.json({ success: false, error: '資料庫尚未初始化' }, 500);
     }
 
-    let modelTypes: string[];
-    if (typeof adapter.listModelTypes === 'function') {
-      modelTypes = await adapter.listModelTypes(param);
-    } else {
-      const all = await adapter.list(param);
-      const models = new Set<string>();
-      for (const item of all.data || all || []) {
-        if (item.id && item.id.includes(':')) {
-          models.add(item.id.split(':')[1]);
+    if (scopeAll && host) {
+      // L2+L3 合併模式（L3 異常時自動降級）
+      let l3Models: { type: string; count: number }[] = [];
+      try {
+        await dataPool.initL3(host);
+        const l3Adapter = dataPool.get(host);
+        if (l3Adapter) {
+          l3Models = await getModelTypes(l3Adapter, param);
         }
+      } catch (l3Err) {
+        console.warn(`[handleCollection] L3 查詢失敗，降級僅回傳 L2:`, l3Err);
       }
-      modelTypes = Array.from(models).sort();
+
+      const l2Models = await getModelTypes(l2, param);
+      const merged = mergeModels(l2Models, l3Models);
+
+      return c.json({
+        success: true,
+        data: {
+          collection: param,
+          source: 'L2+L3',
+          models: merged,
+          totalModels: merged.length,
+        },
+      });
     }
 
-    const models = await Promise.all(
-      modelTypes.map(async (type: string) => {
-        const count = await adapter.count(param, type);
-        return { type, count };
-      }),
-    );
+    // 單層模式（L3 → L2 自動降級）
+    if (host) {
+      try {
+        await dataPool.initL3(host);
+        const l3 = dataPool.get(host);
+        if (l3) {
+          const models = await getModelTypes(l3, param);
+          return c.json({
+            success: true,
+            data: { collection: param, source: 'L3', models, totalModels: models.length },
+          });
+        }
+      } catch (l3Err) {
+        console.warn(`[handleCollection] L3 查詢失敗，降級至 L2:`, l3Err);
+      }
+    }
 
+    // 回退 L2
+    const models = await getModelTypes(l2, param);
     return c.json({
       success: true,
-      data: {
-        collection: param,
-        source: host ? 'L3' : 'L2',
-        models,
-        totalModels: models.length,
-      },
+      data: { collection: param, source: 'L2', models, totalModels: models.length },
     });
   } catch (err) {
     return c.json(
