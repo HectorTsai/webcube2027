@@ -15,7 +15,7 @@
 //   命名空間 → database ID（選用，預設 "default"）
 
 import { Client, Databases, Query } from 'node-appwrite';
-import type { DatabaseAdapter, QueryOptions, FieldFilter } from './adapter-interface.ts';
+import { sanitizePayload, type DatabaseAdapter, type QueryOptions, type FieldFilter } from './adapter-interface.ts';
 import { error } from '@dui/util';
 
 export interface AppwriteConnectOptions {
@@ -126,10 +126,7 @@ export class AppwriteAdapter implements DatabaseAdapter {
   }
 
   async update(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const 序列化資料 = typeof (data as { toJSON?: () => Record<string, unknown> }).toJSON === 'function'
-      ? (data as { toJSON: () => Record<string, unknown> }).toJSON()
-      : data;
-    const dataWithId = { ...序列化資料, id, updatedAt: new Date().toISOString() };
+    const dataWithId = sanitizePayload(data, id);
     const db = this.拿到DB();
     await db.updateDocument(
       this.databaseId,
@@ -206,11 +203,13 @@ export class AppwriteAdapter implements DatabaseAdapter {
   async count(collection: string, modelType?: string): Promise<number> {
     try {
       const db = this.拿到DB();
-      const result = await db.listDocuments(this.databaseId, collection, [Query.limit(1)]);
-      if (!modelType) return result.total;
-      // Appwrite 無法對 $id 做伺服器端前綴查詢，改以 client 端計算匹配數
-      const all = await db.listDocuments(this.databaseId, collection);
-      return all.documents.filter((doc: any) => doc.$id.startsWith(`${collection}:${modelType}:`)).length;
+      const queries: any[] = [Query.limit(1)];
+      if (modelType) {
+        // 伺服器端前綴過濾 $id，避免全量拉取 OOM
+        queries.push(Query.startsWith('$id', `${collection}:${modelType}:`));
+      }
+      const result = await db.listDocuments(this.databaseId, collection, queries);
+      return result.total;
     } catch {
       return 0;
     }

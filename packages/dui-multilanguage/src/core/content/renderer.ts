@@ -1,6 +1,6 @@
 import type { SmartContent } from './smart-content.ts';
-import type { SupportedFormat } from '../../utils/file/formats.ts';
-import { 格式對應表 } from '../../utils/file/formats.ts';
+import type { SupportedFormat } from '@dui/util/common/file';
+import { 格式對應表 } from '@dui/util/common/file';
 
 type GfmRender = (markdown: string) => string | Promise<string>;
 

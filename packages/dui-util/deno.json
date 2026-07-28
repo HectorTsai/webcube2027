@@ -1,12 +1,30 @@
 {
   "name": "@dui/util",
-  "version": "0.1.0",
+  "version": "0.4.0",
   "exports": {
     ".": "./mod.ts",
-    "./logger": "./logger.ts",
-    "./InnerAPI": "./InnerAPI.ts",
-    "./crypto": "./crypto.ts",
-    "./secretstring": "./secretstring.ts",
-    "./response": "./response.ts"
+    "./logger": "./common/logger.ts",
+    "./InnerAPI": "./backend/inner-api.ts",
+    "./crypto": "./backend/crypto.ts",
+    "./secretstring": "./backend/secretstring.ts",
+    "./response": "./backend/response.ts",
+    "./jwt": "./backend/jwt.ts",
+    "./string": "./common/string.ts",
+    "./array": "./common/array.ts",
+    "./file": "./common/file.ts",
+    "./common/logger": "./common/logger.ts",
+    "./common/string": "./common/string.ts",
+    "./common/array": "./common/array.ts",
+    "./common/file": "./common/file.ts",
+    "./backend/crypto": "./backend/crypto.ts",
+    "./backend/inner-api": "./backend/inner-api.ts",
+    "./backend/jwt": "./backend/jwt.ts",
+    "./backend/response": "./backend/response.ts",
+    "./backend/secretstring": "./backend/secretstring.ts"
+  },
+  "imports": {
+    "@std/path": "jsr:@std/path@^1.0.0",
+    "@std/encoding/base64": "jsr:@std/encoding@^1.0.0/base64",
+    "hono/jwt": "jsr:@hono/hono@^4.12.31/jwt"
   }
 }

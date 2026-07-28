@@ -8,7 +8,7 @@
 
 import { initializeApp, getApps, cert, type App } from 'firebase-admin/app';
 import { getFirestore, type Firestore, type Timestamp } from 'firebase-admin/firestore';
-import type { DatabaseAdapter, QueryOptions, FieldFilter } from './adapter-interface.ts';
+import { sanitizePayload, type DatabaseAdapter, type QueryOptions, type FieldFilter } from './adapter-interface.ts';
 import { info, error as logError } from '@dui/util';
 
 export interface FirestoreConnectOptions {
@@ -122,7 +122,16 @@ export class FirestoreAdapter implements DatabaseAdapter {
       });
       return results;
     } catch (err) {
-      await logError('FirestoreAdapter', `list 失敗 (${collection}): ${err instanceof Error ? err.message : String(err)}`);
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.toLowerCase().includes('index')) {
+        await logError('FirestoreAdapter',
+          `list 失敗 — 缺少 Composite Index。\n` +
+          `請在 Firebase Console 為 collection "${collection}" 建立以下 Index：\n` +
+          `  欄位：data.id (ASCENDING) | data.id (ASCENDING)，範圍：集合\n` +
+          `或使用 Firebase CLI: firebase firestore:indexes`);
+      } else {
+        await logError('FirestoreAdapter', `list 失敗 (${collection}): ${msg}`);
+      }
       return [];
     }
   }
@@ -135,10 +144,7 @@ export class FirestoreAdapter implements DatabaseAdapter {
   }
 
   async update(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const 序列化資料 = typeof (data as { toJSON?: () => Record<string, unknown> }).toJSON === 'function'
-      ? (data as { toJSON: () => Record<string, unknown> }).toJSON()
-      : data;
-    const dataWithId = { ...序列化資料, id, updatedAt: new Date().toISOString() };
+    const dataWithId = sanitizePayload(data, id);
     const db = this.拿到DB();
     await db.collection(collection).doc(id).set({ data: dataWithId });
     return dataWithId;

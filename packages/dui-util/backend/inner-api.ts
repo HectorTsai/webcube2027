@@ -1,9 +1,15 @@
 // deno-lint-ignore-file no-explicit-any
-import { Context } from 'hono';
-import { error } from './logger.ts';
+import type { Context } from 'hono';
+import { error } from '../common/logger.ts';
 
 // ── 模組層級 app 實例（main.ts 啟動時注入，用於同進程呼叫）──
 let _app: any = null;
+
+interface CacheEntry {
+  data: unknown;
+  /** Original response headers preserved for cache-hit responses */
+  headers: Record<string, string>;
+}
 
 /** main.ts 啟動時呼叫，InnerAPI 內部路由依賴 */
 export function 設定App(app: any): void {
@@ -19,12 +25,11 @@ export function 取得域名(c: Context): string {
 }
 
 /**
- * 自動編碼 URL 參數
+ * 安全地正規化 URL 路徑，保留原有 query string 並避免重複編碼
  */
-function encodeUrlParams(url: string): string {
-  const [path, queryString] = url.split('?');
-  if (!queryString) return url;
-  return `${path}?${new URLSearchParams(queryString).toString()}`;
+function normalizeUrlPath(urlPath: string): string {
+  const dummy = new URL(urlPath, 'http://localhost');
+  return dummy.pathname + dummy.search;
 }
 
 /**
@@ -33,47 +38,51 @@ function encodeUrlParams(url: string): string {
  * 使用 `_app.request()` 做同進程內部路由呼叫。
  * 需先由 main.ts 呼叫 `設定App(app)` 注入 Hono app 實例。
  *
- * 底層自動完成 Request 級別去重快取。
+ * 底層自動完成 Request 級別去重快取，快取命中時保留原始 Response headers。
  */
 export async function InnerAPI(c: Context, apiPath: string): Promise<Response> {
   try {
-    const encodedPath = encodeUrlParams(apiPath);
+    const normalizedPath = normalizeUrlPath(apiPath);
 
-    let cache = c.get('api_internal_cache') as Map<string, unknown> | undefined;
+    let cache = c.get('api_internal_cache') as Map<string, CacheEntry> | undefined;
     if (!cache) {
-      cache = new Map<string, unknown>();
+      cache = new Map<string, CacheEntry>();
       c.set('api_internal_cache', cache);
     }
 
-    if (cache.has(encodedPath)) {
-      const cachedData = cache.get(encodedPath);
-      return new Response(JSON.stringify(cachedData), {
+    const cached = cache.get(normalizedPath);
+    if (cached) {
+      return new Response(JSON.stringify(cached.data), {
         status: 200,
         headers: {
-          'Content-Type': 'application/json',
-          'X-Cache': 'HIT-REQUEST-CONTEXT'
-        }
+          ...cached.headers,
+          'X-Cache': 'HIT-REQUEST-CONTEXT',
+          'content-type': 'application/json',
+        },
       });
     }
 
     const 原始Cookie = c.req.header('cookie') || '';
 
     if (_app && typeof _app.request === 'function') {
-      const response = await _app.request(encodedPath, {
+      const response = await _app.request(normalizedPath, {
         headers: {
           'host': 取得域名(c),
           'origin': c.req.header('origin') || 'http://localhost:8000',
-          'cookie': 原始Cookie
-        }
+          'cookie': 原始Cookie,
+        },
       });
 
       if (response.ok) {
-        const clonedResponse = response.clone();
+        const cloned = response.clone();
         try {
-          const data = await clonedResponse.json();
-          cache.set(encodedPath, data);
+          const data = await cloned.json();
+          cache.set(normalizedPath, {
+            data,
+            headers: Object.fromEntries(response.headers.entries()),
+          });
         } catch {
-          // 忽視非 JSON 的響應
+          // 忽視非 JSON 的響應，不進入快取
         }
       }
 

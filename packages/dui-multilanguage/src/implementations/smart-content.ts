@@ -2,7 +2,7 @@ import MultilingualObject from '../core/base.ts';
 import { SmartContent } from '../core/content/smart-content.ts';
 import { ContentRenderer } from '../core/content/renderer.ts';
 import type { MultilingualData, SupportedLanguage } from '../core/types.ts';
-import type { SupportedFormat } from '../utils/file/formats.ts';
+import type { SupportedFormat } from '@dui/util/common/file';
 
 /**
  * 多國語言智慧內容類別
@@ -37,7 +37,7 @@ export default class MultilingualSmartContent extends MultilingualObject<SmartCo
   /**
    * 取得指定語言的內容文字表示；若不存在則自動翻譯（僅文字/Markdown），SVG 不翻譯
    */
-  public async toStringAsync(lang: SupportedLanguage, host?: string): Promise<string> {
+  public async toStringAsync(lang: SupportedLanguage): Promise<string> {
     const existing = this.getSmartContent(lang);
     if (existing) {
       await existing.fetchAsync();
@@ -63,7 +63,7 @@ export default class MultilingualSmartContent extends MultilingualObject<SmartCo
 
     if (typeof content !== "string") return '';
 
-    const translated = await this.translate(host ?? '', sourceLang, lang, content);
+    const translated = await this.translate(content, sourceLang, lang);
     const newContent = new SmartContent({ format: sourceContent.format, content: translated });
     this.setSmartContent(lang, newContent);
     return translated;

@@ -12,7 +12,8 @@
 //
 // Sensitive values should be encrypted with encrypt() before storing.
 
-import { info, debug } from '@dui/util';
+import { info, debug, error } from '@dui/util';
+import { dirname, resolve } from '@std/path';
 
 const DEFAULT_DATA_PATH = './data/l1.json';
 
@@ -20,15 +21,23 @@ const DEFAULT_DATA_PATH = './data/l1.json';
  * Simple persistent key-value store backed by a JSON file.
  *
  * All data is cached in memory for fast reads. Writes flush to disk
- * immediately. The file is human-readable for debugging; sensitive
- * fields should be pre-encrypted by the caller.
+ * via a single background task with dirty-flag coalescing, using an
+ * atomic temp-file + rename pattern to prevent file corruption under
+ * concurrent access.
+ *
+ * Sensitive fields should be pre-encrypted by the caller.
  */
 export class L1Store {
   private dataPath: string;
   private cache = new Map<string, string>();
+  /** Dirty flag — set true when cache has unsaved changes. */
+  private isDirty = false;
+  /** Reusable background flush task; null when idle. */
+  private flushingTask: Promise<void> | null = null;
 
   constructor(dataPath?: string) {
-    this.dataPath = dataPath || Deno.env.get('L1_PATH') || DEFAULT_DATA_PATH;
+    const rawPath = dataPath || Deno.env.get('L1_PATH') || DEFAULT_DATA_PATH;
+    this.dataPath = resolve(rawPath);
   }
 
   /** Initialize the store — ensures the data directory and loads existing data. */
@@ -43,14 +52,14 @@ export class L1Store {
     return this.cache.get(key) ?? null;
   }
 
-  /** Set a value by key. Persists to disk immediately. */
+  /** Set a value by key. Persists to disk asynchronously with coalescing. */
   async set(key: string, value: string): Promise<void> {
     this.cache.set(key, value);
     await this.flush();
     await debug('L1', `Set "${key}"`);
   }
 
-  /** Delete a key. Persists to disk immediately. */
+  /** Delete a key. Persists to disk asynchronously with coalescing. */
   async delete(key: string): Promise<void> {
     this.cache.delete(key);
     await this.flush();
@@ -71,20 +80,19 @@ export class L1Store {
    * Export all data as a plain object (for backup / admin UI display).
    */
   exportAll(): Record<string, string> {
-    const obj: Record<string, string> = {};
-    for (const [k, v] of this.cache) obj[k] = v;
-    return obj;
+    return Object.fromEntries(this.cache);
   }
 
   // ── Internal ──
 
   private async ensureDir(): Promise<void> {
-    const dir = this.dataPath.substring(0, this.dataPath.lastIndexOf('/'));
-    if (!dir) return;
+    const dir = dirname(this.dataPath);
+    if (!dir || dir === '.') return;
     try {
       await Deno.mkdir(dir, { recursive: true });
-    } catch {
-      // directory may already exist
+    } catch (err) {
+      // Suppress "already exists", rethrow everything else (permission, disk, etc.)
+      if (!(err instanceof Deno.errors.AlreadyExists)) throw err;
     }
   }
 
@@ -103,9 +111,45 @@ export class L1Store {
     }
   }
 
+  /**
+   * Dirty-flag coalescing flush.  Multiple concurrent calls share a single
+   * background task that keeps flushing until the cache is clean.
+   *
+   * - No unbounded Promise chain growth (memory-safe).
+   * - Concurrent callers all await the same single task.
+   * - Rapid set/delete bursts are batched into one disk write.
+   */
   private async flush(): Promise<void> {
-    const obj: Record<string, string> = {};
-    for (const [k, v] of this.cache) obj[k] = v;
-    await Deno.writeTextFile(this.dataPath, JSON.stringify(obj, null, 2));
+    this.isDirty = true;
+    if (this.flushingTask) return this.flushingTask;
+
+    this.flushingTask = (async () => {
+      while (this.isDirty) {
+        this.isDirty = false;
+        const snapshot = Object.fromEntries(this.cache);
+        try {
+          await this.atomicWrite(snapshot);
+        } catch (err) {
+          this.isDirty = true; // restore dirty flag so data is not silently lost
+          await error('L1', `Flush failed: ${err}`);
+          break; // exit loop to avoid infinite retry on permanent errors
+        }
+      }
+    })().finally(() => {
+      this.flushingTask = null;
+    });
+
+    return this.flushingTask;
+  }
+
+  /**
+   * Atomic write: write to a uniquely-named temp file, then rename.
+   * The unique suffix prevents cross-instance temp-file collisions.
+   */
+  private async atomicWrite(data: Record<string, string>): Promise<void> {
+    const suffix = `${Date.now()}.${Math.random().toString(36).slice(2, 6)}`;
+    const tmpPath = `${this.dataPath}.${suffix}.tmp`;
+    await Deno.writeTextFile(tmpPath, JSON.stringify(data, null, 2));
+    await Deno.rename(tmpPath, this.dataPath);
   }
 }

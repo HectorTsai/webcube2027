@@ -19,7 +19,10 @@ class MultilingualObject<T> {
   }
 
   public set(key: string, value: T | undefined): void {
-    if (!this.isSupportedLanguage(key)) return;
+    if (!this.isSupportedLanguage(key)) {
+      console.warn(`[MultilingualObject] 忽略不支援的語言代碼: "${key}"`);
+      return;
+    }
     if (value === undefined) {
       delete this[key];
     } else {
@@ -53,8 +56,8 @@ class MultilingualObject<T> {
   public findBestSourceLanguage(preferredLang?: SupportedLanguage): SupportedLanguage | null {
     // 優先順序：指定語言 > 英文 > 中文繁體 > 第一個可用語言
     if (preferredLang && this.has(preferredLang)) return preferredLang;
-    if (this.has("en")) return "en";
-    if (this.has("zh-tw")) return "zh-tw";
+    if (this.has('en')) return 'en';
+    if (this.has('zh-tw')) return 'zh-tw';
     return this.getFirstAvailableLanguage();
   }
 
@@ -116,21 +119,23 @@ class MultilingualObject<T> {
 
   /**
    * 受保護的翻譯方法
+   *
+   * 使用已註冊的 TranslationProvider 進行翻譯。
+   * 未註冊時回傳原文（fallback）。
    */
   protected async translate(
-    host: string,
+    text: string,
     from: SupportedLanguage,
     to: SupportedLanguage,
-    text: string,
   ): Promise<string> {
     try {
-      // 動態導入翻譯服務
+      // 動態導入翻譯服務，避免硬性依賴 @dui/translate-google
       const { getTranslation } = await import('./translation.ts');
-      const translationService = getTranslation();
-      return await translationService.translate(from, to, text, host);
+      const translationService = await getTranslation();
+      return await translationService.translate(text, to, from);
     } catch (e: unknown) {
-      console.error(`[MultilingualObject] 翻譯失敗 ${from} -> ${to}: ${text} => Fail`);
-      console.log(e);
+      console.error(`[MultilingualObject] 翻譯失敗 ${from} -> ${to}: ${text} => Fallback`);
+      console.error(e);
       return text;
     }
   }

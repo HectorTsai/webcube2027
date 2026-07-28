@@ -118,3 +118,5 @@ export async function createGateway(opts: CreateGatewayOptions): Promise<Gateway
 
 // Re-export Hono for convenience
 export { Hono } from 'hono';
+// Re-export types from route-loader for external use
+export type { MiddlewareFn } from './route-loader.ts';

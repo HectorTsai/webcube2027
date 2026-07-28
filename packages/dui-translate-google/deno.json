@@ -1,0 +1,11 @@
+{
+  "name": "@dui/translate-google",
+  "version": "0.1.0",
+  "description": "Google Translate API client for Deno — no API key required",
+  "license": "MIT",
+  "exports": {
+    ".": "./mod.ts",
+    "./google": "./google.ts",
+    "./google-token": "./google_token.ts"
+  }
+}

@@ -17,6 +17,18 @@ export interface FieldFilter {
 }
 
 /**
+ * Normalize a model instance (which may have a `toJSON()` method) into a
+ * plain object, and inject `id` + `updatedAt`.
+ *
+ * Every adapter's `update()` and `create()` should use this helper to
+ * ensure consistent serialization and avoid duplicated code.
+ */
+export function sanitizePayload(data: Record<string, unknown>, id: string): Record<string, unknown> {
+  const plain = typeof (data as { toJSON?: () => Record<string, unknown> }).toJSON === 'function'
+    ? (data as { toJSON: () => Record<string, unknown> }).toJSON()
+    : data;
+  return { ...plain, id, updatedAt: new Date().toISOString() };
+}/**
  * Unified database adapter interface.
  *
  * All L2/L3 databases (SurrealDB, SQLite, MongoDB, MySQL, PostgreSQL,

@@ -54,19 +54,17 @@ export class BaseModel {
     return `${this.table}:${this.type}:${this.編號._id}`;
   }
   public set id(id: string) {
-    const ids = id.split(":");
-    if (ids.length === 1) {
-      this.編號._id = ids[0];
-      return;
+    const parts = id.split(":");
+    if (parts.length === 1) {
+      this.編號._id = parts[0];
+    } else if (parts.length === 2) {
+      this.編號._table = parts[0];
+      this.編號._id = parts[1];
+    } else {
+      this.編號._table = parts[0];
+      this.編號._type = parts[1];
+      this.編號._id = parts.slice(2).join(":"); // 保留所有剩餘部分
     }
-    if (ids.length === 2) {
-      this.編號._table = ids[0];
-      this.編號._id = ids[1];
-      return;
-    }
-    this.編號._table = ids[0];
-    this.編號._type = ids[1];
-    this.編號._id = ids[2];
   }
 
   constructor(data: Record<string, unknown> = {}) {
@@ -90,11 +88,19 @@ export class BaseModel {
 
   /** Serialize this model instance to a plain JSON record. */
   public toJSON(): Record<string, unknown> {
-    return {
+    // 1. 基礎欄位（含 getter，非 own property）
+    const result: Record<string, unknown> = {
       id: this.id,
       tags: this.tags,
       updatedAt: this.updatedAt,
     };
+    // 2. 動態收集子類別的 own properties（排除內部狀態）
+    for (const key of Object.keys(this)) {
+      if (key === '編號') continue;     // 跳過內部 IdInfo
+      if (key in result) continue;      // 跳過已加入的基礎欄位
+      result[key] = (this as any)[key];
+    }
+    return result;
   }
 
   /**

@@ -5,7 +5,7 @@
 // 此 adapter 同時相容 **Turso / LibSQL**（Edge 環境需自行處理同步）：
 
 import { DatabaseSync } from 'node:sqlite';
-import { DatabaseAdapter, QueryOptions, FieldFilter } from './adapter-interface.ts';
+import { sanitizePayload, type DatabaseAdapter, type QueryOptions, type FieldFilter } from './adapter-interface.ts';
 import { error } from '@dui/util';
 
 export class SqliteAdapter implements DatabaseAdapter {
@@ -88,10 +88,7 @@ export class SqliteAdapter implements DatabaseAdapter {
   }
 
   update(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const 序列化資料 = typeof (data as { toJSON?: () => Record<string, unknown> }).toJSON === 'function'
-      ? (data as { toJSON: () => Record<string, unknown> }).toJSON()
-      : data;
-    const dataWithId = { ...序列化資料, id, updatedAt: new Date().toISOString() };
+    const dataWithId = sanitizePayload(data, id);
     this.確保資料表(collection);
     const stmt = this.db.prepare(
       `INSERT OR REPLACE INTO "${collection}" (id, data, updatedAt) VALUES (?, ?, ?);`
@@ -135,13 +132,11 @@ export class SqliteAdapter implements DatabaseAdapter {
     try {
       const patchJson = JSON.stringify({ ...fields, updatedAt: fields.updatedAt || new Date().toISOString() });
       const updatedAtVal = (fields.updatedAt || new Date().toISOString()) as string;
+      // 使用 RETURNING data 省去二次 SELECT（需 SQLite 3.35+）
       const stmt = this.db.prepare(
-        `UPDATE "${collection}" SET data = json_patch(data, ?), updatedAt = ? WHERE id = ?`
+        `UPDATE "${collection}" SET data = json_patch(data, ?), updatedAt = ? WHERE id = ? RETURNING data;`
       );
-      stmt.run(patchJson as string, updatedAtVal, id);
-      // 回傳更新後的完整記錄
-      const getStmt = this.db.prepare(`SELECT data FROM "${collection}" WHERE id = ? LIMIT 1;`);
-      const row = getStmt.get(id) as { data: string } | undefined;
+      const row = stmt.get(patchJson as string, updatedAtVal, id) as { data: string } | undefined;
       if (row?.data) {
         return Promise.resolve(JSON.parse(row.data) as Record<string, unknown>);
       }

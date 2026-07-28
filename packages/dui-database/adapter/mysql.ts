@@ -4,7 +4,7 @@
 // 注意：PostgreSQL 不相容（協定、SQL 語法、JSON 函數皆不同）
 
 import { createConnection, type Connection } from 'mysql2/promise';
-import type { DatabaseAdapter, QueryOptions, FieldFilter } from './adapter-interface.ts';
+import { sanitizePayload, type DatabaseAdapter, type QueryOptions, type FieldFilter } from './adapter-interface.ts';
 import { error } from '@dui/util';
 
 export interface MysqlConnectOptions {
@@ -19,19 +19,18 @@ export class MysqlAdapter implements DatabaseAdapter {
   readonly type = 'mysql';
   private conn: Connection | null = null;
 
-  constructor(_選項: MysqlConnectOptions) {
-    // 建構時不連線，由 connect() 初始化
+  constructor(private 選項: MysqlConnectOptions) {
   }
 
-  async connect(options: MysqlConnectOptions): Promise<void> {
+  async connect(): Promise<void> {
     if (this.conn) return;
 
     this.conn = await createConnection({
-      host: options.host || 'localhost',
-      port: options.port || 3306,
-      user: options.user || 'root',
-      password: options.password || '',
-      database: options.database,
+      host: this.選項.host || 'localhost',
+      port: this.選項.port || 3306,
+      user: this.選項.user || 'root',
+      password: this.選項.password || '',
+      database: this.選項.database,
     });
 
     await this.conn.execute("SET SESSION sql_mode = 'STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION';");
@@ -98,10 +97,7 @@ export class MysqlAdapter implements DatabaseAdapter {
   }
 
   async update(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const 序列化資料 = typeof (data as { toJSON?: () => Record<string, unknown> }).toJSON === 'function'
-      ? (data as { toJSON: () => Record<string, unknown> }).toJSON()
-      : data;
-    const dataWithId = { ...序列化資料, id, updatedAt: new Date().toISOString() };
+    const dataWithId = sanitizePayload(data, id);
     await this.確保資料表(collection);
     const conn = this.拿到連線();
     await conn.execute(

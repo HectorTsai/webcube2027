@@ -1,6 +1,6 @@
 import { extname } from "@std/path";
 import { extract } from "@std/front-matter/any";
-import { getFormatFromExt } from './formats.ts';
+import { getFormatFromExt } from '@dui/util/common/file';
 
 /**
  * 資源處理器類別
@@ -95,7 +95,8 @@ export class ResourceHandler {
     }
 
     try {
-      const content = formatInfo.info.type === "binary"
+      const isBinary = formatInfo?.info?.type === "binary";
+      const content = isBinary
         ? await Deno.readFile(filePath)
         : await Deno.readTextFile(filePath);
 

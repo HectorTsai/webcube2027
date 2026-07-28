@@ -11,5 +11,5 @@
  * ```
  */
 
-export { BasePool } from './base-pool.ts';
-export type { PoolItem, PoolOptions } from './types.ts';
+export { BasePool, PoolFullError } from './base-pool.ts';
+export type { PoolItem, PoolOptions, PoolItemOverview, PoolStatus } from './types.ts';

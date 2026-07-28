@@ -55,9 +55,10 @@ export class MssqlAdapter implements DatabaseAdapter {
     return this.pool;
   }
 
-  /** 回傳完整表名（含 schema）*/
+  /** 回傳完整表名（含 schema），自動清理非字母數字底線字元防 SQL Injection */
   private 表名(模型: string): string {
-    return `[${this.schema}].[${模型}]`;
+    const safeModel = 模型.replace(/[^a-zA-Z0-9_]/g, '_');
+    return `[${this.schema}].[${safeModel}]`;
   }
 
   async getById(id: string): Promise<Record<string, unknown> | null> {
@@ -233,11 +234,14 @@ export class MssqlAdapter implements DatabaseAdapter {
   }
 
   /** 確保資料表存在 */
-  private async 確保資料表(model: string): Promise<void> {
+  private async 確保資料表(collection: string): Promise<void> {
+    if (!/^[a-zA-Z0-9_]+$/.test(collection)) {
+      throw new Error(`Invalid table name: ${collection}`);
+    }
     const pool = this.拿到Pool();
     await pool.request().query(`
-      IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = '${model}' AND schema_id = SCHEMA_ID('${this.schema}'))
-      CREATE TABLE ${this.表名(model)} (
+      IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = '${collection}' AND schema_id = SCHEMA_ID('${this.schema}'))
+      CREATE TABLE ${this.表名(collection)} (
         id NVARCHAR(255) PRIMARY KEY,
         data NVARCHAR(MAX) NOT NULL,
         updatedAt DATETIME2(3) NOT NULL DEFAULT GETUTCDATE()
@@ -246,8 +250,8 @@ export class MssqlAdapter implements DatabaseAdapter {
 
     // 確保索引
     await pool.request().query(`
-      IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx_${model}_updated')
-        CREATE INDEX idx_${model}_updated ON ${this.表名(model)} (updatedAt DESC);
+      IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx_${collection}_updated')
+        CREATE INDEX idx_${collection}_updated ON ${this.表名(collection)} (updatedAt DESC);
     `);
   }
 

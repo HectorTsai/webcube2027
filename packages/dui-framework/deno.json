@@ -1,16 +1,17 @@
 {
   "name": "@dui/framework",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "exports": {
     ".": "./mod.ts",
-    "./file-router": "./fileRouter.ts",
     "./setup-guard": "./setup-guard.ts",
-    "./route-loader": "./route-loader.ts"
+    "./route-loader": "./route-loader.ts",
+    "./api-console": "./api-console.ts"
   },
   "imports": {
     "hono": "jsr:@hono/hono@^4.12.31",
     "@dui/kv": "./../../packages/dui-kv/mod.ts",
     "@dui/util": "./../../packages/dui-util/mod.ts",
+    "@dui/smartmultilingual": "./../../packages/dui-multilanguage/mod.ts",
     "@tailwindcss/cli": "npm:@tailwindcss/cli@^4.3.3",
     "tailwindcss": "npm:tailwindcss@^4.3.3",
     "daisyui": "npm:daisyui@^5.6.18",

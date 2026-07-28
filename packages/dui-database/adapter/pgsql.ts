@@ -11,7 +11,7 @@
 //   資料庫名稱: "postgres"
 
 import { Client, type ClientConfig } from 'pg';
-import type { DatabaseAdapter, QueryOptions, FieldFilter } from './adapter-interface.ts';
+import { sanitizePayload, type DatabaseAdapter, type QueryOptions, type FieldFilter } from './adapter-interface.ts';
 import { error } from '@dui/util';
 
 export interface PgsqlConnectOptions {
@@ -27,21 +27,20 @@ export class PgsqlAdapter implements DatabaseAdapter {
   readonly type = 'postgresql';
   private client: Client | null = null;
 
-  constructor(_選項: PgsqlConnectOptions) {
-    // 建構時不連線，由 connect() 初始化
+  constructor(private 選項: PgsqlConnectOptions) {
   }
 
-  async connect(options: PgsqlConnectOptions): Promise<void> {
+  async connect(): Promise<void> {
     if (this.client) return;
 
-    const config: ClientConfig = options.connectionString
-      ? { connectionString: options.connectionString }
+    const config: ClientConfig = this.選項.connectionString
+      ? { connectionString: this.選項.connectionString }
       : {
-          host: options.host || 'localhost',
-          port: options.port || 5432,
-          user: options.user || 'postgres',
-          password: options.password || '',
-          database: options.database || 'webcube',
+          host: this.選項.host || 'localhost',
+          port: this.選項.port || 5432,
+          user: this.選項.user || 'postgres',
+          password: this.選項.password || '',
+          database: this.選項.database || 'webcube',
         };
 
     this.client = new Client(config);
@@ -109,10 +108,7 @@ export class PgsqlAdapter implements DatabaseAdapter {
   }
 
   async update(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const 序列化資料 = typeof (data as { toJSON?: () => Record<string, unknown> }).toJSON === 'function'
-      ? (data as { toJSON: () => Record<string, unknown> }).toJSON()
-      : data;
-    const dataWithId = { ...序列化資料, id, updatedAt: new Date().toISOString() };
+    const dataWithId = sanitizePayload(data, id);
     await this.確保資料表(collection);
     const client = this.拿到連線();
     await client.query(

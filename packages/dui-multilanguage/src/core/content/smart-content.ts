@@ -1,5 +1,5 @@
-import { getFormatFromExt, 格式對應表 } from '../../utils/file/formats.ts';
-import type { SupportedFormat, FileMappingItem } from '../../utils/file/formats.ts';
+import { getFormatFromExt, 格式對應表 } from '@dui/util/common/file';
+import type { SupportedFormat, FileMappingItem } from '@dui/util/common/file';
 
 /**
  * 智慧內容類別 - 負責處理單一內容的不同格式轉換

@@ -16,18 +16,14 @@
 import { renderToString } from 'hono/jsx/dom/server';
 import { Hono, type Context, type Next } from 'hono';
 import { jsx } from 'hono/jsx';
+import { SUPPORTED_LANGUAGES, SUPPORTED_LANGUAGE_SET } from '@dui/smartmultilingual';
 
 // ── Types ──
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
-const METHOD_MAP: Record<string, HttpMethod> = {
-  get: 'GET',
-  post: 'POST',
-  put: 'PUT',
-  del: 'DELETE',
-  patch: 'PATCH',
-};
+/** 所有支援的 HTTP method */
+const HTTP_METHODS = new Set(['GET', 'POST', 'PUT', 'DELETE', 'PATCH'] satisfies HttpMethod[]);
 
 /** MIME types for auto-served static files */
 const MIME_MAP: Record<string, string> = {
@@ -52,9 +48,43 @@ function extractTitle(md: string): string | null {
   return match ? match[1].trim() : null;
 }
 
-/** HTML 跳脫（防止 XSS） */
-function ehtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+// ── 多國語言支援 ──
+
+/** 從 Accept-Language header 解析出語言偏好列表（按 q 值排序） */
+function parseAcceptLanguage(header: string): string[] {
+  if (!header) return [];
+  return header
+    .split(',')
+    .map((tag) => {
+      const [lang, qPart] = tag.split(';');
+      const q = qPart ? parseFloat(qPart.replace('q=', '').trim()) : 1;
+      return { lang: lang.trim().toLowerCase(), q };
+    })
+    .sort((a, b) => b.q - a.q)
+    .map((item) => item.lang);
+}
+
+/** 從 Accept-Language 比對出最適合的支援語言，找不到回退 en */
+function detectBestLanguage(acceptHeader: string): string {
+  const parsed = parseAcceptLanguage(acceptHeader);
+
+  // 1. 完全比對
+  for (const lang of parsed) {
+    if (SUPPORTED_LANGUAGE_SET.has(lang as never)) return lang;
+  }
+
+  // 2. 主要語系比對（如 zh → zh-tw、zh-cn）
+  for (const lang of parsed) {
+    const primary = lang.split('-')[0];
+    if (primary === lang) continue;
+    for (const supported of SUPPORTED_LANGUAGES) {
+      if (supported.startsWith(primary + '-') || supported === primary) {
+        return supported;
+      }
+    }
+  }
+
+  return 'en';
 }
 
 interface MethodRoute {
@@ -101,9 +131,9 @@ function parseRouteFileInfo(fileName: string): FileRouteInfo | null {
   }
 
   // 檔名本身就是 HTTP Method（get.ts, post.ts 等）
-  const upper = nameWithoutExt.toUpperCase() as HttpMethod;
-  if (['GET', 'POST', 'PUT', 'DELETE', 'PATCH'].includes(upper)) {
-    return { method: upper, pathSegment: '' };
+  const upper = nameWithoutExt.toUpperCase();
+  if (HTTP_METHODS.has(upper as HttpMethod)) {
+    return { method: upper as HttpMethod, pathSegment: '' };
   }
 
   // 其他檔名（list-collection.ts 等）不自動註冊，由 main.ts 手動處理
@@ -221,6 +251,18 @@ async function collectRoutes(
   return newStack;
 }
 
+// ── Compose helper ──
+
+/** 執行 Handler/Middleware 鏈條（維持完整洋蔥機制） */
+async function runHandlerChain(handlers: any[], c: Context): Promise<Response | void> {
+  const dispatch = async (index: number): Promise<Response | void> => {
+    if (index >= handlers.length) return;
+    const handler = handlers[index];
+    return await handler(c, () => dispatch(index + 1));
+  };
+  return await dispatch(0);
+}
+
 // ── Public API ──
 
 /**
@@ -235,15 +277,40 @@ export async function loadRoutes(dirUrl: URL): Promise<Hono> {
 
   await collectRoutes(dirUrl.href, '', [], result);
 
-  // 註冊靜態檔案路由
-  for (const sr of result.staticRoutes) {
-    app.get(sr.pathPattern as any, async (c: Context) => {
-      try {
-        const content = await Deno.readFile(new URL(sr.filePath));
-        return c.body(content, 200, { 'content-type': sr.mime });
-      } catch {
-        return c.notFound();
+  // ── 檢查是否有 _lang_ 目錄（多國語言路由） ──
+  let hasLangDir = false;
+  try {
+    for (const entry of Deno.readDirSync(dirUrl)) {
+      if (entry.name === '_lang_' && entry.isDirectory) {
+        hasLangDir = true;
+        break;
       }
+    }
+  } catch { /* ignore */ }
+
+  // 註冊靜態檔案路由（初始化時預先快取內容，避免每次請求重複讀檔）
+  for (const sr of result.staticRoutes) {
+    let cachedContent;
+    try {
+      cachedContent = await Deno.readFile(new URL(sr.filePath));
+    } catch {
+      console.warn(`[route-loader] Failed to pre-load static file: ${sr.filePath}`);
+      continue;
+    }
+    app.get(sr.pathPattern as any, (c: Context) => {
+      return c.body(cachedContent!, 200, {
+        'content-type': sr.mime,
+        'cache-control': 'public, max-age=3600',
+      });
+    });
+  }
+
+  // ── 若有 _lang_ 目錄，在根路徑註冊語言偵測 redirect ──
+  if (hasLangDir) {
+    app.get('/', async (c: Context) => {
+      const acceptLang = c.req.header('Accept-Language') || '';
+      const bestLang = detectBestLanguage(acceptLang);
+      return c.redirect(`/${bestLang}/`, 302);
     });
   }
 
@@ -257,7 +324,27 @@ export async function loadRoutes(dirUrl: URL): Promise<Hono> {
     console.warn('[route-loader] _layout.tsx not found or failed to load — pages will render without shared layout');
   }
 
-  // 註冊 method 路由
+  // ── Pass 1：註冊 method 主路由（不含退回機制）──
+  //
+  // 靜態路徑優先排序：確保 /api/me、/api/health 等精確路由
+  // 先於 /api/:collection、/api/:id 等參數化路由被 Hono 匹配。
+  result.methodRoutes.sort((a, b) => {
+    const aHasParam = a.pathPattern.includes(':');
+    const bHasParam = b.pathPattern.includes(':');
+
+    if (!aHasParam && bHasParam) return -1; // 純靜態優先
+    if (aHasParam && !bHasParam) return 1;
+
+    // 層級深的優先（更精確的匹配優先）
+    const aDepth = a.pathPattern.split('/').length;
+    const bDepth = b.pathPattern.split('/').length;
+    if (aDepth !== bDepth) return bDepth - aDepth;
+
+    return a.pathPattern.localeCompare(b.pathPattern);
+  });
+
+  const methodRouteInfos: { method: HttpMethod; path: string; handlers: any[] }[] = [];
+
   for (const route of result.methodRoutes) {
     let mod;
     try {
@@ -279,8 +366,9 @@ export async function loadRoutes(dirUrl: URL): Promise<Hono> {
       const PageComponent = mod.default;
       handler = async (c: Context) => {
         const content = await PageComponent(c);
+        const lang = c.get('lang') || 'zh-tw';
         const html = '<!DOCTYPE html>' + renderToString(
-          jsx(layoutMod.Layout, { title: pageTitle, children: content }),
+          jsx(layoutMod.Layout, { title: pageTitle, lang, children: content }),
         );
         return c.html(html);
       };
@@ -304,10 +392,22 @@ export async function loadRoutes(dirUrl: URL): Promise<Hono> {
     }
 
     const handlers: any[] = [...route.middleware, handler];
-    app.on(route.method, route.pathPattern as any, ...handlers);
+
+    // 儲存供 Pass 3（退回機制）使用
+    methodRouteInfos.push({ method: route.method, path: route.pathPattern, handlers });
+
+    // 若路由不含尾綴斜線且不為 '/'，同時註冊尾綴斜線版本
+    // 讓 /:lang 與 /:lang/ 都能正確匹配
+    const path = route.pathPattern;
+    if (path !== '/' && !path.endsWith('/')) {
+      app.on(route.method, [path, path + '/'] as any, ...handlers);
+    } else {
+      app.on(route.method, path as any, ...handlers);
+    }
   }
 
-  // 註冊 .md 路由（在 method 路由之後，確保 .tsx 優先）
+  // ── Pass 2：註冊 .md 路由（在主路由之後、退回機制之前）──
+  // 確保 .md 的精確路徑（如 /:lang/doc）比退回機制的 wildcard 優先被匹配
   for (const md of result.mdRoutes) {
     const handlers: any[] = [
       ...md.middleware,
@@ -330,18 +430,21 @@ export async function loadRoutes(dirUrl: URL): Promise<Hono> {
 
           // 使用 routes/_layout.tsx 的 renderPage()（已在函數頂層載入）
           if (layoutMod && typeof layoutMod.renderPage === 'function') {
+            const lang = c.get('lang') || 'zh-tw';
             const title = extractTitle(content) || md.pathPattern;
-            return c.html(layoutMod.renderPage(title, withHeadingIds));
+            return c.html(layoutMod.renderPage(title, withHeadingIds, lang));
           }
 
           // 預設模板（無 _layout.tsx 時使用）
           const title = extractTitle(content) || md.pathPattern;
+          // 手動跳脫 title 防止 XSS（marked 已處理主體內容，但 title 是額外提取的）
+          const escapedTitle = title.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
           return c.html(`<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${ehtml(title)}</title>
+  <title>${escapedTitle}</title>
 </head>
 <body class="min-h-screen bg-base-200 p-6 max-w-3xl mx-auto prose">${withHeadingIds}</body>
 </html>`);
@@ -352,6 +455,66 @@ export async function loadRoutes(dirUrl: URL): Promise<Hono> {
     ];
     app.on('GET', md.pathPattern as any, ...handlers);
   }
+
+  // ── Pass 3：階層降級退回（Hierarchical Fallback via notFound）──
+  //
+  // 廢除舊有的 /* wildcard 方式（會搶走精確靜態路由的匹配機會），
+  // 改為在 notFound 中實作「逐層剝皮」退回演算法：
+  //
+  //   1. 請求未命中任何精確路由 → 進入 notFound
+  //   2. 將 URL 路徑從最深層開始，逐層去掉最後一段往上找
+  //   3. 若找到對應的母路由，執行其 handler 並設 rest_path
+  //   4. 一路找不到則退到根目錄 /
+  //   5. 真沒有才回傳 404
+  //
+  // 例如：
+  //   GET /api/使用者/角色/all 無精確匹配
+  //   → 嘗試匹配 /api/使用者/角色 → /api/使用者 → /api → /
+  //   → 命中了 /api/:collection/:model 的 handler
+  //   → rest_path = "all"
+  app.notFound(async (c: Context) => {
+    const method = c.req.method as HttpMethod;
+    const pathSegments = c.req.path.split('/').filter(Boolean);
+
+    // 從最深層開始，逐層往上剝皮
+    for (let i = pathSegments.length - 1; i >= 0; i--) {
+      const parentPath = '/' + pathSegments.slice(0, i).join('/');
+      const restPath = pathSegments.slice(i).join('/');
+      const parentPathWithSlash = parentPath === '/' ? '/' : parentPath + '/';
+
+      for (const ri of methodRouteInfos) {
+        if (ri.method !== method) continue;
+
+        // 精確比對（靜態路徑）
+        const isExactMatch = ri.path === parentPath || ri.path === parentPathWithSlash;
+
+        // 動態參數比對（如 /api/:id 可匹配 /api/123，使用 pathSegments 確保段落正確對齊）
+        const patternSegs = ri.path.split('/').filter(Boolean);
+        const isParamMatch =
+          patternSegs.length === i &&
+          patternSegs.every((seg, idx) => seg.startsWith(':') || seg === pathSegments[idx]);
+
+        if (isExactMatch || isParamMatch) {
+          c.set('rest_path', restPath);
+
+          // 透過頂層 runHandlerChain 執行 Middleware 洋蔥鏈條
+          const res = await runHandlerChain(ri.handlers, c);
+          if (res instanceof Response) return res;
+        }
+      }
+    }
+
+    // 退無可退：嘗試命中根目錄 '/' 的 handler
+    for (const ri of methodRouteInfos) {
+      if (ri.method === method && ri.path === '/') {
+        c.set('rest_path', c.req.path.replace(/^\//, ''));
+        const res = await runHandlerChain(ri.handlers, c);
+        if (res instanceof Response) return res;
+      }
+    }
+
+    return c.text('404 Not Found', 404);
+  });
 
   return app;
 }

@@ -184,7 +184,8 @@ export class DynamoDBAdapter implements DatabaseAdapter {
       }));
       if (!getResult.Item) return null;
 
-      const currentData = JSON.parse(getResult.Item.data.S || '{}') as Record<string, unknown>;
+      const raw = getResult.Item.data as string | undefined;
+      const currentData = raw ? JSON.parse(raw) as Record<string, unknown> : {};
       const merged = { ...currentData, ...fields, updatedAt };
 
       // Write merged data back

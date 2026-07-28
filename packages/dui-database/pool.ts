@@ -18,9 +18,40 @@
 import type { DatabaseAdapter, QueryOptions } from './adapter/adapter-interface.ts';
 import type { L2ConnectionInfo } from './index.ts';
 import { BasePool } from '@dui/pool';
-import type { PoolItem } from '@dui/pool';
+import type { PoolItem, PoolItemOverview } from '@dui/pool';
 import { L1Store } from '@dui/kv';
 import { info, error } from '@dui/util';
+
+// ── Collection 記憶體工具函式（避免 list() / listAll() 重複邏輯） ──
+
+/** 記憶體層級欄位過濾（支援深層路徑 a.b.c） */
+function applyMemoryFilter<T extends Record<string, unknown>>(items: T[], filter?: Record<string, string>): T[] {
+  if (!filter) return items;
+  return items.filter((r) =>
+    Object.entries(filter).every(([field, value]) => {
+      let cur: unknown = r;
+      for (const part of field.split('.')) {
+        if (cur === null || cur === undefined) return false;
+        cur = (cur as Record<string, unknown>)[part];
+      }
+      return String(cur) === value;
+    }),
+  );
+}
+
+/** 記憶體層級排序（支援深層路徑 a.b.c） */
+function applyMemorySort<T extends Record<string, unknown>>(items: T[], sort?: string, order: 'asc' | 'desc' = 'desc'): T[] {
+  if (!sort) return items;
+  const dir = order === 'asc' ? 1 : -1;
+  return [...items].sort((a, b) => {
+    let va: unknown = a, vb: unknown = b;
+    for (const part of sort.split('.')) {
+      va = (va as Record<string, unknown>)?.[part];
+      vb = (vb as Record<string, unknown>)?.[part];
+    }
+    return (String(va) > String(vb) ? 1 : -1) * dir;
+  });
+}
 
 // ── Query Result ──
 
@@ -35,6 +66,137 @@ export interface QueryResult<T> {
   source: SourceLevel;
   success: boolean;
   error?: string;
+}
+
+// ── Adapter Registry (取代 switch-case factory) ──
+
+type AdapterFactory = (info: L2ConnectionInfo) => Promise<DatabaseAdapter | null>;
+
+const adapterFactories = new Map<string, AdapterFactory>();
+
+/**
+ * Register a database adapter factory.
+ * New adapters can be added without modifying pool.ts.
+ */
+function registerAdapter(type: string, factory: AdapterFactory): void {
+  adapterFactories.set(type.toLowerCase(), factory);
+}
+
+/** Build an adapter instance by type + connection info via the registry. */
+async function createAdapter(type: string, info: L2ConnectionInfo): Promise<DatabaseAdapter | null> {
+  const factory = adapterFactories.get(type.toLowerCase());
+  if (!factory) return null;
+  return await factory(info);
+}
+
+// ── Register all built-in adapters ──
+
+registerAdapter('surrealdb', async (info) => {
+  const { SurrealAdapter } = await import('./adapter/surreal.ts');
+  const adapter = new SurrealAdapter({
+    url: info.host || 'http://localhost:8000',
+    namespace: info.namespace || 'webcube',
+    database: info.database || 'webcube',
+    user: info.username || '',
+    password: info.password || '',
+  });
+  await adapter.login();
+  return adapter;
+});
+
+registerAdapter('sqlite', async (info) => {
+  const { SqliteAdapter } = await import('./adapter/sqlite.ts');
+  return new SqliteAdapter(info.filePath || './data/db.sqlite');
+});
+
+registerAdapter('mongodb', async (info) => {
+  const { MongoAdapter } = await import('./adapter/mongodb.ts');
+  const connStr = `mongodb://${info.username ? `${info.username}:${info.password}@` : ''}${info.host || 'localhost'}:${info.port || 27017}/${info.database || 'webcube'}`;
+  return new MongoAdapter(connStr, info.database || 'webcube');
+});
+
+registerAdapter('mysql', async (info) => {
+  const { MysqlAdapter } = await import('./adapter/mysql.ts');
+  const adapter = new MysqlAdapter({
+    host: info.host,
+    port: info.port,
+    user: info.username,
+    password: info.password,
+    database: info.database || 'webcube',
+  });
+  await adapter.connect();
+  return adapter;
+});
+
+registerAdapter('postgresql', async (info) => {
+  const { PgsqlAdapter } = await import('./adapter/pgsql.ts');
+  const adapter = new PgsqlAdapter({
+    host: info.host,
+    port: info.port,
+    user: info.username,
+    password: info.password,
+    database: info.database,
+  });
+  await adapter.connect();
+  return adapter;
+});
+
+registerAdapter('firestore', async (info) => {
+  const { FirestoreAdapter } = await import('./adapter/firestore.ts');
+  const adapter = new FirestoreAdapter({
+    projectId: info.host || info.database || '',
+    credential: info.credential,
+    databaseId: info.namespace,
+  });
+  await adapter.connect();
+  return adapter;
+});
+
+registerAdapter('appwrite', async (info) => {
+  const { AppwriteAdapter } = await import('./adapter/appwrite.ts');
+  const adapter = new AppwriteAdapter({
+    endpoint: info.host || 'https://cloud.appwrite.io/v1',
+    project: info.database || '',
+    apiKey: info.password || '',
+    databaseId: info.namespace,
+  });
+  await adapter.connect();
+  return adapter;
+});
+
+registerAdapter('dynamodb', async (info) => {
+  const { DynamoDBAdapter } = await import('./adapter/dynamodb.ts');
+  const adapter = new DynamoDBAdapter({
+    region: info.host || 'ap-northeast-1',
+    accessKeyId: info.username,
+    secretAccessKey: info.password,
+  });
+  adapter.connect();
+  return adapter;
+});
+
+registerAdapter('mssql', async (info) => {
+  const { MssqlAdapter } = await import('./adapter/mssql.ts');
+  const adapter = new MssqlAdapter({
+    server: info.host || 'localhost',
+    port: info.port || 1433,
+    user: info.username || 'sa',
+    password: info.password || '',
+    database: info.database || 'webcube',
+    schema: info.namespace,
+  });
+  await adapter.connect();
+  return adapter;
+});
+
+// ── Pool Status Extension (v0.3.0) ──
+
+/** PoolCore 擴充的項目元資料（繼承 PoolItemOverview + db specific fields） */
+export interface DbPoolItemOverview extends PoolItemOverview {
+  /** 資料庫類型（L2="SYSTEM" / L3=hostname） */
+  dbName: string;
+  /** 是否為 SYSTEM 層 */
+  isSystem: boolean;
 }
 
 // ── Pool Core ──
@@ -53,8 +215,11 @@ export interface QueryResult<T> {
  *   - L3 connections idle for 30+ minutes are closed via onEvict()
  */
 export class PoolCore extends BasePool<string, DatabaseAdapter> {
-  private 初始化中 = { L2: false, L3: new Set<string>() };
   private _l1: L1Store | null = null;
+  /** Promise-based single-flight lock for L2 init (取代 busy waiting) */
+  private l2InitPromise: Promise<void> | null = null;
+  /** Promise-based single-flight locks for L3 init (keyed by host) */
+  private l3InitPromises = new Map<string, Promise<void>>();
 
   constructor() {
     super({
@@ -92,72 +257,66 @@ export class PoolCore extends BasePool<string, DatabaseAdapter> {
   // ═══════════════════════════════════════════
 
   /**
-   * Initialize L2 (SYSTEM). Reads connection info from L1 and connects.
+   * Initialize L2 (SYSTEM) with Promise single-flight.
    *
+   * Multiple concurrent calls share one init — no busy waiting.
    * Requires `setConfigStore()` to have been called first with an initialized L1.
    */
   async initL2(): Promise<void> {
     if (this.has('SYSTEM')) return;
+    if (!this.l2InitPromise) {
+      this.l2InitPromise = this.doInitL2().finally(() => { this.l2InitPromise = null; });
+    }
+    return this.l2InitPromise;
+  }
 
+  /** Actual L2 init work, wrapped by initL2() single-flight. */
+  private async doInitL2(): Promise<void> {
+    if (this.has('SYSTEM')) return;
     if (!this._l1) {
       await error('Pool', 'setConfigStore() not called — cannot init L2');
       return;
     }
+    const connStr = await this._l1.get('l2_connection');
+    if (!connStr) return;
 
-    if (this.初始化中.L2) {
-      while (this.初始化中.L2) await new Promise(r => setTimeout(r, 100));
-      return;
-    }
+    const { decrypt } = await import('@dui/util');
+    const decrypted = await decrypt(connStr);
+    const l2Info: L2ConnectionInfo = JSON.parse(decrypted);
 
-    this.初始化中.L2 = true;
-    try {
-      const connStr = await this._l1.get('l2_connection');
-      if (!connStr) { this.初始化中.L2 = false; return; }
+    const l2 = await createAdapter(l2Info.type, l2Info);
+    if (!l2) return;
 
-      const { decrypt } = await import('@dui/util');
-      const decrypted = await decrypt(connStr);
-      const l2Info: L2ConnectionInfo = JSON.parse(decrypted);
-
-      const l2 = await this.buildAdapter(l2Info);
-      if (!l2) { this.初始化中.L2 = false; return; }
-
-      // DB connection — no write-back, mark as persistent (never evicted)
-      this.set('SYSTEM', l2, false, true);
-      await info('Pool', 'L2 connected');
-    } catch (err) {
-      await error('Pool', `L2 init failed: ${err}`);
-    } finally {
-      this.初始化中.L2 = false;
-    }
+    this.set('SYSTEM', l2, false, true);
+    await info('Pool', 'L2 connected');
   }
 
   /**
-   * Initialize L3 (per-host database).
+   * Initialize L3 (per-host database) with Promise single-flight.
+   *
+   * Multiple concurrent calls for the same host share one init.
    * Called automatically on first query for a given host.
    */
   async initL3(host: string): Promise<void> {
     if (this.has(host)) return;
-    if (this.初始化中.L3.has(host)) {
-      while (this.初始化中.L3.has(host)) await new Promise(r => setTimeout(r, 100));
-      return;
+    if (!this.l3InitPromises.has(host)) {
+      const p = this.doInitL3(host).finally(() => { this.l3InitPromises.delete(host); });
+      this.l3InitPromises.set(host, p);
     }
+    return this.l3InitPromises.get(host)!;
+  }
 
-    this.初始化中.L3.add(host);
-    try {
-      // Read L3 connection info from SYSTEM database (site record)
-      const site = await this.getSiteConfig(host);
-      if (!site?.l3Connection) { this.初始化中.L3.delete(host); return; }
+  /** Actual L3 init work, wrapped by initL3() single-flight. */
+  private async doInitL3(host: string): Promise<void> {
+    if (this.has(host)) return;
+    const site = await this.getSiteConfig(host);
+    if (!site?.l3Connection) return;
 
-      const l3 = await this.buildAdapter(site.l3Connection);
-      if (!l3) { this.初始化中.L3.delete(host); return; }
+    const l3 = await createAdapter(site.l3Connection.type, site.l3Connection);
+    if (!l3) return;
 
-      this.set(host, l3, false);
-      await info('Pool', `L3 connected for ${host}`);
-    } catch (err) {
-      await error('Pool', `L3 init failed for ${host}: ${err}`);
-    } finally {
-      this.初始化中.L3.delete(host);
-    }
+    this.set(host, l3, false);
+    await info('Pool', `L3 connected for ${host}`);
   }
 
   // ═══════════════════════════════════════════
@@ -172,6 +331,76 @@ export class PoolCore extends BasePool<string, DatabaseAdapter> {
   // ═══════════════════════════════════════════
   //  Public Query API
   // ═══════════════════════════════════════════
+
+  /**
+   * List records from **all available layers** (L2 + L3) merged.
+   *
+   * - Queries L2 (SYSTEM) unconditionally.
+   * - If `host` is provided, also queries that L3 tenant database.
+   * - Merges by `id` (L3 records take precedence over same-id L2 records).
+   * - Supports in-memory filter/sort after merging.
+   * - Applies pagination (`limit`/`offset`) on the merged result set.
+   *
+   * Use `list()` instead if you only want a single layer (L3→L2 fallback).
+   */
+  async listAll(
+    collection: string,
+    modelType?: string,
+    options?: QueryOptions,
+    host?: string,
+  ): Promise<{ data: Record<string, unknown>[]; source: string; success: boolean; totalCount: number }> {
+    // ── 1. Fetch L2 (all, no limit) ──
+    await this.initL2();
+    const l2 = this.get('SYSTEM');
+    let l2Data: Record<string, unknown>[] = [];
+    if (l2) {
+      const noLimitOpts = options ? { ...options, limit: undefined, offset: undefined } : undefined;
+      l2Data = (await l2.list(collection, modelType, noLimitOpts)) ?? [];
+    }
+
+    // ── 2. Fetch L3 if host provided (all, no limit) ──
+    let l3Data: Record<string, unknown>[] = [];
+    if (host) {
+      await this.initL3(host);
+      const l3 = this.get(host);
+      if (l3) {
+        const noLimitOpts = options ? { ...options, limit: undefined, offset: undefined } : undefined;
+        l3Data = (await l3.list(collection, modelType, noLimitOpts)) ?? [];
+      }
+    }
+
+    // ── 3. Merge (L3 overrides L2 for same id) ──
+    const merged = new Map<string, Record<string, unknown>>();
+    for (const item of l3Data) {
+      const id = (item as any).id;
+      if (id) merged.set(String(id), item); // 跳過無 ID 記錄
+    }
+    for (const item of l2Data) {
+      const id = (item as any).id;
+      if (id && !merged.has(String(id))) merged.set(String(id), item);
+    }
+
+    let results = Array.from(merged.values());
+
+    // ── 4. In-memory filter ──
+    results = applyMemoryFilter(results, options?.filter);
+
+    // ── 5. In-memory sort ──
+    results = applyMemorySort(results, options?.sort, options?.order);
+
+    // ── 6. Pagination ──
+    const limit = Math.min(100, options?.limit ?? 50);
+    const offset = options?.offset ?? 0;
+    const totalCount = results.length;
+    const paged = results.slice(offset, offset + limit);
+
+    return {
+      data: paged,
+      source: host ? 'L2+L3' : 'L2',
+      success: true,
+      totalCount,
+    };
+  }
 
   /**
    * Get a record by its composite ID.
@@ -228,33 +457,9 @@ export class PoolCore extends BasePool<string, DatabaseAdapter> {
       if (!raw) return { data: [], source: 'L2', success: false };
       const source = host ? 'L3' : 'L2';
 
-      // 記憶體過濾
-      let filtered = raw;
-      if (options?.filter) {
-        filtered = raw.filter((r) =>
-          Object.entries(options.filter!).every(([field, value]) => {
-            let cur: unknown = r;
-            for (const part of field.split('.')) {
-              if (cur === null || cur === undefined) return false;
-              cur = (cur as Record<string, unknown>)[part];
-            }
-            return String(cur) === value;
-          }),
-        );
-      }
-
-      // 記憶體排序
-      if (options?.sort) {
-        const dir = options.order === 'asc' ? 1 : -1;
-        filtered.sort((a, b) => {
-          let va: unknown = a, vb: unknown = b;
-          for (const part of options.sort!.split('.')) {
-            va = (va as Record<string, unknown>)?.[part];
-            vb = (vb as Record<string, unknown>)?.[part];
-          }
-          return (String(va) > String(vb) ? 1 : -1) * dir;
-        });
-      }
+      // 記憶體過濾（使用共用 applyMemoryFilter / applyMemorySort）
+      let filtered = applyMemoryFilter(raw, options?.filter);
+      filtered = applyMemorySort(filtered, options?.sort, options?.order);
 
       // 分頁（對過濾後的結果）
       const limit = Math.min(100, options?.limit ?? 50);
@@ -386,6 +591,23 @@ export class PoolCore extends BasePool<string, DatabaseAdapter> {
     const l2 = this.get('SYSTEM');
     if (!l2) return null;
 
+    // 新格式：網站資訊:網站資訊:{host}（由 POST /api/site/apply 寫入）
+    try {
+      const data = await l2.getById(`網站資訊:網站資訊:${host}`);
+      if (data) {
+        const site = data as Record<string, unknown>;
+        if (site.資料庫) {
+          const { decrypt } = await import('@dui/util');
+          const decrypted = await decrypt(site.資料庫 as string);
+          return { l3Connection: JSON.parse(decrypted) as L2ConnectionInfo };
+        }
+        return { l3Connection: undefined };
+      }
+    } catch {
+      // 不存在或查詢失敗，繼續嘗試舊格式
+    }
+
+    // 舊格式相容：site:config:{host}
     try {
       const data = await l2.getById(`site:config:${host}`);
       return data as { l3Connection?: L2ConnectionInfo } | null;
@@ -395,121 +617,27 @@ export class PoolCore extends BasePool<string, DatabaseAdapter> {
   }
 
   /**
-   * Build a database adapter from connection info.
+   * Test whether a database connection is reachable.
+   * Builds a temporary adapter, connects, then discards it.
+   *
+   * @returns `{ ok: true }` on success, or `{ ok: false, message }` on failure.
    */
-  private async buildAdapter(info: L2ConnectionInfo): Promise<DatabaseAdapter | null> {
-    if (!info.enabled) return null;
-
+  async testConnection(info: L2ConnectionInfo): Promise<{ ok: boolean; message: string }> {
     try {
-      switch (info.type) {
-        case 'surrealdb': {
-          const { SurrealAdapter } = await import('./adapter/surreal.ts');
-          const adapter = new SurrealAdapter(
-            info.host || 'http://localhost:8000',
-            info.namespace || 'webcube',
-            info.database || 'webcube',
-            info.username,
-            info.password,
-          );
-          await adapter.connect();
-          return adapter;
-        }
-        case 'sqlite': {
-          const { SqliteAdapter } = await import('./adapter/sqlite.ts');
-          return new SqliteAdapter(info.filePath || './data/db.sqlite');
-        }
-        case 'mongodb': {
-          const { MongoAdapter } = await import('./adapter/mongodb.ts');
-          const connStr = `mongodb://${info.username ? `${info.username}:${info.password}@` : ''}${info.host || 'localhost'}:${info.port || 27017}/${info.database || 'webcube'}`;
-          return new MongoAdapter(connStr, info.database || 'webcube');
-        }
-        case 'mysql': {
-          const { MysqlAdapter } = await import('./adapter/mysql.ts');
-          const adapter = new MysqlAdapter({
-            host: info.host,
-            port: info.port,
-            user: info.username,
-            password: info.password,
-            database: info.database || 'webcube',
-          });
-          await adapter.connect({
-            host: info.host,
-            port: info.port,
-            user: info.username,
-            password: info.password,
-            database: info.database || 'webcube',
-          });
-          return adapter;
-        }
-        case 'postgresql': {
-          const { PgsqlAdapter } = await import('./adapter/pgsql.ts');
-          const adapter = new PgsqlAdapter({
-            host: info.host,
-            port: info.port,
-            user: info.username,
-            password: info.password,
-            database: info.database,
-          });
-          await adapter.connect({
-            host: info.host,
-            port: info.port,
-            user: info.username,
-            password: info.password,
-            database: info.database,
-          });
-          return adapter;
-        }
-        case 'firestore': {
-          const { FirestoreAdapter } = await import('./adapter/firestore.ts');
-          const adapter = new FirestoreAdapter({
-            projectId: info.host || info.database || '',
-            credential: info.credential,
-            databaseId: info.namespace,
-          });
-          await adapter.connect();
-          return adapter;
-        }
-        case 'appwrite': {
-          const { AppwriteAdapter } = await import('./adapter/appwrite.ts');
-          const adapter = new AppwriteAdapter({
-            endpoint: info.host || 'https://cloud.appwrite.io/v1',
-            project: info.database || '',
-            apiKey: info.password || '',
-            databaseId: info.namespace,
-          });
-          await adapter.connect();
-          return adapter;
-        }
-        case 'dynamodb': {
-          const { DynamoDBAdapter } = await import('./adapter/dynamodb.ts');
-          const adapter = new DynamoDBAdapter({
-            region: info.host || 'ap-northeast-1',
-            accessKeyId: info.username,
-            secretAccessKey: info.password,
-          });
-          adapter.connect();
-          return adapter;
-        }
-        case 'mssql': {
-          const { MssqlAdapter } = await import('./adapter/mssql.ts');
-          const adapter = new MssqlAdapter({
-            server: info.host || 'localhost',
-            port: info.port || 1433,
-            user: info.username || 'sa',
-            password: info.password || '',
-            database: info.database || 'webcube',
-            schema: info.namespace,
-          });
-          await adapter.connect();
-          return adapter;
-        }
-        default:
-          await error('Pool', `Unknown database type: ${info.type}`);
-          return null;
+      const adapter = await createAdapter(info.type, info);
+      if (!adapter) {
+        return { ok: false, message: `不支援的資料庫類型：${info.type}` };
       }
+
+      // SQLite adapter connects synchronously in constructor, no connect() needed
+      if (typeof (adapter as any).connect === 'function') {
+        await (adapter as any).connect();
+      }
+
+      return { ok: true, message: '連線成功' };
     } catch (err) {
-      await error('Pool', `Failed to build adapter for ${info.type}: ${err}`);
-      return null;
+      const msg = err instanceof Error ? err.message : String(err);
+      return { ok: false, message: msg };
     }
   }
 
@@ -562,7 +690,68 @@ export class PoolCore extends BasePool<string, DatabaseAdapter> {
       }
     }
   }
+
+  // ═══════════════════════════════════════════
+  //  Pool Observability (v0.3.0 override)
+  // ═══════════════════════════════════════════
+
+  /**
+   * Returns metadata for all pooled items, enriched with database-specific fields.
+   *
+   * Each item includes the base `PoolItemOverview` fields plus:
+   * - `dbName`: host key (L3) or "SYSTEM" (L2)
+   * - `isSystem`: true for the SYSTEM/L2 pool entry
+   */
+  override getItemsOverview(): DbPoolItemOverview[] {
+    const base = super.getItemsOverview();
+    return base.map((item) => ({
+      ...item,
+      dbName: item.key,
+      isSystem: item.key === 'SYSTEM',
+    }));
+  }
+
+  // ═══════════════════════════════════════════
+  //  Graceful Shutdown
+  // ═══════════════════════════════════════════
+
+  /**
+   * Gracefully shut down all pooled database connections.
+   *
+   * Iterates through every adapter in the pool and calls `close()`
+   * if the adapter exposes one. Clears the pool afterwards.
+   *
+   * Designed to be called from process signal handlers
+   * (SIGINT / SIGTERM) to prevent zombie connections.
+   */
+  static async shutdownAll(): Promise<void> {
+    const pool = dataPool;
+    const keys = pool.keys();
+    for (const key of keys) {
+      const adapter = pool.get(key);
+      if (!adapter) continue;
+      const closeable = adapter as { close?: () => Promise<void> };
+      if (closeable.close) {
+        try {
+          await closeable.close();
+        } catch {
+          // ignore close errors during shutdown
+        }
+      }
+    }
+    pool.destroy();
+  }
 }
 
 /** Global singleton data pool instance. */
 export const dataPool = new PoolCore();
+
+// ── Process Signal Handlers ──
+// Gracefully close all database connections on shutdown
+// to prevent zombie connections and exhausted DB server limits.
+
+for (const signal of ['SIGINT', 'SIGTERM'] as const) {
+  Deno.addSignalListener(signal, () => {
+    PoolCore.shutdownAll().finally(() => Deno.exit(0));
+  });
+}

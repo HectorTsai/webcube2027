@@ -62,9 +62,8 @@ export default class MultilingualString extends MultilingualObject<string> {
   /**
    * 取得指定語言的文字內容，若無則翻譯並快取
    * @param lang 目標語言
-   * @param host 可選的來源 host
    */
-  public async toStringAsync(lang: SupportedLanguage, host?: string): Promise<string> {
+  public async toStringAsync(lang: SupportedLanguage): Promise<string> {
     const existing = this.getText(lang);
     if (existing !== undefined) return existing;
 
@@ -74,7 +73,7 @@ export default class MultilingualString extends MultilingualObject<string> {
     const sourceText = this.getText(sourceLang);
     if (!sourceText) return '';
 
-    const translated = await this.translate(host ?? '', sourceLang, lang, sourceText);
+    const translated = await this.translate(sourceText, sourceLang, lang);
     this.setText(lang, translated);
     return translated;
   }

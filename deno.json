@@ -4,7 +4,7 @@
     "packages/dui-database",
     "packages/dui-framework",
     "packages/dui-multilanguage",
-    "packages/dui-translation",
+    "packages/dui-translate-google",
     "packages/dui-util",
     "packages/dui-kv",
     "packages/dui-pool",

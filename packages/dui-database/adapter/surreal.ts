@@ -10,6 +10,11 @@ interface SurrealConfig {
   password: string;
 }
 
+/** Escape single quotes for SurrealDB SQL (防止 SQL Injection) */
+function esc(val: string): string {
+  return val.replace(/'/g, "\\'");
+}
+
 export class SurrealAdapter implements DatabaseAdapter {
   readonly type = 'surrealdb';
   private config: SurrealConfig;
@@ -93,7 +98,7 @@ export class SurrealAdapter implements DatabaseAdapter {
 
   async getById(id: string): Promise<Record<string, unknown> | null> {
     const collection = id.split(':')[0];
-    const 結果 = await this.查詢(`SELECT * FROM ${collection} WHERE _id = '${id}' LIMIT 1;`);
+    const 結果 = await this.查詢(`SELECT * FROM ${collection} WHERE _id = '${esc(id)}' LIMIT 1;`);
     if (結果[0]?.result && Array.isArray(結果[0].result) && 結果[0].result.length > 0) {
       return this.正規化(結果[0].result[0] as Record<string, unknown>);
     }
@@ -105,7 +110,7 @@ export class SurrealAdapter implements DatabaseAdapter {
     const offset = options?.offset ?? 0;
     let sql: string;
     if (modelType) {
-      sql = `SELECT * FROM ${collection} WHERE _id LIKE '${collection}:${modelType}:%' ORDER BY updatedAt DESC LIMIT ${limit} START ${offset};`;
+      sql = `SELECT * FROM ${collection} WHERE _id LIKE '${esc(collection)}:${esc(modelType)}:%' ORDER BY updatedAt DESC LIMIT ${limit} START ${offset};`;
     } else {
       sql = `SELECT * FROM ${collection} ORDER BY updatedAt DESC LIMIT ${limit} START ${offset};`;
     }
@@ -119,9 +124,9 @@ export class SurrealAdapter implements DatabaseAdapter {
   async queryByField(collection: string, filter: FieldFilter, modelType?: string): Promise<Record<string, unknown>[]> {
     let sql: string;
     if (modelType) {
-      sql = `SELECT * FROM ${collection} WHERE ${filter.field} = '${filter.value}' AND _id LIKE '${collection}:${modelType}:%' LIMIT 1;`;
+      sql = `SELECT * FROM ${collection} WHERE ${filter.field} = '${esc(filter.value)}' AND _id LIKE '${esc(collection)}:${esc(modelType)}:%' LIMIT 1;`;
     } else {
-      sql = `SELECT * FROM ${collection} WHERE ${filter.field} = '${filter.value}' LIMIT 1;`;
+      sql = `SELECT * FROM ${collection} WHERE ${filter.field} = '${esc(filter.value)}' LIMIT 1;`;
     }
     const 結果 = await this.查詢(sql);
     if (結果[0]?.result && Array.isArray(結果[0].result)) {
@@ -144,7 +149,7 @@ export class SurrealAdapter implements DatabaseAdapter {
   async update(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
     // 用 _id 查詢，保留 id 給 SurrealDB 自己管理
     const forSurreal = { ...data, _id: id };
-    const 結果 = await this.查詢(`UPDATE ${collection} CONTENT ${JSON.stringify(forSurreal)} WHERE _id = '${id}';`);
+    const 結果 = await this.查詢(`UPDATE ${collection} CONTENT ${JSON.stringify(forSurreal)} WHERE _id = '${esc(id)}';`);
     if (結果[0]?.result && Array.isArray(結果[0].result) && 結果[0].result.length > 0) {
       return this.正規化(結果[0].result[0] as Record<string, unknown>);
     }
@@ -154,7 +159,7 @@ export class SurrealAdapter implements DatabaseAdapter {
   async delete(id: string): Promise<boolean> {
     try {
       const collection = id.split(':')[0];
-      await this.查詢(`DELETE FROM ${collection} WHERE _id = '${id}';`);
+      await this.查詢(`DELETE FROM ${collection} WHERE _id = '${esc(id)}';`);
       return true;
     } catch {
       return false;
@@ -167,7 +172,7 @@ export class SurrealAdapter implements DatabaseAdapter {
         .map(([key, val]) => `${key} = ${typeof val === 'string' ? `'${val.replace(/'/g, "\\'")}'` : JSON.stringify(val)}`)
         .join(', ');
       const updatedAt = fields.updatedAt || new Date().toISOString();
-      await this.查詢(`UPDATE ${collection} SET ${setClauses}, updatedAt = '${updatedAt}' WHERE _id = '${id}';`);
+      await this.查詢(`UPDATE ${collection} SET ${setClauses}, updatedAt = '${esc(updatedAt as string)}' WHERE _id = '${esc(id)}';`);
       return this.getById(id);
     } catch {
       return null;
@@ -178,13 +183,15 @@ export class SurrealAdapter implements DatabaseAdapter {
     try {
       let sql: string;
       if (modelType) {
-        sql = `SELECT count() FROM ${collection} WHERE _id LIKE '${collection}:${modelType}:%';`;
+        sql = `SELECT count() FROM ${collection} WHERE _id LIKE '${esc(collection)}:${esc(modelType)}:%';`;
       } else {
         sql = `SELECT count() FROM ${collection};`;
       }
       const res = await this.查詢(sql);
-      const first = res?.[0] as Record<string, unknown> | undefined;
-      const val = first?.count ?? (first as Record<string, unknown[]>)?.count?.[0];
+      // SurrealDB 回傳結構: [ { result: [ { count: N } ] } ]
+      const resultArr = res?.[0]?.result as Record<string, unknown>[] | undefined;
+      const first = resultArr?.[0];
+      const val = first?.count;
       return typeof val === 'number' ? val : 0;
     } catch {
       return 0;

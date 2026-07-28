@@ -12,8 +12,10 @@ class Logger {
     debug: 0,
     info: 1,
     warn: 2,
-    error: 3
+    error: 3,
   };
+  /** 序列化寫入佇列，防止高頻併發寫入造成 ResourceBusy */
+  private logQueue: Promise<void> = Promise.resolve();
 
   constructor(配置: 日誌配置) {
     this.配置 = 配置;
@@ -30,22 +32,21 @@ class Logger {
 
   private async 寫入檔案(格式化訊息: string): Promise<void> {
     if (!this.配置.寫入檔案 || !this.配置.檔案路徑) return;
-    
-    try {
-      const 編碼器 = new TextEncoder();
-      const 資料 = 編碼器.encode(格式化訊息 + '\n');
-      
-      await Deno.writeFile(this.配置.檔案路徑, 資料, { append: true, create: true });
-    } catch (錯誤) {
-      console.error('寫入日誌檔案失敗:', 錯誤);
-    }
+
+    const 資料 = new TextEncoder().encode(格式化訊息 + '\n');
+
+    // 排隊寫入：重複呼叫會依序執行，不會同時打開同一檔案
+    this.logQueue = this.logQueue
+      .then(() => Deno.writeFile(this.配置.檔案路徑!, 資料, { append: true, create: true }))
+      .catch((err) => console.error('寫入日誌檔案失敗:', err));
+    return this.logQueue;
   }
 
   private async 記錄(等級: 日誌等級, 模組: string, 訊息: string): Promise<void> {
     if (!this.應該記錄(等級)) return;
 
     const 格式化訊息 = this.格式化訊息(等級, 模組, 訊息);
-    
+
     switch (等級) {
       case 'debug':
         console.debug(格式化訊息);
@@ -89,7 +90,7 @@ function 初始化Logger(): Logger {
   return new Logger({
     等級: 日誌等級,
     寫入檔案,
-    檔案路徑
+    檔案路徑,
   });
 }
 
