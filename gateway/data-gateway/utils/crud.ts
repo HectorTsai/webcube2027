@@ -156,6 +156,12 @@ export async function handleList(c: any) {
     const model = c.req.param('model');
     const host = c.get('effective_host');
 
+    // 判斷是否要 L2+L3 合併模式
+    const rest = c.get('rest_path') || '';
+    const scopeAll = c.req.query('scope') === 'all' || !!rest;
+    const useListAll = scopeAll && !!host;
+
+    // 分頁參數
     const page = c.req.query('page');
     const pageSize = c.req.query('pageSize');
 
@@ -179,29 +185,29 @@ export async function handleList(c: any) {
     for (const [key, val] of Object.entries(queryParams)) {
       if (val && !RESERVED_PARAMS.has(key)) filter[key] = val;
     }
-
     const hasFilter = Object.keys(filter).length > 0;
-    const result = await dataPool.list(collection, model, {
-      limit, offset,
-      sort: sortParam, order,
-      filter: hasFilter ? filter : undefined,
-    }, host);
 
-    // 總筆數
-    let totalCount = 0;
-    if (result.totalCount !== undefined) {
-      // 有記憶體過濾時，pool 已回傳過濾後的總筆數
-      totalCount = result.totalCount;
-    } else if (host) {
-      // L3 count
-      await dataPool.initL3(host);
-      const l3 = dataPool.get(host);
-      if (l3) totalCount = await l3.count(collection, model);
+    let result;
+    if (useListAll) {
+      // L2+L3 合併模式
+      result = await dataPool.listAll(collection, model, {
+        limit, offset, sort: sortParam, order,
+        filter: hasFilter ? filter : undefined,
+      }, host);
     } else {
-      // L2 count
-      const l2 = dataPool.System;
-      if (l2) totalCount = await l2.count(collection, model);
+      // 單層模式（有 host → L3，無 host → L2）
+      result = await dataPool.list(collection, model, {
+        limit, offset, sort: sortParam, order,
+        filter: hasFilter ? filter : undefined,
+      }, host);
     }
+
+    // 總筆數：記憶體過濾時 pool 已回傳 filtered.length
+    const totalCount = result.totalCount ?? (
+      host
+        ? await dataPool.get(host)?.count(collection, model) ?? 0
+        : await dataPool.System?.count(collection, model) ?? 0
+    );
 
     return c.json({
       success: true,
