@@ -18,7 +18,7 @@ const NO_AUTH_CHECK = [
 
 /** 不需 L3 權限檢查的端點前綴（仍需已認證） */
 const NO_L3_CHECK = [
-  '/api/me', '/api/logout', '/api/site',
+  '/api/health', '/api/me', '/api/logout', '/api/site',
 ];
 
 export const middleware = async (c: Context, next: Next) => {
