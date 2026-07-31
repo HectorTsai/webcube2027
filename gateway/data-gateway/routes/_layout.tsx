@@ -56,10 +56,10 @@ async function updateNavbar() {
       const 角色 = Array.isArray(r.角色) ? r.角色 : [r.角色];
       const prefix = window.location.pathname.match(/^\\/([a-z]{2,3}(-[a-z]{2,4})?)/)?.[0] || '';
 
-      // 管理後台按鈕（超級管理員 → /l2，管理員 → /manager）
+      // 管理後台按鈕（超級管理員 → /admin，管理員 → /manager）
       if (角色.includes('使用者:角色:超級管理員')) {
         adminContainer.classList.remove('hidden');
-        adminContainer.innerHTML = '<a href="' + prefix + '/l2" class="btn btn-soft btn-sm">管理後台</a>';
+        adminContainer.innerHTML = '<a href="' + prefix + '/admin" class="btn btn-soft btn-sm">管理後台</a>';
       } else if (角色.includes('使用者:角色:管理員')) {
         adminContainer.classList.remove('hidden');
         adminContainer.innerHTML = '<a href="' + prefix + '/manager" class="btn btn-soft btn-sm">管理後台</a>';

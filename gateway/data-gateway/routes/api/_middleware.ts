@@ -11,10 +11,14 @@
 import type { Context, Next } from 'hono';
 import { extractToken, verifyToken } from '@dui/util/jwt';
 
-/** 不需 L3 權限檢查的端點前綴 */
+/** 不需認證與 L3 權限檢查的端點前綴 */
+const NO_AUTH_CHECK = [
+  '/api/setup', '/api/health', '/api/anonymous-token', '/api/jwt-public-key',
+];
+
+/** 不需 L3 權限檢查的端點前綴（仍需已認證） */
 const NO_L3_CHECK = [
-  '/api/setup', '/api/health', '/api/me', '/api/logout',
-  '/api/site', '/api/anonymous-token',
+  '/api/me', '/api/logout', '/api/site',
 ];
 
 export const middleware = async (c: Context, next: Next) => {
@@ -37,9 +41,13 @@ export const middleware = async (c: Context, next: Next) => {
   }
 
   const method = c.req.method;
+  const path = c.req.path;
 
-  // 寫入操作需已認證 JWT（拒絕訪客/未登入）
-  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+  // ── 不需認證的端點（setup / health / anonymous-token / jwt-public-key）──
+  const isNoAuth = NO_AUTH_CHECK.some((prefix) => path.startsWith(prefix));
+
+  // 寫入操作需已認證 JWT（拒絕訪客/未登入），但不包括不需認證的端點
+  if (!isNoAuth && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
     if (!payload || payload.type !== 'authenticated') {
       return c.json({ success: false, error: '請先登入後再操作' }, 401);
     }
@@ -47,7 +55,6 @@ export const middleware = async (c: Context, next: Next) => {
 
   // ── L3 權限檢查：有 tenant（路由至 L3）且非特殊端點 ──
   // 匿名 JWT 若無 `權限.l3` 也拒絕（服務需使用已認證帳號）
-  const path = c.req.path;
   const needsL3Check = payload?.tenant
     && !NO_L3_CHECK.some((prefix) => path.startsWith(prefix));
 
