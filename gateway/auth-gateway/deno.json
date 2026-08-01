@@ -1,4 +1,5 @@
 {
+  "version": "0.7.0",
   "tasks": {
     "dev": "deno run --allow-all --env --watch main.ts",
     "start": "deno run --allow-all --env main.ts",
@@ -13,7 +14,6 @@
     "hono/jwt": "jsr:@hono/hono@^4.12.31/jwt",
     "hono/html": "jsr:@hono/hono@^4.12.31/html",
     "@dui/util": "./../../packages/dui-util/mod.ts",
-    "@dui/kv": "./../../packages/dui-kv/mod.ts",
     "@dui/framework": "./../../packages/dui-framework/mod.ts",
     "@dui/smartmultilingual": "./../../packages/dui-multilanguage/mod.ts",
     "@tailwindcss/cli": "npm:@tailwindcss/cli@^4.3.3",

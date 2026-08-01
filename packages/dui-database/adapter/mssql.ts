@@ -12,6 +12,7 @@
 
 import sql from 'mssql';
 import type { DatabaseAdapter, QueryOptions, FieldFilter } from './adapter-interface.ts';
+import { sanitizePayload, escapeLike, isSafeIdentifier } from './adapter-interface.ts';
 import { error } from '@dui/util';
 
 export interface MssqlConnectOptions {
@@ -90,7 +91,7 @@ export class MssqlAdapter implements DatabaseAdapter {
         .input('offset', sql.Int, offsetNum);
       let querySql: string;
       if (modelType) {
-        req.input('prefix', sql.NVarChar, `${collection}:${modelType}:%`);
+        req.input('prefix', sql.NVarChar, `${escapeLike(collection)}:${escapeLike(modelType)}:%`);
         querySql = `SELECT data, updatedAt FROM ${this.表名(collection)} WHERE id LIKE @prefix ORDER BY updatedAt DESC OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;`;
       } else {
         querySql = `SELECT data, updatedAt FROM ${this.表名(collection)} ORDER BY updatedAt DESC OFFSET @offset ROWS FETCH NEXT @limit ROWS ONLY;`;
@@ -114,7 +115,7 @@ export class MssqlAdapter implements DatabaseAdapter {
     await pool.request()
       .input('id', sql.NVarChar, id)
       .input('data', sql.NVarChar(sql.MAX), JSON.stringify(dataWithId))
-      .input('updatedAt', sql.DateTime2, new Date(dataWithId.updatedAt))
+      .input('updatedAt', sql.DateTime2, new Date(dataWithId.updatedAt as string))
       .query(
         `INSERT INTO ${this.表名(collection)} (id, data, updatedAt) VALUES (@id, @data, @updatedAt);`
       );
@@ -122,17 +123,14 @@ export class MssqlAdapter implements DatabaseAdapter {
   }
 
   async update(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const 序列化資料 = typeof (data as { toJSON?: () => Record<string, unknown> }).toJSON === 'function'
-      ? (data as { toJSON: () => Record<string, unknown> }).toJSON()
-      : data;
-    const dataWithId = { ...序列化資料, id, updatedAt: new Date().toISOString() };
+    const dataWithId = sanitizePayload(data, id);
     const pool = this.拿到Pool();
 
     // MERGE 實現 upsert
     await pool.request()
       .input('id', sql.NVarChar, id)
       .input('data', sql.NVarChar(sql.MAX), JSON.stringify(dataWithId))
-      .input('updatedAt', sql.DateTime2, new Date(dataWithId.updatedAt))
+      .input('updatedAt', sql.DateTime2, new Date(dataWithId.updatedAt as string))
       .query(`
         MERGE ${this.表名(collection)} AS target
         USING (SELECT @id AS id) AS source ON target.id = source.id
@@ -145,12 +143,13 @@ export class MssqlAdapter implements DatabaseAdapter {
 
   async queryByField(collection: string, filter: FieldFilter, modelType?: string): Promise<Record<string, unknown>[]> {
     try {
+      if (!isSafeIdentifier(filter.field)) return [];
       const pool = this.拿到Pool();
       const req = pool.request()
         .input('val', sql.NVarChar, filter.value);
       let querySql: string;
       if (modelType) {
-        req.input('prefix', sql.NVarChar, `${collection}:${modelType}:%`);
+        req.input('prefix', sql.NVarChar, `${escapeLike(collection)}:${escapeLike(modelType)}:%`);
         querySql = `SELECT data, updatedAt FROM ${this.表名(collection)} WHERE JSON_VALUE(data, '$.${filter.field}') = @val AND id LIKE @prefix;`;
       } else {
         querySql = `SELECT data, updatedAt FROM ${this.表名(collection)} WHERE JSON_VALUE(data, '$.${filter.field}') = @val;`;
@@ -212,7 +211,7 @@ export class MssqlAdapter implements DatabaseAdapter {
       const req = pool.request();
       let querySql: string;
       if (modelType) {
-        req.input('prefix', sql.NVarChar, `${collection}:${modelType}:%`);
+        req.input('prefix', sql.NVarChar, `${escapeLike(collection)}:${escapeLike(modelType)}:%`);
         querySql = `SELECT COUNT(*) AS count FROM ${this.表名(collection)} WHERE id LIKE @prefix;`;
       } else {
         querySql = `SELECT COUNT(*) AS count FROM ${this.表名(collection)};`;
@@ -235,12 +234,14 @@ export class MssqlAdapter implements DatabaseAdapter {
 
   /** 確保資料表存在 */
   private async 確保資料表(collection: string): Promise<void> {
-    if (!/^[a-zA-Z0-9_]+$/.test(collection)) {
-      throw new Error(`Invalid table name: ${collection}`);
+    if (!isSafeIdentifier(collection)) {
+      throw new Error(`MssqlAdapter: 非法 collection 名稱: ${collection}`);
     }
+    // 與 表名() 相同的清理規則，供 sys.tables 比對與索引命名（避免 - 或 . 造成語法錯誤）
+    const safeModel = collection.replace(/[^a-zA-Z0-9_]/g, '_');
     const pool = this.拿到Pool();
     await pool.request().query(`
-      IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = '${collection}' AND schema_id = SCHEMA_ID('${this.schema}'))
+      IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = '${safeModel}' AND schema_id = SCHEMA_ID('${this.schema}'))
       CREATE TABLE ${this.表名(collection)} (
         id NVARCHAR(255) PRIMARY KEY,
         data NVARCHAR(MAX) NOT NULL,
@@ -248,11 +249,27 @@ export class MssqlAdapter implements DatabaseAdapter {
       );
     `);
 
-    // 確保索引
+    // 確保索引（限定 schema 範圍比對，避免不同 schema 下同名表的索引名稱碰撞）
     await pool.request().query(`
-      IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'idx_${collection}_updated')
-        CREATE INDEX idx_${collection}_updated ON ${this.表名(collection)} (updatedAt DESC);
+      IF NOT EXISTS (
+        SELECT * FROM sys.indexes i
+        INNER JOIN sys.tables t ON i.object_id = t.object_id
+        INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
+        WHERE i.name = 'idx_${safeModel}_updated' AND s.name = '${this.schema}'
+      )
+        CREATE INDEX idx_${safeModel}_updated ON ${this.表名(collection)} (updatedAt DESC);
     `);
+  }
+
+  /** 輕量連線檢查 */
+  async ping(): Promise<boolean> {
+    try {
+      const pool = this.拿到Pool();
+      await pool.request().query('SELECT 1;');
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async 關閉(): Promise<void> {

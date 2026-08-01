@@ -91,6 +91,12 @@ export class FirestoreAdapter implements DatabaseAdapter {
     }
   }
 
+  /**
+   * 列出 collection 的記錄（支援 modelType 前綴篩選、分頁與排序）。
+   *
+   * @note Firestore 的 offset() 會按讀取筆數計費，巨量分頁時效能與費用開銷高，
+   *       建議改用 cursor 分頁（startAfter/startAt）進行逐頁導覽。
+   */
   async list(collection: string, modelType?: string, options?: QueryOptions): Promise<Record<string, unknown>[]> {
     const limitNum = options?.limit ?? 50;
     const offsetNum = options?.offset ?? 0;
@@ -100,6 +106,10 @@ export class FirestoreAdapter implements DatabaseAdapter {
 
       if (modelType) {
         // 以 data.id（composite id）前綴範圍篩選 model type
+        // ⚠️ 排序限制：Firestore 複合索引要求 range 查詢欄位與 orderBy 欄位必須一致，
+        //    故此分支固定以 data.id 排序，options.sort / options.order 在此模式下會被忽略。
+        //    如需支援 updatedAt DESC 排序，請在 Firebase Console 建立複合索引
+        //    (data.id ASC, data.updatedAt DESC)。
         query = query
           .where('data.id', '>=', `${collection}:${modelType}:`)
           .where('data.id', '<=', `${collection}:${modelType}:\uf8ff`)
@@ -153,10 +163,13 @@ export class FirestoreAdapter implements DatabaseAdapter {
   async queryByField(collection: string, filter: FieldFilter, modelType?: string): Promise<Record<string, unknown>[]> {
     try {
       const db = this.拿到DB();
+      // 預設限制讀取筆數，避免無限制讀取整張 collection 造成高額 Firestore Read 費用
+      const limitNum = 50;
 
       // 先以 field equality 查詢（這個不需要複合索引）
       let query: any = db.collection(collection)
-        .where(`data.${filter.field}`, '==', filter.value);
+        .where(`data.${filter.field}`, '==', filter.value)
+        .limit(limitNum);
 
       const snapshot = await query.get();
 
@@ -197,11 +210,17 @@ export class FirestoreAdapter implements DatabaseAdapter {
     try {
       const db = this.拿到DB();
       const docRef = db.collection(collection).doc(id);
-      const updatedFields = { ...fields, updatedAt: fields.updatedAt || new Date().toISOString() };
-      await docRef.update(updatedFields);
-      const updated = await docRef.get();
-      if (!updated.exists) return null;
-      return { id, ...updated.data() } as Record<string, unknown>;
+      const updatedAtVal = fields.updatedAt || new Date().toISOString();
+
+      // 以 dot notation（data.<field>）更新內部 JSON 欄位，維持 { data: {...} } 包裹結構
+      const updatePayload: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(fields)) {
+        updatePayload[`data.${key}`] = value;
+      }
+      updatePayload['data.updatedAt'] = updatedAtVal;
+
+      await docRef.update(updatePayload);
+      return await this.getById(id);
     } catch {
       return null;
     }
@@ -226,6 +245,17 @@ export class FirestoreAdapter implements DatabaseAdapter {
 
   async initialize(_collection: string): Promise<void> {
     // Firestore collection 自動建立，不需 CREATE TABLE
+  }
+
+  /** 輕量連線檢查 */
+  async ping(): Promise<boolean> {
+    try {
+      const db = this.拿到DB();
+      await db.collection('_heartbeat_').limit(1).get();
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async 關閉(): Promise<void> {

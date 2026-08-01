@@ -12,7 +12,7 @@
 //   使用者名稱 → AWS Access Key ID（選用，可透過環境變數或 IAM Role）
 //   密碼  → AWS Secret Access Key（選用）
 
-import { DynamoDBClient, DescribeTableCommand } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, DescribeTableCommand, ListTablesCommand } from '@aws-sdk/client-dynamodb';
 import {
   DynamoDBDocumentClient,
   GetCommand,
@@ -236,6 +236,17 @@ export class DynamoDBAdapter implements DatabaseAdapter {
       }
     } catch (err) {
       await error('DynamoDBAdapter', `初始化 ${collection} 失敗: ${err}`);
+    }
+  }
+
+  /** 輕量連線檢查 */
+  async ping(): Promise<boolean> {
+    try {
+      const client = this.拿到Client();
+      await client.send(new ListTablesCommand({ Limit: 1 }));
+      return true;
+    } catch {
+      return false;
     }
   }
 

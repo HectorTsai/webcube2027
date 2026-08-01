@@ -2538,11 +2538,6 @@
           "npm:tailwindcss@^4.3.3"
         ]
       },
-      "packages/dui-kv": {
-        "dependencies": [
-          "jsr:@std/path@1"
-        ]
-      },
       "packages/dui-multilanguage": {
         "dependencies": [
           "jsr:@deno/gfm@0.6",
@@ -2553,7 +2548,7 @@
       },
       "packages/dui-pool": {
         "dependencies": [
-          "jsr:@dui/util@0.4"
+          "jsr:@dui/util@0.5"
         ]
       },
       "packages/dui-util": {

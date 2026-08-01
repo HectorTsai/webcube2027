@@ -8,7 +8,7 @@
  * host = tenant     → 操作 L3（manager/member 層）
  */
 
-import { dataPool } from '@dui/database';
+import { getDbManager } from '../services/db-manager.ts';
 import { checkAccess } from './permission.ts';
 
 const RESERVED_PARAMS = new Set([
@@ -115,7 +115,7 @@ export async function handleCollection(c: any) {
 
   // ── collection 名稱 → 列出 model types ──
   try {
-    const l2 = dataPool.System;
+    const l2 = getDbManager().System;
     if (!l2) {
       return c.json({ success: false, error: '資料庫尚未初始化' }, 500);
     }
@@ -124,8 +124,8 @@ export async function handleCollection(c: any) {
       // L2+L3 合併模式（L3 異常時自動降級）
       let l3Models: { type: string; count: number }[] = [];
       try {
-        await dataPool.initL3(host);
-        const l3Adapter = dataPool.get(host);
+        await getDbManager().initL3(host);
+        const l3Adapter = getDbManager().getL3(host);
         if (l3Adapter) {
           l3Models = await getModelTypes(l3Adapter, param);
         }
@@ -150,8 +150,8 @@ export async function handleCollection(c: any) {
     // 單層模式（L3 → L2 自動降級）
     if (host) {
       try {
-        await dataPool.initL3(host);
-        const l3 = dataPool.get(host);
+        await getDbManager().initL3(host);
+        const l3 = getDbManager().getL3(host);
         if (l3) {
           const models = await getModelTypes(l3, param);
           return c.json({
@@ -235,38 +235,39 @@ export async function handleList(c: any) {
       }
     }
 
-    let result;
+    let records: Record<string, unknown>[];
+    let source: string;
     if (useListAll) {
       // L2+L3 合併模式
-      result = await dataPool.listAll(collection, model, {
+      records = await getDbManager().listAll(collection, model, {
         limit, offset, sort: sortParam, order,
         filter: hasFilter ? filter : undefined,
-      }, host);
+      });
+      source = 'L2+L3';
     } else {
       // 單層模式（有 host → L3，無 host → L2）
-      result = await dataPool.list(collection, model, {
+      records = await getDbManager().list(collection, model, {
         limit, offset, sort: sortParam, order,
         filter: hasFilter ? filter : undefined,
       }, host);
+      source = host ? 'L3' : 'L2';
     }
 
-    // 總筆數：記憶體過濾時 pool 已回傳 filtered.length
-    const totalCount = result.totalCount ?? (
-      host
-        ? await dataPool.get(host)?.count(collection, model) ?? 0
-        : await dataPool.System?.count(collection, model) ?? 0
-    );
+    // 總筆數：透過 adapter 計數
+    const totalCount = host
+      ? await getDbManager().getL3(host)?.count(collection, model) ?? 0
+      : await getDbManager().System?.count(collection, model) ?? 0;
 
     return c.json({
       success: true,
-      data: result.data,
-      source: result.source,
+      data: records,
+      source,
       pagination: {
         page: Math.floor(offset / limit) + 1,
         pageSize: limit,
         totalPages: Math.ceil(totalCount / limit) || 1,
         limit, offset,
-        count: result.data?.length ?? 0,
+        count: records?.length ?? 0,
         totalCount,
       },
     });
@@ -314,12 +315,13 @@ export async function handleCreate(c: any) {
       }
     }
 
-    const result = await dataPool.create(collection, body.id || `${collection}:${model}:${crypto.randomUUID().slice(0, 8)}`, body, host);
-
-    if (result.success) {
-      return c.json({ success: true, data: result.data, source: result.source });
-    }
-    return c.json({ success: false, error: result.error || '新增失敗' }, 400);
+    const record = await getDbManager().create(
+      collection,
+      body.id || `${collection}:${model}:${crypto.randomUUID().slice(0, 8)}`,
+      body,
+      host,
+    );
+    return c.json({ success: true, data: record, source: host ? 'L3' : 'L2' });
   } catch (err) {
     return c.json(
       { success: false, error: `新增失敗: ${err instanceof Error ? err.message : String(err)}` },
@@ -345,8 +347,8 @@ export async function handleGetById(c: any) {
       return c.json({ success: false, error: '無讀取權限' }, 403);
     }
 
-    const result = await dataPool.getById(id, host);
-    if (result.success) {
+    const record = await getDbManager().getById(id, host);
+    if (record) {
       // ── self 權限：檢查作者是否為本人 ──
       const payload = c.get('jwt_payload');
       if (payload) {
@@ -354,12 +356,12 @@ export async function handleGetById(c: any) {
         const perm = payload?.權限?.[level]?.[collection] ?? payload?.權限?.[level]?.default;
         if (perm?.讀 === 'self') {
           const userId = getUserId(c);
-          if (!userId || (result.data as any)?.作者 !== userId) {
+          if (!userId || (record as any)?.作者 !== userId) {
             return c.json({ success: false, error: '無此權限' }, 403);
           }
         }
       }
-      return c.json({ success: true, data: result.data, source: result.source });
+      return c.json({ success: true, data: record, source: host ? 'L3' : 'L2' });
     }
     return c.json({ success: false, error: '找不到資料' }, 404);
   } catch (err) {
@@ -383,8 +385,8 @@ export async function handleUpdate(c: any) {
     const collection = id.split(':')[0];
 
     // ── 權限檢查（含 self：先查原資料取得作者） ──
-    const existing = await dataPool.getById(id, host);
-    const authorId = (existing.data as any)?.作者 as string | undefined;
+    const existing = await getDbManager().getById(id, host);
+    const authorId = (existing as any)?.作者 as string | undefined;
     if (!canWrite(c, collection, authorId)) {
       return c.json({ success: false, error: '無寫入權限' }, 403);
     }
@@ -398,11 +400,8 @@ export async function handleUpdate(c: any) {
       );
     }
 
-    const result = await dataPool.update(collection, id, body, host);
-    if (result.success) {
-      return c.json({ success: true, data: result.data, source: result.source });
-    }
-    return c.json({ success: false, error: result.error || '更新失敗' }, 400);
+    const record = await getDbManager().update(collection, id, body, host);
+    return c.json({ success: true, data: record, source: host ? 'L3' : 'L2' });
   } catch (err) {
     return c.json(
       { success: false, error: `更新失敗: ${err instanceof Error ? err.message : String(err)}` },
@@ -424,8 +423,8 @@ export async function handlePatch(c: any) {
     const collection = id.split(':')[0];
 
     // ── 權限檢查（含 self：先查原資料取得作者） ──
-    const existing = await dataPool.getById(id, host);
-    const authorId = (existing.data as any)?.作者 as string | undefined;
+    const existing = await getDbManager().getById(id, host);
+    const authorId = (existing as any)?.作者 as string | undefined;
     if (!canWrite(c, collection, authorId)) {
       return c.json({ success: false, error: '無寫入權限' }, 403);
     }
@@ -439,9 +438,9 @@ export async function handlePatch(c: any) {
       return c.json({ success: false, error: '不允許修改 id' }, 400);
     }
 
-    const result = await dataPool.patch(collection, id, body, host);
-    if (result.success) {
-      return c.json({ success: true, data: result.data, source: result.source });
+    const record = await getDbManager().patch(collection, id, body, host);
+    if (record) {
+      return c.json({ success: true, data: record, source: host ? 'L3' : 'L2' });
     }
     return c.json({ success: false, error: '找不到資料或更新失敗' }, 404);
   } catch (err) {
@@ -465,15 +464,15 @@ export async function handleDelete(c: any) {
     const collection = id.split(':')[0];
 
     // ── 權限檢查（含 self：先查原資料取得作者） ──
-    const existing = await dataPool.getById(id, host);
-    const authorId = (existing.data as any)?.作者 as string | undefined;
+    const existing = await getDbManager().getById(id, host);
+    const authorId = (existing as any)?.作者 as string | undefined;
     if (!canWrite(c, collection, authorId)) {
       return c.json({ success: false, error: '無刪除權限' }, 403);
     }
 
-    const result = await dataPool.deleteRecord(id, host);
+    const result = await getDbManager().deleteRecord(id, host);
     if (result.success) {
-      return c.json({ success: true, data: result.data, source: result.source });
+      return c.json({ success: true, source: host ? 'L3' : 'L2' });
     }
     return c.json({ success: false, error: '找不到資料或刪除失敗' }, 404);
   } catch (err) {

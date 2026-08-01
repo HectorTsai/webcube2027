@@ -11,7 +11,7 @@
 //   資料庫名稱: "postgres"
 
 import { Client, type ClientConfig } from 'pg';
-import { sanitizePayload, type DatabaseAdapter, type QueryOptions, type FieldFilter } from './adapter-interface.ts';
+import { sanitizePayload, escapeLike, isSafeIdentifier, type DatabaseAdapter, type QueryOptions, type FieldFilter } from './adapter-interface.ts';
 import { error } from '@dui/util';
 
 export interface PgsqlConnectOptions {
@@ -54,6 +54,8 @@ export class PgsqlAdapter implements DatabaseAdapter {
 
   async getById(id: string): Promise<Record<string, unknown> | null> {
     const collection = id.split(':')[0];
+    // collection 會直接拼入表名位置，必須驗證避免 SQL 注入
+    if (!isSafeIdentifier(collection)) return null;
     try {
       const client = this.拿到連線();
       const result = await client.query(
@@ -75,6 +77,7 @@ export class PgsqlAdapter implements DatabaseAdapter {
     const limitNum = options?.limit ?? 50;
     const offsetNum = options?.offset ?? 0;
     try {
+      if (!isSafeIdentifier(collection)) return [];
       const client = this.拿到連線();
       let sql: string;
       let params: unknown[];
@@ -97,6 +100,7 @@ export class PgsqlAdapter implements DatabaseAdapter {
   }
 
   async create(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+    if (!isSafeIdentifier(collection)) throw new Error(`PgsqlAdapter: 非法 collection 名稱: ${collection}`);
     const dataWithId = { ...data, id, updatedAt: new Date().toISOString() };
     await this.確保資料表(collection);
     const client = this.拿到連線();
@@ -108,6 +112,7 @@ export class PgsqlAdapter implements DatabaseAdapter {
   }
 
   async update(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+    if (!isSafeIdentifier(collection)) throw new Error(`PgsqlAdapter: 非法 collection 名稱: ${collection}`);
     const dataWithId = sanitizePayload(data, id);
     await this.確保資料表(collection);
     const client = this.拿到連線();
@@ -121,12 +126,14 @@ export class PgsqlAdapter implements DatabaseAdapter {
 
   async queryByField(collection: string, filter: FieldFilter, modelType?: string): Promise<Record<string, unknown>[]> {
     try {
+      if (!isSafeIdentifier(filter.field)) return [];
+      if (!isSafeIdentifier(collection)) return [];
       const client = this.拿到連線();
       let sql: string;
       let params: unknown[];
       if (modelType) {
         sql = `SELECT data FROM "${collection}" WHERE data->>'${filter.field}' = $1 AND id LIKE $2;`;
-        params = [filter.value, `${collection}:${modelType}:%`];
+        params = [filter.value, `${escapeLike(collection)}:${escapeLike(modelType)}:%`];
       } else {
         sql = `SELECT data FROM "${collection}" WHERE data->>'${filter.field}' = $1;`;
         params = [filter.value];
@@ -144,6 +151,7 @@ export class PgsqlAdapter implements DatabaseAdapter {
 
   async delete(id: string): Promise<boolean> {
     const collection = id.split(':')[0];
+    if (!isSafeIdentifier(collection)) return false;
     try {
       const client = this.拿到連線();
       const result = await client.query(
@@ -158,6 +166,7 @@ export class PgsqlAdapter implements DatabaseAdapter {
 
   async patch(collection: string, id: string, fields: Record<string, unknown>): Promise<Record<string, unknown> | null> {
     try {
+      if (!isSafeIdentifier(collection)) return null;
       const client = this.拿到連線();
       const patchJson = JSON.stringify({ ...fields, updatedAt: fields.updatedAt || new Date().toISOString() });
       const result = await client.query(
@@ -177,12 +186,13 @@ export class PgsqlAdapter implements DatabaseAdapter {
 
   async count(collection: string, modelType?: string): Promise<number> {
     try {
+      if (!isSafeIdentifier(collection)) return 0;
       const client = this.拿到連線();
       let sql: string;
       let params: unknown[];
       if (modelType) {
         sql = `SELECT COUNT(*) AS count FROM "${collection}" WHERE id LIKE $1;`;
-        params = [`${collection}:${modelType}:%`];
+        params = [`${escapeLike(collection)}:${escapeLike(modelType)}:%`];
       } else {
         sql = `SELECT COUNT(*) AS count FROM "${collection}";`;
         params = [];
@@ -196,6 +206,7 @@ export class PgsqlAdapter implements DatabaseAdapter {
 
   async initialize(collection: string): Promise<void> {
     try {
+      if (!isSafeIdentifier(collection)) return;
       await this.確保資料表(collection);
     } catch (err) {
       await error('PgsqlAdapter', `初始化 ${collection} 失敗: ${err}`);
@@ -204,6 +215,7 @@ export class PgsqlAdapter implements DatabaseAdapter {
 
   /** 確保指定模型的資料表存在 */
   private async 確保資料表(collection: string): Promise<void> {
+    if (!isSafeIdentifier(collection)) throw new Error(`PgsqlAdapter: 非法 collection 名稱: ${collection}`);
     const client = this.拿到連線();
     await client.query(`
       CREATE TABLE IF NOT EXISTS "${collection}" (
@@ -215,6 +227,17 @@ export class PgsqlAdapter implements DatabaseAdapter {
     await client.query(`
       CREATE INDEX IF NOT EXISTS "idx_${collection}_updated" ON "${collection}" (updatedAt DESC);
     `);
+  }
+
+  /** 輕量連線檢查 */
+  async ping(): Promise<boolean> {
+    try {
+      const client = this.拿到連線();
+      await client.query('SELECT 1;');
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async 關閉(): Promise<void> {

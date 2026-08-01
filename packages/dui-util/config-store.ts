@@ -1,42 +1,35 @@
-// L1 Store — simple persistent key-value store backed by a JSON file
+// Config Store — simple persistent key-value store backed by a JSON file
 //
-// L1 is a lightweight config store, NOT a full database. It stores system
-// settings and the L2 connection info needed to bootstrap upper layers.
+// Stores per-instance configuration (crypto key, connection strings, URLs, etc.)
+// in a local JSON file. All data is cached in memory for fast reads.
+// Writes use atomic temp-file + rename pattern to prevent corruption.
 //
-// Lifecycle:
-//   const store = new L1Store();
-//   await store.init();       // ensures data dir + loads cache
-//   await store.get("key");   // returns string | null
-//   await store.set("key", "value");
-//   await store.delete("key");
-//
-// Sensitive values should be encrypted with encrypt() before storing.
+// This is NOT a database — it is a lightweight config utility for gateway
+// instances. Use a real database (via @dui/database) for structured data.
 
-import { info, debug, error } from '@dui/util';
+import { info, debug, error } from './common/logger.ts';
 import { dirname, resolve } from '@std/path';
 
-const DEFAULT_DATA_PATH = './data/l1.json';
+const DEFAULT_DATA_PATH = './data/config.json';
 
 /**
  * Simple persistent key-value store backed by a JSON file.
  *
  * All data is cached in memory for fast reads. Writes flush to disk
  * via a single background task with dirty-flag coalescing, using an
- * atomic temp-file + rename pattern to prevent file corruption under
- * concurrent access.
+ * atomic temp-file + rename pattern to prevent file corruption.
  *
- * Sensitive fields should be pre-encrypted by the caller.
+ * Designed for per-instance configuration only (crypto keys, URLs, etc).
+ * Not suitable for large or structured datasets.
  */
-export class L1Store {
+export class ConfigStore {
   private dataPath: string;
   private cache = new Map<string, string>();
-  /** Dirty flag — set true when cache has unsaved changes. */
   private isDirty = false;
-  /** Reusable background flush task; null when idle. */
   private flushingTask: Promise<void> | null = null;
 
   constructor(dataPath?: string) {
-    const rawPath = dataPath || Deno.env.get('L1_PATH') || DEFAULT_DATA_PATH;
+    const rawPath = dataPath || Deno.env.get('CONFIG_PATH') || DEFAULT_DATA_PATH;
     this.dataPath = resolve(rawPath);
   }
 
@@ -44,7 +37,7 @@ export class L1Store {
   async init(): Promise<void> {
     await this.ensureDir();
     await this.load();
-    await info('L1', `Store ready (${this.dataPath}, ${this.cache.size} keys)`);
+    await info('Config', `Store ready (${this.dataPath}, ${this.cache.size} keys)`);
   }
 
   /** Get a value by key. Returns `null` if the key does not exist. */
@@ -56,14 +49,14 @@ export class L1Store {
   async set(key: string, value: string): Promise<void> {
     this.cache.set(key, value);
     await this.flush();
-    await debug('L1', `Set "${key}"`);
+    await debug('Config', `Set "${key}"`);
   }
 
   /** Delete a key. Persists to disk asynchronously with coalescing. */
   async delete(key: string): Promise<void> {
     this.cache.delete(key);
     await this.flush();
-    await debug('L1', `Deleted "${key}"`);
+    await debug('Config', `Deleted "${key}"`);
   }
 
   /** Check if a key exists. */
@@ -76,9 +69,7 @@ export class L1Store {
     return Array.from(this.cache.keys());
   }
 
-  /**
-   * Export all data as a plain object (for backup / admin UI display).
-   */
+  /** Export all data as a plain object (for backup / admin UI). */
   exportAll(): Record<string, string> {
     return Object.fromEntries(this.cache);
   }
@@ -91,7 +82,6 @@ export class L1Store {
     try {
       await Deno.mkdir(dir, { recursive: true });
     } catch (err) {
-      // Suppress "already exists", rethrow everything else (permission, disk, etc.)
       if (!(err instanceof Deno.errors.AlreadyExists)) throw err;
     }
   }
@@ -112,12 +102,8 @@ export class L1Store {
   }
 
   /**
-   * Dirty-flag coalescing flush.  Multiple concurrent calls share a single
+   * Dirty-flag coalescing flush. Multiple concurrent calls share a single
    * background task that keeps flushing until the cache is clean.
-   *
-   * - No unbounded Promise chain growth (memory-safe).
-   * - Concurrent callers all await the same single task.
-   * - Rapid set/delete bursts are batched into one disk write.
    */
   private async flush(): Promise<void> {
     this.isDirty = true;
@@ -130,9 +116,9 @@ export class L1Store {
         try {
           await this.atomicWrite(snapshot);
         } catch (err) {
-          this.isDirty = true; // restore dirty flag so data is not silently lost
-          await error('L1', `Flush failed: ${err}`);
-          break; // exit loop to avoid infinite retry on permanent errors
+          this.isDirty = true;
+          await error('Config', `Flush failed: ${err}`);
+          break;
         }
       }
     })().finally(() => {
@@ -142,10 +128,7 @@ export class L1Store {
     return this.flushingTask;
   }
 
-  /**
-   * Atomic write: write to a uniquely-named temp file, then rename.
-   * The unique suffix prevents cross-instance temp-file collisions.
-   */
+  /** Atomic write: write to a uniquely-named temp file, then rename. */
   private async atomicWrite(data: Record<string, string>): Promise<void> {
     const suffix = `${Date.now()}.${Math.random().toString(36).slice(2, 6)}`;
     const tmpPath = `${this.dataPath}.${suffix}.tmp`;

@@ -7,12 +7,12 @@
  */
 
 import type { Context } from 'hono';
-import { getL1 } from '../../utils/l1.ts';
+import { getConfig } from '../../utils/config.ts';
 
 async function getDataGatewayUrl(): Promise<string | null> {
   try {
-    const l1 = getL1();
-    const stored = await l1.get('data_gateway_url');
+    const config = getConfig();
+    const stored = await config.get('data_gateway_url');
     if (stored) return stored;
   } catch {
     // L1 尚未就緒

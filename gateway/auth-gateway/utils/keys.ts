@@ -31,15 +31,15 @@ export function getKeys(): { privateKey: CryptoKey; publicKey: CryptoKey; public
   return { privateKey: _privateKey, publicKey: _publicKey, publicKeyHex: _publicKeyHex };
 }
 
-export async function initKeys(l1: { get: (key: string) => Promise<string | null>; set: (key: string, value: string) => Promise<void> }) {
-  const storedPrivateHex = await l1.get('_jwt_private_key');
+export async function initKeys(config: { get: (key: string) => Promise<string | null>; set: (key: string, value: string) => Promise<void> }) {
+  const storedPrivateHex = await config.get('_jwt_private_key');
 
   if (storedPrivateHex) {
     _privateKey = await crypto.subtle.importKey(
       'pkcs8', hexToBytes(storedPrivateHex), { name: 'Ed25519' }, false, ['sign'],
     );
 
-    const storedPublicHex = await l1.get('_jwt_public_key');
+    const storedPublicHex = await config.get('_jwt_public_key');
     _publicKey = await crypto.subtle.importKey(
       'spki', hexToBytes(storedPublicHex!), { name: 'Ed25519' }, false, ['verify'],
     );
@@ -59,8 +59,8 @@ export async function initKeys(l1: { get: (key: string) => Promise<string | null
   _publicKey = keyPair.publicKey;
   _publicKeyHex = bytesToHex(spki);
 
-  await l1.set('_jwt_private_key', bytesToHex(pkcs8));
-  await l1.set('_jwt_public_key', _publicKeyHex);
+  await config.set('_jwt_private_key', bytesToHex(pkcs8));
+  await config.set('_jwt_public_key', _publicKeyHex);
 
   return { privateKey: _privateKey, publicKey: _publicKey, publicKeyHex: _publicKeyHex };
 }

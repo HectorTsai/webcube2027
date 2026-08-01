@@ -8,7 +8,7 @@
  */
 
 import type { Context, Next } from 'hono';
-import { getL1 } from '../utils/l1.ts';
+import { getConfig } from '../utils/config.ts';
 import { SUPPORTED_LANGUAGE_SET } from '@dui/smartmultilingual';
 
 /** 不需安裝即可存取的公開路徑前綴 */
@@ -72,8 +72,8 @@ export async function middleware(c: Context, next: Next) {
   }
 
   // 2. 檢查安裝狀態
-  const l1 = getL1();
-  const dataGatewayUrl = await l1.get('data_gateway_url');
+  const config = getConfig();
+  const dataGatewayUrl = await config.get('data_gateway_url');
 
   if (!dataGatewayUrl) {
     // 未安裝：API 回傳 403，頁面重新導向

@@ -2,9 +2,7 @@
 //
 // Provides:
 //   - Hono HTTP server with file-based routing
-//   - L1 KV store (config persistence via @dui/kv)
-//   - Crypto key lifecycle management (via @dui/util)
-//   - Bootstrapping guard middleware
+//   - Convenient gateway lifecycle (create → start)
 //
 // Usage (in each gateway's main.ts):
 //
@@ -17,14 +15,16 @@
 //   });
 //
 //   // gw.app  — Hono instance (file routes already loaded)
-//   // gw.l1   — L1Store (initialized, crypto key registered)
 //   // gw.dataDir — data/ directory path
 //   gw.start();
+//
+// Each gateway manages its own ConfigStore and crypto key lifecycle
+// via @dui/util (ConfigStore + registerKey). This package only provides
+// the HTTP server + file routing.
 
 import { Hono } from 'hono';
 import { loadRoutes } from './route-loader.ts';
-import { L1Store } from '@dui/kv';
-import { registerKey, info } from '@dui/util';
+import { info } from '@dui/util';
 
 // ── Types ──
 
@@ -40,8 +40,6 @@ export interface CreateGatewayOptions {
 export interface Gateway {
   /** Hono app instance (file routes already loaded) */
   app: Hono;
-  /** L1 config store (initialized, with crypto key) */
-  l1: L1Store;
   /** Absolute path to the data directory */
   dataDir: string;
   /** HTTP port the gateway listens on */
@@ -56,11 +54,13 @@ export interface Gateway {
  * Create a fully-initialized gateway.
  *
  * Handles:
- * 1. L1 KV store initialization at `{dirname}/data/`
- * 2. Crypto key generation and registration (stored in L1 as `_crypto_key`)
- * 3. Hono app with file-based routing from `{dirname}/routes/`
+ * 1. Data directory calculation
+ * 2. Hono app with file-based routing from `{dirname}/routes/`
  *
- * @returns A `Gateway` object with `app`, `l1`, `dataDir`, and `start()`.
+ * Does NOT handle ConfigStore or crypto key setup — those are managed
+ * by each gateway individually (see data-gateway/services/config.ts).
+ *
+ * @returns A `Gateway` object with `app`, `dataDir`, and `start()`.
  */
 export async function createGateway(opts: CreateGatewayOptions): Promise<Gateway> {
   const { name, dirname } = opts;
@@ -75,22 +75,7 @@ export async function createGateway(opts: CreateGatewayOptions): Promise<Gateway
   const dataDir = `${dirname}/data`;
   const routesDir = `${dirname}/routes`;
 
-  // ── 1. L1 initialization ──
-  const l1 = new L1Store(`${dataDir}/l1.json`);
-  await l1.init();
-  await info(name, `L1 ready (${dataDir})`);
-
-  // ── 2. Crypto key (stored in L1 as `_crypto_key`) ──
-  let cryptoKey = await l1.get('_crypto_key');
-  if (!cryptoKey) {
-    const bytes = crypto.getRandomValues(new Uint8Array(32));
-    cryptoKey = Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('');
-    await l1.set('_crypto_key', cryptoKey);
-    await info(name, 'Crypto key auto-generated');
-  }
-  registerKey(cryptoKey);
-
-  // ── 3. Hono + file router ──
+  // ── Hono + file router ──
   const app = new Hono();
 
   // Use file:// URL so relative paths work regardless of CWD
@@ -106,7 +91,6 @@ export async function createGateway(opts: CreateGatewayOptions): Promise<Gateway
 
   return {
     app,
-    l1,
     dataDir,
     port,
     start() {

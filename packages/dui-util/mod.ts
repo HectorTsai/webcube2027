@@ -10,6 +10,9 @@ export {
   success, paginated, errorRes, Errors,
 } from './backend/response.ts';
 
+// ── Config Store (persistent KV for gateway instance config) ──
+export { ConfigStore } from './config-store.ts';
+
 // ── Common Utilities (from dui-multilanguage migration) ──
 export { StringUtils } from './common/string.ts';
 export { ArrayUtils } from './common/array.ts';

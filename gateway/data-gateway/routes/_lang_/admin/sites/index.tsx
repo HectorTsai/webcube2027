@@ -262,7 +262,7 @@ const Page = (c: any) => {
         {/* 導覽連結 */}
         <div class="text-sm breadcrumbs mb-4">
           <ul>
-            <li><a href={`${prefix}/l2`}>管理後台</a></li>
+            <li><a href={`${prefix}/admin`}>管理後台</a></li>
             <li class="text-base-content/50">申請網站</li>
           </ul>
         </div>
@@ -456,7 +456,7 @@ const Page = (c: any) => {
             <div class="text-5xl text-success">&#10003;</div>
             <h2 class="text-xl font-bold">申請完成</h2>
             <p class="text-base-content/50 text-sm">網站已建立，L3 資料庫設定已加密儲存</p>
-            <a href={`${prefix}/l2`} class="btn btn-primary btn-sm mt-2">返回管理後台</a>
+            <a href={`${prefix}/admin`} class="btn btn-primary btn-sm mt-2">返回管理後台</a>
           </div>
         </div>
 

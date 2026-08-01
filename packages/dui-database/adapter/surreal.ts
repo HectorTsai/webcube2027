@@ -1,6 +1,6 @@
 // SurrealDB Adapter — 實作 DatabaseAdapter 介面
 
-import { DatabaseAdapter, QueryOptions, FieldFilter } from './adapter-interface.ts';
+import { DatabaseAdapter, QueryOptions, FieldFilter, isSafeIdentifier } from './adapter-interface.ts';
 
 interface SurrealConfig {
   url: string;
@@ -98,6 +98,8 @@ export class SurrealAdapter implements DatabaseAdapter {
 
   async getById(id: string): Promise<Record<string, unknown> | null> {
     const collection = id.split(':')[0];
+    // collection 會直接拼入表名位置，必須驗證避免 SQL 注入
+    if (!isSafeIdentifier(collection)) return null;
     const 結果 = await this.查詢(`SELECT * FROM ${collection} WHERE _id = '${esc(id)}' LIMIT 1;`);
     if (結果[0]?.result && Array.isArray(結果[0].result) && 結果[0].result.length > 0) {
       return this.正規化(結果[0].result[0] as Record<string, unknown>);
@@ -106,6 +108,7 @@ export class SurrealAdapter implements DatabaseAdapter {
   }
 
   async list(collection: string, modelType?: string, options?: QueryOptions): Promise<Record<string, unknown>[]> {
+    if (!isSafeIdentifier(collection)) return [];
     const limit = options?.limit ?? 50;
     const offset = options?.offset ?? 0;
     let sql: string;
@@ -122,11 +125,13 @@ export class SurrealAdapter implements DatabaseAdapter {
   }
 
   async queryByField(collection: string, filter: FieldFilter, modelType?: string): Promise<Record<string, unknown>[]> {
+    // filter.field 直接拼入 WHERE、collection 直接拼入表名，皆需驗證避免注入
+    if (!isSafeIdentifier(filter.field) || !isSafeIdentifier(collection)) return [];
     let sql: string;
     if (modelType) {
-      sql = `SELECT * FROM ${collection} WHERE ${filter.field} = '${esc(filter.value)}' AND _id LIKE '${esc(collection)}:${esc(modelType)}:%' LIMIT 1;`;
+      sql = `SELECT * FROM ${collection} WHERE ${filter.field} = '${esc(filter.value)}' AND _id LIKE '${esc(collection)}:${esc(modelType)}:%';`;
     } else {
-      sql = `SELECT * FROM ${collection} WHERE ${filter.field} = '${esc(filter.value)}' LIMIT 1;`;
+      sql = `SELECT * FROM ${collection} WHERE ${filter.field} = '${esc(filter.value)}';`;
     }
     const 結果 = await this.查詢(sql);
     if (結果[0]?.result && Array.isArray(結果[0].result)) {
@@ -136,6 +141,7 @@ export class SurrealAdapter implements DatabaseAdapter {
   }
 
   async create(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+    if (!isSafeIdentifier(collection)) throw new Error(`SurrealAdapter: 非法 collection 名稱: ${collection}`);
     // 用 _id 儲存 composite ID，保留 id 給 SurrealDB 自己管理
     const forSurreal = { ...data, _id: id };
     const 結果 = await this.查詢(`CREATE ${collection} CONTENT ${JSON.stringify(forSurreal)};`);
@@ -147,6 +153,7 @@ export class SurrealAdapter implements DatabaseAdapter {
   }
 
   async update(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+    if (!isSafeIdentifier(collection)) throw new Error(`SurrealAdapter: 非法 collection 名稱: ${collection}`);
     // 用 _id 查詢，保留 id 給 SurrealDB 自己管理
     const forSurreal = { ...data, _id: id };
     const 結果 = await this.查詢(`UPDATE ${collection} CONTENT ${JSON.stringify(forSurreal)} WHERE _id = '${esc(id)}';`);
@@ -159,6 +166,7 @@ export class SurrealAdapter implements DatabaseAdapter {
   async delete(id: string): Promise<boolean> {
     try {
       const collection = id.split(':')[0];
+      if (!isSafeIdentifier(collection)) return false;
       await this.查詢(`DELETE FROM ${collection} WHERE _id = '${esc(id)}';`);
       return true;
     } catch {
@@ -168,11 +176,27 @@ export class SurrealAdapter implements DatabaseAdapter {
 
   async patch(collection: string, id: string, fields: Record<string, unknown>): Promise<Record<string, unknown> | null> {
     try {
-      const setClauses = Object.entries(fields)
-        .map(([key, val]) => `${key} = ${typeof val === 'string' ? `'${val.replace(/'/g, "\\'")}'` : JSON.stringify(val)}`)
+      if (!isSafeIdentifier(collection)) return null;
+      // 統一拼裝 SET 子句：先帶入預設 updatedAt，fields 若有則覆蓋，避免重複出現同欄位
+      const payload: Record<string, unknown> = {
+        updatedAt: new Date().toISOString(),
+        ...fields,
+      };
+      // 統一轉義所有值：字串單引號逸出；數字/布林直接寫入；
+      // 物件/陣列轉為 JSON 結構（不加引號），維持 SurrealDB 原生型態。
+      // 注意：JSON.stringify 產物是自洽 JSON（雙引號字串內的單引號不需逸出），
+      //       不可再套 esc()，否則會產生 \' 這類非合法 JSON 逸出序列。
+      const 轉義值 = (val: unknown): string => {
+        if (typeof val === 'string') return `'${esc(val)}'`;
+        if (typeof val === 'number' || typeof val === 'boolean' || val === null) return String(val);
+        return JSON.stringify(val);
+      };
+      const setClauses = Object.entries(payload)
+        // 欄位名稱僅允許安全識別元，避免外部 key 直接拼入 SET 子句
+        .filter(([key]) => isSafeIdentifier(key))
+        .map(([key, val]) => `${key} = ${轉義值(val)}`)
         .join(', ');
-      const updatedAt = fields.updatedAt || new Date().toISOString();
-      await this.查詢(`UPDATE ${collection} SET ${setClauses}, updatedAt = '${esc(updatedAt as string)}' WHERE _id = '${esc(id)}';`);
+      await this.查詢(`UPDATE ${collection} SET ${setClauses} WHERE _id = '${esc(id)}';`);
       return this.getById(id);
     } catch {
       return null;
@@ -181,6 +205,7 @@ export class SurrealAdapter implements DatabaseAdapter {
 
   async count(collection: string, modelType?: string): Promise<number> {
     try {
+      if (!isSafeIdentifier(collection)) return 0;
       let sql: string;
       if (modelType) {
         sql = `SELECT count() FROM ${collection} WHERE _id LIKE '${esc(collection)}:${esc(modelType)}:%';`;
@@ -196,6 +221,12 @@ export class SurrealAdapter implements DatabaseAdapter {
     } catch {
       return 0;
     }
+  }
+
+  /** 輕量連線檢查 */
+  async ping(): Promise<boolean> {
+    const 結果 = await this.查詢('INFO FOR DB;');
+    return 結果.length > 0;
   }
 
   async initialize(_collection: string): Promise<void> {

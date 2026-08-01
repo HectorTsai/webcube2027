@@ -5,7 +5,7 @@
  */
 
 import type { Context } from 'hono';
-import { getL1 } from '../../../utils/l1.ts';
+import { getConfig } from '../../../utils/config.ts';
 import { info, error as logError } from '@dui/util';
 
 export async function POST(c: Context) {
@@ -23,16 +23,16 @@ export async function POST(c: Context) {
       return c.json({ success: false, error: 'URL 格式不正確' }, 400);
     }
 
-    const l1 = getL1();
+    const config = getConfig();
 
     // 檢查是否已安裝（防止重複安裝）
-    const existing = await l1.get('data_gateway_url');
+    const existing = await config.get('data_gateway_url');
     if (existing) {
       return c.json({ success: false, error: 'auth-gateway 已完成安裝。若需重新安裝，請清除 L1 資料。' }, 400);
     }
 
     // 寫入 L1
-    await l1.set('data_gateway_url', data_gateway_url);
+    await config.set('data_gateway_url', data_gateway_url);
     await info('AuthGateway', `data-gateway URL 已設定：${data_gateway_url}`);
 
     return c.json({ success: true });

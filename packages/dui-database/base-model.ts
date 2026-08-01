@@ -51,16 +51,21 @@ export class BaseModel {
    * Can also be set with partial formats: `type:id` or just `id`.
    */
   public get id(): string {
+    // 避免 table 尚未設定時輸出以冒號開頭的字串（:type:id）
+    if (!this.table) return `${this.type}:${this.編號._id}`;
     return `${this.table}:${this.type}:${this.編號._id}`;
   }
   public set id(id: string) {
     const parts = id.split(":");
     if (parts.length === 1) {
+      // id
       this.編號._id = parts[0];
     } else if (parts.length === 2) {
-      this.編號._table = parts[0];
+      // type:id
+      this.編號._type = parts[0];
       this.編號._id = parts[1];
     } else {
+      // table:type:id
       this.編號._table = parts[0];
       this.編號._type = parts[1];
       this.編號._id = parts.slice(2).join(":"); // 保留所有剩餘部分
@@ -69,11 +74,12 @@ export class BaseModel {
 
   constructor(data: Record<string, unknown> = {}) {
     this.tags = data?.tags as string[] || data?.標籤集 as string[] || [];
-    this.updatedAt = data?.updatedAt
-      ? new Date(data.updatedAt as string)
-      : data?.最後修改
-        ? new Date(data.最後修改 as string)
-        : new Date();
+    // 解析日期並驗證有效性，避免 Invalid Date（NaN）進入狀態
+    const 解析日期 = (v: unknown): Date => {
+      const d = v ? new Date(v as string) : null;
+      return d && !isNaN(d.getTime()) ? d : new Date();
+    };
+    this.updatedAt = 解析日期(data?.updatedAt ?? data?.最後修改);
     if (typeof data?.id === "string" && data.id.length > 0) {
       this.id = data.id;
     }
@@ -98,7 +104,11 @@ export class BaseModel {
     for (const key of Object.keys(this)) {
       if (key === '編號') continue;     // 跳過內部 IdInfo
       if (key in result) continue;      // 跳過已加入的基礎欄位
-      result[key] = (this as any)[key];
+      const value = (this as any)[key];
+      // 跳過方法與 undefined 值，避免污染序列化物件
+      if (typeof value === 'function') continue;
+      if (value === undefined) continue;
+      result[key] = value;
     }
     return result;
   }

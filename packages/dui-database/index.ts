@@ -2,14 +2,17 @@
 //
 // This file is kept for compatibility references; package exports go through mod.ts
 
+export { AdapterPool, registerAdapter, createAdapter } from './adapter-pool.ts';
+export type { AdapterPoolItemOverview } from './adapter-pool.ts';
+
 export type { IdInfo } from './base-model.ts';
 export { BaseModel } from './base-model.ts';
-export { dataPool } from './pool.ts';
-export type { QueryResult } from './pool.ts';
+
+
 /**
  * L2/L3 database connection configuration.
  *
- * Stored as an encrypted JSON string in L1 store (for L2) or
+ * Stored as an encrypted JSON string in config store (for L2) or
  * in L2 site data (for L3).
  */
 export interface L2ConnectionInfo {

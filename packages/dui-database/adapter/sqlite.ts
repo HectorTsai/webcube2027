@@ -5,7 +5,10 @@
 // 此 adapter 同時相容 **Turso / LibSQL**（Edge 環境需自行處理同步）：
 
 import { DatabaseSync } from 'node:sqlite';
-import { sanitizePayload, type DatabaseAdapter, type QueryOptions, type FieldFilter } from './adapter-interface.ts';
+import {
+  sanitizePayload, escapeLike, isSafeIdentifier,
+  type DatabaseAdapter, type QueryOptions, type FieldFilter,
+} from './adapter-interface.ts';
 import { error } from '@dui/util';
 
 export class SqliteAdapter implements DatabaseAdapter {
@@ -24,6 +27,8 @@ export class SqliteAdapter implements DatabaseAdapter {
     try {
       // 從 composite ID 解析 collection 名稱（第 1 段）
       const collection = id.split(':')[0];
+      // collection 會直接拼入表名位置，必須驗證避免 SQL 注入
+      if (!isSafeIdentifier(collection)) return Promise.resolve(null);
       const stmt = this.db.prepare(`SELECT data FROM "${collection}" WHERE id = ? LIMIT 1;`);
       const row = stmt.get(id) as { data: string } | undefined;
       if (row?.data) {
@@ -37,6 +42,7 @@ export class SqliteAdapter implements DatabaseAdapter {
 
   list(collection: string, modelType?: string, options?: QueryOptions): Promise<Record<string, unknown>[]> {
     try {
+      if (!isSafeIdentifier(collection)) return Promise.resolve([]);
       const limitNum = options?.limit ?? 50;
       const offsetNum = options?.offset ?? 0;
       const filter = options?.filter;
@@ -48,12 +54,14 @@ export class SqliteAdapter implements DatabaseAdapter {
 
       if (modelType) {
         conditions.push('id LIKE ?');
-        params.push(`${collection}:${modelType}:%`);
+        params.push(`${escapeLike(collection)}:${escapeLike(modelType)}:%`);
       }
 
       // 欄位篩選：WHERE json_extract(data, '$.field') = ?
+      // 僅允許安全欄位名稱，避免 SQL 注入
       if (filter) {
         for (const [field, value] of Object.entries(filter)) {
+          if (!isSafeIdentifier(field)) continue;
           conditions.push(`json_extract(data, '$.${field}') = ?`);
           params.push(value);
         }
@@ -61,7 +69,7 @@ export class SqliteAdapter implements DatabaseAdapter {
 
       // 排序：ORDER BY json_extract(data, '$.field')
       let orderClause = 'ORDER BY updatedAt DESC';
-      if (sortField) {
+      if (sortField && isSafeIdentifier(sortField)) {
         orderClause = `ORDER BY json_extract(data, '$.${sortField}') ${sortOrder}`;
       }
 
@@ -69,7 +77,6 @@ export class SqliteAdapter implements DatabaseAdapter {
       const sql = `SELECT data FROM "${collection}" ${where} ${orderClause} LIMIT ? OFFSET ?;`;
       params.push(limitNum, offsetNum);
 
-      console.log('[sqlite-list]', sql, params);
       const rows = this.db.prepare(sql).all(...params as []) as { data: string }[];
       return Promise.resolve(rows.map((r) => JSON.parse(r.data) as Record<string, unknown>));
     } catch (err) {
@@ -78,6 +85,9 @@ export class SqliteAdapter implements DatabaseAdapter {
   }
 
   create(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+    if (!isSafeIdentifier(collection)) {
+      return Promise.reject(new Error(`SqliteAdapter: 非法 collection 名稱: ${collection}`));
+    }
     const dataWithId = { ...data, id, updatedAt: new Date().toISOString() };
     this.確保資料表(collection);
     const stmt = this.db.prepare(
@@ -88,6 +98,9 @@ export class SqliteAdapter implements DatabaseAdapter {
   }
 
   update(collection: string, id: string, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+    if (!isSafeIdentifier(collection)) {
+      return Promise.reject(new Error(`SqliteAdapter: 非法 collection 名稱: ${collection}`));
+    }
     const dataWithId = sanitizePayload(data, id);
     this.確保資料表(collection);
     const stmt = this.db.prepare(
@@ -99,11 +112,13 @@ export class SqliteAdapter implements DatabaseAdapter {
 
   queryByField(collection: string, filter: FieldFilter, modelType?: string): Promise<Record<string, unknown>[]> {
     try {
+      if (!isSafeIdentifier(filter.field)) return Promise.resolve([]);
+      if (!isSafeIdentifier(collection)) return Promise.resolve([]);
       if (modelType) {
         const stmt = this.db.prepare(
           `SELECT data FROM "${collection}" WHERE json_extract(data, '$.${filter.field}') = ? AND id LIKE ?;`
         );
-        const rows = stmt.all(filter.value, `${collection}:${modelType}:%`) as { data: string }[];
+        const rows = stmt.all(filter.value, `${escapeLike(collection)}:${escapeLike(modelType)}:%`) as { data: string }[];
         return Promise.resolve(rows.map((r) => JSON.parse(r.data) as Record<string, unknown>));
       } else {
         const stmt = this.db.prepare(
@@ -120,6 +135,7 @@ export class SqliteAdapter implements DatabaseAdapter {
   delete(id: string): Promise<boolean> {
     try {
       const collection = id.split(':')[0];
+      if (!isSafeIdentifier(collection)) return Promise.resolve(false);
       const stmt = this.db.prepare(`DELETE FROM "${collection}" WHERE id = ?;`);
       stmt.run(id);
       return Promise.resolve(true);
@@ -130,8 +146,12 @@ export class SqliteAdapter implements DatabaseAdapter {
 
   patch(collection: string, id: string, fields: Record<string, unknown>): Promise<Record<string, unknown> | null> {
     try {
-      const patchJson = JSON.stringify({ ...fields, updatedAt: fields.updatedAt || new Date().toISOString() });
-      const updatedAtVal = (fields.updatedAt || new Date().toISOString()) as string;
+      if (!isSafeIdentifier(collection)) return Promise.resolve(null);
+      // updatedAt 一律正規化為 ISO 字串，避免 Date 物件被直接寫入 SQLite
+      const updatedAtVal = typeof fields.updatedAt === 'string'
+        ? fields.updatedAt
+        : (fields.updatedAt instanceof Date ? fields.updatedAt.toISOString() : new Date().toISOString());
+      const patchJson = JSON.stringify({ ...fields, updatedAt: updatedAtVal });
       // 使用 RETURNING data 省去二次 SELECT（需 SQLite 3.35+）
       const stmt = this.db.prepare(
         `UPDATE "${collection}" SET data = json_patch(data, ?), updatedAt = ? WHERE id = ? RETURNING data;`
@@ -148,9 +168,10 @@ export class SqliteAdapter implements DatabaseAdapter {
 
   count(collection: string, modelType?: string): Promise<number> {
     try {
+      if (!isSafeIdentifier(collection)) return Promise.resolve(0);
       if (modelType) {
         const stmt = this.db.prepare(`SELECT COUNT(*) as count FROM "${collection}" WHERE id LIKE ?;`);
-        const row = stmt.get(`${collection}:${modelType}:%`) as { count: number } | undefined;
+        const row = stmt.get(`${escapeLike(collection)}:${escapeLike(modelType)}:%`) as { count: number } | undefined;
         return Promise.resolve(row?.count ?? 0);
       } else {
         const stmt = this.db.prepare(`SELECT COUNT(*) as count FROM "${collection}";`);
@@ -164,6 +185,7 @@ export class SqliteAdapter implements DatabaseAdapter {
 
   async initialize(collection: string): Promise<void> {
     try {
+      if (!isSafeIdentifier(collection)) return;
       this.確保資料表(collection);
     } catch (err) {
       await error('SqliteAdapter', `初始化 ${collection} 失敗: ${err}`);
@@ -172,6 +194,7 @@ export class SqliteAdapter implements DatabaseAdapter {
 
   listModelTypes(collection: string): Promise<string[]> {
     try {
+      if (!isSafeIdentifier(collection)) return Promise.resolve([]);
       const stmt = this.db.prepare(`SELECT DISTINCT id FROM "${collection}";`);
       const rows = stmt.all() as { id: string }[];
       const types = new Set<string>();
@@ -189,6 +212,9 @@ export class SqliteAdapter implements DatabaseAdapter {
 
   /** 確保指定 collection 的資料表存在 */
   private 確保資料表(collection: string): void {
+    if (!isSafeIdentifier(collection)) {
+      throw new Error(`SqliteAdapter: 非法 collection 名稱: ${collection}`);
+    }
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS "${collection}" (
         id TEXT PRIMARY KEY,
@@ -200,6 +226,16 @@ export class SqliteAdapter implements DatabaseAdapter {
     try {
       this.db.exec(`CREATE INDEX IF NOT EXISTS "idx_${collection}_updated" ON "${collection}" (updatedAt DESC);`);
     } catch { /* 索引已存在 */ }
+  }
+
+  /** 輕量連線檢查 */
+  ping(): Promise<boolean> {
+    try {
+      this.db.prepare('SELECT 1;').get();
+      return Promise.resolve(true);
+    } catch {
+      return Promise.resolve(false);
+    }
   }
 
   /** 關閉資料庫連線 */

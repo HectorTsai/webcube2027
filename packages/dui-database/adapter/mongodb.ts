@@ -75,9 +75,12 @@ export class MongoAdapter implements DatabaseAdapter {
         // 以 _id（composite id）正則前綴篩選 model type
         filter._id = { $regex: `^${collection}:${modelType}:` };
       }
+      // 動態排序：預設 updatedAt DESC，支援 options.sort / options.order
+      const sortField = options.sort ?? 'updatedAt';
+      const sortOrder = options.order === 'asc' ? 1 : -1;
       const cursor = 集合
         .find(filter)
-        .sort({ updatedAt: -1 })
+        .sort({ [sortField]: sortOrder })
         .skip(offset)
         .limit(limit);
       const docs = await cursor.toArray() as Record<string, unknown>[];
@@ -122,7 +125,8 @@ export class MongoAdapter implements DatabaseAdapter {
       if (modelType) {
         query._id = { $regex: `^${collection}:${modelType}:` };
       }
-      const cursor = 集合.find(query).limit(1);
+      // 回傳所有符合條件的資料（不限筆數），符合介面回傳陣列規格
+      const cursor = 集合.find(query);
       const docs = await cursor.toArray() as Record<string, unknown>[];
       return docs.map(d => this.正規化ID(d));
     } catch {
@@ -173,6 +177,17 @@ export class MongoAdapter implements DatabaseAdapter {
   }
 
   /** 關閉資料庫連線 */
+  /** 輕量連線檢查（lazy 連線會在此觸發） */
+  async ping(): Promise<boolean> {
+    try {
+      const db = await this.取得資料庫();
+      await db.command({ ping: 1 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async 關閉(): Promise<void> {
     if (this.client) {
       await this.client.close();

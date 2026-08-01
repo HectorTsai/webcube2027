@@ -1,6 +1,7 @@
 // routes/_middleware.ts
 import type { Context, Next } from 'hono';
-import { dataPool } from '@dui/database';
+import { getConfig } from '../services/config.ts';
+import { getDbManager } from '../services/db-manager.ts';
 import { info, error } from '@dui/util';
 
 /**
@@ -8,7 +9,7 @@ import { info, error } from '@dui/util';
  * 不依賴 L2 當前是否連線，而是檢查 L1 設定檔。
  */
 async function isInstalled(): Promise<boolean> {
-  const connStr = await dataPool.config?.get('l2_connection');
+  const connStr = await getConfig().get('l2_connection');
   return !!connStr;
 }
 
@@ -45,14 +46,14 @@ export async function middleware(c: Context, next: Next) {
   }
 
   // 3. 已安裝，檢查 L2 是否在線，不在則嘗試重連
-  if (!dataPool.System) {
+  if (!getDbManager().System) {
     await error('Middleware', 'L2 連線已中斷，嘗試重新連線…');
     try {
-      await dataPool.initL2();
+      await getDbManager().initL2();
     } catch (err) {
       await error('Middleware', `L2 重連失敗：${err}`);
     }
-    if (!dataPool.System) {
+    if (!getDbManager().System) {
       await error('Middleware', 'L2 仍無法連線，以降級模式繼續服務');
     } else {
       await info('Middleware', 'L2 已成功重新連線');

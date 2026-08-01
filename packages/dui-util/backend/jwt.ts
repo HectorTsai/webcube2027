@@ -2,25 +2,40 @@
  * JWT 驗證共用工具
  *
  * 供各 gateway 驗證 auth-gateway 簽發的 Ed25519 JWT token。
- * 自動從 L1 (dataPool.config) 讀取 auth-gateway URL 以取得公鑰，
+ * 從環境變數 AUTH_GATEWAY_URL 讀取 auth-gateway 位置以取得公鑰，
  * 支援金鑰輪換（驗證失敗時自動重新取得公鑰）。
+ *
+ * 亦可透過第二個參數直接傳入 authGatewayUrl。
  */
 
 import type { Context } from 'hono';
 import { verify } from 'hono/jwt';
-import { dataPool } from '@dui/database';
 
 // ── Public Key Cache (Single-flight Pattern) ──
 
 let publicKeyPromise: Promise<CryptoKey> | null = null;
+let _cachedAuthUrl: string | null = null;
+
+/**
+ * 設定或重新設定 auth-gateway URL 快取。
+ * 可在初始化階段由 gateway 主動呼叫（避免依賴環境變數）。
+ */
+export function setAuthGatewayUrl(url: string): void {
+  _cachedAuthUrl = url;
+  publicKeyPromise = null; // 清除快取，下次重新取得公鑰
+}
+
+/** 取得 auth-gateway URL：優先使用快取值，其次環境變數 */
+function getAuthGatewayUrl(): string {
+  if (_cachedAuthUrl) return _cachedAuthUrl;
+  const env = Deno.env.get('AUTH_GATEWAY_URL');
+  if (env) return env;
+  throw new Error('auth-gateway URL 尚未設定。請設定 AUTH_GATEWAY_URL 環境變數或呼叫 setAuthGatewayUrl()。');
+}
 
 /** 從 auth-gateway 取得 Ed25519 公鑰 */
 async function fetchPublicKey(): Promise<CryptoKey> {
-  const l1 = dataPool.config;
-  if (!l1) throw new Error('L1 尚未就緒，請先呼叫 dataPool.setConfigStore()');
-
-  const authUrl = await l1.get('auth_gateway_url');
-  if (!authUrl) throw new Error('auth-gateway URL 尚未設定，請先完成 /setup');
+  const authUrl = getAuthGatewayUrl();
 
   const res = await fetch(`${authUrl}/api/jwt-public-key`);
   if (!res.ok) throw new Error(`取得 JWT 公鑰失敗：${res.status}`);

@@ -86,15 +86,17 @@ export class AppwriteAdapter implements DatabaseAdapter {
     const offsetNum = options?.offset ?? 0;
     try {
       const db = this.拿到DB();
-      const queries: any[] = [];
-      queries.push(
+      const queries: any[] = [
         Query.orderDesc('updatedAt'),
         Query.limit(limitNum),
         Query.offset(offsetNum),
-      );
+      ];
+      if (modelType) {
+        // 伺服器端前綴過濾 $id，避免記憶體過濾導致分頁不準確
+        queries.push(Query.startsWith('$id', `${collection}:${modelType}:`));
+      }
       const result = await db.listDocuments(this.databaseId, collection, queries);
       return result.documents
-        .filter((doc: any) => modelType ? doc.$id.startsWith(`${collection}:${modelType}:`) : true)
         .map((doc: any) => {
         const data = typeof doc.data === 'string'
           ? JSON.parse(doc.data) as Record<string, unknown>
@@ -145,7 +147,10 @@ export class AppwriteAdapter implements DatabaseAdapter {
     // 這裡拉取所有文件後做客戶端過濾
     try {
       const db = this.拿到DB();
-      const result = await db.listDocuments(this.databaseId, collection);
+      // SDK 預設只回傳 25 筆，須明確給定 limit 才能涵蓋整份 collection
+      const result = await db.listDocuments(this.databaseId, collection, [
+        Query.limit(1000),
+      ]);
       const matched: Record<string, unknown>[] = [];
 
       for (const doc of result.documents) {
@@ -183,18 +188,21 @@ export class AppwriteAdapter implements DatabaseAdapter {
   async patch(collection: string, id: string, fields: Record<string, unknown>): Promise<Record<string, unknown> | null> {
     try {
       const db = this.拿到DB();
-      const updatedFields = { ...fields, updatedAt: fields.updatedAt || new Date().toISOString() };
-      const doc = await db.updateDocument(
+      const current = await this.getById(id);
+      if (!current) return null;
+
+      // 讀取原 data（JSON 字串）後合併 fields，再寫回 data 與 updatedAt 屬性
+      const merged = { ...current, ...fields, updatedAt: fields.updatedAt || new Date().toISOString() };
+      await db.updateDocument(
         this.databaseId,
         collection,
         id,
-        updatedFields as any,
+        {
+          data: JSON.stringify(merged),
+          updatedAt: merged.updatedAt,
+        },
       );
-      return {
-        id: doc.$id,
-        ...doc,
-        updatedAt: doc.updatedAt || updatedFields.updatedAt,
-      } as Record<string, unknown>;
+      return merged;
     } catch {
       return null;
     }
@@ -233,6 +241,17 @@ export class AppwriteAdapter implements DatabaseAdapter {
       const msg = `Collection "${collection}" 不存在，請先在 Appwrite Console 中建立（需含 data string 與 updatedAt datetime 屬性）`;
       await error('AppwriteAdapter', msg);
       throw new Error(msg);
+    }
+  }
+
+  /** 輕量連線檢查 */
+  async ping(): Promise<boolean> {
+    try {
+      const db = this.拿到DB();
+      await db.list();
+      return true;
+    } catch {
+      return false;
     }
   }
 

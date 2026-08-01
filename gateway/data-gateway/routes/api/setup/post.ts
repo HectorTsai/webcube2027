@@ -4,7 +4,8 @@
  */
 
 import type { Context } from 'hono';
-import { dataPool } from '@dui/database';
+import { getConfig } from '../../../services/config.ts';
+import { getDbManager } from '../../../services/db-manager.ts';
 import { info, error as logError, encrypt } from '@dui/util';
 import { loadSeedsRecursive } from '../../../database/seed-loader.ts';
 
@@ -22,12 +23,8 @@ export async function POST(c: Context) {
       return c.json({ success: false, error: '請提供有效的 L2 資料庫設定' }, 400);
     }
 
-    if (!dataPool.config) {
-      return c.json({ success: false, error: 'L1 設定資料庫未就緒' }, 500);
-    }
-
     // 檢查是否已安裝（防止重複覆蓋）
-    const existingL2 = await dataPool.config.get('l2_connection');
+    const existingL2 = await getConfig().get('l2_connection');
     if (existingL2) {
       return c.json({ success: false, error: '系統已安裝，無法重複安裝' }, 400);
     }
@@ -65,17 +62,17 @@ export async function POST(c: Context) {
 
     // ── 3. 儲存設定至 L1 ──
     if (auth_gateway_url) {
-      await dataPool.config.set('auth_gateway_url', auth_gateway_url);
+      await getConfig().set('auth_gateway_url', auth_gateway_url);
       await info('DataGateway', `auth-gateway URL 已設定：${auth_gateway_url}`);
     }
 
     l2.enabled = true;
     const encryptedL2 = await encrypt(JSON.stringify(l2));
-    await dataPool.config.set('l2_connection', encryptedL2);
+    await getConfig().set('l2_connection', encryptedL2);
 
     // ── 4. 初始化 L2 ──
-    await dataPool.initL2();
-    const system = dataPool.System;
+    await getDbManager().initL2();
+    const system = getDbManager().System;
     if (!system) {
       return c.json({ success: false, error: 'L2 資料庫連線失敗，請檢查資料庫設定' }, 500);
     }

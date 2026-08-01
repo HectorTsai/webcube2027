@@ -17,6 +17,20 @@ export interface FieldFilter {
 }
 
 /**
+ * Validate an identifier used in raw SQL (table name / field path).
+ * Only allows Unicode letters (incl. Chinese), digits, `_`, `-` and `.`.
+ * Returns `false` for anything that could break out of a quoted identifier.
+ */
+export function isSafeIdentifier(name: string): boolean {
+  return /^[\p{L}\p{N}\u4e00-\u9fff_\-\.]+$/u.test(name);
+}
+
+/** Escape LIKE wildcards (`%` / `_`) inside a pattern prefix. */
+export function escapeLike(value: string): string {
+  return value.replace(/[\\%_]/g, (m) => `\\${m}`);
+}
+
+/**
  * Normalize a model instance (which may have a `toJSON()` method) into a
  * plain object, and inject `id` + `updatedAt`.
  *
@@ -109,6 +123,14 @@ export interface DatabaseAdapter {
    * @param modelType - Optional: filter by 2nd segment of composite ID
    */
   count(collection: string, modelType?: string): Promise<number>;
+
+  /**
+   * 輕量連線檢查（heartbeat / testConnection 使用）。
+   * 應執行最小代價的查詢（如 SELECT 1 / ping），避免掃描全表或對不存在的表操作。
+   *
+   * Optional — 未實作的 adapter 由呼叫端以 count() 作為後備。
+   */
+  ping?(): Promise<boolean>;
 
   /**
    * Initialize a collection (table/collection).

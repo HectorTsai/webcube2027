@@ -7,14 +7,14 @@
  */
 
 import type { Context } from 'hono';
-import { dataPool } from '@dui/database';
+import { getConfig } from '../../services/config.ts';
 import { extractToken, verifyToken } from '@dui/util/jwt';
 
 export const GET = async (c: Context) => {
   // 取得 auth-gateway URL（供前端登入按鈕使用），不論是否登入皆回傳
   let authGatewayUrl = '';
   try {
-    const stored = await dataPool.config?.get('auth_gateway_url');
+    const stored = await getConfig().get('auth_gateway_url');
     if (stored) authGatewayUrl = stored;
   } catch { /* ignore */ }
 

@@ -12,7 +12,7 @@ const Page = (c: any) => {
           <div class="card-body">
             <h2 class="card-title">管理功能</h2>
             <div class="flex flex-wrap gap-3 mt-2">
-              <a href={`${prefix}/l2/sites`} class="btn btn-outline btn-sm">
+              <a href={`${prefix}/admin/sites`} class="btn btn-outline btn-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 申請網站
               </a>

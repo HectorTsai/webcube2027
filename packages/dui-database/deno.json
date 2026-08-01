@@ -1,11 +1,11 @@
 {
   "name": "@dui/database",
-  "version": "0.4.1",
+  "version": "0.5.1",
   "exports": {
     ".": "./mod.ts",
-    "./pool": "./pool.ts",
+    "./adapter-pool": "./adapter-pool.ts",
     "./base-model": "./base-model.ts",
-    "./types": "./types.ts"
+    "./adapter/adapter-interface": "./adapter/adapter-interface.ts"
   },
   "imports": {
     "nanoid": "npm:nanoid@^5.0.0",
@@ -17,7 +17,6 @@
     "@aws-sdk/client-dynamodb": "npm:@aws-sdk/client-dynamodb@^3.0.0",
     "@aws-sdk/lib-dynamodb": "npm:@aws-sdk/lib-dynamodb@^3.0.0",
     "mssql": "npm:mssql@^11.0.0",
-    "@dui/kv": "./../../packages/dui-kv/mod.ts",
     "@dui/util": "./../../packages/dui-util/mod.ts",
     "@dui/pool": "./../../packages/dui-pool/mod.ts"
   }

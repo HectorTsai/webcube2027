@@ -3,19 +3,20 @@
  * Health check — returns L1/L2/L3 status.
  */
 import type { Context } from 'hono';
-import { dataPool } from '@dui/database';
+import { getConfig } from '../../services/config.ts';
+import { getDbManager } from '../../services/db-manager.ts';
 import { decrypt } from '@dui/util';
 import type { 網站資訊介面 } from '../../../database/models/網站資訊介面.ts';
 
 export const GET = async (c: any) => {
-  const l1Ok = dataPool.config !== undefined && dataPool.config !== null;
-  const l2Ok = dataPool.System !== undefined && dataPool.System !== null;
+  const l1Ok = true;
+  const l2Ok = getDbManager().System !== null;
   const allOk = l1Ok && l2Ok;
 
   // auth-gateway URL（供前端登入按鈕使用）
   let authGatewayUrl = '';
   try {
-    const stored = await dataPool.config?.get('auth_gateway_url');
+    const stored = await getConfig().get('auth_gateway_url');
     if (stored) authGatewayUrl = stored;
   } catch { /* ignore */ }
 
@@ -24,7 +25,7 @@ export const GET = async (c: any) => {
   if (l2Ok) {
     try {
       // 列出所有 網站資訊 記錄（防禦性解構，相容 adapter 直回陣列或 QueryResult）
-      const res = await dataPool.System!.list('網站資訊', undefined, { limit: 1 });
+      const res = await getDbManager().System!.list('網站資訊', undefined, { limit: 1 });
       const records = (res as any)?.data || (Array.isArray(res) ? res : []);
       if (records.length > 0) {
         const site = records[0] as unknown as 網站資訊介面;
@@ -43,8 +44,8 @@ export const GET = async (c: any) => {
             // 保留原始字串作為備用
           }
 
-          await dataPool.initL3(host);
-          if (dataPool.has(host)) {
+          await getDbManager().initL3(host);
+          if (getDbManager().getL3(host)) {
             l3 = `${dbType} ✓ 已就緒`;
           } else {
             l3 = `${dbType} ✗ 連線失敗`;

@@ -6,7 +6,7 @@
  */
 
 import type { Context } from 'hono';
-import { dataPool } from '@dui/database';
+import { getDbManager } from '../../../services/db-manager.ts';
 
 export async function POST(c: Context) {
   try {
@@ -15,7 +15,7 @@ export async function POST(c: Context) {
       return c.json({ success: false, error: '請提供角色 ID' }, 400);
     }
 
-    const system = dataPool.System;
+    const system = getDbManager().System;
     if (!system) {
       return c.json({ success: false, error: '資料庫尚未初始化' }, 500);
     }

@@ -23,7 +23,7 @@
  */
 
 import type { Context } from 'hono';
-import { dataPool } from '@dui/database';
+import { getDbManager } from '../../../../services/db-manager.ts';
 import { info, encrypt } from '@dui/util';
 
 export const POST = async (c: Context) => {
@@ -61,7 +61,7 @@ export const POST = async (c: Context) => {
     const 資料庫 = await encrypt(JSON.stringify({ ...l3, enabled: true }));
 
     // ── 3. 寫入 L2 網站資訊 collection ──
-    const system = dataPool.System;
+    const system = getDbManager().System;
     if (!system) {
       return c.json({ success: false, error: 'L2 資料庫尚未就緒' }, 500);
     }
@@ -70,12 +70,6 @@ export const POST = async (c: Context) => {
 
     const now = new Date().toISOString();
     const id = `網站資訊:網站資訊:${host}`;
-
-    // 檢查網站是否重複申請
-    const existing = await system.getById(id);
-    if (existing) {
-      return c.json({ success: false, error: `網站 ${host} 已經存在，請勿重複申請` }, 400);
-    }
 
     await system.create('網站資訊', id, {
       網址,  // 保留完整的原始網址字串
@@ -99,8 +93,8 @@ export const POST = async (c: Context) => {
     await info('DataGateway', `網站已建立：${網址}（${host}）`);
 
     // ── 4. 連接 L3 ──
-    await dataPool.initL3(host);
-    const l3db = dataPool.get(host);
+    await getDbManager().initL3(host);
+    const l3db = getDbManager().getL3(host);
     if (!l3db) {
       return c.json({
         success: true,

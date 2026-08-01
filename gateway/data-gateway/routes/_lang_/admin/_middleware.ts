@@ -1,7 +1,7 @@
 /**
- * L2 area JWT auth middleware.
+ * Admin page JWT auth middleware.
  *
- * 僅允許 超級管理員 存取，拒絕所有其他角色與匿名使用者。
+ * 僅允許 超級管理員 存取，拒絕所有其他角色與訪客。
  * 不符合條件的請求導向回首頁，不會有 403 頁面。
  */
 

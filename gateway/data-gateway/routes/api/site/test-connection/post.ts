@@ -7,7 +7,7 @@
  */
 
 import type { Context } from 'hono';
-import { dataPool } from '@dui/database';
+import { getDbManager } from '../../../../services/db-manager.ts';
 
 export const POST = async (c: Context) => {
   try {
@@ -18,7 +18,7 @@ export const POST = async (c: Context) => {
       return c.json({ success: false, error: '請提供資料庫連線資訊' }, 400);
     }
 
-    const result = await dataPool.testConnection({ ...l3, enabled: true });
+    const result = await getDbManager().testConnection({ ...l3, enabled: true });
 
     // 將 result.ok 映射到 HTTP 回應成功狀態，便於前端判讀
     if (!result.ok) {

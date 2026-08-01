@@ -8,12 +8,12 @@
  */
 
 import type { Context } from 'hono';
-import { dataPool } from '@dui/database';
+import { getDbManager } from '../../../../services/db-manager.ts';
 import { mergePermissions } from '../../../../utils/permission.ts';
 
 /** 從角色 ID 清單取得各角色的權限並合併 */
 async function getRolePermissions(roleIds: string[]): Promise<Record<string, unknown>> {
-  const system = dataPool.System;
+  const system = getDbManager().System;
   if (!system || !roleIds?.length) return {};
 
   const roles: Record<string, unknown>[] = [];
@@ -44,7 +44,7 @@ export async function POST(c: Context) {
     const bcrypt = (await import('bcryptjs')) as any;
 
     // ── 1. 先查 L2（超級管理員） ──
-    const system = dataPool.System;
+    const system = getDbManager().System;
     if (!system) {
       return c.json({ success: false, error: '資料庫尚未初始化' }, 500);
     }
@@ -64,12 +64,12 @@ export async function POST(c: Context) {
 
     // ── 2. 查不到 + 有 tenant → 查 L3（站台管理員） ──
     if (tenant) {
-      const l3Result = await dataPool.list(
+      const l3Result = await getDbManager().list(
         '使用者', '使用者',
         { filter: { 帳號 }, limit: 1, offset: 0 },
         tenant,
       );
-      const l3User = l3Result.data?.[0];
+      const l3User = Array.isArray(l3Result) ? l3Result[0] : l3Result?.[0];
       if (l3User) {
         const match = await bcrypt.default.compare(密碼, l3User.密碼雜湊 as string);
         if (!match) return c.json({ success: false, error: '帳號或密碼錯誤' });

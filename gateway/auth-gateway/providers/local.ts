@@ -13,7 +13,7 @@ import type { Context } from 'hono';
 import { verify } from 'hono/jwt';
 import type { AuthProvider, AuthResult } from './provider.ts';
 import { getKeys } from '../utils/keys.ts';
-import { getDataGatewayUrl } from '../utils/l1.ts';
+import { getDataGatewayUrl } from '../utils/config.ts';
 
 /** JWT cookie 名稱 */
 const JWT_COOKIE = 'jwt';

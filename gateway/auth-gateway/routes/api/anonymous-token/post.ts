@@ -11,7 +11,7 @@
 import type { Context } from 'hono';
 import { sign } from 'hono/jwt';
 import { getKeys } from '../../../utils/keys.ts';
-import { getDataGatewayUrl } from '../../../utils/l1.ts';
+import { getDataGatewayUrl } from '../../../utils/config.ts';
 
 /** 訪客 JWT 有效期（秒）— 1 小時 */
 const VISITOR_TTL = 3600;
