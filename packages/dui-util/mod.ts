@@ -1,4 +1,5 @@
 export { InnerAPI, 設定App, 取得域名 } from './backend/inner-api.ts';
+export { gwFetch } from './backend/gw-fetch.ts';
 export { logger, debug, info, warn, error } from './common/logger.ts';
 export { encrypt, decrypt, ensureKey, registerKey } from './backend/crypto.ts';
 export { default as SecretString } from './backend/secretstring.ts';

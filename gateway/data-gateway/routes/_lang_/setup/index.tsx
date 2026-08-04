@@ -10,6 +10,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const btn = e.target.querySelector('button[type="submit"]');
     const type = data.l2_type || 'sqlite';
 
+    // Master Key 兩次輸入一致性檢查
+    if (data.master_key !== data.master_key_confirm) {
+      errEl.textContent = '兩次輸入的 Master Key 不一致，請重新輸入';
+      errEl.classList.remove('hidden');
+      return;
+    }
+
     btn.disabled = true;
     btn.innerHTML = '<span class="loading loading-spinner loading-xs"></span> 安裝中…';
 
@@ -77,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const r = await fetch('/api/setup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 管理員帳號: data.管理員帳號, 管理員密碼: data.管理員密碼, auth_gateway_url: data.auth_gateway_url, l2 }),
+        body: JSON.stringify({ master_key: data.master_key, l2 }),
       });
       const res = await r.json();
       if (res.success) {
@@ -123,31 +130,28 @@ const SetupPage = () => (
             <div class="text-center">
               <h1 class="text-2xl font-bold tracking-tight">系統安裝</h1>
               <p class="text-base-content/50 text-sm mt-1">
-                設定資料庫並建立管理員帳號
+                設定資料庫連線<br />
+                （管理員帳號將於 auth-gateway 安裝時建立）
               </p>
             </div>
 
             <form id="setup-form" class="flex flex-col gap-4">
 
-              <div class="divider text-xs text-base-content/40">管理員帳號</div>
+              <div class="divider text-xs text-base-content/40">安全設定</div>
 
               <label class="form-control w-full">
-                <span class="label-text text-sm mb-1">管理員帳號</span>
-                <input name="管理員帳號" type="text" class="input input-bordered w-full" required />
-              </label>
-              <label class="form-control w-full">
-                <span class="label-text text-sm mb-1">管理員密碼</span>
-                <input name="管理員密碼" type="password" class="input input-bordered w-full" required />
-              </label>
-
-              <div class="divider text-xs text-base-content/40">auth-gateway</div>
-
-              <label class="form-control w-full">
-                <span class="label-text text-sm mb-1">auth-gateway URL</span>
-                <input name="auth_gateway_url" type="url" class="input input-bordered w-full" placeholder="http://localhost:8001" required />
+                <span class="label-text text-sm mb-1">Master Key</span>
+                <input name="master_key" type="password" class="input input-bordered w-full"
+                  placeholder="至少 8 字元，其他 Gateway 註冊時需使用此金鑰" required minlength={8} />
                 <span class="label-text-alt text-xs text-base-content/40 mt-1">
-                  JWT 簽發與驗證服務的位置
+                  其他 Gateway（auth-gateway、site-gateway 等）安裝時需提供此金鑰以註冊取得 API Key
                 </span>
+              </label>
+
+              <label class="form-control w-full">
+                <span class="label-text text-sm mb-1">確認 Master Key</span>
+                <input name="master_key_confirm" type="password" class="input input-bordered w-full"
+                  placeholder="再次輸入相同的 Master Key" required minlength={8} />
               </label>
 
               <div class="divider text-xs text-base-content/40">L2 資料庫連線</div>
@@ -191,14 +195,17 @@ const SetupPage = () => (
                 </label>
                 <div class="grid grid-cols-2 gap-3 mt-3">
                   <label class="form-control">
-                    <span class="label-text text-sm mb-1">使用者</span>
+                    <span class="label-text text-sm mb-1">資料庫帳號</span>
                     <input name="l2_username" type="text" class="input input-bordered w-full" placeholder="root" />
                   </label>
                   <label class="form-control">
-                    <span class="label-text text-sm mb-1">密碼</span>
+                    <span class="label-text text-sm mb-1">資料庫密碼</span>
                     <input name="l2_password" type="password" class="input input-bordered w-full" />
                   </label>
                 </div>
+                <span class="label-text-alt text-xs text-base-content/40 mt-1 block">
+                  此為資料庫連線帳密，非 WebCube 帳號；超管理者帳號將於 auth-gateway 安裝時建立
+                </span>
               </div>
 
               <div class="l2-field l2-field-firestore hidden">
@@ -259,7 +266,7 @@ const SetupPage = () => (
             <div class="text-5xl text-success">&#10003;</div>
             <h2 class="text-xl font-bold">安裝完成</h2>
             <p class="text-base-content/50 text-sm">系統已就緒</p>
-            <a href="/admin" class="btn btn-primary btn-sm mt-2">前往管理後台</a>
+            <a id="done-link" href="/" class="btn btn-primary btn-sm mt-2">返回首頁</a>
           </div>
         </div>
 

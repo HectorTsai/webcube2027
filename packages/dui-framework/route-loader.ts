@@ -14,7 +14,7 @@
  */
 
 import { renderToString } from 'hono/jsx/dom/server';
-import { Hono, type Context, type Next } from 'hono';
+import { Hono, Context, type Next } from 'hono';
 import { jsx } from 'hono/jsx';
 import { SUPPORTED_LANGUAGES, SUPPORTED_LANGUAGE_SET } from '@dui/smartmultilingual';
 
@@ -44,8 +44,21 @@ export type MiddlewareFn = (c: Context, next: Next) => Promise<Response | void |
 
 /** 從 Markdown 內容萃取第一個 # 標題 */
 function extractTitle(md: string): string | null {
-  const match = md.match(/^#\s+(.+)$/m);
-  return match ? match[1].trim() : null;
+  // 忽略開頭的 YAML Front Matter（若有），避免 front matter 內的 # 行被誤判為標題
+  const cleanMd = md.replace(/^---[\s\S]*?---\s*/, '');
+  const match = cleanMd.match(/^#\s+(.+)$/m);
+  if (!match) return null;
+  // 剝除 HTML 標籤，確保 <title> 分頁列顯示純字串（而非 &lt;i&gt; 等轉義字面）
+  return match[1].replace(/<[^>]*>/g, '').trim();
+}
+
+/** HTML 跳脫（防止 Markdown 標題注入 HTML；& < > " 一次到位） */
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 // ── 多國語言支援 ──
@@ -131,7 +144,11 @@ function parseRouteFileInfo(fileName: string): FileRouteInfo | null {
   }
 
   // 檔名本身就是 HTTP Method（get.ts, post.ts 等）
+  // 注意 del.ts → 'DEL' 需對應到 HTTP 的 DELETE
   const upper = nameWithoutExt.toUpperCase();
+  if (upper === 'DEL') {
+    return { method: 'DELETE', pathSegment: '' };
+  }
   if (HTTP_METHODS.has(upper as HttpMethod)) {
     return { method: upper as HttpMethod, pathSegment: '' };
   }
@@ -258,7 +275,14 @@ async function runHandlerChain(handlers: any[], c: Context): Promise<Response | 
   const dispatch = async (index: number): Promise<Response | void> => {
     if (index >= handlers.length) return;
     const handler = handlers[index];
-    return await handler(c, () => dispatch(index + 1));
+    const res = await handler(c, () => dispatch(index + 1));
+    // 仿照 Hono compose：middleware 可能以 `await next()`（不回傳）串接，
+    // 此時將 handler 產生的 Response 存入 Context（setter 會同步設定 finalized），
+    // 讓外層即使吞掉回傳值，最終仍能從 c.finalized / c.res 取得回應。
+    if (res instanceof Response && !c.finalized) {
+      c.res = res;
+    }
+    return res;
   };
   return await dispatch(0);
 }
@@ -289,16 +313,31 @@ export async function loadRoutes(dirUrl: URL): Promise<Hono> {
   } catch { /* ignore */ }
 
   // 註冊靜態檔案路由（初始化時預先快取內容，避免每次請求重複讀檔）
+  // 預載失敗時仍要註冊路由，改為 runtime 降級重讀——否則該檔案會靜默失去 GET 路由
   for (const sr of result.staticRoutes) {
-    let cachedContent;
+    // 型別宣告用標準 Uint8Array（不寫死泛型），避免綁定特定 lib 版本
+    let cachedContent: Uint8Array | undefined;
     try {
       cachedContent = await Deno.readFile(new URL(sr.filePath));
     } catch {
-      console.warn(`[route-loader] Failed to pre-load static file: ${sr.filePath}`);
-      continue;
+      console.warn(
+        `[route-loader] Failed to pre-load static file: ${sr.filePath} — will retry on demand`,
+      );
     }
-    app.get(sr.pathPattern as any, (c: Context) => {
-      return c.body(cachedContent!, 200, {
+    app.get(sr.pathPattern as any, async (c: Context) => {
+      let data = cachedContent;
+      if (!data) {
+        try {
+          data = await Deno.readFile(new URL(sr.filePath));
+          cachedContent = data; // 寫回快取，後續請求不再重讀
+        } catch {
+          return c.notFound();
+        }
+      }
+      // 唯一必要的邊界斷言：Deno.readFile 的泛型是 Uint8Array<ArrayBufferLike>，
+      // 而 hono c.body 的 Data 在此版本需要 Uint8Array<ArrayBuffer>；
+      // 執行期底層 buffer 必為 ArrayBuffer，此斷言僅為滿足型別。
+      return c.body(data as Uint8Array<ArrayBuffer>, 200, {
         'content-type': sr.mime,
         'cache-control': 'public, max-age=3600',
       });
@@ -343,7 +382,14 @@ export async function loadRoutes(dirUrl: URL): Promise<Hono> {
     return a.pathPattern.localeCompare(b.pathPattern);
   });
 
-  const methodRouteInfos: { method: HttpMethod; path: string; handlers: any[] }[] = [];
+  // 供 Pass 3（退回機制）使用的路由資訊
+  // patternSegs 在初始化時就預先拆好，避免 notFound 高頻觸發時重複 split/filter
+  const methodRouteInfos: {
+    method: HttpMethod;
+    path: string;
+    patternSegs: string[];
+    handlers: any[];
+  }[] = [];
 
   for (const route of result.methodRoutes) {
     let mod;
@@ -367,9 +413,9 @@ export async function loadRoutes(dirUrl: URL): Promise<Hono> {
       handler = async (c: Context) => {
         const content = await PageComponent(c);
         const lang = c.get('lang') || 'zh-tw';
-        const html = '<!DOCTYPE html>' + renderToString(
-          jsx(layoutMod.Layout, { title: pageTitle, lang, children: content }),
-        );
+        // Layout 可能為 async（伺服端讀取 ConfigStore），需 await 後再 renderToString
+        const layoutJsx = await layoutMod.Layout({ title: pageTitle, lang, children: content });
+        const html = '<!DOCTYPE html>' + renderToString(layoutJsx);
         return c.html(html);
       };
     } else if (mod[route.method]) {
@@ -394,7 +440,12 @@ export async function loadRoutes(dirUrl: URL): Promise<Hono> {
     const handlers: any[] = [...route.middleware, handler];
 
     // 儲存供 Pass 3（退回機制）使用
-    methodRouteInfos.push({ method: route.method, path: route.pathPattern, handlers });
+    methodRouteInfos.push({
+      method: route.method,
+      path: route.pathPattern,
+      patternSegs: route.pathPattern.split('/').filter(Boolean),
+      handlers,
+    });
 
     // 若路由不含尾綴斜線且不為 '/'，同時註冊尾綴斜線版本
     // 讓 /:lang 與 /:lang/ 都能正確匹配
@@ -431,20 +482,21 @@ export async function loadRoutes(dirUrl: URL): Promise<Hono> {
           // 使用 routes/_layout.tsx 的 renderPage()（已在函數頂層載入）
           if (layoutMod && typeof layoutMod.renderPage === 'function') {
             const lang = c.get('lang') || 'zh-tw';
-            const title = extractTitle(content) || md.pathPattern;
-            return c.html(layoutMod.renderPage(title, withHeadingIds, lang));
+            // 統一在此跳脫 title（XSS 防護）：
+            // renderPage 收到的 title 為「已跳脫」字串，各 layout 不得再跳脫，否則雙重跳脫
+            const title = escapeHtml(extractTitle(content) || md.pathPattern);
+            return c.html(await layoutMod.renderPage(title, withHeadingIds, lang));
           }
 
           // 預設模板（無 _layout.tsx 時使用）
-          const title = extractTitle(content) || md.pathPattern;
           // 手動跳脫 title 防止 XSS（marked 已處理主體內容，但 title 是額外提取的）
-          const escapedTitle = title.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+          const title = escapeHtml(extractTitle(content) || md.pathPattern);
           return c.html(`<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${escapedTitle}</title>
+  <title>${title}</title>
 </head>
 <body class="min-h-screen bg-base-200 p-6 max-w-3xl mx-auto prose">${withHeadingIds}</body>
 </html>`);
@@ -464,8 +516,7 @@ export async function loadRoutes(dirUrl: URL): Promise<Hono> {
   //   1. 請求未命中任何精確路由 → 進入 notFound
   //   2. 將 URL 路徑從最深層開始，逐層去掉最後一段往上找
   //   3. 若找到對應的母路由，執行其 handler 並設 rest_path
-  //   4. 一路找不到則退到根目錄 /
-  //   5. 真沒有才回傳 404
+  //   4. 一路找不到（含根目錄 /，由 i=0 涵蓋）才回傳 404
   //
   // 例如：
   //   GET /api/使用者/角色/all 無精確匹配
@@ -476,7 +527,7 @@ export async function loadRoutes(dirUrl: URL): Promise<Hono> {
     const method = c.req.method as HttpMethod;
     const pathSegments = c.req.path.split('/').filter(Boolean);
 
-    // 從最深層開始，逐層往上剝皮
+    // 從最深層開始，逐層往上剝皮（i = 0 時 parentPath 即為 '/'，已涵蓋根目錄退回）
     for (let i = pathSegments.length - 1; i >= 0; i--) {
       const parentPath = '/' + pathSegments.slice(0, i).join('/');
       const restPath = pathSegments.slice(i).join('/');
@@ -488,28 +539,49 @@ export async function loadRoutes(dirUrl: URL): Promise<Hono> {
         // 精確比對（靜態路徑）
         const isExactMatch = ri.path === parentPath || ri.path === parentPathWithSlash;
 
-        // 動態參數比對（如 /api/:id 可匹配 /api/123，使用 pathSegments 確保段落正確對齊）
-        const patternSegs = ri.path.split('/').filter(Boolean);
-        const isParamMatch =
-          patternSegs.length === i &&
-          patternSegs.every((seg, idx) => seg.startsWith(':') || seg === pathSegments[idx]);
+        // 動態參數比對（如 /api/:collection/:model 匹配 /api/網站/角色）：
+        // 逐段比對的同時收集 :param 對應的值，供遮蔽 param() 注入
+        // patternSegs 已於初始化時預先拆好（見 methodRouteInfos）
+        let params: Record<string, string> = {};
+        let isParamMatch = ri.patternSegs.length === i;
+        if (isParamMatch) {
+          for (let idx = 0; idx < i; idx++) {
+            const seg = ri.patternSegs[idx];
+            if (seg.startsWith(':')) {
+              params[seg.slice(1)] = pathSegments[idx];
+            } else if (seg !== pathSegments[idx]) {
+              isParamMatch = false;
+              break;
+            }
+          }
+        }
+        if (!isParamMatch) params = {};
 
         if (isExactMatch || isParamMatch) {
+          // 直接複用原 Context（而非 new Context）：
+          //   1) 避免每次比對命中都建立新物件，減少 GC 壓力
+          //   2) 保留先前 middleware 存入的變數（如 jwt_payload、effective_host）
+          // 參數注入改用遮蔽 c.req.param()：
+          //   notFound 的 Context 沒有路由參數資料，c.req.param() 甚至會因
+          //   #matchResult 為空而拋錯；而 HonoRequest 的 #matchResult 是
+          //   hard-private 無法直接寫入，但 param() 是原型方法，
+          //   可透過 instance own property 暫時遮蔽、用完即刪。
           c.set('rest_path', restPath);
+          const req = c.req;
+          (req as any).param = (key?: string) => (key ? params[key] : params);
 
           // 透過頂層 runHandlerChain 執行 Middleware 洋蔥鏈條
-          const res = await runHandlerChain(ri.handlers, c);
+          let res: Response | void;
+          try {
+            res = await runHandlerChain(ri.handlers, c);
+          } finally {
+            delete (req as any).param; // 還原原型 param()，避免影響後續比對/請求
+          }
           if (res instanceof Response) return res;
+          // middleware 可能以 `await next()`（不回傳）串接，吞掉 handler 的回傳值，
+          // 此時 handler 產生的 Response 存在 Context 的 res / finalized 上，需一併檢查
+          if (c.finalized && c.res) return c.res;
         }
-      }
-    }
-
-    // 退無可退：嘗試命中根目錄 '/' 的 handler
-    for (const ri of methodRouteInfos) {
-      if (ri.method === method && ri.path === '/') {
-        c.set('rest_path', c.req.path.replace(/^\//, ''));
-        const res = await runHandlerChain(ri.handlers, c);
-        if (res instanceof Response) return res;
       }
     }
 

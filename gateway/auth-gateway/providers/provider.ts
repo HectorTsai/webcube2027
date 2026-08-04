@@ -20,6 +20,8 @@ export interface AuthResult {
 export interface AuthPayload {
   sub: string;       // 使用者 ID（如 "使用者:使用者:admin"）
   帳號: string;
+  /** 使用者顯示名稱（MultilingualString 序列化），供 UI 顯示，不作為識別碼 */
+  名稱?: unknown;
   角色: string[];
   provider: string;  // "local" | "oauth:google" | ...
   權限?: Record<string, unknown>;  // 角色權限設定
@@ -34,6 +36,9 @@ export interface AuthProvider {
    * 處理登入請求。
    * 對 local provider 而言，req 包含 { 帳號, 密碼 }。
    * 對 OAuth provider 而言，req 包含 { code } 或類似授權碼。
+   *
+   * @param tenant 租戶（domain）。由 login API 決定：body 的 `tenant` 欄位 → cookie 訪客 JWT 提取。
+   *               自訂登入畫面可直接於 body 帶 `tenant`，無需先取得訪客 JWT。
    */
-  login(c: Context): Promise<AuthResult>;
+  login(c: Context, tenant?: string): Promise<AuthResult>;
 }

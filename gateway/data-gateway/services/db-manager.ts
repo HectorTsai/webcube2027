@@ -7,9 +7,9 @@
 // Responsibilities:
 //   - L2 SYSTEM adapter: init (from ConfigStore), reconnect, getter
 //   - L3 tenant adapters: init (from L2 site config), cache, getter
-//   - Query routing: L3(host) → L2(SYSTEM) fallback, L2+L3 merge (scope=all)
+//   - Query routing: L3(host) → L2(SYSTEM) fallback
 
-import type { DatabaseAdapter } from '@dui/database';
+import type { DatabaseAdapter, L2ConnectionInfo } from '@dui/database';
 import type { QueryOptions } from '@dui/database/adapter/adapter-interface';
 import { createAdapter, AdapterPool } from '@dui/database';
 import { decrypt, error as logError, info } from '@dui/util';
@@ -87,6 +87,11 @@ export class DbManager {
    *
    * Reads the site configuration from L2 SYSTEM, decrypts the L3
    * connection info, and creates the adapter.
+   *
+   * 模式差異：
+   * - REDIRECT：不需 L3，直接回傳 null
+   * - MIRROR：解析 `設定.mirror_host` 指向來源網站的 L3 連線
+   * - PUBLIC / PRIVATE：使用自己的 L3 連線
    */
   async initL3(host: string): Promise<DatabaseAdapter | null> {
     const system = pool.get('SYSTEM');
@@ -94,25 +99,47 @@ export class DbManager {
       throw new Error('L2 SYSTEM not initialized — call initL2() first');
     }
 
-    const siteConfig = await this.getSiteConfig(host);
-    if (!siteConfig?.l3Connection) {
-      return null;
-    }
-
     const existing = pool.get(host);
     if (existing) return existing; // already connected
 
-    const { l3Connection } = siteConfig;
-    const adapter = await createAdapter(l3Connection.type as string, {
-      ...l3Connection,
-      enabled: true,
-    });
+    const resolved = await this.resolveL3Connection(host);
+    if (!resolved) return null;
+
+    const connInfo = { ...resolved, enabled: true } as unknown as L2ConnectionInfo;
+    const adapter = await createAdapter(connInfo.type, connInfo);
 
     if (!adapter) return null;
 
     pool.set(host, adapter, false, false); // evictable
     await info('DbManager', `L3 connected for ${host}`);
     return adapter;
+  }
+
+  /**
+   * 解析 host 實際使用的 L3 連線資訊：
+   * - REDIRECT → null（不需 L3）
+   * - MIRROR → 追蹤 `設定.mirror_host` 鏈，直到找到有真實連線的來源網站
+   * - PUBLIC / PRIVATE → 自己的 `資料庫` 連線
+   * 以 visited set 防止 mirror 鏈成環造成無限迴圈。
+   */
+  private async resolveL3Connection(host: string): Promise<Record<string, unknown> | null> {
+    const seen = new Set<string>();
+    let current = host;
+    while (!seen.has(current)) {
+      seen.add(current);
+      const siteConfig = await this.getSiteConfig(current);
+      if (!siteConfig) return null;
+      if (siteConfig.模式 === 'REDIRECT') return null;
+      if (siteConfig.l3Connection) return siteConfig.l3Connection;
+      // MIRROR：追蹤來源
+      const mirrorHost = siteConfig.設定?.['mirror_host'];
+      if (siteConfig.模式 === 'MIRROR' && mirrorHost && mirrorHost !== current) {
+        current = mirrorHost;
+        continue;
+      }
+      return null;
+    }
+    return null; // 偵測到 mirror 循環
   }
 
   /**
@@ -123,17 +150,42 @@ export class DbManager {
     return pool.get(host);
   }
 
+  /**
+   * 確保指定租戶的 L3 adapter 已連線。
+   *
+   * 有 host 的 CRUD 操作一律先呼叫本方法：
+   *   - 已連線 → 直接回傳
+   *   - 未連線 → 嘗試 `initL3()`（依網站設定建立連線）
+   *   - 網站不存在／REDIRECT／MIRROR 無來源／連線資訊缺失 → 拋錯
+   *
+   * 不再靜默降級至 L2，讓呼叫端能明確得知「租戶 L3 不存在」。
+   */
+  private async ensureL3(host: string): Promise<DatabaseAdapter> {
+    const existing = pool.get(host);
+    if (existing) return existing;
+
+    const l3 = await this.initL3(host);
+    if (!l3) {
+      throw new Error(`租戶 ${host} 的 L3 資料庫不存在或未設定`);
+    }
+    return l3;
+  }
+
   // ═══════════════════════════════════════════════
   //  Site config
   // ═══════════════════════════════════════════════
 
   /**
    * Read a site's configuration from the L2 SYSTEM database.
-   * Returns the L3 connection info if available.
+   * Returns the mode, 設定, and L3 connection info if available.
    */
   private async getSiteConfig(
     host: string,
-  ): Promise<{ l3Connection?: Record<string, unknown> } | null> {
+  ): Promise<{
+    模式?: string;
+    設定?: Record<string, string>;
+    l3Connection?: Record<string, unknown>;
+  } | null> {
     const system = pool.get('SYSTEM');
     if (!system) return null;
 
@@ -141,13 +193,27 @@ export class DbManager {
       const record = await system.getById(`網站資訊:網站資訊:${host}`);
       if (!record) return null;
 
-      const raw = record.l3Connection as string | undefined;
-      if (raw) {
+      const config: {
+        模式?: string;
+        設定?: Record<string, string>;
+        l3Connection?: Record<string, unknown>;
+      } = {
+        模式: (record.模式 as string) || 'PUBLIC',
+        設定: (record.設定 as Record<string, string>) || {},
+      };
+
+      // 新格式：L3 連線資訊加密於 `資料庫` 欄位（site/apply 寫入）
+      const raw = (record.資料庫 as string | undefined) ??
+        (record.l3Connection as string | undefined);
+      if (raw && typeof raw === 'string') {
         const decrypted = await decrypt(raw);
-        return { l3Connection: JSON.parse(decrypted) };
+        config.l3Connection = JSON.parse(decrypted);
+      } else if (record.l3Connection && typeof record.l3Connection === 'object') {
+        // 舊格式 fallback：l3Connection 直接存放物件
+        config.l3Connection = record.l3Connection as Record<string, unknown>;
       }
 
-      return record as { l3Connection?: Record<string, unknown> };
+      return config;
     } catch {
       return null;
     }
@@ -163,8 +229,6 @@ export class DbManager {
    * Routing (host-based):
    *   - `host` provided → L3(host)
    *   - `host` NOT provided → L2(SYSTEM)
-   *
-   * For the legacy `scope=all` pattern, use `listAll()` instead.
    */
   async list(
     collection: string,
@@ -173,8 +237,8 @@ export class DbManager {
     host?: string,
   ): Promise<Record<string, unknown>[]> {
     if (host) {
-      const l3 = pool.get(host);
-      if (l3) return await l3.list(collection, modelType, options);
+      const l3 = await this.ensureL3(host);
+      return await l3.list(collection, modelType, options);
     }
     const system = pool.get('SYSTEM');
     if (system) return await system.list(collection, modelType, options);
@@ -182,63 +246,16 @@ export class DbManager {
   }
 
   /**
-   * List all records across L2 + all connected L3 tenants.
-   * Used by admin/manager UIs with `scope=all`.
-   *
-   * Results are deduplicated by `id` (L2 priority, then L3).
-   */
-  async listAll(
-    collection: string,
-    modelType?: string,
-    options?: QueryOptions,
-  ): Promise<Record<string, unknown>[]> {
-    const system = pool.get('SYSTEM');
-    const allResults: Map<string, Record<string, unknown>> = new Map();
-
-    // L2 first (priority)
-    if (system) {
-      const records = await system.list(collection, modelType, options);
-      for (const r of records) {
-        const id = r.id as string;
-        if (id) allResults.set(id, r);
-      }
-    }
-
-    // Then L3 tenants
-    for (const key of pool.keys()) {
-      if (key === 'SYSTEM') continue;
-      const l3 = pool.get(key);
-      if (!l3) continue;
-      try {
-        const records = await l3.list(collection, modelType, options);
-        for (const r of records) {
-          const id = r.id as string;
-          if (id && !allResults.has(id)) {
-            allResults.set(id, r);
-          }
-        }
-      } catch {
-        // skip failed tenant
-      }
-    }
-
-    return Array.from(allResults.values());
-  }
-
-  /**
    * Get a single record by composite ID.
    *
    * Routing:
-   *   - `host` provided → L3(host) first, fallback to L2
+   *   - `host` provided → L3(host)（不存在則拋錯，不降級 L2）
    *   - `host` NOT provided → L2(SYSTEM)
    */
   async getById(id: string, host?: string): Promise<Record<string, unknown> | null> {
     if (host) {
-      const l3 = pool.get(host);
-      if (l3) {
-        const result = await l3.getById(id);
-        if (result) return result;
-      }
+      const l3 = await this.ensureL3(host);
+      return await l3.getById(id);
     }
     const system = pool.get('SYSTEM');
     if (system) return await system.getById(id);
@@ -249,7 +266,7 @@ export class DbManager {
    * Create a new record.
    *
    * Routing:
-   *   - `host` provided → L3(host)
+   *   - `host` provided → L3(host)（不存在則拋錯，不降級 L2）
    *   - `host` NOT provided → L2(SYSTEM)
    */
   async create(
@@ -259,8 +276,8 @@ export class DbManager {
     host?: string,
   ): Promise<Record<string, unknown>> {
     if (host) {
-      const l3 = pool.get(host);
-      if (l3) return await l3.create(collection, id, data);
+      const l3 = await this.ensureL3(host);
+      return await l3.create(collection, id, data);
     }
     const system = pool.get('SYSTEM');
     if (system) return await system.create(collection, id, data);
@@ -277,8 +294,8 @@ export class DbManager {
     host?: string,
   ): Promise<Record<string, unknown>> {
     if (host) {
-      const l3 = pool.get(host);
-      if (l3) return await l3.update(collection, id, data);
+      const l3 = await this.ensureL3(host);
+      return await l3.update(collection, id, data);
     }
     const system = pool.get('SYSTEM');
     if (system) return await system.update(collection, id, data);
@@ -295,8 +312,8 @@ export class DbManager {
     host?: string,
   ): Promise<Record<string, unknown> | null> {
     if (host) {
-      const l3 = pool.get(host);
-      if (l3) return await l3.patch(collection, id, fields);
+      const l3 = await this.ensureL3(host);
+      return await l3.patch(collection, id, fields);
     }
     const system = pool.get('SYSTEM');
     if (system) return await system.patch(collection, id, fields);
@@ -308,11 +325,9 @@ export class DbManager {
    */
   async deleteRecord(id: string, host?: string): Promise<{ success: boolean }> {
     if (host) {
-      const l3 = pool.get(host);
-      if (l3) {
-        const ok = await l3.delete(id);
-        return { success: ok };
-      }
+      const l3 = await this.ensureL3(host);
+      const ok = await l3.delete(id);
+      return { success: ok };
     }
     const system = pool.get('SYSTEM');
     if (system) {
@@ -334,6 +349,22 @@ export class DbManager {
   /** Get a summary of all pooled connections (for health/admin UI). */
   getPoolOverview() {
     return pool.getItemsOverview();
+  }
+
+  /** Get the full pool status snapshot (capacity, hit rate, errors, etc.). */
+  getPoolStatus() {
+    return pool.getStatus();
+  }
+
+  /**
+   * Get pool status + item overview combined.
+   * Useful for /api/health and future monitoring dashboards.
+   */
+  getPoolSnapshot() {
+    return {
+      status: pool.getStatus(),
+      items: pool.getItemsOverview(),
+    };
   }
 
   /** Gracefully shut down all pool connections. */

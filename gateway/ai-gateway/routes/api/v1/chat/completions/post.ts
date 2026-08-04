@@ -5,7 +5,7 @@
 import type { Context } from 'hono';
 import { initAIService, handleChatCompletion } from '../../../../../services/aiService/index.ts';
 
-export async function onPost(c: Context) {
+export async function POST(c: Context) {
   try {
     await initAIService();
     const body = await c.req.json();

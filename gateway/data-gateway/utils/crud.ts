@@ -1,45 +1,20 @@
 /**
  * CRUD handler 共用工廠
  *
- * 各 API 層（admin/manager/member）的 handler 透過此工廠建立，
- * 只差在 host 參數（effective_host），避免重複邏輯。
+ * 供 L2/L3 API 層使用，只差在 host 參數（effective_host），避免重複邏輯。
  *
- * host = undefined  → 操作 L2（admin 層）
- * host = tenant     → 操作 L3（manager/member 層）
+ * host = undefined  → 操作 L2（系統資料庫）
+ * host = tenant     → 操作 L3（租戶資料庫）
+ *
+ * 權限判定完全由各層 `_middleware.ts` 以 X-API-Key + Gateway 註冊的
+ * collection 權限表完成，handler 不重複做權限檢查。
  */
 
 import { getDbManager } from '../services/db-manager.ts';
-import { checkAccess } from './permission.ts';
 
 const RESERVED_PARAMS = new Set([
-  'page', 'pageSize', 'limit', 'offset', 'sort', 'order', 'token', '作者',
+  'page', 'pageSize', 'limit', 'offset', 'sort', 'order',
 ]);
-
-/** 從 effective_host 判斷操作層級：有 host → L3，無 host → L2 */
-function getLevel(host: string | undefined): 'l2' | 'l3' {
-  return host ? 'l3' : 'l2';
-}
-
-/** 檢查讀取權限（未登入時視為允許公開讀取） */
-function canRead(c: any, collection: string): boolean {
-  const payload = c.get('jwt_payload');
-  if (!payload) return true; // 無 JWT → 公開讀取
-  const host = c.get('effective_host');
-  return checkAccess(payload, getLevel(host), collection, '讀');
-}
-
-/** 檢查寫入權限（未登入時拒絕） */
-function canWrite(c: any, collection: string, authorId?: string): boolean {
-  const payload = c.get('jwt_payload');
-  if (!payload) return false;
-  const host = c.get('effective_host');
-  return checkAccess(payload, getLevel(host), collection, '寫', authorId);
-}
-
-/** 從 JWT payload 取得使用者 ID（sub） */
-function getUserId(c: any): string | undefined {
-  return c.get('jwt_payload')?.sub as string | undefined;
-}
 
 function isValidCompositeId(id: string): boolean {
   const parts = id.split(':');
@@ -74,19 +49,6 @@ async function getModelTypes(adapter: any, collection: string): Promise<{ type: 
   );
 }
 
-/** 合併 L2 + L3 的 model types（同 type 的 count 相加） */
-function mergeModels(
-  l2: { type: string; count: number }[],
-  l3: { type: string; count: number }[],
-): { type: string; count: number }[] {
-  const map = new Map<string, number>();
-  for (const m of l2) map.set(m.type, m.count);
-  for (const m of l3) {
-    map.set(m.type, (map.get(m.type) || 0) + m.count);
-  }
-  return Array.from(map.entries()).map(([type, count]) => ({ type, count }));
-}
-
 /**
  * GET /:collection
  *
@@ -94,23 +56,15 @@ function mergeModels(
  *   - 含有 `:`  → 當作 composite ID，執行 getById
  *   - 不含 `:`  → 當作 collection 名稱，列出其下的 model types
  *
- * 支援 ?scope=all（或 fallback route 的 rest_path）觸發 L2+L3 合併模式。
- * L3 初始化或查詢失敗時自動降級為僅回傳 L2 資料。
+ * 單層路由：有 effective_host → L3（不存在則報錯，不降級 L2）；無 → L2。
  */
 export async function handleCollection(c: any) {
   const param = c.req.param('collection');
   const host = c.get('effective_host');
-  const rest = c.get('rest_path') || '';
-  const scopeAll = c.req.query('scope') === 'all' || !!rest;
 
   // ── composite ID → getById ──
   if (isValidCompositeId(param)) {
     return handleGetById(c);
-  }
-
-  // ── 權限檢查：讀取 collection 資訊 ──
-  if (!canRead(c, param)) {
-    return c.json({ success: false, error: '無此權限' }, 403);
   }
 
   // ── collection 名稱 → 列出 model types ──
@@ -120,51 +74,23 @@ export async function handleCollection(c: any) {
       return c.json({ success: false, error: '資料庫尚未初始化' }, 500);
     }
 
-    if (scopeAll && host) {
-      // L2+L3 合併模式（L3 異常時自動降級）
-      let l3Models: { type: string; count: number }[] = [];
-      try {
-        await getDbManager().initL3(host);
-        const l3Adapter = getDbManager().getL3(host);
-        if (l3Adapter) {
-          l3Models = await getModelTypes(l3Adapter, param);
-        }
-      } catch (l3Err) {
-        console.warn(`[handleCollection] L3 查詢失敗，降級僅回傳 L2:`, l3Err);
+    // 單層路由：有 host → L3（不存在時明確報錯，不降級 L2）
+    if (host) {
+      const l3 = await getDbManager().initL3(host);
+      if (!l3) {
+        return c.json(
+          { success: false, error: `租戶 ${host} 的 L3 資料庫不存在或未設定` },
+          404,
+        );
       }
-
-      const l2Models = await getModelTypes(l2, param);
-      const merged = mergeModels(l2Models, l3Models);
-
+      const models = await getModelTypes(l3, param);
       return c.json({
         success: true,
-        data: {
-          collection: param,
-          source: 'L2+L3',
-          models: merged,
-          totalModels: merged.length,
-        },
+        data: { collection: param, source: 'L3', models, totalModels: models.length },
       });
     }
 
-    // 單層模式（L3 → L2 自動降級）
-    if (host) {
-      try {
-        await getDbManager().initL3(host);
-        const l3 = getDbManager().getL3(host);
-        if (l3) {
-          const models = await getModelTypes(l3, param);
-          return c.json({
-            success: true,
-            data: { collection: param, source: 'L3', models, totalModels: models.length },
-          });
-        }
-      } catch (l3Err) {
-        console.warn(`[handleCollection] L3 查詢失敗，降級至 L2:`, l3Err);
-      }
-    }
-
-    // 回退 L2
+    // 無 host → L2
     const models = await getModelTypes(l2, param);
     return c.json({
       success: true,
@@ -187,16 +113,6 @@ export async function handleList(c: any) {
     const collection = c.req.param('collection');
     const model = c.req.param('model');
     const host = c.get('effective_host');
-
-    // ── 權限檢查 ──
-    if (!canRead(c, collection)) {
-      return c.json({ success: false, error: '無讀取權限' }, 403);
-    }
-
-    // 判斷是否要 L2+L3 合併模式
-    const rest = c.get('rest_path') || '';
-    const scopeAll = c.req.query('scope') === 'all' || !!rest;
-    const useListAll = scopeAll && !!host;
 
     // 分頁參數
     const page = c.req.query('page');
@@ -224,34 +140,12 @@ export async function handleList(c: any) {
     }
     const hasFilter = Object.keys(filter).length > 0;
 
-    // ── self 權限自動加入作者過濾 ──
-    const userId = getUserId(c);
-    if (userId) {
-      const payload = c.get('jwt_payload');
-      const level = getLevel(host);
-      const perm = payload?.權限?.[level]?.[collection] ?? payload?.權限?.[level]?.default;
-      if (perm?.讀 === 'self') {
-        filter.作者 = userId;
-      }
-    }
-
-    let records: Record<string, unknown>[];
-    let source: string;
-    if (useListAll) {
-      // L2+L3 合併模式
-      records = await getDbManager().listAll(collection, model, {
-        limit, offset, sort: sortParam, order,
-        filter: hasFilter ? filter : undefined,
-      });
-      source = 'L2+L3';
-    } else {
-      // 單層模式（有 host → L3，無 host → L2）
-      records = await getDbManager().list(collection, model, {
-        limit, offset, sort: sortParam, order,
-        filter: hasFilter ? filter : undefined,
-      }, host);
-      source = host ? 'L3' : 'L2';
-    }
+    // 單層模式（有 host → L3，無 host → L2）
+    const records = await getDbManager().list(collection, model, {
+      limit, offset, sort: sortParam, order,
+      filter: hasFilter ? filter : undefined,
+    }, host);
+    const source = host ? 'L3' : 'L2';
 
     // 總筆數：透過 adapter 計數
     const totalCount = host
@@ -286,17 +180,6 @@ export async function handleCreate(c: any) {
     const model = c.req.param('model');
     const host = c.get('effective_host');
     const body = await c.req.json();
-
-    // ── 權限檢查：寫入權限 ──
-    if (!canWrite(c, collection)) {
-      return c.json({ success: false, error: '無寫入權限' }, 403);
-    }
-
-    // 自動填入 作者（若 JWT 有 sub）
-    const userId = getUserId(c);
-    if (userId && !body.作者) {
-      body.作者 = userId;
-    }
 
     // ID 格式驗證
     if (body.id !== undefined) {
@@ -333,34 +216,17 @@ export async function handleCreate(c: any) {
 /** GET /:id — 單筆查詢 */
 export async function handleGetById(c: any) {
   try {
-    const id = c.req.param('id');
+    // `:id` 路由直接取 id；`:collection` 路由攔截到 composite ID 時
+    // 會轉呼叫本函數，此時 id 落在 `collection` param
+    const id = c.req.param('id') ?? c.req.param('collection');
     const host = c.get('effective_host');
 
     if (!isValidCompositeId(id)) {
       return c.json({ success: false, error: 'ID 格式必須為 collection:model:nanoid' }, 400);
     }
 
-    const collection = id.split(':')[0];
-
-    // ── 權限檢查 ──
-    if (!canRead(c, collection)) {
-      return c.json({ success: false, error: '無讀取權限' }, 403);
-    }
-
     const record = await getDbManager().getById(id, host);
     if (record) {
-      // ── self 權限：檢查作者是否為本人 ──
-      const payload = c.get('jwt_payload');
-      if (payload) {
-        const level = getLevel(host);
-        const perm = payload?.權限?.[level]?.[collection] ?? payload?.權限?.[level]?.default;
-        if (perm?.讀 === 'self') {
-          const userId = getUserId(c);
-          if (!userId || (record as any)?.作者 !== userId) {
-            return c.json({ success: false, error: '無此權限' }, 403);
-          }
-        }
-      }
       return c.json({ success: true, data: record, source: host ? 'L3' : 'L2' });
     }
     return c.json({ success: false, error: '找不到資料' }, 404);
@@ -383,13 +249,6 @@ export async function handleUpdate(c: any) {
     }
 
     const collection = id.split(':')[0];
-
-    // ── 權限檢查（含 self：先查原資料取得作者） ──
-    const existing = await getDbManager().getById(id, host);
-    const authorId = (existing as any)?.作者 as string | undefined;
-    if (!canWrite(c, collection, authorId)) {
-      return c.json({ success: false, error: '無寫入權限' }, 403);
-    }
 
     const body = await c.req.json();
 
@@ -422,13 +281,6 @@ export async function handlePatch(c: any) {
 
     const collection = id.split(':')[0];
 
-    // ── 權限檢查（含 self：先查原資料取得作者） ──
-    const existing = await getDbManager().getById(id, host);
-    const authorId = (existing as any)?.作者 as string | undefined;
-    if (!canWrite(c, collection, authorId)) {
-      return c.json({ success: false, error: '無寫入權限' }, 403);
-    }
-
     const body = await c.req.json();
 
     if (!body || typeof body !== 'object' || Array.isArray(body)) {
@@ -459,15 +311,6 @@ export async function handleDelete(c: any) {
 
     if (!isValidCompositeId(id)) {
       return c.json({ success: false, error: 'ID 格式必須為 collection:model:nanoid' }, 400);
-    }
-
-    const collection = id.split(':')[0];
-
-    // ── 權限檢查（含 self：先查原資料取得作者） ──
-    const existing = await getDbManager().getById(id, host);
-    const authorId = (existing as any)?.作者 as string | undefined;
-    if (!canWrite(c, collection, authorId)) {
-      return c.json({ success: false, error: '無刪除權限' }, 403);
     }
 
     const result = await getDbManager().deleteRecord(id, host);

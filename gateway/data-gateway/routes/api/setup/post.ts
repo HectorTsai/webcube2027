@@ -1,23 +1,18 @@
 /**
  * POST /api/setup
- * 首次安裝 — 設定 L2 連線、auth-gateway URL、建立預設角色與管理員
+ * 首次安裝 — 設定 L2 連線與 Master Key
+ * （角色/超管理者帳號由 auth-gateway setup 建立，此處不建立任何帳號）
  */
 
 import type { Context } from 'hono';
 import { getConfig } from '../../../services/config.ts';
 import { getDbManager } from '../../../services/db-manager.ts';
 import { info, error as logError, encrypt } from '@dui/util';
-import { loadSeedsRecursive } from '../../../database/seed-loader.ts';
 
 export async function POST(c: Context) {
   try {
     const body = await c.req.json();
-    const { 管理員帳號, 管理員密碼, l2, auth_gateway_url } = body;
-
-    // ── 0. 基礎參數校驗 ──
-    if (!管理員帳號 || !管理員密碼) {
-      return c.json({ success: false, error: '請填寫管理員帳號與密碼' }, 400);
-    }
+    const { l2, master_key } = body;
 
     if (!l2 || !l2.type) {
       return c.json({ success: false, error: '請提供有效的 L2 資料庫設定' }, 400);
@@ -29,16 +24,15 @@ export async function POST(c: Context) {
       return c.json({ success: false, error: '系統已安裝，無法重複安裝' }, 400);
     }
 
-    // ── 1. 驗證 auth-gateway URL 格式 ──
-    if (auth_gateway_url) {
-      try {
-        new URL(auth_gateway_url);
-      } catch {
-        return c.json({ success: false, error: 'auth-gateway URL 格式不正確' }, 400);
-      }
+    // ── 0. 驗證 Master Key ──
+    if (!master_key || typeof master_key !== 'string') {
+      return c.json({ success: false, error: '請提供 Master Key（用於其他 Gateway 註冊）' }, 400);
+    }
+    if (master_key.length < 8) {
+      return c.json({ success: false, error: 'Master Key 長度至少 8 個字元' }, 400);
     }
 
-    // ── 2. 處理 L2 連線設定 ──
+    // ── 1. 處理 L2 連線設定 ──
 
     // Firestore：驗證上傳的服務帳號金鑰 JSON
     if (l2.type === 'firestore') {
@@ -60,12 +54,12 @@ export async function POST(c: Context) {
       l2.filePath = `${dataDir}/${l2.filePath.split('/').pop() || 'l2.db'}`;
     }
 
-    // ── 3. 儲存設定至 L1 ──
-    if (auth_gateway_url) {
-      await getConfig().set('auth_gateway_url', auth_gateway_url);
-      await info('DataGateway', `auth-gateway URL 已設定：${auth_gateway_url}`);
-    }
+    // ── 2. 儲存 Master Key（加密後存入 ConfigStore） ──
+    const encryptedMasterKey = await encrypt(master_key);
+    await getConfig().set('master_key', encryptedMasterKey);
+    await info('DataGateway', 'Master Key 已設定並加密儲存');
 
+    // ── 3. 儲存 L2 連線設定至 L1 ──
     l2.enabled = true;
     const encryptedL2 = await encrypt(JSON.stringify(l2));
     await getConfig().set('l2_connection', encryptedL2);
@@ -78,28 +72,8 @@ export async function POST(c: Context) {
     }
     await system.initialize('使用者');
 
-    // 從 seed 載入 L2 下所有預設資料（角色、使用者等）
-    // 自動掃描 L2/ 下每個子目錄，未來新增分類只需加目錄 + JSON 檔案
-    const seeds = await loadSeedsRecursive('L2');
-    for (const item of seeds) {
-      try {
-        const { id, ...data } = item;
-        await system.create('使用者', id as string, data);
-      } catch {
-        // 若已存在則忽略
-      }
-    }
-
-    // 建立超級管理員（相容不同 module 載入情境）
-    const bcryptModule = (await import('bcryptjs')) as any;
-    const hashFn = bcryptModule.default?.hash || bcryptModule.hash;
-    const 密碼雜湊 = await hashFn(管理員密碼, 10);
-    const 管理員ID = `使用者:使用者:${管理員帳號}`;
-    await system.create('使用者', 管理員ID, {
-      帳號: 管理員帳號,
-      密碼雜湊,
-      角色: ['使用者:角色:超級管理員'],
-    });
+    // 角色/使用者 seed 與超管理者帳號由 auth-gateway setup 建立，
+    // 透過本 gateway 的 L1/L2 CRUD API（X-API-Key）寫入，此處不建立任何帳號。
 
     await info('DataGateway', '安裝完成');
     return c.json({ success: true });

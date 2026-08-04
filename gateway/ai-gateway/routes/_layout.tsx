@@ -29,6 +29,8 @@ export const Layout: FC<Props> = (props) => (
 /**
  * 供 route-loader 將 .md 轉為 HTML 頁面時套用版面
  * 使用純字串模板而非 JSX，避免 dynamic import 的 JSX 編譯問題
+ *
+ * title 慣例：route-loader 在呼叫前已完成 HTML 跳脫（XSS 防護），此處不得再跳脫
  */
 export function renderPage(title: string, content: string): string {
   return `<!DOCTYPE html>
@@ -36,13 +38,9 @@ export function renderPage(title: string, content: string): string {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>${ehtml(title)}</title>
+  <title>${title}</title>
   <link rel="stylesheet" href="/css/output.css" />
 </head>
 <body class="min-h-screen bg-base-200">${content}</body>
 </html>`;
-}
-
-function ehtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }

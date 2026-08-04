@@ -4,6 +4,9 @@
 # Deno
 .deno/
 
+# Node
+node_modules/
+
 # Data
 /data/
 

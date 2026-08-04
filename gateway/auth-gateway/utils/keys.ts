@@ -33,21 +33,40 @@ export function getKeys(): { privateKey: CryptoKey; publicKey: CryptoKey; public
 
 export async function initKeys(config: { get: (key: string) => Promise<string | null>; set: (key: string, value: string) => Promise<void> }) {
   const storedPrivateHex = await config.get('_jwt_private_key');
+  const storedPublicHex = await config.get('_jwt_public_key');
 
-  if (storedPrivateHex) {
+  // 金鑰對不完整 → 明確報錯，避免默默重生導致所有已簽發 token 失效
+  if ((storedPrivateHex && !storedPublicHex) || (!storedPrivateHex && storedPublicHex)) {
+    throw new Error(
+      'JWT 金鑰對不完整（_jwt_private_key 與 _jwt_public_key 缺少其一）。' +
+      '請修復 config.json，或刪除這兩個欄位以重新產生金鑰對。',
+    );
+  }
+
+  if (storedPrivateHex && storedPublicHex) {
     _privateKey = await crypto.subtle.importKey(
       'pkcs8', hexToBytes(storedPrivateHex), { name: 'Ed25519' }, false, ['sign'],
     );
-
-    const storedPublicHex = await config.get('_jwt_public_key');
     _publicKey = await crypto.subtle.importKey(
-      'spki', hexToBytes(storedPublicHex!), { name: 'Ed25519' }, false, ['verify'],
+      'spki', hexToBytes(storedPublicHex), { name: 'Ed25519' }, false, ['verify'],
     );
-    _publicKeyHex = storedPublicHex!;
+    _publicKeyHex = storedPublicHex;
+
+    // 驗證金鑰對確實匹配（private 簽章能被 public 驗證）
+    const test = new TextEncoder().encode('key-pair-check');
+    const sig = await crypto.subtle.sign('Ed25519', _privateKey, test);
+    const ok = await crypto.subtle.verify('Ed25519', _publicKey, sig, test);
+    if (!ok) {
+      throw new Error(
+        'JWT 金鑰對不匹配（private 與 public 不是同一對）。' +
+        '請修正 config.json 的 _jwt_private_key / _jwt_public_key。',
+      );
+    }
+
     return { privateKey: _privateKey, publicKey: _publicKey, publicKeyHex: _publicKeyHex };
   }
 
-  // 產生新金鑰對
+  // 兩者皆無 → 首次安裝，產生新金鑰對
   const keyPair = await crypto.subtle.generateKey(
     { name: 'Ed25519' }, true, ['sign', 'verify'],
   ) as CryptoKeyPair;

@@ -5,7 +5,7 @@
 import type { Context } from 'hono';
 import { health } from '../../../services/dataGwClient.ts';
 
-export async function onGet(c: Context) {
+export async function GET(c: Context) {
   try {
     const dataGwHealth = await health();
     return c.json({

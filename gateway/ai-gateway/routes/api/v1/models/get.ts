@@ -5,7 +5,7 @@
 import type { Context } from 'hono';
 import { initAIService, listModels } from '../../../../services/aiService/index.ts';
 
-export async function onGet(c: Context) {
+export async function GET(c: Context) {
   try {
     await initAIService();
     const result = await listModels();

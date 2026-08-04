@@ -5,7 +5,7 @@
 import type { Context } from 'hono';
 import { list } from '../../../../services/dataGwClient.ts';
 
-export async function onGet(c: Context) {
+export async function GET(c: Context) {
   try {
     const servers = await list<Record<string, unknown>>('AI伺服器', undefined, { limit: 100 });
     return c.json({ success: true, data: servers });

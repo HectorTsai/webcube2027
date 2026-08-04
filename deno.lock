@@ -5,6 +5,7 @@
     "jsr:@deno/gfm@0.6": "0.6.2",
     "jsr:@denosaurs/emoji@0.3": "0.3.1",
     "jsr:@denosaurs/plug@1.1.0": "1.1.0",
+    "jsr:@hono/hono@*": "4.12.31",
     "jsr:@hono/hono@^4.12.31": "4.12.31",
     "jsr:@std/assert@0.224": "0.224.0",
     "jsr:@std/assert@1": "1.0.19",
@@ -19,6 +20,9 @@
     "jsr:@std/path@1": "1.1.6",
     "jsr:@std/path@^1.1.4": "1.1.6",
     "jsr:@std/path@^1.1.5": "1.1.6",
+    "jsr:@std/regexp@^1.0.2": "1.0.2",
+    "jsr:@std/text@1.0.19": "1.0.19",
+    "jsr:@std/text@^1.0.19": "1.0.19",
     "jsr:@std/toml@^1.0.0-rc.3": "1.0.11",
     "jsr:@std/yaml@^1.0.0-rc.1": "1.1.2",
     "npm:@aws-sdk/client-dynamodb@3": "3.1090.0",
@@ -136,6 +140,15 @@
       "integrity": "c68485c2a4dfbb5ae3cc74fae4e8c4e5d874cf8a8ed12927917235c758b46cbe",
       "dependencies": [
         "jsr:@std/internal@^1.0.14"
+      ]
+    },
+    "@std/regexp@1.0.2": {
+      "integrity": "7493d47c077cfdb023e41a0b44fd608d87fe5b36fc3dc614261afc0f1452aabf"
+    },
+    "@std/text@1.0.19": {
+      "integrity": "003a0e032d360e8c3a4e0410fb792c77a66bd6553fee9d60c6ec1bce30d29223",
+      "dependencies": [
+        "jsr:@std/regexp"
       ]
     },
     "@std/toml@1.0.11": {
@@ -2473,7 +2486,8 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@hono/hono@^4.12.31"
+      "jsr:@hono/hono@^4.12.31",
+      "jsr:@std/text@^1.0.19"
     ],
     "members": {
       "gateway/ai-gateway": {
@@ -2489,7 +2503,9 @@
           "jsr:@hono/hono@^4.12.31",
           "npm:@tailwindcss/cli@^4.3.3",
           "npm:@tailwindcss/typography@*",
+          "npm:bcryptjs@^2.4.3",
           "npm:daisyui@^5.6.18",
+          "npm:marked@15",
           "npm:tailwindcss@^4.3.3"
         ]
       },
@@ -2498,8 +2514,8 @@
           "jsr:@hono/hono@^4.12.31",
           "npm:@tailwindcss/cli@^4.3.3",
           "npm:@tailwindcss/typography@*",
-          "npm:bcryptjs@^2.4.3",
           "npm:daisyui@^5.6.18",
+          "npm:marked@15",
           "npm:tailwindcss@^4.3.3"
         ]
       },
@@ -2514,6 +2530,16 @@
           "npm:nanoid@^5.1.7",
           "npm:surrealdb@^2.0.3",
           "npm:svgson@^5.3.1"
+        ]
+      },
+      "gateway/site-gateway": {
+        "dependencies": [
+          "jsr:@hono/hono@^4.12.31",
+          "npm:@tailwindcss/cli@^4.3.3",
+          "npm:@tailwindcss/typography@*",
+          "npm:bcryptjs@^2.4.3",
+          "npm:daisyui@^5.6.18",
+          "npm:tailwindcss@^4.3.3"
         ]
       },
       "packages/dui-database": {

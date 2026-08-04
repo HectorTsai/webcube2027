@@ -15,16 +15,14 @@
     "hono/html": "jsr:@hono/hono@^4.12.31/html",
     "@dui/database": "./../../packages/dui-database/mod.ts",
     "@dui/util": "./../../packages/dui-util/mod.ts",
-    "@dui/util/jwt": "./../../packages/dui-util/backend/jwt.ts",
     "@dui/framework": "./../../packages/dui-framework/mod.ts",
-    "@dui/framework/setup-guard": "./../../packages/dui-framework/setup-guard.ts",
     "@dui/framework/route-loader": "./../../packages/dui-framework/route-loader.ts",
     "@dui/framework/api-console": "./../../packages/dui-framework/api-console.ts",
     "@dui/smartmultilingual": "./../../packages/dui-multilanguage/mod.ts",
+    "marked": "npm:marked@^15.0.0",
     "@tailwindcss/cli": "npm:@tailwindcss/cli@^4.3.3",
     "tailwindcss": "npm:tailwindcss@^4.3.3",
     "@tailwindcss/typography": "npm:@tailwindcss/typography",
-    "daisyui": "npm:daisyui@^5.6.18",
-    "bcryptjs": "npm:bcryptjs@^2.4.3"
+    "daisyui": "npm:daisyui@^5.6.18"
   }
 }

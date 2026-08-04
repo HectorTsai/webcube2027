@@ -25,12 +25,21 @@ export interface IdInfo {
  * }
  * ```
  */
-export class BaseModel {
+
+export interface BaseModelInterface {
+  id: string;
+  tags: string[];
+  updatedAt: Date;
+  createAt: Date;
+}
+
+export class BaseModel implements BaseModelInterface {
   private 編號: IdInfo = { _table: "", _type: "", _id: "" };
   /** Tags attached to this record. */
   public tags: string[];
   /** Last modification timestamp. */
   public updatedAt: Date;
+  public createAt: Date;
 
   /** The type component of the composite ID. */
   public get type(): string {
@@ -83,6 +92,7 @@ export class BaseModel {
     if (typeof data?.id === "string" && data.id.length > 0) {
       this.id = data.id;
     }
+    this.createAt = 解析日期(data?.created_at ?? new Date());
     if (!this.編號._id) this.編號._id = nanoid(12);
   }
 
@@ -99,6 +109,7 @@ export class BaseModel {
       id: this.id,
       tags: this.tags,
       updatedAt: this.updatedAt,
+      createAt: this.createAt,
     };
     // 2. 動態收集子類別的 own properties（排除內部狀態）
     for (const key of Object.keys(this)) {

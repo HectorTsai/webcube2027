@@ -8,15 +8,15 @@
 import { renderToString } from 'hono/jsx/dom/server';
 import { jsx } from 'hono/jsx';
 import { raw } from 'hono/html';
-import { sign } from 'hono/jwt';
+import { sign, verify } from 'hono/jwt';
 import { getKeys } from '../../../utils/keys.ts';
-import { getDataGatewayUrl } from '../../../utils/l1.ts';
+import { getDataGatewayUrl, getDataGatewayApiKey } from '../../../utils/config.ts';
 
 /** 訪客 JWT 有效期 — 1 小時 */
 const VISITOR_TTL = 3600;
 
 /** Login 頁面內容元件（不含 Layout 外殼） */
-const LoginContent = ({ dataGwUrl, lang }: { dataGwUrl: string; lang: string }) => {
+const LoginContent = ({ lang }: { lang: string }) => {
   const prefix = `/${lang}`;
   return (
     <div class="min-h-screen flex items-center justify-center px-4">
@@ -46,14 +46,6 @@ const LoginContent = ({ dataGwUrl, lang }: { dataGwUrl: string; lang: string }) 
 
       <script>{raw(`
         (async function() {
-          let DATA_GATEWAY_URL = ${JSON.stringify(dataGwUrl || '')};
-          if (!DATA_GATEWAY_URL) {
-            try {
-              const r = await fetch('/health').then(r => r.json());
-              if (r.data_gateway_url) DATA_GATEWAY_URL = r.data_gateway_url;
-            } catch {}
-          }
-
           document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('login-form');
             if (!form) return;
@@ -71,11 +63,12 @@ const LoginContent = ({ dataGwUrl, lang }: { dataGwUrl: string; lang: string }) 
                 });
                 const res = await r.json();
                 if (res.success) {
-                  localStorage.setItem('jwt', res.data.token);
-                  document.cookie = 'jwt=' + encodeURIComponent(res.data.token) + '; Path=/; SameSite=Lax; Max-Age=86400';
-                  const redirect = new URLSearchParams(window.location.search).get('redirect') || (DATA_GATEWAY_URL + '${prefix}/admin');
-                  const separator = redirect.includes('?') ? '&' : '?';
-                  window.location.href = redirect + separator + 'token=' + encodeURIComponent(res.data.token);
+                  // 登入成功後回首頁；僅允許 ?redirect= 指定站內相對路徑（防外部跳轉）
+                  // jwt cookie 已由 POST /api/login 的 Set-Cookie 設為 HttpOnly，不需 JS 另設
+                  let target = new URLSearchParams(window.location.search).get('redirect');
+                  if (!target || !target.startsWith('/')) target = '${prefix}/';
+                  const separator = target.includes('?') ? '&' : '?';
+                  window.location.href = target + separator + 'token=' + encodeURIComponent(res.data.token);
                 } else {
                   errEl.textContent = res.error || '登入失敗';
                   errEl.classList.remove('hidden');
@@ -94,27 +87,25 @@ const LoginContent = ({ dataGwUrl, lang }: { dataGwUrl: string; lang: string }) 
 
 export const GET = async (c: any) => {
   const lang = c.get('lang') || 'zh-tw';
-  const prefix = `/${lang}`;
 
-  // 從 L1 或環境變數取得 data-gateway URL
-  let dataGwUrl = Deno.env.get('DATA_GATEWAY_URL');
-  if (!dataGwUrl) {
+  // 檢查是否已有「有效」的 JWT cookie；無效（舊金鑰簽發/過期）或無 cookie 時，
+  // 自動簽發匿名 JWT 並寫入 cookie，讓登入 POST 能成功提取租戶
+  const cookieHeader = c.req.header('Cookie') || '';
+  const jwtMatch = cookieHeader.match(/jwt=([^;]+)/);
+  let hasValidJwt = false;
+  if (jwtMatch) {
     try {
-      const { getL1 } = await import('../../../utils/l1.ts');
-      const l1 = getL1();
-      const stored = await l1.get('data_gateway_url');
-      if (stored) dataGwUrl = stored;
+      const { publicKey } = getKeys();
+      const payload = await verify(decodeURIComponent(jwtMatch[1]), publicKey, 'EdDSA') as { type?: string };
+      if (payload?.type) hasValidJwt = true;
     } catch {
-      // L1 尚未就緒
+      // cookie 無效 → 視為無 cookie，重新簽發訪客 token
     }
   }
+  // tenant 優先取 query 參數，其次從 Host header 推斷（Domain = Tenant ID，不含埠號）
+  const tenant = c.req.query('tenant') || (c.req.header('Host') || '').replace(/:\d+$/, '').toLowerCase();
 
-  // 若無 JWT cookie 但有 tenant 參數，自動簽發匿名 JWT 並寫入 cookie
-  const cookieHeader = c.req.header('Cookie') || '';
-  const hasJwt = /jwt=([^;]+)/.test(cookieHeader);
-  const tenant = c.req.query('tenant');
-
-  if (!hasJwt && tenant) {
+  if (!hasValidJwt && tenant) {
     try {
       const { privateKey } = getKeys();
       const now = Math.floor(Date.now() / 1000);
@@ -122,10 +113,9 @@ export const GET = async (c: any) => {
       let 權限: Record<string, unknown> = {};
       try {
         const dataGatewayUrl = await getDataGatewayUrl();
-        const r = await fetch(`${dataGatewayUrl}/inner-api/role`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: '使用者:角色:訪客' }),
+        const apiKey = await getDataGatewayApiKey();
+        const r = await fetch(`${dataGatewayUrl}/api/l2/使用者:角色:訪客`, {
+          headers: { 'X-API-Key': apiKey || '' },
         });
         const res = await r.json();
         if (res.success) 權限 = res.data?.權限 || {};
@@ -155,7 +145,7 @@ export const GET = async (c: any) => {
 
   // 透過 Layout 渲染完整頁面
   const { Layout } = await import('../../_layout.tsx');
-  const content = LoginContent({ dataGwUrl: dataGwUrl || '/', lang });
+  const content = LoginContent({ lang });
   const html = '<!DOCTYPE html>' + renderToString(
     jsx(Layout, { title: '登入', lang, children: content }),
   );

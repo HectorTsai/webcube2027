@@ -11,18 +11,17 @@
 import type { Context } from 'hono';
 import { sign } from 'hono/jwt';
 import { getKeys } from '../../../utils/keys.ts';
-import { getDataGatewayUrl } from '../../../utils/config.ts';
+import { getDataGatewayUrl, getDataGatewayApiKey } from '../../../utils/config.ts';
 
 /** 訪客 JWT 有效期（秒）— 1 小時 */
 const VISITOR_TTL = 3600;
 
-/** 從 data-gateway 取得訪客角色的權限設定 */
+/** 從 data-gateway 取得訪客角色的權限設定（改用 L2 CRUD） */
 async function getVisitorPermissions(): Promise<Record<string, unknown>> {
   const dataGatewayUrl = await getDataGatewayUrl();
-  const r = await fetch(`${dataGatewayUrl}/inner-api/role`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id: '使用者:角色:訪客' }),
+  const apiKey = await getDataGatewayApiKey();
+  const r = await fetch(`${dataGatewayUrl}/api/l2/使用者:角色:訪客`, {
+    headers: { 'X-API-Key': apiKey || '' },
   });
   const res = await r.json();
   return res.success ? (res.data?.權限 || {}) : {};

@@ -87,17 +87,32 @@ export class ConfigStore {
   }
 
   private async load(): Promise<void> {
+    let text: string;
     try {
-      const text = await Deno.readTextFile(this.dataPath);
-      const parsed = JSON.parse(text);
-      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        for (const [k, v] of Object.entries(parsed)) {
-          if (typeof v === 'string') this.cache.set(k, v);
-        }
+      text = await Deno.readTextFile(this.dataPath);
+    } catch (err) {
+      if (err instanceof Deno.errors.NotFound) {
+        // 檔案不存在 — 首次啟動，使用空快取
+        this.cache.clear();
+        return;
       }
-    } catch {
-      // file doesn't exist or is invalid — start with empty cache
-      this.cache.clear();
+      throw err;
+    }
+
+    // 檔案存在但 JSON 無效 → 明確報錯，避免設定（含 JWT 金鑰）被誤當成「未設定」而重生
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : String(err);
+      await error('Config', `Config 檔案損壞，拒絕載入：${this.dataPath} (${detail})`);
+      throw new Error(`Config 檔案無效（${this.dataPath}）：${detail}`);
+    }
+
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      for (const [k, v] of Object.entries(parsed)) {
+        if (typeof v === 'string') this.cache.set(k, v);
+      }
     }
   }
 

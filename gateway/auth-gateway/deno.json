@@ -16,9 +16,13 @@
     "@dui/util": "./../../packages/dui-util/mod.ts",
     "@dui/framework": "./../../packages/dui-framework/mod.ts",
     "@dui/smartmultilingual": "./../../packages/dui-multilanguage/mod.ts",
+    "@dui/database": "./../../packages/dui-database/mod.ts",
+    "@dui/translate-google": "../../packages/dui-translate-google/mod.ts",
     "@tailwindcss/cli": "npm:@tailwindcss/cli@^4.3.3",
     "tailwindcss": "npm:tailwindcss@^4.3.3",
     "@tailwindcss/typography": "npm:@tailwindcss/typography",
-    "daisyui": "npm:daisyui@^5.6.18"
+    "daisyui": "npm:daisyui@^5.6.18",
+    "bcryptjs": "npm:bcryptjs@^2.4.3",
+    "marked": "npm:marked@^15.0.0"
   }
 }

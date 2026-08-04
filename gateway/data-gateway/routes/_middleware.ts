@@ -16,12 +16,11 @@ async function isInstalled(): Promise<boolean> {
 export async function middleware(c: Context, next: Next) {
   const path = c.req.path;
 
-  // 1. 靜態資源、公開端點與 Inner API 直接放行
+  // 1. 靜態資源與公開端點直接放行
   const isPublic =
     path.startsWith('/css/') ||
     path.startsWith('/images/') ||
     path.startsWith('/favicon') ||
-    path.startsWith('/inner-api/') ||
     path === '/api/setup' ||
     /\.(css|png|jpg|jpeg|gif|svg|ico|woff2?)$/i.test(path);
 
@@ -36,7 +35,7 @@ export async function middleware(c: Context, next: Next) {
     // 未安裝：只有 /setup 相關路徑可存取（支援語言前綴，如 /zh-tw/setup）
     const isSetupPath = path.startsWith('/setup') || /^\/[a-z]{2,3}(-[a-z]{2,4})?\/setup(\/|$)/.test(path);
     if (!isSetupPath) {
-      if (path.startsWith('/api') || path.startsWith('/inner-api')) {
+      if (path.startsWith('/api')) {
         return c.json({ success: false, message: '系統尚未安裝，請先前往 /zh-tw/setup' }, 403);
       }
       return c.redirect('/zh-tw/setup');

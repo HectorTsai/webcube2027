@@ -76,17 +76,19 @@ export async function createGateway(opts: CreateGatewayOptions): Promise<Gateway
   const routesDir = `${dirname}/routes`;
 
   // ── Hono + file router ──
-  const app = new Hono();
-
-  // Use file:// URL so relative paths work regardless of CWD
+  // 直接以 loadRoutes 的結果作為 gateway app（而非包一層 app.route()）。
+  // 原因：Hono 的 route() 只會複製子 app 的 routes，不會繼承 notFoundHandler，
+  // 而 loadRoutes 的「階層降級退回（fallback）」邏輯正是住在 notFound 中——
+  // 一旦包裝，fallback 會在父 app 的預設 404 下靜默失效。
   const routesUrl = new URL(`file://${routesDir}/`);
+  let app: Hono;
   try {
     await Deno.readDir(routesUrl); // probe if directory exists
-    const fileRoutes = await loadRoutes(routesUrl);
-    app.route('/', fileRoutes);
+    app = await loadRoutes(routesUrl);
     await info(name, `File routes loaded from ${routesDir}`);
   } catch {
     // routes/ directory doesn't exist — that's OK
+    app = new Hono();
   }
 
   return {
@@ -104,3 +106,5 @@ export async function createGateway(opts: CreateGatewayOptions): Promise<Gateway
 export { Hono } from 'hono';
 // Re-export types from route-loader for external use
 export type { MiddlewareFn } from './route-loader.ts';
+// Re-export permission utilities (role permission types + helpers)
+export * from './permission.ts';

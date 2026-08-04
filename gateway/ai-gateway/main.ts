@@ -14,6 +14,7 @@
 import { createGateway } from '@dui/framework';
 import { info, error } from '@dui/util';
 import { cors } from 'hono/cors';
+import { initAiConfig } from './services/config.ts';
 
 // ── 建立 Gateway 實體 ──
 const gw = await createGateway({
@@ -21,6 +22,17 @@ const gw = await createGateway({
   dirname: import.meta.dirname!,
   port: Number(Deno.env.get('AI_GATEWAY_PORT') || 8003),
 });
+
+// ── ConfigStore (persistent JSON KV) ──
+const config = await initAiConfig(gw.dataDir);
+
+// ── 安裝檢查 ──
+const dataGatewayUrl = await config.get('data_gateway_url');
+if (dataGatewayUrl) {
+  await info('ai-gateway', `data-gateway: ${dataGatewayUrl}`);
+} else {
+  await info('ai-gateway', 'data-gateway URL 尚未設定（可設定 DATA_GATEWAY_URL 或寫入 config.json 的 data_gateway_url）');
+}
 
 // ── CORS ──
 gw.app.use(

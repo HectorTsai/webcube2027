@@ -103,7 +103,7 @@ async function sendApiRequest() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function initApiConsole() {
   const methodEl = document.getElementById('api-method');
   if (methodEl) {
     methodEl.addEventListener('change', () => {
@@ -114,5 +114,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   loadStatus();
-});
+}
+
+// DOM 就緒判斷：若頁面以動態方式載入（SPA 換頁 / AJAX 注入）時 DOMContentLoaded
+// 可能已觸發完畢，此時直接執行初始化，避免監聽器與 loadStatus() 永遠不生效。
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApiConsole);
+} else {
+  initApiConsole();
+}
 `;

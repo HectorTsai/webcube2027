@@ -30,6 +30,15 @@ export async function getDataGatewayUrl(): Promise<string> {
   throw new Error('data-gateway URL 尚未設定。請先完成安裝或設定 DATA_GATEWAY_URL 環境變數。');
 }
 
+/** 取得 data-gateway API Key（安裝時註冊取得） */
+export async function getDataGatewayApiKey(): Promise<string | null> {
+  try {
+    return (await _config?.get('data_gateway_api_key')) ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /** 檢查 auth-gateway 是否已完成安裝 */
 export async function isInstalled(): Promise<boolean> {
   try {

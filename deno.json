@@ -1,4 +1,5 @@
 {
+  "unstable": ["tsgo"],
   "minimumDependencyAge": 0,
   "workspace": [
     "packages/dui-database",
@@ -6,7 +7,6 @@
     "packages/dui-multilanguage",
     "packages/dui-translate-google",
     "packages/dui-util",
-    "packages/dui-kv",
     "packages/dui-pool",
     "gateway/data-gateway",
     "gateway/ai-gateway",
@@ -14,14 +14,17 @@
     "gateway/page-gateway",
     "gateway/cube-gateway",
     "gateway/theme-gateway",
-    "gateway/auth-gateway"
+    "gateway/auth-gateway",
+    "gateway/site-gateway"
   ],
   "imports": {
+    "@std/text": "jsr:@std/text@^1.0.19",
     "hono": "jsr:@hono/hono@^4.12.31",
     "hono/serve-static": "jsr:@hono/hono@^4.12.31/serve-static",
     "hono/jsx": "jsr:@hono/hono@^4.12.31/jsx",
     "hono/jsx/dom": "jsr:@hono/hono@^4.12.31/jsx/dom",
-    "hono/utils/html": "jsr:@hono/hono@^4.12.31/utils/html"
+    "hono/utils/html": "jsr:@hono/hono@^4.12.31/utils/html",
+    "@dui/translate-google": "./packages/dui-translate-google/mod.ts"
   },
   "tasks": {
     "dev": "deno run --allow-all --env --unstable-cron --watch main.ts",
@@ -29,7 +32,8 @@
     "dev:ai": "deno run --allow-all --env --unstable-cron --watch gateway/ai-gateway/main.ts",
     "dev:render": "deno run --allow-all --env --unstable-cron --watch gateway/render-gateway/main.ts",
     "dev:data": "deno run --allow-all --env --watch gateway/data-gateway/main.ts",
-    "dev:auth": "deno run --allow-all --env --watch gateway/auth-gateway/main.ts"
+    "dev:auth": "deno run --allow-all --env --watch gateway/auth-gateway/main.ts",
+    "dev:site": "deno run --allow-all --env --watch gateway/site-gateway/main.ts"
   },
   "compilerOptions": {
     "jsx": "precompile",

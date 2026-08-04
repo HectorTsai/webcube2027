@@ -67,9 +67,12 @@ class MultilingualObject<T> {
    * @returns 純物件，包含指定語言的多國語言資料的 JSON 表示
    */
   public toJSON(languageSet?: SupportedLanguage[]): MultilingualData<T> {
+    // JSON.stringify 會呼叫 toJSON(key) 並傳入屬性名稱（字串），
+    // 此時 languageSet 為字串而非陣列，必須 fallback 到 getAllAvailableLanguages()
+    const langs = Array.isArray(languageSet) ? languageSet : this.getAllAvailableLanguages();
     const result: Record<string, T> = {} as MultilingualData<T>;
 
-    for (const lang of (languageSet || this.getAllAvailableLanguages())) {
+    for (const lang of langs) {
       const data = this[lang] as T | undefined;
       if (data !== undefined) {
         result[lang] = data;

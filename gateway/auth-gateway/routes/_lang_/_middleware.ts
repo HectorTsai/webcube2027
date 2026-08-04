@@ -15,11 +15,12 @@ export const middleware = async (c: Context, next: Next) => {
   const lang = langParam.toLowerCase();
 
   if (SUPPORTED_LANGUAGE_SET.has(lang as never)) {
+    // 以 URL 參數覆蓋根 middleware 的 Accept-Language 猜測（更準確）
     c.set('lang', lang);
-  } else {
-    // 不支援的語言碼 fallback 到英文
-    c.set('lang', 'en');
+    // 寫入語言 cookie，讓客戶端 API 請求（如 /api/me）也能得知當前語言
+    c.header('Set-Cookie', `lang=${lang}; Path=/; SameSite=Lax`);
   }
+  // 不支援的語言碼 → 保留根 middleware 的 Accept-Language 值不做任何動作
 
   return await next();
 };
