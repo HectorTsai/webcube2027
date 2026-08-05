@@ -215,15 +215,23 @@ async function hashHtml(html: string): Promise<string> {
  * 因為 UnoCSS 的 extractor 是 token 式的，script 內 JS 模板字串中的
  * class（如 `badge badge-success`）也會被提取生成。
  *
+ * @param options.safelist 額外強制生成的 class 清單——用於僅出現在外部
+ *        JS（如 Alpine 元件檔）中、不在頁面 HTML 裡的 class。
  * @returns 元件 CSS + UnoCSS 生成 CSS 的組合字串，可直接內聯進 <style>
  */
-export async function generatePageCss(html: string): Promise<string> {
-  const key = await hashHtml(html);
+export async function generatePageCss(
+  html: string,
+  options?: { safelist?: string[] },
+): Promise<string> {
+  const safelist = (options?.safelist ?? []).filter(Boolean);
+  // 把 safelist 追加進掃描輸入（token extractor 會把它們當作 class 生成 CSS）
+  const scanInput = safelist.length > 0 ? `${html}\n${safelist.join('\n')}` : html;
+  const key = await hashHtml(scanInput);
   const hit = cssCache.get(key);
   if (hit) return hit;
 
   const gen = await getGenerator();
-  const { css } = await gen.generate(html);
+  const { css } = await gen.generate(scanInput);
   const full = `${COMPONENT_CSS}\n${css}`;
 
   // LRU 淘汰：僅刪除最舊一筆，避免快取瞬間全清導致大量重複計算

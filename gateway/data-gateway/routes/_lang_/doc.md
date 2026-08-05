@@ -1,6 +1,6 @@
 # Data Gateway API 文件
 
-> 最後更新：2026-08-03
+> 最後更新：2026-08-06
 
 ---
 
@@ -237,7 +237,7 @@ L1、L2、L3 三層的 CRUD 路由**結構完全同構**，差異只在操作的
 
 ### GET /:lang/
 
-首頁，**不需登入**，直接顯示 **L1 / L2 / L3 資料庫狀態**。
+首頁，**不需登入**，直接顯示 **L1 / L2 / L3 資料庫狀態**與**連線池狀態**（含逐連線明細），並可開啟 **Health 檢視 modal** 查看詳細服務狀態。互動邏輯由 **Alpine.js** 元件驅動（`routes/static/app.js`，runtime 由 `@dui/framework` 於 `GET /alpine.min.js` 提供）。
 
 語言碼從 URL 路徑 `:lang` 參數取得，由 `_lang_/_middleware.ts` 驗證後注入 Context（`c.get('lang')`）。
 

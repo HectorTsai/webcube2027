@@ -1,150 +1,10 @@
-import { raw } from 'hono/html';
-
-// NOTE: doc 路由依賴 marked（見 deno.json）
-const SCRIPT = `
-async function check() {
-  try {
-    const r = await fetch('/api/health').then(r => r.json());
-    const el = document.getElementById('status-badge');
-    if (r.status === 'ok') {
-      el.textContent = '正常運作';
-      el.className = 'badge badge-soft badge-success';
-    } else {
-      el.textContent = '異常';
-      el.className = 'badge badge-soft badge-error';
-    }
-  } catch {
-    document.getElementById('status-badge').textContent = '無法連線';
-    document.getElementById('status-badge').className = 'badge badge-soft badge-error';
-  }
-}
-
-// 直接顯示 L1/L2/L3 資料庫狀態
-async function renderDbStatus() {
-  const rows = {
-    l1: document.getElementById('db-l1'),
-    l2: document.getElementById('db-l2'),
-    l3: document.getElementById('db-l3'),
-  };
-  try {
-    const r = await fetch('/api/health').then(r => r.json());
-    const setBadge = (el, text, ok) => {
-      if (!el) return;
-      el.textContent = text;
-      el.className = 'badge badge-soft ' + (ok ? 'badge-success' : 'badge-error');
-    };
-    setBadge(rows.l1, r.l1 === 'connected' ? '已連線' : '未連線', r.l1 === 'connected');
-    setBadge(rows.l2, r.l2 === 'connected' ? '已連線' : '未連線', r.l2 === 'connected');
-    if (rows.l3) {
-      const s = String(r.l3 || '未設定');
-      rows.l3.textContent = s;
-      rows.l3.className = 'badge badge-soft ' + (s.includes('✓') ? 'badge-success' : s.includes('✗') ? 'badge-error' : 'badge-soft');
-    }
-  } catch {
-    if (rows.l1) { rows.l1.textContent = '無法連線'; rows.l1.className = 'badge badge-soft badge-error'; }
-    if (rows.l2) { rows.l2.textContent = '無法連線'; rows.l2.className = 'badge badge-soft badge-error'; }
-    if (rows.l3) { rows.l3.textContent = '無法連線'; rows.l3.className = 'badge badge-soft badge-error'; }
-  }
-}
-
-// 顯示連線池（AdapterPool）狀態
-async function renderPoolStatus() {
-  const el = document.getElementById('pool-status');
-  if (!el) return;
-  let data;
-  try {
-    const r = await fetch('/api/health').then(r => r.json());
-    data = r.pool;
-  } catch {
-    el.innerHTML = '<p class="text-xs text-error">無法取得連線池狀態</p>';
-    return;
-  }
-  if (!data || !data.status) {
-    el.innerHTML = '<p class="text-xs text-base-content/50">連線池尚未初始化</p>';
-    return;
-  }
-  const s = data.status;
-  const hitRate = (s.hitRate * 100).toFixed(1);
-  const items = (data.items || []).map(it => {
-    const badges = [];
-    if (it.isPersistent) badges.push('<span class="badge badge-soft badge-info badge-xs">常駐</span>');
-    if (it.isDirty) badges.push('<span class="badge badge-soft badge-warning badge-xs">未保存</span>');
-    return \`<div class="flex items-center justify-between gap-2 rounded-lg border border-base-200 bg-base-100/60 px-3 py-2">
-      <div class="flex items-center gap-2 min-w-0">
-        <span class="font-mono text-xs truncate">\${it.key}</span>
-        <span class="badge badge-ghost badge-xs shrink-0">\${it.dbType || 'unknown'}</span>
-        \${badges.join('')}
-      </div>
-      <span class="text-[10px] text-base-content/40 shrink-0">\${it.accessCount} 次存取 · 閒置 \${Math.max(0, Math.round(it.idleMs / 1000))}s</span>
-    </div>\`;
-  }).join('') || '<p class="text-xs text-base-content/40">目前無連線</p>';
-
-  const stat = (label, value, ok) => \`
-    <div class="flex flex-col items-center gap-0.5 rounded-lg border border-base-200 bg-base-100/60 py-2">
-      <span class="text-sm font-bold \${ok === false ? 'text-error' : ''}">\${value}</span>
-      <span class="text-[10px] text-base-content/40">\${label}</span>
-    </div>\`;
-
-  el.innerHTML = \`
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-      \${stat('連線數', s.totalItems)}
-      \${stat('常駐連線', s.persistentItems)}
-      \${stat('命中率', hitRate + '%')}
-      \${stat('未保存', s.dirtyItems, s.dirtyItems > 0 ? false : undefined)}
-    </div>
-    \${s.isFlushing ? '<p class="text-xs text-warning mt-2">正在 flush…</p>' : ''}
-    <div class="space-y-1.5 mt-3">\${items}</div>\`;
-}
-
-async function openHealthModal() {
-  const modal = document.getElementById('health-modal');
-  const content = document.getElementById('health-content');
-  content.innerHTML = '<span class="loading loading-spinner loading-md"></span>';
-  modal.showModal();
-
-  try {
-    const r = await fetch('/api/health');
-    const data = await r.json();
-    const ok = data.status === 'ok';
-    content.innerHTML = \`
-      <div class="space-y-3">
-        <div class="flex items-center gap-2">
-          <span>服務狀態</span>
-          <span class="badge badge-soft \${ok ? 'badge-success' : 'badge-error'}">\${ok ? '正常運作' : '異常'}</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span>Service</span>
-          <code class="text-sm bg-base-200 px-2 py-0.5 rounded">\${data.service || '-'}</code>
-        </div>
-        <div class="flex items-center gap-2">
-          <span>L1</span>
-          <span class="badge badge-soft \${data.l1 === 'connected' ? 'badge-success' : 'badge-error'}">\${data.l1}</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span>L2</span>
-          <span class="badge badge-soft \${data.l2 === 'connected' ? 'badge-success' : 'badge-error'}">\${data.l2}</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span>L3</span>
-          <span class="badge badge-soft \${data.l3?.includes('✓') ? 'badge-success' : data.l3?.includes('✗') ? 'badge-error' : 'badge-soft'}">\${data.l3 || '未設定'}</span>
-        </div>
-      </div>
-    \`;
-  } catch {
-    content.innerHTML = '<p class="text-error">無法連線至伺服器</p>';
-  }
-}
-
-check();
-renderDbStatus();
-renderPoolStatus();
-`;
-
+// 頁面互動邏輯（服務狀態、DB 狀態、連線池、Health modal）已改為 Alpine 元件，
+// 定義於 routes/static/app.js（statusBadge / dbStatus / poolStatus / healthModal）。
 const Landing = (c?: any) => {
   const lang = c?.get?.('lang') || 'zh-tw';
   const prefix = `/${lang}`;
   return (
-      <div class="relative overflow-x-hidden w-full">
+    <div x-data="healthModal" class="relative overflow-x-hidden w-full">
 
       {/* ── Decorative wave background ── */}
       <style>{`.wave-bg { position: fixed; bottom: 0; left: 0; width: 100%; height: 280px; overflow: hidden; z-index: 0; pointer-events: none; } .wave-svg { position: absolute; bottom: 0; width: 200%; animation: wave 18s linear infinite; } .wave-svg:nth-child(1) { animation-duration: 18s; opacity: 0.5; } .wave-svg:nth-child(2) { animation-duration: 24s; opacity: 0.3; animation-direction: reverse; } @keyframes wave { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }`}</style>
@@ -180,7 +40,7 @@ const Landing = (c?: any) => {
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                   文件
                 </a>
-                <button onclick="openHealthModal()" class="btn btn-soft btn-outline">
+                <button x-on:click="open()" class="btn btn-soft btn-outline">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                   Health
                 </button>
@@ -196,21 +56,21 @@ const Landing = (c?: any) => {
                 <h2 class="font-bold">資料庫狀態</h2>
                 <span class="text-xs text-base-content/40">L1（SQLite）· L2（系統）· L3（租戶）</span>
               </div>
-              <div class="grid grid-cols-3 gap-3">
+              <div x-data="dbStatus" x-init="check()" class="grid grid-cols-3 gap-3">
                 <div class="flex flex-col items-center gap-1.5 rounded-lg border border-base-200 bg-base-100/60 py-3">
                   <span class="text-sm font-bold">L1</span>
                   <span class="text-xs text-base-content/50">本機 SQLite</span>
-                  <span id="db-l1" class="badge badge-soft badge-warning">檢查中…</span>
+                  <span class="badge badge-soft" x-bind:class="l1.cls" x-text="l1.text">檢查中…</span>
                 </div>
                 <div class="flex flex-col items-center gap-1.5 rounded-lg border border-base-200 bg-base-100/60 py-3">
                   <span class="text-sm font-bold">L2</span>
                   <span class="text-xs text-base-content/50">系統資料庫</span>
-                  <span id="db-l2" class="badge badge-soft badge-warning">檢查中…</span>
+                  <span class="badge badge-soft" x-bind:class="l2.cls" x-text="l2.text">檢查中…</span>
                 </div>
                 <div class="flex flex-col items-center gap-1.5 rounded-lg border border-base-200 bg-base-100/60 py-3">
                   <span class="text-sm font-bold">L3</span>
                   <span class="text-xs text-base-content/50">租戶資料庫</span>
-                  <span id="db-l3" class="badge badge-soft badge-warning">檢查中…</span>
+                  <span class="badge badge-soft" x-bind:class="l3.cls" x-text="l3.text">檢查中…</span>
                 </div>
               </div>
             </div>
@@ -223,11 +83,62 @@ const Landing = (c?: any) => {
                 <h2 class="font-bold">連線池狀態</h2>
                 <span class="text-xs text-base-content/40">AdapterPool · L2 SYSTEM + L3 租戶連線</span>
               </div>
-              <div id="pool-status">
-                <div class="flex items-center gap-2 text-xs text-base-content/50">
-                  <span class="loading loading-spinner loading-xs"></span>
-                  讀取中…
-                </div>
+              <div x-data="poolStatus" x-init="check()">
+                <template x-if="loading">
+                  <div class="flex items-center gap-2 text-xs text-base-content/50">
+                    <span class="loading loading-spinner loading-xs"></span>
+                    讀取中…
+                  </div>
+                </template>
+                <template x-if="!loading && error">
+                  <p class="text-xs text-error" x-text="error"></p>
+                </template>
+                <template x-if="!loading && !error && !pool">
+                  <p class="text-xs text-base-content/50">連線池尚未初始化</p>
+                </template>
+                <template x-if="!loading && !error && pool">
+                  <div class="space-y-2">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <div class="flex flex-col items-center gap-0.5 rounded-lg border border-base-200 bg-base-100/60 py-2">
+                        <span class="text-sm font-bold" x-text="pool.status.totalItems"></span>
+                        <span class="text-[10px] text-base-content/40">連線數</span>
+                      </div>
+                      <div class="flex flex-col items-center gap-0.5 rounded-lg border border-base-200 bg-base-100/60 py-2">
+                        <span class="text-sm font-bold" x-text="pool.status.persistentItems"></span>
+                        <span class="text-[10px] text-base-content/40">常駐連線</span>
+                      </div>
+                      <div class="flex flex-col items-center gap-0.5 rounded-lg border border-base-200 bg-base-100/60 py-2">
+                        <span class="text-sm font-bold" x-text="hitRate()"></span>
+                        <span class="text-[10px] text-base-content/40">命中率</span>
+                      </div>
+                      <div class="flex flex-col items-center gap-0.5 rounded-lg border border-base-200 bg-base-100/60 py-2">
+                        <span class="text-sm font-bold" x-bind:class="pool.status.dirtyItems > 0 ? 'text-error' : ''" x-text="pool.status.dirtyItems"></span>
+                        <span class="text-[10px] text-base-content/40">未保存</span>
+                      </div>
+                    </div>
+                    <p x-show="pool.status.isFlushing" class="text-xs text-warning">正在 flush…</p>
+                    <div class="space-y-1.5">
+                      <template x-for="it in pool.items" x-bind:key="it.key">
+                        <div class="flex items-center justify-between gap-2 rounded-lg border border-base-200 bg-base-100/60 px-3 py-2">
+                          <div class="flex items-center gap-2 min-w-0">
+                            <span class="font-mono text-xs truncate" x-text="it.key"></span>
+                            <span class="badge badge-ghost badge-xs shrink-0" x-text="it.dbType || 'unknown'"></span>
+                            <template x-if="it.isPersistent">
+                              <span class="badge badge-soft badge-info badge-xs">常駐</span>
+                            </template>
+                            <template x-if="it.isDirty">
+                              <span class="badge badge-soft badge-warning badge-xs">未保存</span>
+                            </template>
+                          </div>
+                          <span class="text-[10px] text-base-content/40 shrink-0" x-text="itemMeta(it)"></span>
+                        </div>
+                      </template>
+                      <template x-if="pool.items.length === 0">
+                        <p class="text-xs text-base-content/40">目前無連線</p>
+                      </template>
+                    </div>
+                  </div>
+                </template>
               </div>
             </div>
           </div>
@@ -325,23 +236,47 @@ const Landing = (c?: any) => {
       </div>
 
       {/* ── Health Modal ── */}
-      <dialog id="health-modal" class="modal">
+      <dialog x-ref="modal" class="modal">
         <div class="modal-box">
           <form method="dialog">
             <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
           </form>
           <h3 class="text-lg font-bold mb-4">系統健康狀態</h3>
-          <div id="health-content" class="min-h-[80px] flex items-center justify-center">
+          <div x-show="loading" class="min-h-[80px] flex items-center justify-center">
             <span class="loading loading-spinner loading-md"></span>
           </div>
+          <div x-show="!loading && error" class="min-h-[80px] flex items-center justify-center">
+            <p class="text-error" x-text="error"></p>
+          </div>
+          <template x-if="!loading && data">
+            <div class="space-y-3">
+              <div class="flex items-center gap-2">
+                <span>服務狀態</span>
+                <span class="badge badge-soft" x-bind:class="data.status === 'ok' ? 'badge-success' : 'badge-error'" x-text="data.status === 'ok' ? '正常運作' : '異常'"></span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span>Service</span>
+                <code class="text-sm bg-base-200 px-2 py-0.5 rounded" x-text="data.service || '-'"></code>
+              </div>
+              <div class="flex items-center gap-2">
+                <span>L1</span>
+                <span class="badge badge-soft" x-bind:class="data.l1 === 'connected' ? 'badge-success' : 'badge-error'" x-text="data.l1"></span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span>L2</span>
+                <span class="badge badge-soft" x-bind:class="data.l2 === 'connected' ? 'badge-success' : 'badge-error'" x-text="data.l2"></span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span>L3</span>
+                <span class="badge badge-soft" x-bind:class="l3Cls" x-text="l3Text"></span>
+              </div>
+            </div>
+          </template>
         </div>
         <form method="dialog" class="modal-backdrop">
           <button>close</button>
         </form>
       </dialog>
-
-      {/* ── Footer ── */}
-      <script>{raw(SCRIPT)}</script>
     </div>
   );
 };

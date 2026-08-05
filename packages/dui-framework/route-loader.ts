@@ -294,10 +294,15 @@ async function runHandlerChain(handlers: any[], c: Context): Promise<Response | 
  * 掃描 routes 目錄並回傳 Hono router（含所有發現的路由、靜態檔案與 middleware）
  *
  * @param dirUrl - routes 目錄的 file:// URL
- * @returns Hono 實例
+ * @param existingApp - 可選：直接註冊到這個 Hono 實例（而非新建）。
+ *        供 createGateway 先把全域 middleware / 選用性資源（如 Alpine runtime）
+ *        掛好再註冊檔案路由——Hono 依註冊順序匹配，先註冊的靜態路徑
+ *        （如 /alpine.min.js）才不會被後續的參數路由（如 /:lang）搶走，
+ *        同時保留本函式註冊的 notFound 退回機制。
+ * @returns Hono 實例（existingApp 或新建）
  */
-export async function loadRoutes(dirUrl: URL): Promise<Hono> {
-  const app = new Hono();
+export async function loadRoutes(dirUrl: URL, existingApp?: Hono): Promise<Hono> {
+  const app = existingApp ?? new Hono();
   const result: CollectResult = { methodRoutes: [], staticRoutes: [], mdRoutes: [] };
 
   await collectRoutes(dirUrl.href, '', [], result);

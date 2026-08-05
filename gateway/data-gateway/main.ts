@@ -10,6 +10,7 @@ const gw = await createGateway({
   name: 'data-gateway',
   port: Number(Deno.env.get('DATA_GATEWAY_PORT')) || 8002,
   dirname: import.meta.dirname!,
+  alpine: true, // 掛載 Alpine.js runtime（GET /alpine.min.js），頁面元件見 routes/static/app.js
 });
 
 // ── 2. ConfigStore (persistent JSON KV) ──────────────

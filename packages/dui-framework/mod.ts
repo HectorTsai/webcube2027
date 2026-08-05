@@ -8,6 +8,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { loadRoutes } from './route-loader.ts';
+import { mountAlpineAssets } from './alpine.ts';
 import { traceStorage } from '@dui/util/common/logger';
 
 // ─── Re-exports ──────────────────────────────────────────────
@@ -29,6 +30,7 @@ export {
 } from './seed-sync.ts';
 export type { SeedLevel, SeedKV, SyncSeedsOptions, SyncSeedsResult } from './seed-sync.ts';
 export { generatePageCss, UNOCSS_THEME_COLORS, COMPONENT_CSS } from './unocss.ts';
+export { ALPINE_JS_PATH, ALPINE_VERSION, getAlpineDist, mountAlpineAssets, alpineScripts } from './alpine.ts';
 
 // ─── Gateway 物件型別 ───────────────────────────────────────
 
@@ -46,6 +48,8 @@ export interface CreateGatewayOptions {
   port?: number;
   /** import.meta.dirname!，用於定位 routes/ 與 data/ 路徑 */
   dirname: string;
+  /** 是否掛載 Alpine.js runtime（GET /alpine.min.js，供頁面以 AlpineScript 使用） */
+  alpine?: boolean;
 }
 
 // ─── 全域 Middleware ─────────────────────────────────────────
@@ -93,20 +97,29 @@ export async function createGateway(options: CreateGatewayOptions): Promise<Gate
   const routesDir = new URL(`${dirname}/routes/`, 'file:///');
 
   // 載入 Hono 應用程式（含檔案路由或空白 app）
-  let app: Hono;
-
-  try {
-    await Deno.readDir(routesDir);
-    app = await loadRoutes(routesDir);
-  } catch {
-    // routes/ 不存在，建立空白 Hono app
-    app = new Hono();
-  }
+  // 順序很重要：Hono 依「註冊順序」匹配路由（實測：後註冊的單段靜態路徑
+  // /alpine.min.js 會被先註冊的參數路由 /:lang 搶走）。因此先建 app、
+  // 註冊全域 middleware 與選用性 Alpine runtime，最後才讓 loadRoutes
+  // 把檔案路由註冊到同一個 app（保留其 notFound 退回機制）。
+  const app = new Hono();
 
   // 註冊全域 Middleware（順序：CORS → Trace ID）
   // Hono 的 app.use 會在路由 handler 之前執行，順序由上而下
   app.use('*', corsMiddleware());
   app.use('*', traceIdMiddleware());
+
+  // 選用：掛載 Alpine.js runtime（GET /alpine.min.js）
+  if (options.alpine) {
+    await mountAlpineAssets(app);
+  }
+
+  // 載入檔案路由（直接註冊到同一個 app）
+  try {
+    await Deno.readDir(routesDir);
+    await loadRoutes(routesDir, app);
+  } catch {
+    // routes/ 不存在 → 保留 middleware / Alpine 路由即可
+  }
 
   // 回傳 Gateway 物件
   const gateway: Gateway = {

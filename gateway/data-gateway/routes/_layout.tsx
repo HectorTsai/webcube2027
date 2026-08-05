@@ -12,36 +12,12 @@
 import { renderToString } from 'hono/jsx/dom/server';
 import { jsx } from 'hono/jsx';
 import { raw } from 'hono/html';
-import { generatePageCss } from '@dui/framework';
+import { generatePageCss, alpineScripts } from '@dui/framework';
 
 const ICON_SVG =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M4 7v10c0 2 4 3 8 3s8-1 8-3V7M4 7c0-2 4-3 8-3s8 1 8 3M4 7c0 2 4 3 8 3s8-1 8-3'/%3E%3C/svg%3E";
 
-/** 自動更新 navbar 上的服務狀態 badge */
-const STATUS_SCRIPT = `
-async function updateStatus() {
-  try {
-    const r = await fetch('/api/health').then(r => r.json());
-    const el = document.getElementById('status-badge');
-    if (el) {
-      if (r.status === 'ok') {
-        el.textContent = '正常運作';
-        el.className = 'badge badge-soft badge-success';
-      } else {
-        el.textContent = '異常';
-        el.className = 'badge badge-soft badge-error';
-      }
-    }
-  } catch {
-    const el = document.getElementById('status-badge');
-    if (el) {
-      el.textContent = '無法連線';
-      el.className = 'badge badge-soft badge-error';
-    }
-  }
-}
-updateStatus();
-`;
+/** navbar 服務狀態 badge 由 Alpine 元件（routes/static/app.js 的 statusBadge）處理 */
 
 /**
  * Layout 元件 — 提供完整的 HTML 外殼（navbar + 主要區塊 + footer）
@@ -78,7 +54,7 @@ export const Layout = async ({ title, children, lang }: { title: string; childre
         </div>
         <div class="flex-none flex items-center gap-2">
           <span class="text-xs text-base-content/50 hidden sm:inline">服務狀態</span>
-          <span id="status-badge" class="badge badge-soft badge-warning">檢查中…</span>
+          <span x-data="statusBadge" x-init="check()" class="badge badge-soft" x-bind:class="badgeClass" x-text="badgeText">檢查中…</span>
         </div>
       </div>
 
@@ -90,12 +66,17 @@ export const Layout = async ({ title, children, lang }: { title: string; childre
         WebCube2027 — Data Gateway
       </footer>
 
-      <script>{raw(STATUS_SCRIPT)}</script>
+      {/* Alpine 載入順序：元件註冊檔（在前）→ runtime（在後） */}
+      {raw(alpineScripts('/static/app.js'))}
     </body>
   </html>
   );
   // 第一輪：掃描完整 shell（含 Layout 與 children）的 class → 生成 CSS
-  css = await generatePageCss(renderToString(shell()));
+  // safelist 補上僅由外部 Alpine 元件檔（app.js）動態套用的 class，
+  // 確保即使不出現在頁面 HTML 中也有對應 CSS。
+  css = await generatePageCss(renderToString(shell()), {
+    safelist: ['badge-success', 'badge-error', 'badge-warning', 'text-error', 'text-warning'],
+  });
   // 第二輪：回傳已內聯 CSS 的 JSX 樹
   return shell();
 };
