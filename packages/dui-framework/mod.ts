@@ -12,8 +12,23 @@ import { traceStorage } from '@dui/util/common/logger';
 
 // ─── Re-exports ──────────────────────────────────────────────
 
-export type { PermissionMap } from './permission.ts';
-export { mergePermissions } from './permission.ts';
+export type { PermissionMap, LevelPermission, CollectionPermission, PermissionValue } from './permission.ts';
+export {
+  mergePermissions,
+  checkAccess,
+  checkPermission,
+  extractCollection,
+} from './permission.ts';
+export {
+  loadSeeds,
+  computeSeedsHash,
+  detectSeedLevels,
+  syncSeeds,
+  syncAllSeeds,
+  seedHashKey,
+} from './seed-sync.ts';
+export type { SeedLevel, SeedKV, SyncSeedsOptions, SyncSeedsResult } from './seed-sync.ts';
+export { generatePageCss, UNOCSS_THEME_COLORS, COMPONENT_CSS } from './unocss.ts';
 
 // ─── Gateway 物件型別 ───────────────────────────────────────
 
@@ -75,7 +90,7 @@ export async function createGateway(options: CreateGatewayOptions): Promise<Gate
 
   // 計算路徑
   const dataDir = `${dirname}/data`;
-  const routesDir = `${dirname}/routes`;
+  const routesDir = new URL(`${dirname}/routes/`, 'file:///');
 
   // 載入 Hono 應用程式（含檔案路由或空白 app）
   let app: Hono;

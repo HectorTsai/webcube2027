@@ -1,2 +1,2 @@
-import { handleL1Patch } from '../../../../utils/l1-crud.ts';
-export const PATCH = handleL1Patch;
+import { handlePatch } from '../../../../utils/crud.ts';
+export const PATCH = (c: any) => handlePatch(c, { layer: 'L1' });

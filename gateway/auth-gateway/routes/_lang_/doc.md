@@ -69,7 +69,7 @@
 1. 檢查是否已安裝（已安裝則拒絕重複安裝）
 2. 以 `master_key` 向 data-gateway 註冊（宣告 `使用者`、`角色` 兩 collection 的讀／寫權限），取得專屬 API Key
 3. 寫入 L1（`data_gateway_url`、`data_gateway_api_key`）
-4. 寫入 L1/L2 seed（角色與使用者種子資料，已存在則跳過，冪等）
+4. 寫入 L1/L2 seed（以內容 hash 比對版本，依 collection:model 分組以批次 PUT 覆寫）
 5. 以 bcryptjs 雜湊密碼，透過 L2 CRUD 建立超管理者帳號（角色 `使用者:角色:超級管理員`）
 
 > 已安裝後再次呼叫回傳 **`400`** `{"success":false,"error":"auth-gateway 已完成安裝。若需重新安裝，請清除 L1 資料。"}`

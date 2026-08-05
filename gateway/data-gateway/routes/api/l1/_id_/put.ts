@@ -1,2 +1,2 @@
-import { handleL1Update } from '../../../../utils/l1-crud.ts';
-export const PUT = handleL1Update;
+import { handleUpdate } from '../../../../utils/crud.ts';
+export const PUT = (c: any) => handleUpdate(c, { layer: 'L1' });

@@ -137,8 +137,9 @@ export class SqliteAdapter implements DatabaseAdapter {
       const collection = id.split(':')[0];
       if (!isSafeIdentifier(collection)) return Promise.resolve(false);
       const stmt = this.db.prepare(`DELETE FROM "${collection}" WHERE id = ?;`);
-      stmt.run(id);
-      return Promise.resolve(true);
+      const res = stmt.run(id);
+      // 依實際刪除的列數判斷是否存在（與 mssql/mongodb 等其他 adapter 語意一致）
+      return Promise.resolve(res.changes > 0);
     } catch {
       return Promise.resolve(false);
     }

@@ -1,2 +1,2 @@
-import { handleL1Delete } from '../../../../utils/l1-crud.ts';
-export const DELETE = handleL1Delete;
+import { handleDelete } from '../../../../utils/crud.ts';
+export const DELETE = (c: any) => handleDelete(c, { layer: 'L1' });

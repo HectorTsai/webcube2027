@@ -1,2 +1,2 @@
-import { handleL1Collection } from '../../../../../utils/l1-crud.ts';
-export const GET = handleL1Collection;
+import { handleCollection } from '../../../../utils/crud.ts';
+export const GET = (c: any) => handleCollection(c, { layer: 'L1' });

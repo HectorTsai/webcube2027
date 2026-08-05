@@ -1,6 +1,6 @@
 {
   "name": "@dui/database",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "exports": {
     ".": "./mod.ts",
     "./adapter-pool": "./adapter-pool.ts",

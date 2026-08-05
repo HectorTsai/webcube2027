@@ -11,8 +11,8 @@
  */
 
 import type { Context } from 'hono';
+import { syncAllSeeds } from '@dui/framework';
 import { getConfig } from '../../../utils/config.ts';
-import { loadSeedsRecursive } from '../../../database/seed-loader.ts';
 import { 使用者, type 使用者介面 } from '../../../database/models/使用者.ts';
 import { 角色, type 角色介面 } from '../../../database/models/角色.ts';
 import { MultilingualString } from '@dui/smartmultilingual';
@@ -28,6 +28,7 @@ function splitId(id: string): { collection: string; model: string } | null {
 /**
  * 依 composite ID 建立對應 Model 實體（補齊預設值），
  * 非 使用者 collection 的記錄直接回傳原始資料。
+ * 作為 seed 同步的 prepare 鉤子。
  */
 function instantiateRecord(record: Record<string, unknown>): Record<string, unknown> {
   const seg = splitId(record.id as string);
@@ -40,48 +41,6 @@ function instantiateRecord(record: Record<string, unknown>): Record<string, unkn
     return new 使用者(record as unknown as Partial<使用者介面>).toJSON() as unknown as Record<string, unknown>;
   }
   return record;
-}
-
-/**
- * 將 seed 記錄逐筆寫入指定層級（L1/L2）的 CRUD API。
- * 已存在（409）視為成功（冪等）。
- */
-async function writeSeeds(
-  baseUrl: string,
-  apiKey: string,
-  level: 'L1' | 'L2',
-): Promise<void> {
-  const records = await loadSeedsRecursive(level);
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    'X-API-Key': apiKey,
-  };
-
-  for (const record of records) {
-    const id = record.id as string;
-    const seg = splitId(id);
-    if (!seg) {
-      await logError('AuthGateway', `[seed ${level}] 跳過無效 id：${id}`);
-      continue;
-    }
-
-    const url = `${baseUrl}/api/${level.toLowerCase()}/${seg.collection}/${seg.model}`;
-    try {
-      // 先建立 Model 實體（補齊預設值）再送出
-      const payload = instantiateRecord(record);
-      const r = await fetch(url, { method: 'POST', headers, body: JSON.stringify(payload) });
-      const res = await r.json();
-      if (res.success) {
-        await info('AuthGateway', `[seed ${level}] 已建立：${id}`);
-      } else if (r.status === 409 || /已存在/.test(res.error || '')) {
-        await info('AuthGateway', `[seed ${level}] 已存在，跳過：${id}`);
-      } else {
-        await logError('AuthGateway', `[seed ${level}] 寫入失敗 ${id}：${res.error}`);
-      }
-    } catch (err) {
-      await logError('AuthGateway', `[seed ${level}] 寫入例外 ${id}：${err instanceof Error ? err.message : String(err)}`);
-    }
-  }
 }
 
 export async function POST(c: Context) {
@@ -150,9 +109,14 @@ export async function POST(c: Context) {
     await info('AuthGateway', `data-gateway URL 已設定：${data_gateway_url}`);
     await info('AuthGateway', '已向 data-gateway 註冊並取得 API Key');
 
-    // ── 3. 寫入 L1/L2 seed（冪等，已存在跳過） ──
-    await writeSeeds(baseUrl, apiKey, 'L1');
-    await writeSeeds(baseUrl, apiKey, 'L2');
+    // ── 3. 寫入 L1/L2 seed（內容 hash 比對版本，版本不同時 PUT 覆寫） ──
+    await syncAllSeeds({
+      seedsRoot: new URL('../../../database/seeds/', import.meta.url),
+      store: config,
+      baseUrl,
+      apiKey,
+      prepare: instantiateRecord,
+    });
 
     // ── 4. 建立超管理者帳號（角色：超級管理員）──
     const bcrypt = (await import('bcryptjs')) as any;

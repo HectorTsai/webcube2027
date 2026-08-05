@@ -1,2 +1,2 @@
-import { handleL1Create } from '../../../../../utils/l1-crud.ts';
-export const POST = handleL1Create;
+import { handleCreate } from '../../../../../utils/crud.ts';
+export const POST = (c: any) => handleCreate(c, { layer: 'L1' });
