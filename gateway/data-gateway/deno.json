@@ -2,8 +2,7 @@
   "version": "0.8.0",
   "tasks": {
     "dev": "deno run --allow-all --env --watch main.ts",
-    "start": "deno run --allow-all --env main.ts",
-    "build:css": "deno run -A --node-modules-dir npm:@tailwindcss/cli@^4.3.3 -i routes/css/input.css -o routes/css/output.css"
+    "start": "deno run --allow-all --env main.ts"
   },
   "compilerOptions": {
     "jsx": "precompile",
@@ -20,9 +19,8 @@
     "@dui/framework/api-console": "./../../packages/dui-framework/api-console.ts",
     "@dui/smartmultilingual": "./../../packages/dui-multilanguage/mod.ts",
     "marked": "npm:marked@^15.0.0",
-    "@tailwindcss/cli": "npm:@tailwindcss/cli@^4.3.3",
-    "tailwindcss": "npm:tailwindcss@^4.3.3",
-    "@tailwindcss/typography": "npm:@tailwindcss/typography",
-    "daisyui": "npm:daisyui@^5.6.18"
+    "@unocss/core": "npm:@unocss/core@^66.6.7",
+    "@unocss/preset-wind4": "npm:@unocss/preset-wind4@^66.6.7",
+    "@unocss/preset-typography": "npm:@unocss/preset-typography@^66.6.7"
   }
 }

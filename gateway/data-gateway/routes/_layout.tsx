@@ -12,6 +12,7 @@
 import { renderToString } from 'hono/jsx/dom/server';
 import { jsx } from 'hono/jsx';
 import { raw } from 'hono/html';
+import { generatePageCss } from '@dui/framework';
 
 const ICON_SVG =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M4 7v10c0 2 4 3 8 3s8-1 8-3V7M4 7c0-2 4-3 8-3s8 1 8 3M4 7c0 2 4 3 8 3s8-1 8-3'/%3E%3C/svg%3E";
@@ -50,14 +51,19 @@ updateStatus();
  */
 export const Layout = async ({ title, children, lang }: { title: string; children: any; lang?: string }) => {
   const prefix = `/${lang || 'zh-tw'}`;
-  return (
+  // children 可能是 JSX 樹（.tsx 頁面）或字串；統一先渲染成 HTML 供掃描 class
+  const childrenHtml = typeof children === 'string' ? children : renderToString(children);
+  // 兩段式渲染：第一輪以空 <style> 輸出完整 HTML（含 Layout shell 自己的
+  // navbar/body 工具類），掃描所有 class 生成 CSS；第二輪回傳含 CSS 的樹。
+  let css = '';
+  const shell = () => (
   <html lang={lang || 'zh-TW'} data-theme="light">
     <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title>{title} — Data Gateway</title>
       <link rel="icon" type="image/svg+xml" href={ICON_SVG} />
-      <link href="/css/output.css" rel="stylesheet" />
+      <style>{raw(css)}</style>
     </head>
     <body class="min-h-screen bg-base-200 flex flex-col">
       <div class="navbar bg-base-100/80 backdrop-blur-sm shadow-xs border-b border-base-200 px-6 sticky top-0 z-10">
@@ -77,7 +83,7 @@ export const Layout = async ({ title, children, lang }: { title: string; childre
       </div>
 
       <main class="flex-1">
-        {children}
+        {raw(childrenHtml)}
       </main>
 
       <footer class="text-center text-base-content/25 text-xs py-4">
@@ -88,6 +94,10 @@ export const Layout = async ({ title, children, lang }: { title: string; childre
     </body>
   </html>
   );
+  // 第一輪：掃描完整 shell（含 Layout 與 children）的 class → 生成 CSS
+  css = await generatePageCss(renderToString(shell()));
+  // 第二輪：回傳已內聯 CSS 的 JSX 樹
+  return shell();
 };
 
 /**

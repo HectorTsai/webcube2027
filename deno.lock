@@ -31,7 +31,9 @@
     "npm:@tailwindcss/cli@^4.3.3": "4.3.3",
     "npm:@tailwindcss/typography@*": "0.5.20_tailwindcss@4.3.3",
     "npm:@unocss/core@^66.6.7": "66.7.5",
+    "npm:@unocss/preset-typography@^66.6.7": "66.7.5",
     "npm:@unocss/preset-wind3@^66.6.7": "66.7.5",
+    "npm:@unocss/preset-wind4@^66.6.7": "66.7.5",
     "npm:@unocss/rule-utils@^66.6.8": "66.7.5",
     "npm:bcryptjs@^2.4.3": "2.4.3",
     "npm:daisyui@^5.6.18": "5.7.4",
@@ -1076,11 +1078,26 @@
         "@unocss/rule-utils"
       ]
     },
+    "@unocss/preset-typography@66.7.5": {
+      "integrity": "sha512-2dxC8LT9KYa29UZT4muDFl7DbIXvKktTfeSMbUGMdZKbHcuMtKSP2U52wti1PL5I9duqp4v+8G33EeVutGTUaQ==",
+      "dependencies": [
+        "@unocss/core",
+        "@unocss/rule-utils"
+      ]
+    },
     "@unocss/preset-wind3@66.7.5": {
       "integrity": "sha512-atFe/7Qein+oMdyZs0hEo+3EjV99Av2LVxDbzpCungxIfbS3TnQt70EIuHXMPNCVWLYwrMV+/P1n9Ntb0E3mow==",
       "dependencies": [
         "@unocss/core",
         "@unocss/preset-mini",
+        "@unocss/rule-utils"
+      ]
+    },
+    "@unocss/preset-wind4@66.7.5": {
+      "integrity": "sha512-n3jIvQv8x1jXpmWfvNFBIqHNARki4mKZXfxAA31gekpXsRRTg16u1+yC1+PBBJgoEDFEnnmKnG7EZP88S8LVXA==",
+      "dependencies": [
+        "@unocss/core",
+        "@unocss/extractor-arbitrary-variants",
         "@unocss/rule-utils"
       ]
     },
@@ -2487,7 +2504,10 @@
   "workspace": {
     "dependencies": [
       "jsr:@hono/hono@^4.12.31",
-      "jsr:@std/text@^1.0.19"
+      "jsr:@std/text@^1.0.19",
+      "npm:@unocss/core@^66.6.7",
+      "npm:@unocss/preset-typography@^66.6.7",
+      "npm:@unocss/preset-wind4@^66.6.7"
     ],
     "members": {
       "gateway/ai-gateway": {
@@ -2501,22 +2521,20 @@
       "gateway/auth-gateway": {
         "dependencies": [
           "jsr:@hono/hono@^4.12.31",
-          "npm:@tailwindcss/cli@^4.3.3",
-          "npm:@tailwindcss/typography@*",
+          "npm:@unocss/core@^66.6.7",
+          "npm:@unocss/preset-typography@^66.6.7",
+          "npm:@unocss/preset-wind4@^66.6.7",
           "npm:bcryptjs@^2.4.3",
-          "npm:daisyui@^5.6.18",
-          "npm:marked@15",
-          "npm:tailwindcss@^4.3.3"
+          "npm:marked@15"
         ]
       },
       "gateway/data-gateway": {
         "dependencies": [
           "jsr:@hono/hono@^4.12.31",
-          "npm:@tailwindcss/cli@^4.3.3",
-          "npm:@tailwindcss/typography@*",
-          "npm:daisyui@^5.6.18",
-          "npm:marked@15",
-          "npm:tailwindcss@^4.3.3"
+          "npm:@unocss/core@^66.6.7",
+          "npm:@unocss/preset-typography@^66.6.7",
+          "npm:@unocss/preset-wind4@^66.6.7",
+          "npm:marked@15"
         ]
       },
       "gateway/render-gateway": {
@@ -2558,10 +2576,10 @@
       "packages/dui-framework": {
         "dependencies": [
           "jsr:@hono/hono@^4.12.31",
-          "npm:@tailwindcss/cli@^4.3.3",
-          "npm:daisyui@^5.6.18",
-          "npm:marked@15",
-          "npm:tailwindcss@^4.3.3"
+          "npm:@unocss/core@^66.6.7",
+          "npm:@unocss/preset-typography@^66.6.7",
+          "npm:@unocss/preset-wind4@^66.6.7",
+          "npm:marked@15"
         ]
       },
       "packages/dui-multilanguage": {

@@ -6,7 +6,6 @@
  */
 
 import { renderToString } from 'hono/jsx/dom/server';
-import { jsx } from 'hono/jsx';
 import { raw } from 'hono/html';
 import { sign, verify } from 'hono/jwt';
 import { getKeys } from '../../../utils/keys.ts';
@@ -143,11 +142,10 @@ export const GET = async (c: any) => {
     }
   }
 
-  // 透過 Layout 渲染完整頁面
+  // 透過 Layout 渲染完整頁面（Layout 為 async，需先 await 取得純 JSX 樹再 renderToString）
   const { Layout } = await import('../../_layout.tsx');
   const content = LoginContent({ lang });
-  const html = '<!DOCTYPE html>' + renderToString(
-    jsx(Layout, { title: '登入', lang, children: content }),
-  );
+  const layoutElement = await Layout({ title: '登入', lang, children: content });
+  const html = '<!DOCTYPE html>' + renderToString(layoutElement);
   return c.html(html);
 };
