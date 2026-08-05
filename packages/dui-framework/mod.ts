@@ -108,3 +108,5 @@ export { Hono } from 'hono';
 export type { MiddlewareFn } from './route-loader.ts';
 // Re-export permission utilities (role permission types + helpers)
 export * from './permission.ts';
+// Re-export dynamic UnoCSS engine (theme colors, component CSS, page CSS generator)
+export { generatePageCss, UNOCSS_THEME_COLORS, COMPONENT_CSS } from './unocss.ts';
