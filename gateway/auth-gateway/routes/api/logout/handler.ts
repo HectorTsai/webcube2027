@@ -9,7 +9,10 @@
  */
 
 import type { Context } from 'hono';
+import { verify } from 'hono/jwt';
 import { getConfig } from '../../../utils/config.ts';
+import { getKeys } from '../../../utils/keys.ts';
+import { accountPool } from '../../../services/account-pool.ts';
 
 /** 登出失敗時的預設導向 */
 const DEFAULT_REDIRECT = '/';
@@ -63,6 +66,20 @@ function clearJwtCookie(c: Context): void {
 }
 
 export async function logoutHandler(c: Context) {
+  // 先從 cookie 讀取 JWT 資訊（清除前），再清除 cookie
+  const jwtToken = (c.req.header('Cookie') || '').match(/jwt=([^;]+)/)?.[1];
+
+  if (jwtToken) {
+    try {
+      const { publicKey } = getKeys();
+      const payload = await verify(decodeURIComponent(jwtToken), publicKey, 'EdDSA') as Record<string, unknown>;
+      const 帳號 = payload.帳號 as string;
+      const tenant = payload.tenant as string | undefined;
+      const layer = tenant ? 'L3' : 'L2';
+      if (帳號) accountPool.recordLogout(帳號, tenant, layer);
+    } catch { /* JWT 解析失敗則不記錄登出 */ }
+  }
+
   clearJwtCookie(c);
 
   const { target, markLogout } = await resolveRedirect(c);

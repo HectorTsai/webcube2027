@@ -1,5 +1,5 @@
 // 種子資料讀取器 — 從 database/seeds/ 載入初始資料
-// 與 render-gateway 的 seed-loader 不同，data-gateway 不做 Model 實例化
+// 與 render-gateway 的 seed-loader 不同，auth-gateway 不做 Model 實例化
 // 直接回傳 JSON 資料陣列，由呼叫端寫入資料庫
 
 /** 讀取指定子路徑下的所有 JSON 種子檔案 */

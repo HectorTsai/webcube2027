@@ -226,7 +226,8 @@ export async function generatePageCss(html: string): Promise<string> {
   const { css } = await gen.generate(html);
   const full = `${COMPONENT_CSS}\n${css}`;
 
-  if (cssCache.size >= CSS_CACHE_MAX) cssCache.clear();
+  // LRU 淘汰：僅刪除最舊一筆，避免快取瞬間全清導致大量重複計算
+if (cssCache.size >= CSS_CACHE_MAX) cssCache.delete(cssCache.keys().next().value as string);
   cssCache.set(key, full);
   return full;
 }

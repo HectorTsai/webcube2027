@@ -1,112 +1,109 @@
-// @dui/framework — Application framework for WebCube2027 gateways
-//
-// Provides:
-//   - Hono HTTP server with file-based routing
-//   - Convenient gateway lifecycle (create → start)
-//
-// Usage (in each gateway's main.ts):
-//
-//   import { createGateway } from '@dui/framework';
-//
-//   const gw = await createGateway({
-//     name: 'my-gateway',
-//     port: 8000,
-//     dirname: import.meta.dirname!,   // ← your gateway's directory
-//   });
-//
-//   // gw.app  — Hono instance (file routes already loaded)
-//   // gw.dataDir — data/ directory path
-//   gw.start();
-//
-// Each gateway manages its own ConfigStore and crypto key lifecycle
-// via @dui/util (ConfigStore + registerKey). This package only provides
-// the HTTP server + file routing.
+/**
+ * @dui/framework — Gateway 統一框架
+ *
+ * 提供 Gateway 啟動入口 createGateway()、檔案路由系統 loadRoutes(),
+ * 以及共用前端 API Console。
+ */
 
 import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 import { loadRoutes } from './route-loader.ts';
-import { info } from '@dui/util';
+import { traceStorage } from '@dui/util/common/logger';
 
-// ── Types ──
+// ─── Re-exports ──────────────────────────────────────────────
+
+export type { PermissionMap } from './permission.ts';
+export { mergePermissions } from './permission.ts';
+
+// ─── Gateway 物件型別 ───────────────────────────────────────
+
+export interface Gateway {
+  app: Hono;
+  dataDir: string;
+  port: number;
+  start: () => void;
+}
 
 export interface CreateGatewayOptions {
-  /** Gateway name (used in logs) */
-  name: string;
-  /** HTTP port (default: 8000) */
+  /** Gateway 名稱（用於啟動日誌） */
+  name?: string;
+  /** HTTP 監聽埠號 */
   port?: number;
-  /** `import.meta.dirname` from the calling gateway's main.ts */
+  /** import.meta.dirname!，用於定位 routes/ 與 data/ 路徑 */
   dirname: string;
 }
 
-export interface Gateway {
-  /** Hono app instance (file routes already loaded) */
-  app: Hono;
-  /** Absolute path to the data directory */
-  dataDir: string;
-  /** HTTP port the gateway listens on */
-  port: number;
-  /** Start the HTTP server */
-  start(): void;
-}
-
-// ── Gateway Bootstrap ──
+// ─── 全域 Middleware ─────────────────────────────────────────
 
 /**
- * Create a fully-initialized gateway.
+ * Trace ID Middleware
  *
- * Handles:
- * 1. Data directory calculation
- * 2. Hono app with file-based routing from `{dirname}/routes/`
- *
- * Does NOT handle ConfigStore or crypto key setup — those are managed
- * by each gateway individually (see data-gateway/services/config.ts).
- *
- * @returns A `Gateway` object with `app`, `dataDir`, and `start()`.
+ * 為每個進來的請求注入 X-Request-ID / Trace ID：
+ * 1. 若 incoming request 已有 X-Request-ID header，沿用該值
+ * 2. 若無，自動以 crypto.randomUUID().slice(0, 8) 產生 8 字元短 ID
+ * 3. 以 c.set('trace_id', traceId) 注入 Hono Context
+ * 4. 在 response headers 中設定 X-Request-ID
+ * 5. 以 AsyncLocalStorage 包裹後續處理，使 Logger 自動讀取 trace_id
  */
-export async function createGateway(opts: CreateGatewayOptions): Promise<Gateway> {
-  const { name, dirname } = opts;
-  const port = opts.port ?? 8000;
+function traceIdMiddleware() {
+  return async (c: any, next: any) => {
+    const existedId = c.req.header('X-Request-ID');
+    const traceId = existedId || crypto.randomUUID().slice(0, 8);
+    c.set('trace_id', traceId);
 
-  if (!dirname) {
-    throw new Error(
-      'createGateway: dirname is required. Pass `import.meta.dirname!` from your main.ts.',
-    );
-  }
+    // 以 AsyncLocalStorage 包裹，使 Logger 在請求鏈路中自動取得 trace_id
+    await traceStorage.run(traceId, () => next());
 
+    // 確保 response 也有 X-Request-ID header
+    c.res.headers.set('X-Request-ID', traceId as string);
+  };
+}
+
+// ─── CORS Middleware ──────────────────────────────────────────
+
+function corsMiddleware() {
+  return cors({
+    origin: ['http://localhost:8000', 'http://localhost:8001', 'http://localhost:8002', 'http://localhost:8003'],
+    credentials: true,
+  });
+}
+
+// ─── createGateway ────────────────────────────────────────────
+
+export async function createGateway(options: CreateGatewayOptions): Promise<Gateway> {
+  const { dirname, name = 'gateway', port = 8000 } = options;
+
+  // 計算路徑
   const dataDir = `${dirname}/data`;
   const routesDir = `${dirname}/routes`;
 
-  // ── Hono + file router ──
-  // 直接以 loadRoutes 的結果作為 gateway app（而非包一層 app.route()）。
-  // 原因：Hono 的 route() 只會複製子 app 的 routes，不會繼承 notFoundHandler，
-  // 而 loadRoutes 的「階層降級退回（fallback）」邏輯正是住在 notFound 中——
-  // 一旦包裝，fallback 會在父 app 的預設 404 下靜默失效。
-  const routesUrl = new URL(`file://${routesDir}/`);
+  // 載入 Hono 應用程式（含檔案路由或空白 app）
   let app: Hono;
+
   try {
-    await Deno.readDir(routesUrl); // probe if directory exists
-    app = await loadRoutes(routesUrl);
-    await info(name, `File routes loaded from ${routesDir}`);
+    await Deno.readDir(routesDir);
+    app = await loadRoutes(routesDir);
   } catch {
-    // routes/ directory doesn't exist — that's OK
+    // routes/ 不存在，建立空白 Hono app
     app = new Hono();
   }
 
-  return {
+  // 註冊全域 Middleware（順序：CORS → Trace ID）
+  // Hono 的 app.use 會在路由 handler 之前執行，順序由上而下
+  app.use('*', corsMiddleware());
+  app.use('*', traceIdMiddleware());
+
+  // 回傳 Gateway 物件
+  const gateway: Gateway = {
     app,
     dataDir,
     port,
     start() {
+      const log = [`${name}`, `port=${port}`, `data=${dataDir}`];
+      console.log(`🚀 [${name}] 啟動完成 (${log.join(', ')})`);
       Deno.serve({ port }, app.fetch);
-      info(name, `Listening on port ${port}`);
     },
   };
-}
 
-// Re-export Hono for convenience
-export { Hono } from 'hono';
-// Re-export types from route-loader for external use
-export type { MiddlewareFn } from './route-loader.ts';
-// Re-export permission utilities (role permission types + helpers)
-export * from './permission.ts';
-// Re-export dynamic UnoCSS engine (theme colors, component CSS, page CSS generator)
-export { generatePageCss, UNOCSS_THEME_COLORS, COMPONENT_CSS } from './unocss.ts';
+  return gateway;
+}

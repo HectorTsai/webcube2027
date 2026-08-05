@@ -14,6 +14,7 @@
  */
 
 import { renderToString } from 'hono/jsx/dom/server';
+
 import { Hono, Context, type Next } from 'hono';
 import { jsx } from 'hono/jsx';
 import { SUPPORTED_LANGUAGES, SUPPORTED_LANGUAGE_SET } from '@dui/smartmultilingual';

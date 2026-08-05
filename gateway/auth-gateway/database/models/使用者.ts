@@ -1,4 +1,4 @@
-import { BaseModel, BaseModelInterface } from "@dui/database/base-model";
+import { BaseModel, BaseModelInterface } from "@dui/database";
 import { MultilingualString } from "@dui/smartmultilingual";
 export interface 使用者介面 extends BaseModelInterface {
   /** Composite ID，格式為 使用者:使用者:{username}，如 使用者:使用者:訪客 */

@@ -1,68 +1,60 @@
 /**
- * gwFetch — 跨 Gateway HTTP 請求（自動攜帶語言、租戶與身份 context）
+ * gwFetch — 跨 Gateway HTTP 客戶端
  *
- * 所有後端內網呼叫其他 gateway 都應透過此函式，確保目標 gateway
- * 能正確識別當前請求的語言（Accept-Language）、租戶（X-Tenant）與身份（Cookie JWT）。
+ * 封裝 Deno 原生 fetch，自動攜帶目前請求的 Context 資訊，
+ * 使目標 Gateway 能正確識別來源請求的語言、租戶、身份與追蹤碼。
  *
- * @example
- * ```ts
- * import { gwFetch } from '@dui/util';
- *
- * // 在 API handler 中
- * const dataGwUrl = await getDataGatewayUrl();
- * const res = await gwFetch(c, dataGwUrl, '/api/l2/使用者/使用者');
- * const json = await res.json();
- * ```
+ * 自動攜帶的 Headers：
+ *   - Accept-Language: c.get('lang')
+ *   - X-Tenant: c.get('tenant')
+ *   - Cookie: c.req.header('Cookie')（維持 JWT 登入狀態）
+ *   - X-Request-ID: c.get('trace_id')（分散式追蹤）
+ *   - Content-Type: 若 options 有 body 且未指定時，預設 application/json
  */
 
 import type { Context } from 'hono';
 
-/**
- * 跨 Gateway HTTP 請求
- *
- * @param c 當前請求的 Hono Context（用於提取語言 c.get('lang')、租戶 c.get('tenant')、身份 Cookie）
- * @param baseUrl 目標 gateway 的 base URL（如 http://localhost:8002）
- * @param path API 路徑（如 /api/l2/使用者/使用者, /api/setup）
- * @param options 額外的 fetch 選項（method、body、headers 等）
- * @returns Response（與原生 fetch 相同，呼叫方自行解析）
- */
 export async function gwFetch(
   c: Context,
   baseUrl: string,
   path: string,
   options?: RequestInit,
 ): Promise<Response> {
-  // ── 1. 組合 URL ──
-  const url = `${baseUrl.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
-
-  // ── 2. 合併 headers ──
+  // 合併 headers
   const headers = new Headers(options?.headers);
 
-  // 自動攜帶語言（根 middleware 應已注入 c.set('lang', ...)）
+  // 語言
   const lang = c.get('lang') as string | undefined;
   if (lang && !headers.has('Accept-Language')) {
     headers.set('Accept-Language', lang);
   }
 
-  // 自動攜帶租戶（JWT middleware 應已注入 c.set('tenant', ...)）
+  // 租戶
   const tenant = c.get('tenant') as string | undefined;
   if (tenant && !headers.has('X-Tenant')) {
     headers.set('X-Tenant', tenant);
   }
 
-  // 自動攜帶原始 Cookie（維持 JWT 身份）
+  // 身份（維持原始 Cookie）
   const cookie = c.req.header('Cookie');
   if (cookie && !headers.has('Cookie')) {
     headers.set('Cookie', cookie);
   }
 
-  // 自動補充 Content-Type（若未指定且有 body 時預設 JSON）
+  // Trace ID（分散式追蹤）
+  const traceId = c.get('trace_id') as string | undefined;
+  if (traceId && !headers.has('X-Request-ID')) {
+    headers.set('X-Request-ID', traceId);
+  }
+
+  // Content-Type 預設
   if (options?.body && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }
 
-  // ── 3. 發起請求 ──
-  return fetch(url, {
+  const url = `${baseUrl.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
+
+  return await fetch(url, {
     ...options,
     headers,
   });

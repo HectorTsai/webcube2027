@@ -1,4 +1,20 @@
+/**
+ * Logger — 日誌記錄工具
+ *
+ * 提供四種日誌層級（debug / info / warn / error），支援選擇性檔案寫入、
+ * 序列化 Promise chain 防併發鎖定、以及 Trace ID 自動輸出。
+ *
+ * 環境變數：
+ *   - LOG_LEVEL: 'debug' | 'info' | 'warn' | 'error'（預設 'info'）
+ *   - LOG_TO_FILE: 'true' 啟用檔案輸出，寫入 ./logs/app.log
+ */
+
+import { AsyncLocalStorage } from 'node:async_hooks';
+
 export type 日誌等級 = 'debug' | 'info' | 'warn' | 'error';
+
+/** 全域 AsyncLocalStorage，由 @dui/framework 的 Trace ID middleware 寫入 */
+export const traceStorage = new AsyncLocalStorage<string>();
 
 interface 日誌配置 {
   等級: 日誌等級;
@@ -25,8 +41,20 @@ class Logger {
     return this.等級順序[等級] >= this.等級順序[this.配置.等級];
   }
 
-  private 格式化訊息(等級: 日誌等級, 模組: string, 訊息: string): string {
+  /**
+   * 從 AsyncLocalStorage 取得當前請求的 trace_id
+   * 若無（非請求上下文），回傳 undefined
+   */
+  private getTraceId(): string | undefined {
+    return traceStorage.getStore();
+  }
+
+  private 格式化訊息(等級: 日誌等級, 模組: string, 訊息: string, traceId?: string): string {
     const 時間戳 = new Date().toISOString().replace('T', ' ').slice(0, 19);
+    const id = traceId || this.getTraceId();
+    if (id) {
+      return `[${時間戳}] [${等級.toUpperCase()}] [${id}] [${模組}] ${訊息}`;
+    }
     return `[${時間戳}] [${等級.toUpperCase()}] [${模組}] ${訊息}`;
   }
 
@@ -42,10 +70,10 @@ class Logger {
     return this.logQueue;
   }
 
-  private async 記錄(等級: 日誌等級, 模組: string, 訊息: string): Promise<void> {
+  private async 記錄(等級: 日誌等級, 模組: string, 訊息: string, traceId?: string): Promise<void> {
     if (!this.應該記錄(等級)) return;
 
-    const 格式化訊息 = this.格式化訊息(等級, 模組, 訊息);
+    const 格式化訊息 = this.格式化訊息(等級, 模組, 訊息, traceId);
 
     switch (等級) {
       case 'debug':
@@ -65,20 +93,20 @@ class Logger {
     await this.寫入檔案(格式化訊息);
   }
 
-  debug(模組: string, 訊息: string): Promise<void> {
-    return this.記錄('debug', 模組, 訊息);
+  debug(模組: string, 訊息: string, traceId?: string): Promise<void> {
+    return this.記錄('debug', 模組, 訊息, traceId);
   }
 
-  info(模組: string, 訊息: string): Promise<void> {
-    return this.記錄('info', 模組, 訊息);
+  info(模組: string, 訊息: string, traceId?: string): Promise<void> {
+    return this.記錄('info', 模組, 訊息, traceId);
   }
 
-  warn(模組: string, 訊息: string): Promise<void> {
-    return this.記錄('warn', 模組, 訊息);
+  warn(模組: string, 訊息: string, traceId?: string): Promise<void> {
+    return this.記錄('warn', 模組, 訊息, traceId);
   }
 
-  error(模組: string, 訊息: string): Promise<void> {
-    return this.記錄('error', 模組, 訊息);
+  error(模組: string, 訊息: string, traceId?: string): Promise<void> {
+    return this.記錄('error', 模組, 訊息, traceId);
   }
 }
 
@@ -96,7 +124,7 @@ function 初始化Logger(): Logger {
 
 export const logger = 初始化Logger();
 
-export const debug = (模組: string, 訊息: string) => logger.debug(模組, 訊息);
-export const info = (模組: string, 訊息: string) => logger.info(模組, 訊息);
-export const warn = (模組: string, 訊息: string) => logger.warn(模組, 訊息);
-export const error = (模組: string, 訊息: string) => logger.error(模組, 訊息);
+export const debug = (模組: string, 訊息: string, traceId?: string) => logger.debug(模組, 訊息, traceId);
+export const info = (模組: string, 訊息: string, traceId?: string) => logger.info(模組, 訊息, traceId);
+export const warn = (模組: string, 訊息: string, traceId?: string) => logger.warn(模組, 訊息, traceId);
+export const error = (模組: string, 訊息: string, traceId?: string) => logger.error(模組, 訊息, traceId);

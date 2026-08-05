@@ -11,6 +11,9 @@ function bytesToHex(bytes: Uint8Array): string {
 }
 
 function hexToBytes(hex: string): Uint8Array<ArrayBuffer> {
+  if (!/^[0-9a-fA-F]+$/.test(hex) || hex.length % 2 !== 0) {
+    throw new Error(`無效的 hex 字串：長度 ${hex.length}，格式不符`);
+  }
   const bytes = new Uint8Array(hex.length / 2);
   for (let i = 0; i < hex.length; i += 2) {
     bytes[i / 2] = parseInt(hex.slice(i, i + 2), 16);

@@ -19,15 +19,13 @@ export function getConfig(): ConfigStore {
   return _config;
 }
 
-/** 取得 data-gateway URL，依序：ConfigStore → env var */
-export async function getDataGatewayUrl(): Promise<string> {
+/** 取得 data-gateway URL，依序：ConfigStore → env var；兩者皆無則回傳 null */
+export async function getDataGatewayUrl(): Promise<string | null> {
   try {
     const stored = await _config?.get('data_gateway_url');
     if (stored) return stored;
   } catch { /* not ready */ }
-  const envUrl = Deno.env.get('DATA_GATEWAY_URL');
-  if (envUrl) return envUrl;
-  throw new Error('data-gateway URL 尚未設定。請先完成安裝或設定 DATA_GATEWAY_URL 環境變數。');
+  return Deno.env.get('DATA_GATEWAY_URL') || null;
 }
 
 /** 取得 data-gateway API Key（安裝時註冊取得） */

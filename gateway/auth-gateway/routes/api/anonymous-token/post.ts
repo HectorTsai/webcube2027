@@ -19,6 +19,7 @@ const VISITOR_TTL = 3600;
 /** 從 data-gateway 取得訪客角色的權限設定（改用 L2 CRUD） */
 async function getVisitorPermissions(): Promise<Record<string, unknown>> {
   const dataGatewayUrl = await getDataGatewayUrl();
+  if (!dataGatewayUrl) return {};
   const apiKey = await getDataGatewayApiKey();
   const r = await fetch(`${dataGatewayUrl}/api/l2/使用者:角色:訪客`, {
     headers: { 'X-API-Key': apiKey || '' },

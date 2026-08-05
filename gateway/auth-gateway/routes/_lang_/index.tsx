@@ -1,12 +1,63 @@
 import { raw } from 'hono/html';
 
+const SCRIPT = `
+// ── 顯示 AccountPool 狀態 ──
+async function renderAccountPoolStatus() {
+  const el = document.getElementById('account-pool-status');
+  if (!el) return;
+
+  let data;
+  try {
+    const r = await fetch('/health').then(r => r.json());
+    data = r.account_pool;
+  } catch {
+    el.innerHTML = '<p class="text-xs text-error">無法取得 pool 狀態</p>';
+    return;
+  }
+  if (!data || !data.status) {
+    el.innerHTML = '<p class="text-xs text-base-content/50">尚未初始化</p>';
+    return;
+  }
+
+  const s = data.status;
+   const hitRate = (s.hitRate * 100).toFixed(1);
+   const frozenCount = data.frozen_count ?? 0;
+
+   const stat = (label, value, ok) => \`
+     <div class="flex flex-col items-center gap-0.5 rounded-lg border border-base-200 bg-base-100/60 py-2">
+       <span class="text-sm font-bold \${ok === false ? 'text-error' : ''}">\${value}</span>
+       <span class="text-[10px] text-base-content/40">\${label}</span>
+     </div>\`;
+
+   const items = (data.items || []).map(it => {
+     const badges = [];
+     if (it.isDirty) badges.push('<span class="badge badge-soft badge-warning badge-xs">待 flush</span>');
+     return \`<div class="flex items-center justify-between gap-2 rounded-lg border border-base-200 bg-base-100/60 px-3 py-2">
+       <div class="flex items-center gap-2 min-w-0">
+         <span class="font-mono text-xs truncate">\${it.key}</span>
+         \${badges.join('')}
+       </div>
+       <span class="text-[10px] text-base-content/40 shrink-0">閒置 \${Math.max(0, Math.round((it as any).idleMs / 1000))}s</span>
+     </div>\`;
+   }).join('') || '<p class="text-xs text-base-content/40">目前無快取帳號</p>';
+
+   el.innerHTML = \`
+     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+       \${stat('快取數', s.totalItems)}
+       \${stat('凍結中', frozenCount, frozenCount > 0 ? false : undefined)}
+       \${stat('命中率', hitRate + '%')}
+       \${stat('待 flush', s.dirtyItems, s.dirtyItems > 0 ? false : undefined)}
+     </div>
+     \${s.isFlushing ? '<p class="text-xs text-warning mt-2">正在 flush…</p>' : ''}
+     <div class="space-y-1.5 mt-3">\${items}</div>\`;
+}
+
+renderAccountPoolStatus();
+`;
+
 const Page = (c: any) => {
   const lang = c?.get?.('lang') || 'zh-tw';
   const prefix = `/${lang}`;
-
-  // 從 L1 或環境變數取得 data-gateway URL
-  let dataGwUrl = Deno.env.get('DATA_GATEWAY_URL');
-  // (在首次渲染時無法 await，使用客戶端 JS 動態取得 data-gateway URL)
 
   return (
     <div class="relative overflow-x-hidden w-full">
@@ -51,6 +102,22 @@ const Page = (c: any) => {
                 </a>
               </div>
 
+            </div>
+          </div>
+
+          {/* ── 帳號快取狀態卡 ── */}
+          <div class="card bg-base-100/90 backdrop-blur-sm shadow-md border border-base-200">
+            <div class="card-body py-5 px-6 gap-4">
+              <div class="flex items-center justify-between">
+                <h2 class="font-bold">帳號快取狀態</h2>
+                <span class="text-xs text-base-content/40">AccountPool · 5 次失敗自動凍結 10 分鐘</span>
+              </div>
+              <div id="account-pool-status">
+                <div class="flex items-center gap-2 text-xs text-base-content/50">
+                  <span class="loading loading-spinner loading-xs"></span>
+                  讀取中…
+                </div>
+              </div>
             </div>
           </div>
 
@@ -115,6 +182,9 @@ const Page = (c: any) => {
 
         </div>
       </div>
+
+      {/* ── AccountPool 狀態渲染函式 ── */}
+      <script>{raw(SCRIPT)}</script>
 
       {/* ── 動態設定 data-gw-link ── */}
       <script>{raw(`

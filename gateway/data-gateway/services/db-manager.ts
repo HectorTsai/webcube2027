@@ -82,6 +82,9 @@ export class DbManager {
   //  L3 — Tenant (per-host)
   // ═══════════════════════════════════════════════
 
+  /** 防止同 host 重複初始化的併發鎖 */
+  private connectingPromises = new Map<string, Promise<DatabaseAdapter | null>>();
+
   /**
    * Initialize an L3 tenant connection for a given host.
    *
@@ -92,6 +95,9 @@ export class DbManager {
    * - REDIRECT：不需 L3，直接回傳 null
    * - MIRROR：解析 `設定.mirror_host` 指向來源網站的 L3 連線
    * - PUBLIC / PRIVATE：使用自己的 L3 連線
+   *
+   * 併發安全：同 host 的同時請求只會執行一次初始化，
+   * 後續請求直接 await 已存在的 Promise。
    */
   async initL3(host: string): Promise<DatabaseAdapter | null> {
     const system = pool.get('SYSTEM');
@@ -100,8 +106,24 @@ export class DbManager {
     }
 
     const existing = pool.get(host);
-    if (existing) return existing; // already connected
+    if (existing) return existing;
 
+    // 併發鎖：同 host 正在初始化中 → 直接等待
+    const pending = this.connectingPromises.get(host);
+    if (pending) return await pending;
+
+    // 首次初始化，建立 Promise 並存入鎖
+    const promise = this._doInitL3(host);
+    this.connectingPromises.set(host, promise);
+
+    try {
+      return await promise;
+    } finally {
+      this.connectingPromises.delete(host);
+    }
+  }
+
+  private async _doInitL3(host: string): Promise<DatabaseAdapter | null> {
     const resolved = await this.resolveL3Connection(host);
     if (!resolved) return null;
 

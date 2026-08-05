@@ -25,6 +25,8 @@ export interface AuthPayload {
   角色: string[];
   provider: string;  // "local" | "oauth:google" | ...
   權限?: Record<string, unknown>;  // 角色權限設定
+  layer?: 'L2' | 'L3';  // 使用者所在資料層
+  tenant?: string;       // 登入時的租戶（L3 使用者）
 }
 
 /** 認證 Provider 需實作的介面 */

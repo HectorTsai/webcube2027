@@ -69,8 +69,8 @@ export async function POST(c: Context) {
 
     const dataGatewayUrl = await getDataGatewayUrl();
     const apiKey = await getDataGatewayApiKey();
-    if (!apiKey) {
-      return c.json({ success: false, error: 'auth-gateway 尚未安裝，缺少 data-gateway API Key' }, 500);
+    if (!dataGatewayUrl || !apiKey) {
+      return c.json({ success: false, error: 'auth-gateway 尚未安裝，data-gateway 未就緒' }, 500);
     }
 
     const l3Headers: Record<string, string> = {

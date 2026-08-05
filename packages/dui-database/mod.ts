@@ -18,6 +18,7 @@ export type { AdapterPoolItemOverview } from './adapter-pool.ts';
 
 export type { IdInfo } from './base-model.ts';
 export { BaseModel } from './base-model.ts';
+export type { BaseModelInterface } from './base-model.ts';
 
 
 export type { L2ConnectionInfo } from './index.ts';

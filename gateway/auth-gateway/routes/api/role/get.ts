@@ -26,6 +26,9 @@ async function resolveName(
 
 export const GET = async (c: Context) => {
   const dataGatewayUrl = await getDataGatewayUrl();
+  if (!dataGatewayUrl) {
+    return c.json({ success: false, error: 'data-gateway 尚未就緒' }, 502);
+  }
   const apiKey = await getDataGatewayApiKey();
   const lang = (c.get('lang') || 'zh-tw') as SupportedLanguage;
 

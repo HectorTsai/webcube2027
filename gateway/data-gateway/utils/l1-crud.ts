@@ -8,6 +8,7 @@
  */
 
 import { getL1 } from '../services/l1-data.ts';
+import { writeAuditLog } from '../services/audit.ts';
 
 function isValidCompositeId(id: string): boolean {
   const parts = id.split(':');
@@ -142,17 +143,24 @@ export async function handleL1Create(c: any) {
       }
     }
 
+    // 計算最終 ID（未提供時自動產生）
+    const finalId = id || `${collection}:${model}:${crypto.randomUUID().slice(0, 8)}`;
+
     // 檢查是否已存在（避免覆寫）
-    const existing = await adapter.getById(id!).catch(() => null);
+    const existing = await adapter.getById(finalId).catch(() => null);
     if (existing) {
-      return c.json({ success: false, error: `L1 中已存在記錄：${id}` }, 409);
+      return c.json({ success: false, error: `L1 中已存在記錄：${finalId}` }, 409);
     }
 
-    const record = await adapter.create(
-      collection,
-      id || `${collection}:${model}:${crypto.randomUUID().slice(0, 8)}`,
-      body,
-    );
+    const record = await adapter.create(collection, finalId, body);
+    writeAuditLog({
+      操作者: (c.get('gateway_name') as string) || 'unknown',
+      動作: 'CREATE',
+      層級: 'L1',
+      目標: record.id,
+      租戶: null,
+      變更摘要: `建立 ${collection} ${model}`,
+    }).catch(() => {});
     return c.json({ success: true, data: record, source: 'L1' });
   } catch (err) {
     return c.json(
@@ -204,6 +212,14 @@ export async function handleL1Update(c: any) {
 
     const collection = id.split(':')[0];
     const record = await adapter.update(collection, id, body);
+    writeAuditLog({
+      操作者: (c.get('gateway_name') as string) || 'unknown',
+      動作: 'UPDATE',
+      層級: 'L1',
+      目標: id,
+      租戶: null,
+      變更摘要: `更新 ${collection} ${id}`,
+    }).catch(() => {});
     return c.json({ success: true, data: record, source: 'L1' });
   } catch (err) {
     return c.json(
@@ -232,6 +248,14 @@ export async function handleL1Patch(c: any) {
     if (!record) {
       return c.json({ success: false, error: '記錄不存在' }, 404);
     }
+    writeAuditLog({
+      操作者: (c.get('gateway_name') as string) || 'unknown',
+      動作: 'PATCH',
+      層級: 'L1',
+      目標: id,
+      租戶: null,
+      變更摘要: `部分更新 ${collection} ${id}`,
+    }).catch(() => {});
     return c.json({ success: true, data: record, source: 'L1' });
   } catch (err) {
     return c.json(
@@ -258,6 +282,15 @@ export async function handleL1Delete(c: any) {
     if (!ok) {
       return c.json({ success: false, error: '記錄不存在' }, 404);
     }
+    const collection = id.split(':')[0];
+    writeAuditLog({
+      操作者: (c.get('gateway_name') as string) || 'unknown',
+      動作: 'DELETE',
+      層級: 'L1',
+      目標: id,
+      租戶: null,
+      變更摘要: `刪除 ${collection} ${id}`,
+    }).catch(() => {});
     return c.json({ success: true, data: { id } });
   } catch (err) {
     return c.json(

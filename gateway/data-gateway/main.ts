@@ -2,7 +2,8 @@ import { createGateway } from '@dui/framework';
 import { info, error } from '@dui/util';
 import { initConfig, getConfig } from './services/config.ts';
 import { initL1 } from './services/l1-data.ts';
-import { DbManager, setDbManager } from './services/db-manager.ts';
+import { getDbManager, setDbManager, DbManager } from './services/db-manager.ts';
+import { initAudit } from './services/audit.ts';
 
 // ── 1. Gateway 啟動與基礎設定 ──────────────────────
 const gw = await createGateway({
@@ -20,6 +21,9 @@ await initL1(gw.dataDir);
 // ── 4. Database Manager (L2/L3 lifecycle) ────────────
 const dbm = new DbManager(config);
 setDbManager(dbm);
+
+// 初始化審計日誌（獨立 audit.db）
+await initAudit(gw.dataDir);
 
 // ── 5. L2 SYSTEM (if installed) ─────────────────────
 const connStr = await config.get('l2_connection');

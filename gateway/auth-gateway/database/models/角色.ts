@@ -1,4 +1,4 @@
-import { BaseModel, BaseModelInterface } from "@dui/database/base-model";
+import { BaseModel, BaseModelInterface } from "@dui/database";
 import { MultilingualString } from "@dui/smartmultilingual";
 import type { PermissionMap } from "@dui/framework";
 

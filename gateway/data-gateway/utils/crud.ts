@@ -11,6 +11,7 @@
  */
 
 import { getDbManager } from '../services/db-manager.ts';
+import { writeAuditLog } from '../services/audit.ts';
 
 const RESERVED_PARAMS = new Set([
   'page', 'pageSize', 'limit', 'offset', 'sort', 'order',
@@ -204,7 +205,17 @@ export async function handleCreate(c: any) {
       body,
       host,
     );
-    return c.json({ success: true, data: record, source: host ? 'L3' : 'L2' });
+    const source = host ? 'L3' : 'L2';
+    // 非同步寫入審計日誌，不阻塞回應
+    writeAuditLog({
+      操作者: (c.get('gateway_name') as string) || 'unknown',
+      動作: 'CREATE',
+      層級: source,
+      目標: record.id,
+      租戶: host || null,
+      變更摘要: `建立 ${collection} ${model}`,
+    }).catch(() => {});
+    return c.json({ success: true, data: record, source });
   } catch (err) {
     return c.json(
       { success: false, error: `新增失敗: ${err instanceof Error ? err.message : String(err)}` },
@@ -260,7 +271,16 @@ export async function handleUpdate(c: any) {
     }
 
     const record = await getDbManager().update(collection, id, body, host);
-    return c.json({ success: true, data: record, source: host ? 'L3' : 'L2' });
+    const source = host ? 'L3' : 'L2';
+    writeAuditLog({
+      操作者: (c.get('gateway_name') as string) || 'unknown',
+      動作: 'UPDATE',
+      層級: source,
+      目標: id,
+      租戶: host || null,
+      變更摘要: `更新 ${collection} ${id}`,
+    }).catch(() => {});
+    return c.json({ success: true, data: record, source });
   } catch (err) {
     return c.json(
       { success: false, error: `更新失敗: ${err instanceof Error ? err.message : String(err)}` },
@@ -292,7 +312,16 @@ export async function handlePatch(c: any) {
 
     const record = await getDbManager().patch(collection, id, body, host);
     if (record) {
-      return c.json({ success: true, data: record, source: host ? 'L3' : 'L2' });
+      const source = host ? 'L3' : 'L2';
+      writeAuditLog({
+        操作者: (c.get('gateway_name') as string) || 'unknown',
+        動作: 'PATCH',
+        層級: source,
+        目標: id,
+        租戶: host || null,
+        變更摘要: `部分更新 ${collection} ${id}`,
+      }).catch(() => {});
+      return c.json({ success: true, data: record, source });
     }
     return c.json({ success: false, error: '找不到資料或更新失敗' }, 404);
   } catch (err) {
@@ -315,7 +344,17 @@ export async function handleDelete(c: any) {
 
     const result = await getDbManager().deleteRecord(id, host);
     if (result.success) {
-      return c.json({ success: true, source: host ? 'L3' : 'L2' });
+      const collection = id.split(':')[0];
+      const source = host ? 'L3' : 'L2';
+      writeAuditLog({
+        操作者: (c.get('gateway_name') as string) || 'unknown',
+        動作: 'DELETE',
+        層級: source,
+        目標: id,
+        租戶: host || null,
+        變更摘要: `刪除 ${collection} ${id}`,
+      }).catch(() => {});
+      return c.json({ success: true, data: { id }, source });
     }
     return c.json({ success: false, error: '找不到資料或刪除失敗' }, 404);
   } catch (err) {
