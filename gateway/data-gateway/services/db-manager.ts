@@ -57,6 +57,31 @@ export class DbManager {
   }
 
   // ═══════════════════════════════════════════════
+  //  Audit — 審計日誌（常駐 sqlite）
+  // ═══════════════════════════════════════════════
+
+  /** The audit log sqlite adapter. `null` until `initAudit()` succeeds. */
+  get Audit(): DatabaseAdapter | null {
+    return pool.get('AUDIT');
+  }
+
+  /**
+   * Initialize audit log database (persistent, pooled).
+   */
+  async initAudit(dataDir: string): Promise<void> {
+    const auditPath = `${dataDir}/audit.db`;
+    const adapter = await createAdapter('sqlite', {
+      type: 'sqlite',
+      filePath: auditPath,
+      enabled: true,
+    });
+    if (!adapter) throw new Error(`Failed to create audit adapter at ${auditPath}`);
+    await adapter.initialize('審計日誌');
+    pool.set('AUDIT', adapter, false, true);
+    await info('AUDIT', `Ready (pooled, ${auditPath})`);
+  }
+
+  // ═══════════════════════════════════════════════
   //  L2 — SYSTEM
   // ═══════════════════════════════════════════════
 

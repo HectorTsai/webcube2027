@@ -4,10 +4,10 @@
  * 初始化獨立的 audit.db（SQLite），由 CRUD handler 在寫入操作成功後
  * 自動寫入審計紀錄。寫入失敗不影響主流程，僅以 console.error 記錄。
  *
- * audit.db 與 L1/L2/L3 完全隔離，不影響業務資料庫查詢效能。
+ * 底層連線已移入 AdapterPool（key: 'AUDIT', persistent），由 DbManager 管理。
  */
 
-import { createAdapter, type DatabaseAdapter } from '@dui/database';
+import { getDbManager } from './db-manager.ts';
 
 export interface AuditEntry {
   /** 操作者 Gateway 名稱（由 middleware 從 X-API-Key 解析） */
@@ -24,27 +24,11 @@ export interface AuditEntry {
   變更摘要: string;
 }
 
-let auditAdapter: DatabaseAdapter | null = null;
-
 /**
- * 初始化 audit.db
- * 在 data-gateway 啟動時呼叫（main.ts）
+ * 初始化 audit.db（委託 DbManager 註冊進 AdapterPool）
  */
 export async function initAudit(dataDir: string): Promise<void> {
-  const auditPath = `${dataDir}/audit.db`;
-  try {
-    auditAdapter = await createAdapter('sqlite', {
-      type: 'sqlite',
-      filePath: auditPath,
-      enabled: true,
-    });
-    if (auditAdapter) {
-      await auditAdapter.initialize('審計日誌');
-      console.log('[audit] 審計日誌資料庫初始化完成');
-    }
-  } catch (err) {
-    console.error('[audit] 初始化失敗:', err);
-  }
+  await getDbManager().initAudit(dataDir);
 }
 
 /**
@@ -52,10 +36,11 @@ export async function initAudit(dataDir: string): Promise<void> {
  * 由 CRUD handler 在寫入操作成功後呼叫
  */
 export async function writeAuditLog(entry: AuditEntry): Promise<void> {
-  if (!auditAdapter) return;
+  const adapter = getDbManager()?.Audit;
+  if (!adapter) return;
   try {
     const id = `審計日誌:操作:${crypto.randomUUID().slice(0, 8)}`;
-    await auditAdapter.create('審計日誌', id, {
+    await adapter.create('審計日誌', id, {
       id,
       ...entry,
       時間戳: new Date().toISOString(),

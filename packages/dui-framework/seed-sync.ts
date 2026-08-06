@@ -215,9 +215,10 @@ export async function syncSeeds(opts: SyncSeedsOptions): Promise<SyncSeedsResult
   if (tenant) headers['X-Tenant'] = tenant;
 
   const cleanBaseUrl = baseUrl.replace(/\/+$/, '');
+  const url = `${cleanBaseUrl}/api/${level.toLowerCase()}/`;
 
-  // 依 collection:model 分組，讓同組記錄共用一次批次 PUT
-  const groups = new Map<string, Record<string, unknown>[]>();
+  // 驗證 id，收集有效記錄（不再依 collection:model 分組，改由 level batch 端點自動解析）
+  const validRecords: Record<string, unknown>[] = [];
   for (const record of records) {
     const id = record.id as string;
     if (!isValidCompositeId(id)) {
@@ -226,56 +227,46 @@ export async function syncSeeds(opts: SyncSeedsOptions): Promise<SyncSeedsResult
       await logError('SeedSync', `[seed ${level}] 跳過無效 id：${id}`);
       continue;
     }
-    const [collection, model] = id.split(':');
-    const groupKey = `${collection}:${model}`;
-    const arr = groups.get(groupKey) ?? [];
-    arr.push(record);
-    groups.set(groupKey, arr);
+    validRecords.push(record);
   }
 
-  for (const [groupKey, groupRecords] of groups) {
-    const [collection, model] = groupKey.split(':');
-    const url = `${cleanBaseUrl}/api/${level.toLowerCase()}/${collection}/${model}`;
-
-    for (const chunkRecords of chunk(groupRecords, BATCH_CHUNK)) {
-      try {
-        const payload = prepare
-          ? await Promise.all(chunkRecords.map((r) => prepare(r)))
-          : chunkRecords;
-        const r = await fetch(url, { method: 'PUT', headers, body: JSON.stringify(payload) });
-        const res = await r.json().catch(() => ({}));
-        if (r.ok || res.success) {
-          const okSet = new Set<string>(res.data?.成功 ?? []);
-          const failMap: Record<string, string> = res.data?.失敗原因 ?? {};
-          for (const rec of chunkRecords) {
-            const id = rec.id as string;
-            if (okSet.has(id)) {
-              result.updated++;
-              await info('SeedSync', `[seed ${level}] 已覆寫：${id}`);
-            } else {
-              result.failed++;
-              const msg = failMap[id] || '批次中未回報';
-              result.errors.push(`${id}: ${msg}`);
-              await logError('SeedSync', `[seed ${level}] 覆寫失敗 ${id}：${msg}`);
-            }
+  for (const chunkRecords of chunk(validRecords, BATCH_CHUNK)) {
+    try {
+      const payload = prepare
+        ? await Promise.all(chunkRecords.map((r) => prepare(r)))
+        : chunkRecords;
+      const r = await fetch(url, { method: 'PUT', headers, body: JSON.stringify(payload) });
+      const res = await r.json().catch(() => ({}));
+      if (r.ok || res.success) {
+        const okSet = new Set<string>(res.data?.成功 ?? []);
+        const failMap: Record<string, string> = res.data?.失敗原因 ?? {};
+        for (const rec of chunkRecords) {
+          const id = rec.id as string;
+          if (okSet.has(id)) {
+            result.updated++;
+            await info('SeedSync', `[seed ${level}] 已覆寫：${id}`);
+          } else {
+            result.failed++;
+            const msg = failMap[id] || '批次中未回報';
+            result.errors.push(`${id}: ${msg}`);
+            await logError('SeedSync', `[seed ${level}] 覆寫失敗 ${id}：${msg}`);
           }
-        } else {
-          // 整批失敗（如權限不足、格式錯誤）
-          result.failed += chunkRecords.length;
-          const msg = res.error || r.statusText || '未知錯誤';
-          for (const rec of chunkRecords) {
-            result.errors.push(`${rec.id}: ${msg}`);
-          }
-          await logError('SeedSync', `[seed ${level}] 批次覆寫失敗 ${groupKey}：${msg}`);
         }
-      } catch (err) {
+      } else {
         result.failed += chunkRecords.length;
-        const msg = err instanceof Error ? err.message : String(err);
+        const msg = res.error || r.statusText || '未知錯誤';
         for (const rec of chunkRecords) {
           result.errors.push(`${rec.id}: ${msg}`);
         }
-        await logError('SeedSync', `[seed ${level}] 批次覆寫例外 ${groupKey}：${msg}`);
+        await logError('SeedSync', `[seed ${level}] 批次覆寫失敗：${msg}`);
       }
+    } catch (err) {
+      result.failed += chunkRecords.length;
+      const msg = err instanceof Error ? err.message : String(err);
+      for (const rec of chunkRecords) {
+        result.errors.push(`${rec.id}: ${msg}`);
+      }
+      await logError('SeedSync', `[seed ${level}] 批次覆寫例外：${msg}`);
     }
   }
 
