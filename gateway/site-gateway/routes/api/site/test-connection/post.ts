@@ -4,7 +4,7 @@
  * 直接在 site-gateway 本地使用 @dui/database 建立 adapter 並測試，
  * 不依賴 data-gateway 端點（data-gateway 沒有 test-connection API）。
  *
- * Request:  { l3: { adapter?, host?, port?, username?, password?, database?, path? } }
+ * Request:  { l3: { type?/adapter?, host?, port?, username?, password?, database?, filePath?/path? } }
  * Response: { success: true } | { success: false, error }
  */
 
@@ -19,7 +19,13 @@ export async function POST(c: Context) {
       return c.json({ success: false, error: '請提供 l3 連線設定' }, 400);
     }
 
-    const adapterType = (l3.adapter as string) || 'sqlite';
+    const adapterType = (l3.adapter as string) || (l3.type as string) || 'sqlite';
+
+    // SQLite 測試用：未指定檔名時建立系統暫存檔（避免依賴 cwd / import.meta.dirname 的相對層數）
+    const useTempFile = !(l3.filePath as string) && !(l3.path as string);
+    const tempFilePath = useTempFile
+      ? await Deno.makeTempFile({ prefix: 'webcube-conn-test-', suffix: '.db' })
+      : '';
 
     // 組裝 L2ConnectionInfo
     const info: Record<string, unknown> = {
@@ -29,8 +35,9 @@ export async function POST(c: Context) {
       ...(l3.username ? { username: l3.username } : {}),
       ...(l3.password ? { password: l3.password } : {}),
       ...(l3.database ? { database: l3.database } : {}),
-      // SQLite：測試用的暫存檔案，測試後刪除
-      path: (l3.path as string) || `./data/__connection_test__.db`,
+      ...(l3.namespace ? { namespace: l3.namespace } : {}),
+      ...(l3.credential ? { credential: l3.credential } : {}),
+      filePath: (l3.filePath as string) || (l3.path as string) || tempFilePath,
     };
 
     const adapter = await createAdapter(adapterType, info as never);
@@ -49,6 +56,11 @@ export async function POST(c: Context) {
         if (typeof anyAdapter.close === 'function') await anyAdapter.close();
         else if (typeof anyAdapter.關閉 === 'function') await anyAdapter.關閉();
       } catch { /* ignore */ }
+
+      // 使用預設暫存檔時，測試後一併刪除（使用者自填路徑則保留）
+      if (useTempFile) {
+        try { await Deno.remove(tempFilePath); } catch { /* ignore */ }
+      }
     }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

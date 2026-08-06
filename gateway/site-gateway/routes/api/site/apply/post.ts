@@ -13,7 +13,7 @@
  */
 
 import type { Context } from 'hono';
-import { sitePool } from '../../../../services/site-pool.ts';
+import { sitePool, markHasSiteCached } from '../../../../services/site-pool.ts';
 import { getAuthGatewayUrl, getDataGatewayUrl } from '../../../../utils/config.ts';
 import { error as logError } from '@dui/util';
 
@@ -55,15 +55,19 @@ export async function POST(c: Context) {
 
     // ── 3. 組裝網站資訊記錄（欄位依 網站資訊 Model 定義） ──
     const l3 = (body.l3 && typeof body.l3 === 'object' ? body.l3 : {}) as Record<string, unknown>;
+    // 連線設定欄位依 @dui/database 的 L2ConnectionInfo 契約（type / filePath / host ...），
+    // data-gateway 依此建立 L3 連線；l3.adapter / l3.path 為舊名稱，保留相容讀取。
     const l3Connection: Record<string, unknown> = {
-      adapter: (l3.adapter as string) || 'sqlite',
+      type: (l3.type as string) || (l3.adapter as string) || 'sqlite',
       ...(l3.host ? { host: l3.host } : {}),
       ...(l3.port ? { port: l3.port } : {}),
       ...(l3.username ? { username: l3.username } : {}),
       ...(l3.password ? { password: l3.password } : {}),
       ...(l3.database ? { database: l3.database } : {}),
+      ...(l3.namespace ? { namespace: l3.namespace } : {}),
+      ...(l3.credential ? { credential: l3.credential } : {}),
       // SQLite 預設以 domain 為檔名（data-gateway 的 data 目錄下）
-      path: (l3.path as string) || `./data/${domain}.db`,
+      filePath: (l3.filePath as string) || (l3.path as string) || `./data/${domain}.db`,
     };
 
     const admin = (body.admin && typeof body.admin === 'object' ? body.admin : undefined) as
@@ -88,6 +92,22 @@ export async function POST(c: Context) {
 
     // ── 4. 寫入 SitePool（延遲寫入 L2） ──
     sitePool.upsert(domain, record);
+
+    // ── 4.1 立即 flush 至 L2（重要）──
+    // 委託 auth-gateway 建立管理員前，網站記錄必須已落庫：
+    // 管理員是寫入 L3（data-gateway 依 L2 網站資訊的 `資料庫` 欄位建立 L3 連線），
+    // 若仍停留在 pool（預設 5 秒 batch flush），auth-gateway 會查不到租戶 L3 而失敗。
+    try {
+      await sitePool.flushToStorage();
+    } catch (err) {
+      // flush 失敗 → 回滾網站記錄，維持一致性
+      await sitePool.removeSite(domain);
+      return c.json({
+        success: false,
+        error: `網站記錄寫入 L2 失敗：${err instanceof Error ? err.message : String(err)}`,
+        已回滾: true,
+      }, 500);
+    }
 
     // ── 5. 委託 auth-gateway 建立網站管理員（可選） ──
     let adminResult: { success: boolean; error?: string } = { success: true };
@@ -131,6 +151,9 @@ export async function POST(c: Context) {
       await sitePool.removeSite(domain);
       return c.json({ success: false, error: 'data-gateway 尚未設定' }, 500);
     }
+
+    // 申請成功 → 立即更新「已有網站」快取，避免 30 秒內仍被導向申請頁
+    markHasSiteCached(true);
 
     return c.json({
       success: true,

@@ -23,6 +23,8 @@ const pool = new AdapterPool();
 
 export class DbManager {
   private config!: ConfigStore;
+  /** data-gateway 的資料目錄（initL1 時設定），用於解析 L3 連線的相對 filePath */
+  private dataDir: string | null = null;
 
   constructor(config: ConfigStore) {
     this.config = config;
@@ -42,6 +44,7 @@ export class DbManager {
    * Registers as persistent adapter in the global pool.
    */
   async initL1(dataDir: string): Promise<void> {
+    this.dataDir = dataDir;
     const l1Path = `${dataDir}/l1.db`;
     const adapter = await createAdapter('sqlite', {
       type: 'sqlite',
@@ -181,6 +184,13 @@ export class DbManager {
     if (!resolved) return null;
 
     const connInfo = { ...resolved, enabled: true } as unknown as L2ConnectionInfo;
+
+    // SQLite 的相對 filePath（如 ./data/localhost.db）解析到本 gateway 的 data 目錄，
+    // 避免依賴程序 cwd（例如從 repo root 啟動時 ./data 不存在而無法建立檔案）
+    if (connInfo.type === 'sqlite' && connInfo.filePath) {
+      connInfo.filePath = this.resolveL3FilePath(connInfo.filePath);
+    }
+
     const adapter = await createAdapter(connInfo.type, connInfo);
 
     if (!adapter) return null;
@@ -188,6 +198,14 @@ export class DbManager {
     pool.set(host, adapter, false, false); // evictable
     await info('DbManager', `L3 connected for ${host}`);
     return adapter;
+  }
+
+  /** 解析 L3 連線的檔案路徑：絕對路徑直接用；相對路徑取其檔名接到 dataDir 下 */
+  private resolveL3FilePath(filePath: string): string {
+    if (filePath.startsWith('/') || /^[A-Za-z]:[\\/]/.test(filePath)) return filePath;
+    const base = this.dataDir ?? (import.meta.dirname ? `${import.meta.dirname}/../data` : '.');
+    const name = filePath.split(/[\\/]/).pop() || filePath;
+    return `${base}/${name}`;
   }
 
   /**

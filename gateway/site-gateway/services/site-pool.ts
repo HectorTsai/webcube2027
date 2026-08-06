@@ -161,5 +161,46 @@ export class SitePool extends BasePool<string, SiteCacheValue> {
   }
 }
 
+/** 「是否已有任何網站」快取（避免每個請求都打 data-gateway） */
+let hasSiteCache: { value: boolean; expiresAt: number } | null = null;
+const HAS_SITE_TTL_MS = 30_000;
+
+/**
+ * 檢查 L2 `網站資訊` 是否已有任何記錄（30 秒 TTL 快取）。
+ * 用於兩階段安裝引導：已安裝但還沒有網站 → 導向申請網站頁面。
+ * data-gateway 無法連線或未設定 → fail-open 回傳 true（不阻擋頁面）。
+ */
+export async function hasAnySite(): Promise<boolean> {
+  if (hasSiteCache && hasSiteCache.expiresAt > Date.now()) return hasSiteCache.value;
+
+  const dgUrl = await getDataGatewayUrl();
+  const apiKey = await getDataGatewayApiKey();
+  if (!dgUrl || !apiKey) return true;
+
+  let exists = true;
+  try {
+    const res = await fetch(`${dgUrl}/api/l2/網站資訊/網站資訊?limit=1`, {
+      headers: { 'X-API-Key': apiKey },
+    });
+    if (res.ok) {
+      const json = await res.json();
+      const records = Array.isArray(json.data) ? json.data : [];
+      exists = records.length > 0;
+    }
+  } catch {
+    // data-gateway 無法連線 → fail-open
+  }
+
+  hasSiteCache = { value: exists, expiresAt: Date.now() + HAS_SITE_TTL_MS };
+  return exists;
+}
+
+/**
+ * 申請網站成功後立即更新快取，避免 30 秒內仍被導向申請頁。
+ */
+export function markHasSiteCached(value = true): void {
+  hasSiteCache = { value, expiresAt: Date.now() + HAS_SITE_TTL_MS };
+}
+
 /** 全域唯一實例 */
 export const sitePool = new SitePool();

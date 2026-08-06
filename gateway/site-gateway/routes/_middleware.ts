@@ -1,25 +1,30 @@
 /**
- * 根中介層 — 安裝檢查 + 語言注入 + JWT 驗證注入
+ * 根中介層 — 安裝檢查 + 無網站引導 + 語言注入 + JWT 驗證注入
  *
- * 未安裝（L1 中無 auth_gateway_url / data_gateway_url）：
- *   - `/setup`、靜態資源、`/api/health`、`/api/version` → 放行
- *   - `/api/*` → 放行（由各 API 目錄的 `_middleware.ts` 自行限制）
- *   - 其他頁面 → 重新導向到 `/:lang/setup`
+ * 階段引導（bootstrap 頁面僅在對應階段放行）：
+ *   階段一：未安裝（L1 中無 auth_gateway_url / data_gateway_url）
+ *     - 僅 `/setup` 頁面放行；其餘頁面 → 重新導向到 `/:lang/setup`
+ *   階段二：已安裝但 L2 `網站資訊` 還沒有任何網站
+ *     - 僅 `/apply` 頁面放行（申請網站＋建立管理員）；`/setup` 與其餘頁面
+ *       → 重新導向到 `/:lang/apply`
+ *   階段三：已安裝且已有網站
+ *     - `/setup`、`/apply` 皆不再需要 → 重新導向到 `/:lang/`
+ *     - 若請求攜帶 JWT，嘗試驗證（Ed25519）並將 payload 注入 Hono context，
+ *       供下游 handler 讀取（依 gateway 規格書 §JWT Context 注入規則）。
  *
- * 已安裝：
- *   - 若請求攜帶 JWT，嘗試驗證（Ed25519）並將 payload 注入 Hono context，
- *     供下游 handler 讀取（依 gateway 規格書 §JWT Context 注入規則）。
- *   - 無 JWT 或驗證失敗 → 不阻擋，交由個別 handler / 頁面決定處理方式。
+ * 靜態資源、`/api/health`、`/api/version` 與 `/api/*` 一律放行
+ * （`/api/*` 由各 API 目錄的 `_middleware.ts` 自行限制）。
  */
 
 import type { Context, Next } from 'hono';
 import { getCookie } from 'hono/cookie';
 import { extractToken, verifyToken } from '@dui/util/jwt';
 import { isInstalled } from '../utils/config.ts';
+import { hasAnySite } from '../services/site-pool.ts';
 import { SUPPORTED_LANGUAGE_SET } from '@dui/smartmultilingual';
 
-/** 不需安裝即可存取的公開路徑前綴 */
-const PUBLIC_PREFIXES = ['/setup', '/css/', '/images/', '/favicon', '/api/health', '/api/version'];
+/** 永遠公開的路徑前綴（靜態資源與系統端點；bootstrap 頁面不在此列） */
+const PUBLIC_PREFIXES = ['/css/', '/images/', '/favicon', '/api/health', '/api/version'];
 
 /** 從 Accept-Language header 解析出最適合的語言 */
 function detectBestLanguage(acceptHeader: string): string {
@@ -60,6 +65,12 @@ function isSetupPage(path: string): boolean {
     LANG_PATH_RE.test(path) && path.replace(LANG_PATH_RE, '/').startsWith('setup');
 }
 
+/** 申請網站頁面路徑（含語言前綴版本） */
+function isApplyPage(path: string): boolean {
+  return path === '/apply' || path.endsWith('/apply') ||
+    LANG_PATH_RE.test(path) && path.replace(LANG_PATH_RE, '/').startsWith('apply');
+}
+
 export async function middleware(c: Context, next: Next) {
   const path = c.req.path;
 
@@ -67,18 +78,18 @@ export async function middleware(c: Context, next: Next) {
   const langCookie = getCookie(c, 'lang') || '';
   const acceptLang = c.req.header('Accept-Language') || '';
   c.set('lang', detectBestLanguage(langCookie || acceptLang));
+  const lang = c.get('lang') as string || 'zh-tw';
 
-  // 1. 公開路徑直接放行
-  const isPublic =
+  // 1. 靜態資源與系統端點永遠放行（bootstrap 頁面 setup/apply 交由階段邏輯管制）
+  const isStatic =
     PUBLIC_PREFIXES.some((p) => path.startsWith(p)) ||
-    isSetupPage(path) ||
     /\.(css|png|jpg|jpeg|gif|svg|ico|woff2?)$/i.test(path);
 
-  if (isPublic) {
+  if (isStatic) {
     return await next();
   }
 
-  // 2. 檢查安裝狀態
+  // 2. 安裝狀態
   const installed = await isInstalled();
 
   // 3. `/api/*` 預設公開（不阻擋），僅注入安裝狀態
@@ -87,14 +98,27 @@ export async function middleware(c: Context, next: Next) {
     return await next();
   }
 
+  // 4. 階段一：未安裝 → 僅 /setup 可用
   if (!installed) {
-    const lang = c.get('lang') as string || 'zh-tw';
+    if (isSetupPage(path)) return await next();
     return c.redirect(`/${lang}/setup`);
   }
 
-  // 4. 已安裝：嘗試 JWT 驗證並注入 context（無 JWT 不阻擋）
+  // 5. 階段二：已安裝但沒有網站 → 僅 /apply 可用（連 /setup 也導向 apply）
+  const hasSite = await hasAnySite();
+  if (!hasSite) {
+    if (isApplyPage(path)) return await next();
+    return c.redirect(`/${lang}/apply`);
+  }
+
+  // 6. 階段三：已安裝且有網站 → bootstrap 頁面（setup/apply）不再需要，導回首頁
+  if (isSetupPage(path) || isApplyPage(path)) {
+    return c.redirect(`/${lang}/`);
+  }
+
+  // 7. 嘗試 JWT 驗證並注入 context（無 JWT 不阻擋，交由個別 handler 決定）
   c.set('已安裝', true);
-  if (installed) {
+  {
     const token = extractToken(c);
     if (token) {
       try {
