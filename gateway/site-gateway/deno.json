@@ -1,6 +1,6 @@
 {
   "name": "site-gateway",
-  "version": "0.1.0",
+  "version": "0.6.0",
   "tasks": {
     "dev": "deno run --allow-all --env --watch main.ts",
     "start": "deno run --allow-all --env main.ts",
@@ -20,6 +20,7 @@
     "@dui/framework": "./../../packages/dui-framework/mod.ts",
     "@dui/framework/route-loader": "./../../packages/dui-framework/route-loader.ts",
     "@dui/framework/api-console": "./../../packages/dui-framework/api-console.ts",
+    "@dui/pool": "./../../packages/dui-pool/mod.ts",
     "@dui/smartmultilingual": "./../../packages/dui-multilanguage/mod.ts",
     "@tailwindcss/cli": "npm:@tailwindcss/cli@^4.3.3",
     "tailwindcss": "npm:tailwindcss@^4.3.3",

@@ -1,5 +1,6 @@
 import { createGateway } from '@dui/framework';
 import { info } from '@dui/util';
+import { setAuthGatewayUrl } from '@dui/util/jwt';
 import { initSiteConfig } from './utils/config.ts';
 
 // ── 1. Gateway 啟動與基礎設定 ──────────────────────
@@ -21,6 +22,8 @@ const dataGwUrl = await config.get('data_gateway_url');
 if (authGwUrl && dataGwUrl) {
   await info('SiteGateway', `auth-gateway: ${authGwUrl}`);
   await info('SiteGateway', `data-gateway: ${dataGwUrl}`);
+  // 設定 auth-gateway URL，讓 @dui/util 的 verifyToken 可取得 Ed25519 公鑰
+  setAuthGatewayUrl(String(authGwUrl).replace(/\/+$/, ''));
 } else {
   await info('SiteGateway', '尚未安裝，請前往 /setup');
 }

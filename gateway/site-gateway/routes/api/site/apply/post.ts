@@ -1,131 +1,149 @@
 /**
- * POST /api/site/apply — 申請新網站
+ * POST /api/site/apply — 註冊新網站（租戶）
  *
- * 職責：
- * 1. 透過 data-gateway L3 API 建立 L3 資料庫連線並初始化
- * 2. 透過 auth-gateway /api/register 建立網站管理員帳號
- * 3. 透過 data-gateway L2 API 寫入網站資訊
+ * 流程：
+ *   1. 驗證 domain（正規化 hostname + 檢查是否重複）
+ *   2. 建立 L2 `網站資訊` 記錄（模式、設定、資料庫 連線設定）
+ *      → 透過 SitePool 快取，延遲寫入 data-gateway（onFlush batch PUT）
+ *   3. 若提供 admin → 委託 auth-gateway /api/register 建立 L3 管理員帳號
+ *   4. L3 資料庫不需在此初始化 — data-gateway 收到帶 X-Tenant 的請求時自動建立連線
  *
- * 預設角色（會員/貴賓/黑名單）與管理員角色由 auth-gateway 安裝時
- * 寫入的 L2 seed 提供，此處不需重複建立。
- *
- * 所有對 data-gateway 的呼叫皆帶 X-API-Key header（安裝時註冊取得）。
- * 對 auth-gateway 的呼叫不需 API Key（/api/register 為公開端點）。
+ * Request:  { domain, 名稱, 描述?, 商標?, 模式?, l3?, admin? }
+ * Response: { success: true, data: { id, domain, 名稱, 狀態 } }
  */
 
 import type { Context } from 'hono';
-import { getDataGatewayUrl, getDataGatewayApiKey, getAuthGatewayUrl } from '../../../../utils/config.ts';
-import { info, error as logError } from '@dui/util';
+import { sitePool } from '../../../../services/site-pool.ts';
+import { getAuthGatewayUrl, getDataGatewayUrl } from '../../../../utils/config.ts';
+import { error as logError } from '@dui/util';
 
-interface SiteApplyBody {
-  mode: 'PUBLIC' | 'PRIVATE' | 'REDIRECT' | 'MIRROR';
-  domain: string;
-  title?: string;
-  admin: { 帳號: string; 密碼: string };
-  l3?: Record<string, unknown>;
+/** 正規化 domain：去協定、路徑與埠號，轉小寫 hostname */
+function normalizeDomain(domain: string): string {
+  return domain
+    .replace(/^https?:\/\//, '')
+    .replace(/\/.*$/, '')
+    .replace(/:\d+$/, '')
+    .toLowerCase();
 }
 
-/** 建立共用 headers（含 API Key） */
-async function gwHeaders(): Promise<Record<string, string>> {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  const apiKey = await getDataGatewayApiKey();
-  if (apiKey) headers['X-API-Key'] = apiKey;
-  return headers;
+/** 驗證 domain 是否為合法 hostname（含 localhost 與 IP） */
+function isValidDomain(domain: string): boolean {
+  return /^([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)*[a-z0-9]([a-z0-9-]*[a-z0-9])?$/.test(domain);
 }
 
 export async function POST(c: Context) {
   try {
-    const body: SiteApplyBody = await c.req.json();
-    const { mode, domain, title, admin, l3 } = body;
+    const body = await c.req.json() as Record<string, unknown>;
 
-    if (!mode || !domain || !admin?.帳號 || !admin?.密碼) {
-      return c.json({ success: false, error: '缺少必要欄位：mode、domain、admin（帳號 + 密碼）' }, 400);
+    // ── 1. 驗證 domain ──
+    const rawDomain = typeof body.domain === 'string' ? body.domain.trim() : '';
+    const domain = normalizeDomain(rawDomain);
+    if (!domain || !isValidDomain(domain)) {
+      return c.json({ success: false, error: '無效的 domain（需為合法 hostname）' }, 400);
     }
 
-    const validModes = ['PUBLIC', 'PRIVATE', 'REDIRECT', 'MIRROR'];
-    if (!validModes.includes(mode)) {
-      return c.json({ success: false, error: `無效的網站模式：${mode}，須為 ${validModes.join('、')}` }, 400);
+    const 名稱 = typeof body.名稱 === 'string' ? body.名稱.trim() : '';
+    if (!名稱) {
+      return c.json({ success: false, error: '缺少網站名稱（名稱）' }, 400);
     }
 
-    const dataGwUrl = await getDataGatewayUrl();
-    const headers = await gwHeaders();
+    // ── 2. 檢查是否已存在 ──
+    const existing = await sitePool.getSite(domain);
+    if (existing) {
+      return c.json({ success: false, error: `網站 ${domain} 已存在` }, 409);
+    }
 
-    // ── 1. 建立 L3 資料庫 ──
-    let l3Config: Record<string, unknown> = {};
-    if (l3 && Object.keys(l3).length > 0) {
-      l3Config = l3;
-    } else {
-      // 預設使用 L2 同類型資料庫
-      const l2Info = await fetch(`${dataGwUrl}/api/l2/info`, { headers }).then(r => r.json());
-      if (l2Info?.type) {
-        l3Config = { type: l2Info.type };
-        if (l2Info.host) l3Config.host = l2Info.host;
-        if (l2Info.port) l3Config.port = l2Info.port;
-        if (l2Info.username) l3Config.username = l2Info.username;
-        if (l2Info.database) l3Config.database = l2Info.database;
+    // ── 3. 組裝網站資訊記錄（欄位依 網站資訊 Model 定義） ──
+    const l3 = (body.l3 && typeof body.l3 === 'object' ? body.l3 : {}) as Record<string, unknown>;
+    const l3Connection: Record<string, unknown> = {
+      adapter: (l3.adapter as string) || 'sqlite',
+      ...(l3.host ? { host: l3.host } : {}),
+      ...(l3.port ? { port: l3.port } : {}),
+      ...(l3.username ? { username: l3.username } : {}),
+      ...(l3.password ? { password: l3.password } : {}),
+      ...(l3.database ? { database: l3.database } : {}),
+      // SQLite 預設以 domain 為檔名（data-gateway 的 data 目錄下）
+      path: (l3.path as string) || `./data/${domain}.db`,
+    };
+
+    const admin = (body.admin && typeof body.admin === 'object' ? body.admin : undefined) as
+      | { 帳號?: string; 密碼?: string; 名稱?: string }
+      | undefined;
+
+    const record: Record<string, unknown> = {
+      id: sitePool.buildId(domain),
+      domain,
+      網址: domain,
+      名稱,
+      描述: typeof body.描述 === 'string' ? body.描述 : undefined,
+      商標: typeof body.商標 === 'string' ? body.商標 : undefined,
+      模式: typeof body.模式 === 'string' ? body.模式 : 'production',
+      設定: {},
+      // 資料庫欄位為 L3 連線設定的 JSON 字串（明文；data-gateway 的 decrypt 對非 enc: 前綴直接 pass-through）
+      資料庫: JSON.stringify(l3Connection),
+      狀態: 'active',
+      開始日期: new Date().toISOString(),
+      作者: admin?.帳號,
+    };
+
+    // ── 4. 寫入 SitePool（延遲寫入 L2） ──
+    sitePool.upsert(domain, record);
+
+    // ── 5. 委託 auth-gateway 建立網站管理員（可選） ──
+    let adminResult: { success: boolean; error?: string } = { success: true };
+    if (admin?.帳號 && admin?.密碼) {
+      const authUrl = await getAuthGatewayUrl();
+      if (!authUrl) {
+        // 缺 auth-gateway → 回滾網站記錄
+        await sitePool.removeSite(domain);
+        return c.json({ success: false, error: 'auth-gateway 尚未設定，無法建立管理員帳號' }, 500);
+      }
+      try {
+        const res = await fetch(`${authUrl}/api/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            帳號: admin.帳號,
+            密碼: admin.密碼,
+            tenant: domain,
+            名稱: admin.名稱,
+          }),
+        });
+        const json = await res.json();
+        adminResult = json.success
+          ? { success: true }
+          : { success: false, error: json.error || '建立管理員失敗' };
+      } catch (err) {
+        adminResult = { success: false, error: err instanceof Error ? err.message : String(err) };
+      }
+
+      if (!adminResult.success) {
+        // 管理員建立失敗 → 回滾網站記錄（維持一致性）
+        await sitePool.removeSite(domain);
+        return c.json({ success: false, error: adminResult.error, 已回滾: true }, 500);
       }
     }
 
-    // 透過 data-gateway L3 API 初始化 L3 資料庫
-    const l3InitRes = await fetch(`${dataGwUrl}/api/l3/init`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ tenant: domain, config: l3Config }),
-    });
-    const l3InitData = await l3InitRes.json();
-    if (!l3InitData.success) {
-      return c.json({ success: false, error: `L3 資料庫初始化失敗：${l3InitData.error}` }, 500);
+    // 確認 data-gateway 已註冊（避免靜默失敗：pool 是延遲寫入，無法在此即時驗證，交由 flush 處理）
+    const dgUrl = await getDataGatewayUrl();
+    if (!dgUrl) {
+      // 理論上安裝後必有，但仍防禦性檢查
+      await sitePool.removeSite(domain);
+      return c.json({ success: false, error: 'data-gateway 尚未設定' }, 500);
     }
 
-    // ── 2. 建立網站管理員帳號（透過 auth-gateway /api/register）──
-    // register 不接受指定角色：L3 第一位註冊自動成為「管理員」。
-    // 需傳 tenant 讓 register 寫入正確的 L3 資料庫。
-    const authGwUrl = await getAuthGatewayUrl();
-    const registerRes = await fetch(`${authGwUrl}/api/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        帳號: admin.帳號,
-        密碼: admin.密碼,
-        tenant: domain,
-      }),
+    return c.json({
+      success: true,
+      data: {
+        id: record.id,
+        domain,
+        名稱,
+        狀態: 'active',
+        admin_created: adminResult.success && !!admin?.帳號,
+      },
     });
-    const adminData = await registerRes.json();
-    if (!adminData.success) {
-      return c.json({ success: false, error: `管理員帳號建立失敗：${adminData.error}` }, 500);
-    }
-
-    // ── 3. 寫入網站資訊至 L2 ──
-    const siteInfoId = `網站資訊:網站資訊:${domain}`;
-    const siteData: Record<string, unknown> = {
-      id: siteInfoId,
-      domain,
-      mode,
-      title: title || domain,
-      plan: 'FREE',
-      admin: admin.帳號,
-      l3_config: l3Config,
-      status: 'active',
-      created_at: new Date().toISOString(),
-    };
-
-    // L2 CRUD：POST /api/l2/{collection}/{model}
-    const siteRes = await fetch(`${dataGwUrl}/api/l2/網站資訊/網站資訊`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(siteData),
-    });
-    const siteResult = await siteRes.json();
-
-    if (!siteResult.success) {
-      return c.json({ success: false, error: `網站資訊寫入失敗：${siteResult.error}` }, 500);
-    }
-
-    await info('SiteGateway', `網站已建立：${domain}（${mode}）`);
-    return c.json({ success: true, data: { domain, mode, title: title || domain } });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    await logError('SiteGateway', `網站申請失敗：${msg}`);
-    return c.json({ success: false, error: `網站申請失敗：${msg}` }, 500);
+    logError('SiteGateway', `[site/apply] 失敗：${err instanceof Error ? err.message : String(err)}`);
+    return c.json({ success: false, error: '伺服器內部錯誤' }, 500);
   }
 }

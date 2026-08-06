@@ -1,13 +1,17 @@
 /**
  * POST /api/setup — 首次安裝
  *
- * 接收 auth-gateway URL、data-gateway URL 與 Master Key，
- * 向 data-gateway 註冊取得專屬 API Key，
- * 後續所有 data-gateway 呼叫皆帶 X-API-Key header。
+ * 1. 接收 auth-gateway URL、data-gateway URL 與 Master Key
+ * 2. 向 data-gateway 註冊（site-gateway，權限：網站資訊 讀/寫）取得專屬 API Key
+ * 3. 寫入 L1 config（auth_gateway_url / data_gateway_url / data_gateway_api_key）
+ * 4. 設定 @dui/util 的 auth-gateway URL（供 verifyToken 取得 Ed25519 公鑰）
+ *
+ * site-gateway 只操作 L2 的 `網站資訊` collection，沒有 seed。
  */
 
 import type { Context } from 'hono';
-import { getConfig } from '../../../utils/config.ts';
+import { getConfig, initSiteConfig } from '../../../utils/config.ts';
+import { setAuthGatewayUrl } from '@dui/util/jwt';
 import { info, error as logError } from '@dui/util';
 
 export async function POST(c: Context) {
@@ -25,11 +29,11 @@ export async function POST(c: Context) {
     }
 
     // URL 格式驗證
-    try { new URL(auth_gateway_url); } catch {
-      return c.json({ success: false, error: 'auth-gateway URL 格式不正確' }, 400);
-    }
-    try { new URL(data_gateway_url); } catch {
-      return c.json({ success: false, error: 'data-gateway URL 格式不正確' }, 400);
+    try {
+      new URL(auth_gateway_url);
+      new URL(data_gateway_url);
+    } catch {
+      return c.json({ success: false, error: 'URL 格式不正確' }, 400);
     }
 
     const config = getConfig();
@@ -37,23 +41,21 @@ export async function POST(c: Context) {
     // 檢查是否已安裝
     const existing = await config.get('auth_gateway_url');
     if (existing) {
-      return c.json({
-        success: false, error: 'site-gateway 已完成安裝。若需重新安裝，請清除 config 檔案。'
-      }, 400);
+      return c.json({ success: false, error: 'site-gateway 已完成安裝。若需重新安裝，請清除本地設定。' }, 400);
     }
 
     // ── 1. 向 data-gateway 註冊取得 API Key ──
     const baseUrl = data_gateway_url.replace(/\/+$/, '');
+    const selfUrl = new URL(c.req.url).origin;
     const registerRes = await fetch(`${baseUrl}/api/register-gateway`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: 'site-gateway',
+        url: selfUrl,
         master_key,
         權限: {
           '網站資訊': { 讀: true, 寫: true },
-          '使用者': { 讀: true, 寫: false },
-          '角色': { 讀: true, 寫: false },
         },
       }),
     });
@@ -68,12 +70,16 @@ export async function POST(c: Context) {
 
     const apiKey: string = registerData.data.api_key;
 
-    // ── 2. 寫入 ConfigStore ──
+    // ── 2. 寫入 L1 config ──
     await config.set('auth_gateway_url', auth_gateway_url);
     await config.set('data_gateway_url', data_gateway_url);
     await config.set('data_gateway_api_key', apiKey);
-    await info('SiteGateway', `auth-gateway: ${auth_gateway_url}`);
-    await info('SiteGateway', `data-gateway: ${data_gateway_url}`);
+
+    // ── 3. 設定 auth-gateway URL（verifyToken 從此拉取 Ed25519 公鑰）──
+    setAuthGatewayUrl(auth_gateway_url.replace(/\/+$/, ''));
+
+    await info('SiteGateway', `auth-gateway URL 已設定：${auth_gateway_url}`);
+    await info('SiteGateway', `data-gateway URL 已設定：${data_gateway_url}`);
     await info('SiteGateway', '已向 data-gateway 註冊並取得 API Key');
 
     return c.json({ success: true });
