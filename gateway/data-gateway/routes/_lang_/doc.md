@@ -138,14 +138,16 @@ L1、L2、L3 三層的 CRUD 路由**結構完全同構**，差異只在操作的
 | GET | `/api/lX/:collection` | 列出 model types；若 `:collection` 含 `:` 則視為 composite ID 執行 getById |
 | GET | `/api/lX/:collection/:model` | 列出紀錄（支援分頁、篩選、排序；單層路由：有 `X-Tenant` → L3，無 → L2） |
 | POST | `/api/lX/:collection/:model` | 建立新紀錄（ID 自動以 `{collection}:{model}:{nanoid}` 產生，或由 body 提供）；**body 為陣列 → 批次建立**（id 可省略，已存在者逐筆回報失敗） |
-| PUT | `/api/lX/:collection/:model` | **批次整筆更新（upsert）**，body 為 JSON 陣列（每筆含 `id`，單次最多 100 筆） |
-| PATCH | `/api/lX/:collection/:model` | **批次部分更新**，body 為 JSON 陣列（每筆含 `id` + 欲合併欄位） |
-| DELETE | `/api/lX/:collection/:model` | **批次刪除**，body 為 id 字串陣列（或含 `id` 之物件陣列） |
+| PUT | `/api/lX/` | **批次整筆更新（upsert）**，body 為 JSON 陣列，每筆依 composite ID 自動決定 collection/model，可跨不同 collection（適合 pool flush） |
+| PATCH | `/api/lX/` | **批次部分更新**，body 為 JSON 陣列，每筆依 composite ID 自動決定 collection/model |
+| DELETE | `/api/lX/` | **批次刪除**，body 為 id 字串陣列（或含 `id` 之物件陣列），不限定同 collection |
 | PUT | `/api/lX/:id` | 單筆整筆更新（upsert），需完整物件 |
 | PATCH | `/api/lX/:id` | 單筆部分更新（只合併指定欄位，不允許修改 `id`） |
 | DELETE | `/api/lX/:id` | 單筆刪除 |
 
-**批次操作**（PUT/PATCH/DELETE `/:collection/:model`，body 為 JSON 陣列）：逐筆驗證 composite ID 格式與路由的 collection/model 一致，逐筆執行、成功照常寫入，不因單筆失敗中止（部分成功）；回應：
+> **批次操作位置變更（2.3.0）**：原 `PUT/PATCH/DELETE /api/lX/:collection/:model` 已移除，統一改為 `PUT/PATCH/DELETE /api/lX/`（層級根路由）。每筆依 composite ID（`collection:model:nanoid`）自動決定其 collection 與 model，不再限定同一 collection/model。舊路徑可經 Pass 3 退回正常運作。
+
+**批次操作**（PUT/PATCH/DELETE `/api/lX/`，body 為 JSON 陣列）：逐筆驗證 composite ID 格式，逐筆執行、成功照常寫入，不因單筆失敗中止（部分成功）；回應：
 
 ```json
 {
@@ -156,8 +158,8 @@ L1、L2、L3 三層的 CRUD 路由**結構完全同構**，差異只在操作的
     "成功筆數": 2,
     "失敗筆數": 1,
     "成功": ["使用者:角色:test_a", "使用者:角色:test_b"],
-    "失敗": ["其他:角色:bad"],
-    "失敗原因": { "其他:角色:bad": "id collection \"其他\" 不符合路由 \"使用者\"" }
+    "失敗": ["bad:id"],
+    "失敗原因": { "bad:id": "無效的 composite ID：需 collection:model:nanoid" }
   }
 }
 ```
