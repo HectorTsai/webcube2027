@@ -14,15 +14,16 @@
   - [POST /api/register](#post-api-register)
   - [POST /api/login](#post-api-login)
   - [GET /api/me](#get-api-me)
+  - [GET /api/logout](#get-api-logout)
+  - [POST /api/logout](#post-api-logout)
+  - [POST /api/verify-user](#post-api-verify-user)
+- [需登入 API](#需登入-api)
   - [GET /api/user](#get-api-user)
   - [GET /api/user/:id](#get-api-userid)
   - [GET /api/user/all](#get-api-userall)
   - [GET /api/role](#get-api-role)
   - [GET /api/role/:id](#get-api-roleid)
   - [GET /api/role/all](#get-api-roleall)
-  - [GET /api/logout](#get-api-logout)
-  - [POST /api/logout](#post-api-logout)
-  - [POST /api/verify-user](#post-api-verify-user)
 - [Token 驗證 API](#token-驗證-api)
   - [GET /api/verify](#get-api-verify)
   - [POST /api/verify](#post-api-verify)
@@ -43,7 +44,7 @@
 
 ## 公開 API（不需登入）
 
-`/api/*` 下的端點**預設公開**（不需登入），由各 API 目錄的 `_middleware.ts` 自行限制。目前依賴 data-gateway 安裝設定的端點（login、verify-user）以目錄 middleware 要求「已安裝」，未安裝時回傳 403；其餘端點一律放行。
+`/api/*` 下的端點**預設公開**（不需登入），由各 API 目錄的 `_middleware.ts` 自行限制。目前已實作的公開端點如下；需登入的端點（如 User/Role 查詢）另歸類於 [需登入 API](#需登入-api)。
 
 ### GET /api/version
 
@@ -284,6 +285,10 @@
 支援跨域存取（`credentials: 'include'`），供其他 gateway（如 data-gateway）的瀏覽器端直接呼叫。
 
 ---
+
+## 需登入 API
+
+以下端點**需已登入**（authenticated JWT）且對目標 collection 有讀權限。
 
 ### GET /api/user
 
