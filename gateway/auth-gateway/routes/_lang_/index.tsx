@@ -38,7 +38,7 @@ async function renderAccountPoolStatus() {
          <span class="font-mono text-xs truncate">\${it.key}</span>
          \${badges.join('')}
        </div>
-       <span class="text-[10px] text-base-content/40 shrink-0">閒置 \${Math.max(0, Math.round(it.idleMs / 1000))}s</span>
+       <span class="text-[10px] text-base-content/40 shrink-0">\${PoolStatus.itemMeta(it)}</span>
      </div>\`;
    }).join('') || '<p class="text-xs text-base-content/40">目前無快取帳號</p>';
 

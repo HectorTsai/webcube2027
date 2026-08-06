@@ -84,6 +84,12 @@ export interface PoolItemOverview {
   isDirty: boolean;
   /** Whether the entry is immune to idle eviction */
   persistent: boolean;
+  /** 與 persistent 同義的別名（供前端語意化命名） */
+  isPersistent: boolean;
+  /** 閒置踢除閾值（毫秒）；null 代表未設定 → 永不因閒置被踢除 */
+  maxIdleMs: number | null;
+  /** 距離被閒置踢除的剩餘毫秒數（快照時計算）；null 代表永不因閒置被踢除（∞） */
+  remainMs: number | null;
   /** Milliseconds since last access (computed at snapshot time) */
   idleMs: number;
 }

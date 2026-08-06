@@ -140,9 +140,11 @@ export class AccountPool extends BasePool<string, AccountCacheValue> {
   getFrozenCount(): number {
     let count = 0;
     const now = Date.now();
-    for (const key of this.keys()) {
-      const item = this.get(key);
-      if (item && item.lockedUntil && item.lockedUntil > now) count++;
+    // 直接讀內部 items，不使用 this.get()——避免把「檢查」算成「存取」
+    // （get() 會刷新 lastAccessed / accessCount，導致帳號永不因閒置被淘汰）
+    for (const item of this.items.values()) {
+      const cached = item.value;
+      if (cached.lockedUntil && cached.lockedUntil > now) count++;
     }
     return count;
   }

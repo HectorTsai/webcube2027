@@ -78,7 +78,7 @@ function parseAcceptLanguage(header: string): string[] {
     .map((item) => item.lang);
 }
 
-/** 從 Accept-Language 比對出最適合的支援語言，找不到回退 en */
+/** 從 Accept-Language 比對出最適合的支援語言，找不到回退 zh-tw */
 function detectBestLanguage(acceptHeader: string): string {
   const parsed = parseAcceptLanguage(acceptHeader);
 
@@ -98,7 +98,7 @@ function detectBestLanguage(acceptHeader: string): string {
     }
   }
 
-  return 'en';
+  return 'zh-tw';
 }
 
 interface MethodRoute {
@@ -343,9 +343,11 @@ export async function loadRoutes(dirUrl: URL, existingApp?: Hono): Promise<Hono>
       // 唯一必要的邊界斷言：Deno.readFile 的泛型是 Uint8Array<ArrayBufferLike>，
       // 而 hono c.body 的 Data 在此版本需要 Uint8Array<ArrayBuffer>；
       // 執行期底層 buffer 必為 ArrayBuffer，此斷言僅為滿足型別。
+      // no-cache：靜態資源每次重新驗證，避免開發迭代時瀏覽器吃到舊版
+      // （app.js / css 等小型管理介面資源，重新驗證成本可忽略）
       return c.body(data as Uint8Array<ArrayBuffer>, 200, {
         'content-type': sr.mime,
-        'cache-control': 'public, max-age=3600',
+        'cache-control': 'no-cache',
       });
     });
   }

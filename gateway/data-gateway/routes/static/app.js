@@ -99,11 +99,12 @@ document.addEventListener('alpine:init', () => {
     hitRate() {
       return ((this.pool.status.hitRate || 0) * 100).toFixed(1) + '%';
     },
-    idleSec(ms) {
-      return Math.max(0, Math.round(ms / 1000));
+    // 顯示格式（剩餘倒數 / ∞）由共用 /pool-status.js 的 PoolStatus 統一提供
+    remainFmt(ms) {
+      return PoolStatus.remainFmt(ms);
     },
     itemMeta(it) {
-      return `${it.accessCount} 次存取 · 閒置 ${this.idleSec(it.idleMs)}s`;
+      return PoolStatus.itemMeta(it);
     },
   }));
 

@@ -62,7 +62,7 @@ export interface GatewayHeroProps {
 export function GatewayHero(props: GatewayHeroProps) {
   const { prefix, gatewayName, tagline, showGatewayList, customMiddle } = props;
   return (
-    <div class="card bg-base-100/90 backdrop-blur-sm shadow-md border border-base-200">
+    <div class="card bg-base-100/90 backdrop-blur-sm shadow-md border border-base-200 overflow-visible z-20">
       <div class="card-body items-center text-center gap-5 py-10 px-8">
         <img src="/images/webcube_banner.svg" alt="WebCube2027" class="h-20" />
         <div>

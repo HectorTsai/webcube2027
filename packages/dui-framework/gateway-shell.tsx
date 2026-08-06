@@ -17,6 +17,7 @@ import { renderToString } from 'hono/jsx/dom/server';
 import { raw } from 'hono/html';
 import { generatePageCss } from './unocss.ts';
 import { alpineScripts } from './alpine.ts';
+import { POOL_STATUS_JS_PATH } from './pool-status.ts';
 
 /** GatewayLayout props */
 export interface GatewayLayoutProps {
@@ -98,6 +99,8 @@ export async function GatewayLayout(props: GatewayLayoutProps) {
         <style>{raw(css)}</style>
       </head>
       <body class="min-h-screen bg-base-200 flex flex-col">
+        {/* 共用 Pool 顯示 helper（同步載入，先於頁面 inline script 執行） */}
+        <script src={POOL_STATUS_JS_PATH}></script>
         {/* ── Navbar ── */}
         <div class="navbar bg-base-100/80 backdrop-blur-sm shadow-xs border-b border-base-200 px-6 sticky top-0 z-10">
           <div class="flex-1 flex items-center gap-3">

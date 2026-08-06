@@ -29,6 +29,8 @@ async function renderSitePoolStatus() {
       <span class="text-[10px] text-base-content/40">\${label}</span>
     </div>\`;
 
+  // 剩餘倒數 / ∞ 顯示格式由共用 /pool-status.js 的 PoolStatus 統一提供
+
   const items = (data.items || []).map(it => {
     const badges = [];
     if (it.isDirty) badges.push('<span class="badge badge-soft badge-warning badge-xs">待 flush</span>');
@@ -37,7 +39,7 @@ async function renderSitePoolStatus() {
         <span class="font-mono text-xs truncate">\${it.key}</span>
         \${badges.join('')}
       </div>
-      <span class="text-[10px] text-base-content/40 shrink-0">閒置 \${Math.max(0, Math.round(it.idleMs / 1000))}s</span>
+      <span class="text-[10px] text-base-content/40 shrink-0">\${PoolStatus.itemMeta(it)}</span>
     </div>\`;
   }).join('') || '<p class="text-xs text-base-content/40">目前無快取網站</p>';
 

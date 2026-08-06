@@ -396,15 +396,21 @@ export abstract class BasePool<K, V> {
    */
   getItemsOverview(): PoolItemOverview[] {
     const now = Date.now();
+    const maxIdleMs = this.options.maxIdleMs ?? null;
     const result: PoolItemOverview[] = [];
     for (const [key, item] of this.items) {
+      const idleMs = now - item.lastAccessed;
       result.push({
         key: this.formatKey(key),
         lastAccessed: item.lastAccessed,
         accessCount: item.accessCount,
         isDirty: item.isDirty,
         persistent: item.persistent,
-        idleMs: now - item.lastAccessed,
+        isPersistent: item.persistent,
+        maxIdleMs,
+        // 剩餘毫秒由 pool 直接算好（快照時點）；常駐或未設定閾值 → null（∞）
+        remainMs: maxIdleMs === null || item.persistent ? null : Math.max(0, maxIdleMs - idleMs),
+        idleMs,
       });
     }
     return result;

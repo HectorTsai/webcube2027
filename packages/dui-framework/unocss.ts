@@ -113,6 +113,9 @@ export const COMPONENT_CSS = `
 .card-body { display: flex; flex-direction: column; gap: .5rem; padding: 1.5rem; flex: 1 1 auto; }
 .card-title { font-size: 1.25rem; font-weight: 700; line-height: 1.2; }
 
+/* ── dropdown ── */
+.dropdown { position: relative; display: inline-block; }
+
 /* ── navbar ── */
 .navbar { display: flex; align-items: center; width: 100%; min-height: 4rem; }
 

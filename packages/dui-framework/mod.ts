@@ -9,6 +9,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { loadRoutes } from './route-loader.ts';
 import { mountAlpineAssets } from './alpine.ts';
+import { mountPoolStatusAssets } from './pool-status.ts';
 import { traceStorage } from '@dui/util/common/logger';
 
 // ─── Re-exports ──────────────────────────────────────────────
@@ -31,6 +32,7 @@ export {
 export type { SeedLevel, SeedKV, SyncSeedsOptions, SyncSeedsResult } from './seed-sync.ts';
 export { generatePageCss, UNOCSS_THEME_COLORS, COMPONENT_CSS } from './unocss.ts';
 export { ALPINE_JS_PATH, ALPINE_VERSION, getAlpineDist, mountAlpineAssets, alpineScripts } from './alpine.ts';
+export { POOL_STATUS_JS_PATH, POOL_STATUS_JS, mountPoolStatusAssets } from './pool-status.ts';
 export { getVersion, clearVersionCache, createVersionHandler } from './version.ts';
 export { createHealthHandler } from './health.ts';
 export { GatewayLayout } from './gateway-shell.tsx';
@@ -129,6 +131,9 @@ export async function createGateway(options: CreateGatewayOptions): Promise<Gate
   if (options.alpine) {
     await mountAlpineAssets(app);
   }
+
+  // 共用 Pool 顯示 helper（GET /pool-status.js，所有 gateway 一律掛載）
+  await mountPoolStatusAssets(app);
 
   // 載入檔案路由（直接註冊到同一個 app）
   try {

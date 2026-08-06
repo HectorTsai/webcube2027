@@ -158,6 +158,8 @@ registerAdapter('mssql', async (info) => {
 export interface AdapterPoolItemOverview extends PoolItemOverview {
   dbType: string;
   isPersistent: boolean;
+  /** 閒置踢除閾值（毫秒）；null 代表未設定 → 永不因閒置被踢除 */
+  maxIdleMs: number | null;
 }
 
 // ── Adapter Pool ──
@@ -273,8 +275,10 @@ export class AdapterPool extends BasePool<string, DatabaseAdapter> {
 
   override getItemsOverview(): AdapterPoolItemOverview[] {
     const now = Date.now();
+    const maxIdleMs = this.options.maxIdleMs ?? null;
     const result: AdapterPoolItemOverview[] = [];
     for (const [key, item] of this.items) {
+      const idleMs = now - item.lastAccessed;
       result.push({
         key: this.formatKey(key),
         // 從 adapter 實例讀取真實資料庫類型（adapter.type 是 readonly）
@@ -284,7 +288,10 @@ export class AdapterPool extends BasePool<string, DatabaseAdapter> {
         accessCount: item.accessCount,
         isDirty: item.isDirty,
         persistent: item.persistent,
-        idleMs: now - item.lastAccessed,
+        maxIdleMs,
+        // 剩餘毫秒由 pool 直接算好（快照時點）；常駐或未設定閾值 → null（∞）
+        remainMs: maxIdleMs === null || item.persistent ? null : Math.max(0, maxIdleMs - idleMs),
+        idleMs,
       });
     }
     return result;
