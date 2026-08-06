@@ -29,6 +29,34 @@ export class DbManager {
   }
 
   // ═══════════════════════════════════════════════
+  //  L1 — Bootstrap（本機唯讀 sqlite）
+  // ═══════════════════════════════════════════════
+
+  /** The L1 bootstrap sqlite adapter. `null` until `initL1()` succeeds. */
+  get L1(): DatabaseAdapter | null {
+    return pool.get('L1');
+  }
+
+  /**
+   * Initialize L1 local sqlite (bootstrap records, not in pool's eviction cycle).
+   * Registers as persistent adapter in the global pool.
+   */
+  async initL1(dataDir: string): Promise<void> {
+    const l1Path = `${dataDir}/l1.db`;
+    const adapter = await createAdapter('sqlite', {
+      type: 'sqlite',
+      filePath: l1Path,
+      enabled: true,
+    });
+    if (!adapter) throw new Error(`Failed to create L1 adapter at ${l1Path}`);
+    await adapter.initialize('使用者');
+
+    // 註冊進 pool（persistent = 不參與 eviction/cleanup）
+    pool.set('L1', adapter, false, true);
+    await info('L1', `Ready (pooled, ${l1Path})`);
+  }
+
+  // ═══════════════════════════════════════════════
   //  L2 — SYSTEM
   // ═══════════════════════════════════════════════
 

@@ -13,7 +13,6 @@
  */
 
 import { getDbManager } from '../services/db-manager.ts';
-import { getL1 } from '../services/l1-data.ts';
 import { writeAuditLog } from '../services/audit.ts';
 
 const RESERVED_PARAMS = new Set([
@@ -87,7 +86,7 @@ function resolveAccess(
   opts?: CrudHandlerOptions,
 ): ResolvedTarget | { error: string; status: number } {
   if (opts?.layer === 'L1') {
-    const adapter = getL1();
+    const adapter = getDbManager().L1;
     if (!adapter) return { error: 'L1 尚未初始化', status: 500 };
     return {
       source: 'L1',
@@ -187,7 +186,7 @@ export async function handleCollection(c: any, opts?: CrudHandlerOptions) {
   // ── collection 名稱 → 列出 model types ──
   try {
     if (opts?.layer === 'L1') {
-      const adapter = getL1();
+      const adapter = getDbManager().L1;
       if (!adapter) {
         return c.json({ success: false, error: 'L1 尚未初始化' }, 500);
       }

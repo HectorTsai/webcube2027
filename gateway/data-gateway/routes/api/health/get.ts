@@ -16,7 +16,7 @@ interface SiteRecord {
 }
 
 export const GET = async (c: Context) => {
-  const l1Ok = true;
+  const l1Ok = getDbManager().L1 !== null;
   const l2Ok = getDbManager().System !== null;
   const allOk = l1Ok && l2Ok;
 
@@ -78,7 +78,7 @@ export const GET = async (c: Context) => {
     }
   }
 
-  // ── Pool 狀態（AdapterPool：L2 SYSTEM + L3 租戶連線） ──
+  // ── Pool 狀態（AdapterPool：L1 常駐 + L2 SYSTEM + L3 租戶連線） ──
   let pool = null;
   try {
     pool = getDbManager().getPoolSnapshot();

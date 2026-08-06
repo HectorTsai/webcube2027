@@ -81,7 +81,7 @@ const Landing = (c?: any) => {
             <div class="card-body py-5 px-6 gap-4">
               <div class="flex items-center justify-between">
                 <h2 class="font-bold">連線池狀態</h2>
-                <span class="text-xs text-base-content/40">AdapterPool · L2 SYSTEM + L3 租戶連線</span>
+                <span class="text-xs text-base-content/40">AdapterPool · L1/L2/L3 三層統一管理</span>
               </div>
               <div x-data="poolStatus" x-init="check()">
                 <template x-if="loading">

@@ -1,7 +1,6 @@
 import { createGateway } from '@dui/framework';
 import { info, error } from '@dui/util';
 import { initConfig, getConfig } from './services/config.ts';
-import { initL1 } from './services/l1-data.ts';
 import { getDbManager, setDbManager, DbManager } from './services/db-manager.ts';
 import { initAudit } from './services/audit.ts';
 
@@ -16,14 +15,14 @@ const gw = await createGateway({
 // ── 2. ConfigStore (persistent JSON KV) ──────────────
 const config = await initConfig(gw.dataDir);
 
-// ── 3. L1 sqlite seed (bootstrap data) ──────────────
-await initL1(gw.dataDir);
-
-// ── 4. Database Manager (L2/L3 lifecycle) ────────────
+// ── 3. Database Manager + L1 bootstrap ──────────────
 const dbm = new DbManager(config);
 setDbManager(dbm);
 
-// 初始化審計日誌（獨立 audit.db）
+// L1 進 pool 管理（persistent，常駐連線）
+await dbm.initL1(gw.dataDir);
+
+// ── 4. 審計日誌（獨立 audit.db） ────────────────────
 await initAudit(gw.dataDir);
 
 // ── 5. L2 SYSTEM (if installed) ─────────────────────
