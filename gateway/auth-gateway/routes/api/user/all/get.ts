@@ -11,6 +11,7 @@ import { gwFetch } from '@dui/util';
 import { MultilingualString, type SupportedLanguage } from '@dui/smartmultilingual';
 import { toTitleCase } from '@std/text/unstable-to-title-case';
 import { getDataGatewayUrl, getDataGatewayApiKey } from '../../../../utils/config.ts';
+import { canViewFullUserData, 公開使用者 } from '../../../../database/models/使用者.ts';
 
 const LAYERS = ['1', '2', '3'] as const;
 
@@ -62,6 +63,13 @@ export const GET = async (c: Context) => {
   const apiKey = await getDataGatewayApiKey();
   const lang = (c.get('lang') || 'zh-tw') as SupportedLanguage;
 
+  // 判斷請求者是否為管理員
+  const payload = c.get('jwt_payload') as Record<string, unknown> | undefined;
+  const requesterRoles = (payload?.角色 as string[]) || [];
+  const requesterSub = (payload?.sub as string) || '';
+  const isAdmin = requesterRoles.includes('使用者:角色:超級管理員') ||
+                  requesterRoles.includes('使用者:角色:管理員');
+
   // 分頁參數（與 data-gateway CRUD 一致）
   const qPage = Number(c.req.query('page'));
   const qPageSize = Number(c.req.query('pageSize'));
@@ -89,15 +97,25 @@ export const GET = async (c: Context) => {
     }
 
     for (const user of items) {
-      data.push({
-        id: user.id,
-        帳號: user.帳號,
-        名稱: await resolveName(user.名稱, lang, (user.帳號 as string) || ''),
-        角色: user.角色 ?? [],
-        圖示: user.圖示,
-        最後登入: user.最後登入,
-        來源: `L${layer}`,
-      });
+      const displayName = await resolveName(user.名稱, lang, (user.帳號 as string) || '');
+      const isSelf = requesterSub === user.id;
+      if (isAdmin || isSelf) {
+        data.push({
+          id: user.id,
+          帳號: user.帳號,
+          名稱: displayName,
+          角色: user.角色 ?? [],
+          圖示: user.圖示,
+          最後登入: user.最後登入,
+          來源: `L${layer}`,
+        });
+      } else {
+        const pub = new 公開使用者(user as any);
+        const pubJson = pub.toJSON();
+        pubJson.名稱 = displayName;
+        pubJson.來源 = `L${layer}`;
+        data.push(pubJson as Record<string, unknown>);
+      }
     }
     skip = 0;
   }

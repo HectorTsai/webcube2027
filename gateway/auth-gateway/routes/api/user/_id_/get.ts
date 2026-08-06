@@ -1,7 +1,9 @@
 /**
  * GET /api/user/:id — 使用者資訊 API
  *
- * 回傳指定使用者的基本資料（不含敏感欄位）。
+ * 回傳指定使用者的資料。依請求者權限過濾欄位：
+ *   - 超級管理員／管理員／自己 → 完整資料（含帳號、最後登入）
+ *   - 一般使用者 → 僅公開欄位（名稱、圖示、角色）
  * 名稱依當前語言回傳單一語言文字。
  */
 
@@ -10,6 +12,7 @@ import { gwFetch } from '@dui/util';
 import { MultilingualString, type SupportedLanguage } from '@dui/smartmultilingual';
 import { toTitleCase } from '@std/text/unstable-to-title-case';
 import { getDataGatewayUrl, getDataGatewayApiKey } from '../../../../utils/config.ts';
+import { canViewFullUserData, 公開使用者 } from '../../../../database/models/使用者.ts';
 
 export const GET = async (c: Context) => {
   const userId = c.req.param('id');
@@ -22,6 +25,12 @@ export const GET = async (c: Context) => {
     return c.json({ success: false, error: 'data-gateway 尚未就緒' }, 502);
   }
   const apiKey = await getDataGatewayApiKey();
+
+  // 判斷請求者權限
+  const payload = c.get('jwt_payload') as Record<string, unknown> | undefined;
+  const requesterRoles = (payload?.角色 as string[]) || [];
+  const requesterSub = (payload?.sub as string) || '';
+  const isPrivileged = canViewFullUserData(requesterRoles, requesterSub, userId);
 
   try {
     const res = await gwFetch(c, dataGatewayUrl, `/api/l2/${userId}`, {
@@ -47,17 +56,25 @@ export const GET = async (c: Context) => {
       displayName = (user.帳號 as string) || '';
     }
 
-    return c.json({
-      success: true,
-      data: {
-        id: user.id,
-        帳號: user.帳號,
-        名稱: displayName,
-        角色: user.角色 ?? [],
-        圖示: user.圖示,
-        最後登入: user.最後登入,
-      },
-    });
+    if (isPrivileged) {
+      return c.json({
+        success: true,
+        data: {
+          id: user.id,
+          帳號: user.帳號,
+          名稱: displayName,
+          角色: user.角色 ?? [],
+          圖示: user.圖示,
+          最後登入: user.最後登入,
+        },
+      });
+    }
+
+    // 非特權：僅回傳公開欄位
+    const pub = new 公開使用者(user as any);
+    const pubJson = pub.toJSON();
+    pubJson.名稱 = displayName;
+    return c.json({ success: true, data: pubJson });
   } catch (err) {
     return c.json({
       success: false,
