@@ -1,6 +1,6 @@
 # Data Gateway API 文件
 
-> 最後更新：2026-08-06
+> 最後更新：2026-08-06（版本號已重新編號為語意化版本）
 
 ---
 
@@ -8,6 +8,7 @@
 
 - [公開 API（不需 API Key）](#公開-api不需-api-key)
   - [GET /api/health](#get-api-health)
+  - [GET /api/version](#get-api-version)
   - [POST /api/setup](#post-api-setup)
   - [POST /api/register-gateway](#post-api-register-gateway)
 - [L1/L2/L3 資料 API（需 X-API-Key）](#l1l2l3-資料-apix-api-key)
@@ -53,6 +54,20 @@
 | `l1` | `"connected"` 或 `"disconnected"` |
 | `l2` | `"connected"` 或 `"disconnected"` |
 | `l3` | `"未設定"`（無 L3）、`"{類型} ✓ 已就緒"`（連線正常）、`"{類型} ✗ 連線失敗"`（異常） |
+
+---
+
+### GET /api/version
+
+回傳目前 data-gateway 版本號（從 `deno.json` 動態讀取，唯一版本來源）。
+
+**Response `200 OK`**：
+
+```json
+{
+  "version": "0.16.0"
+}
+```
 
 ---
 
@@ -145,7 +160,7 @@ L1、L2、L3 三層的 CRUD 路由**結構完全同構**，差異只在操作的
 | PATCH | `/api/lX/:id` | 單筆部分更新（只合併指定欄位，不允許修改 `id`） |
 | DELETE | `/api/lX/:id` | 單筆刪除 |
 
-> **批次操作位置變更（2.3.0）**：原 `PUT/PATCH/DELETE /api/lX/:collection/:model` 已移除，統一改為 `PUT/PATCH/DELETE /api/lX/`（層級根路由）。每筆依 composite ID（`collection:model:nanoid`）自動決定其 collection 與 model，不再限定同一 collection/model。舊路徑可經 Pass 3 退回正常運作。
+> **批次操作位置變更（0.16.0）**：原 `PUT/PATCH/DELETE /api/lX/:collection/:model` 已移除，統一改為 `PUT/PATCH/DELETE /api/lX/`（層級根路由）。每筆依 composite ID（`collection:model:nanoid`）自動決定其 collection 與 model，不再限定同一 collection/model。舊路徑可經 Pass 3 退回正常運作。
 
 **批次操作**（PUT/PATCH/DELETE `/api/lX/`，body 為 JSON 陣列）：逐筆驗證 composite ID 格式，逐筆執行、成功照常寫入，不因單筆失敗中止（部分成功）；回應：
 
@@ -252,6 +267,10 @@ L1、L2、L3 三層的 CRUD 路由**結構完全同構**，差異只在操作的
 ### GET /:lang/doc.md
 
 本 API 說明文件（.md 自動轉 HTML）。
+
+### GET /:lang/history
+
+版本紀錄頁面，列出各版本變更說明（.md 自動轉 HTML，比照 doc.md）。首頁版本號 badge 及 `/api/version` 皆從 `deno.json` 動態讀取，無硬編碼。
 
 ---
 

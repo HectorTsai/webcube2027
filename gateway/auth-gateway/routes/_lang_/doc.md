@@ -1,12 +1,14 @@
 # Auth Gateway API 文件
 
-> 最後更新：2026-08-04
+> 最後更新：2026-08-06（版本號已重新編號為語意化版本）
 
 ---
 
 ## 目錄
 
 - [公開 API（不需登入）](#公開-api不需登入)
+  - [GET /api/version](#get-api-version)
+  - [GET /api/health](#get-api-health)
   - [POST /api/setup](#post-api-setup)
   - [POST /api/anonymous-token](#post-api-anonymous-token)
   - [POST /api/register](#post-api-register)
@@ -31,6 +33,7 @@
   - [GET /:lang/login](#get-langlogin)
   - [GET /:lang/setup](#get-langsetup)
   - [GET /:lang/doc](#get-langdoc)
+  - [GET /:lang/history](#get-langhistory)
 - [附錄](#附錄)
   - [JWT Payload 格式](#jwt-payload-格式)
   - [登出跨域同步](#登出跨域同步)
@@ -41,6 +44,78 @@
 ## 公開 API（不需登入）
 
 `/api/*` 下的端點**預設公開**（不需登入），由各 API 目錄的 `_middleware.ts` 自行限制。目前依賴 data-gateway 安裝設定的端點（login、verify-user）以目錄 middleware 要求「已安裝」，未安裝時回傳 403；其餘端點一律放行。
+
+### GET /api/version
+
+回傳目前 auth-gateway 版本號（從 `deno.json` 動態讀取，所有 Gateway 共用 `@dui/framework` 的 `versionHandler`）。
+
+**Response `200 OK`**：
+
+```json
+{
+  "version": "0.21.0"
+}
+```
+
+---
+
+### GET /api/health
+
+健康檢查 — 代理至 data-gateway 的 `/api/health` 取得整體狀態，同時回傳本機 AccountPool 快取狀態與凍結數。所有 Gateway 共用 `@dui/framework` 的 `createHealthHandler`。
+
+**Response `200 OK`**（data-gateway 正常時）：
+
+```json
+{
+  "status": "ok",
+  "service": "data-gateway",
+  "version": "0.21.0",
+  "uptime": 12345,
+  "l1": "connected",
+  "l2": "connected",
+  "l3": { "total": 3, "active": 2 },
+  "pool": { "status": "ready", "total": 5, "idle": 3 },
+  "gateways": {
+    "auth-gateway": "http://localhost:8001",
+    "data-gateway": "http://localhost:8002"
+  },
+  "data_gateway_url": "http://localhost:8002",
+  "account_pool": {
+    "status": "ready",
+    "frozen_count": 2,
+    "items": [
+      { "id": "使用者:使用者:admin", "帳號": "admin", "frozen": false, "idleMs": 45000 },
+      { "id": "使用者:使用者:visitor", "帳號": "visitor", "frozen": true, "idleMs": 1200000 }
+    ]
+  }
+}
+```
+
+**Response `503`**（data-gateway 離線時）：
+
+```json
+{
+  "status": "error",
+  "service": "auth-gateway",
+  "version": "0.21.0",
+  "uptime": 12345,
+  "data_gateway_url": "http://localhost:8002",
+  "l1": "disconnected",
+  "l2": "disconnected",
+  "account_pool": {
+    "status": "ready",
+    "frozen_count": 2,
+    "items": []
+  }
+}
+```
+
+| HTTP 狀態碼 | 說明 |
+|------------|------|
+| 200 | data-gateway 正常，回代理結果 |
+| 503 | data-gateway 離線或尚未設定 |
+
+---
 
 ### POST /api/setup
 
@@ -593,6 +668,10 @@ GET /api/logout?redirect=http%3A%2F%2Flocalhost%3A8002%2Fzh-tw%2F
 ### GET /:lang/doc
 
 本 API 說明文件（.md 自動轉 HTML）。
+
+### GET /:lang/history
+
+版本紀錄頁面，列出各版本變更說明（.md 自動轉 HTML，比照 doc.md）。首頁版本號 badge 及 `/api/version` 皆從 `deno.json` 動態讀取，無硬編碼。
 
 ---
 

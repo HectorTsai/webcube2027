@@ -31,6 +31,23 @@ export {
 export type { SeedLevel, SeedKV, SyncSeedsOptions, SyncSeedsResult } from './seed-sync.ts';
 export { generatePageCss, UNOCSS_THEME_COLORS, COMPONENT_CSS } from './unocss.ts';
 export { ALPINE_JS_PATH, ALPINE_VERSION, getAlpineDist, mountAlpineAssets, alpineScripts } from './alpine.ts';
+export { getVersion, clearVersionCache, createVersionHandler } from './version.ts';
+export { createHealthHandler } from './health.ts';
+export { GatewayLayout } from './gateway-shell.tsx';
+export type { GatewayLayoutProps } from './gateway-shell.tsx';
+export {
+  WaveBackground,
+  GatewayHero,
+  StatusCard,
+  FeatureGrid,
+  TechStackRow,
+} from './gateway-home.tsx';
+export type {
+  GatewayHeroProps,
+  StatusCardProps,
+  FeatureCardItem,
+  FeatureGridProps,
+} from './gateway-home.tsx';
 
 // ─── Gateway 物件型別 ───────────────────────────────────────
 

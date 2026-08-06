@@ -80,11 +80,14 @@ export async function POST(c: Context) {
 
     // ── 1. 向 data-gateway 註冊取得 API Key ──
     const baseUrl = data_gateway_url.replace(/\/+$/, '');
+    // 以自身請求 URL 計算本服務位址，讓 data-gateway 記錄正確的 gateway URL
+    const selfUrl = new URL(c.req.url).origin;
     const registerRes = await fetch(`${baseUrl}/api/register-gateway`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: 'auth-gateway',
+        url: selfUrl,
         master_key,
         權限: {
           '使用者': { 讀: true, 寫: true },

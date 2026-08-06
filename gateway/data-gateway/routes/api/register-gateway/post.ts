@@ -23,7 +23,7 @@ function generateApiKey(): string {
 
 export async function POST(c: Context) {
   try {
-    const { name, master_key, 權限 } = await c.req.json();
+    const { name, master_key, 權限, url } = await c.req.json();
 
     // ── 驗證輸入 ──
     if (!name || typeof name !== 'string') {
@@ -73,12 +73,13 @@ export async function POST(c: Context) {
 
     // ── 記錄 Gateway 位址（供 health 等查詢各 gateway 位置） ──
     try {
-      const origin = new URL(c.req.url).origin;
+      // 優先使用請求 body 中的 url（註冊者自報），fallback 到請求來源
+      const gatewayUrl = url || new URL(c.req.url).origin;
       const storedGw = await config.get('gateways');
       const gateways: Record<string, string> = storedGw ? JSON.parse(storedGw) : {};
-      gateways[name] = origin;
+      gateways[name] = gatewayUrl;
       await config.set('gateways', JSON.stringify(gateways));
-      await info('DataGateway', `已記錄 ${name} 位址：${origin}`);
+      await info('DataGateway', `已記錄 ${name} 位址：${gatewayUrl}`);
     } catch {
       await info('DataGateway', `無法取得 ${name} 的請求來源位址`);
     }
