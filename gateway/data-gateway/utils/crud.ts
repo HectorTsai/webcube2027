@@ -8,8 +8,11 @@
  * 權限判定完全由各層 `_middleware.ts` 以 X-API-Key + Gateway 註冊的
  * collection 權限表完成，handler 不重複做權限檢查。
  *
- * 批次支援：PUT/PATCH/DELETE /:collection/:model（body 為 JSON 陣列）與
- * POST /:collection/:model（body 為陣列）→ 一次多筆，逐筆回報成功/失敗。
+ * 批次支援：
+ *   - PUT/PATCH/DELETE /:collection/:model—body 為 JSON 陣列，限同 collection/model
+ *   - PUT/PATCH/DELETE /{level}（如 /api/l2/）—body 為 JSON 陣列，每筆依 composite ID
+ *     自動決定 collection，可跨 collection/model（適合 pool flush 等場景）
+ *   - POST /:collection/:model—body 為陣列時亦為批次建立
  */
 
 import { getDbManager } from '../services/db-manager.ts';
@@ -619,6 +622,124 @@ export async function handleDelete(c: any, opts?: CrudHandlerOptions) {
       { success: false, error: `刪除失敗: ${errMsg(err)}` },
       500,
     );
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  Level batch — PUT/PATCH/DELETE /{level}/（跨 collection/model）
+// ═══════════════════════════════════════════════
+
+/** PUT /{level}/（如 /api/l2/）— 批次整筆更新，body 為 JSON 陣列，每筆依 composite ID 自動決定 collection */
+export async function handleLevelBatchUpdate(c: any, opts?: CrudHandlerOptions) {
+  try {
+    const target = resolveAccess(c, opts);
+    if ('error' in target) return c.json({ success: false, error: target.error }, target.status);
+    const { access, source, host } = target;
+
+    const batch = await readBatch(c);
+    if (batch.error) return c.json({ success: false, error: batch.error }, batch.status ?? 400);
+    const items = batch.items!;
+
+    return await runBatch(
+      c,
+      { source, host, collection: '(multi)', model: '(multi)', items, action: 'UPDATE', label: '更新' },
+      async (item, i) => {
+        if (!item || typeof item !== 'object' || Array.isArray(item)) {
+          return { id: `(第 ${i + 1} 筆)`, error: '每一筆必須是 JSON 物件' };
+        }
+        const rec = item as Record<string, unknown>;
+        const id = rec.id;
+        if (typeof id !== 'string' || !isValidCompositeId(id)) {
+          return { id: id === undefined ? `(第 ${i + 1} 筆)` : String(id), error: `無效的 composite ID：需 collection:model:nanoid` };
+        }
+        const collection = id.split(':')[0];
+        try {
+          const record = await access.update(collection, id, rec);
+          return { id: record.id };
+        } catch (err) {
+          return { id, error: `更新失敗: ${errMsg(err)}` };
+        }
+      },
+    );
+  } catch (err) {
+    return c.json({ success: false, error: `更新失敗: ${errMsg(err)}` }, 500);
+  }
+}
+
+/** PATCH /{level}/ — 批次部分更新，body 為 JSON 陣列，每筆依 composite ID 決定 collection/model */
+export async function handleLevelBatchPatch(c: any, opts?: CrudHandlerOptions) {
+  try {
+    const target = resolveAccess(c, opts);
+    if ('error' in target) return c.json({ success: false, error: target.error }, target.status);
+    const { access, source, host } = target;
+
+    const batch = await readBatch(c);
+    if (batch.error) return c.json({ success: false, error: batch.error }, batch.status ?? 400);
+    const items = batch.items!;
+
+    return await runBatch(
+      c,
+      { source, host, collection: '(multi)', model: '(multi)', items, action: 'PATCH', label: '部分更新' },
+      async (item, i) => {
+        if (!item || typeof item !== 'object' || Array.isArray(item)) {
+          return { id: `(第 ${i + 1} 筆)`, error: '每一筆必須是 JSON 物件' };
+        }
+        const rec = item as Record<string, unknown>;
+        const id = rec.id;
+        if (typeof id !== 'string' || !isValidCompositeId(id)) {
+          return { id: id === undefined ? `(第 ${i + 1} 筆)` : String(id), error: `無效的 composite ID` };
+        }
+        const collection = id.split(':')[0];
+        const fields = { ...rec };
+        delete fields.id;
+        try {
+          const record = await access.patch(collection, id, fields);
+          if (record) return { id: record.id };
+          return { id, error: '找不到資料或更新失敗' };
+        } catch (err) {
+          return { id, error: `部分更新失敗: ${errMsg(err)}` };
+        }
+      },
+    );
+  } catch (err) {
+    return c.json({ success: false, error: `部分更新失敗: ${errMsg(err)}` }, 500);
+  }
+}
+
+/** DELETE /{level}/ — 批次刪除，body 為 id 陣列（或含 id 之物件陣列），每筆依 composite ID 決定 collection */
+export async function handleLevelBatchDelete(c: any, opts?: CrudHandlerOptions) {
+  try {
+    const target = resolveAccess(c, opts);
+    if ('error' in target) return c.json({ success: false, error: target.error }, target.status);
+    const { access, source, host } = target;
+
+    const batch = await readBatch(c);
+    if (batch.error) return c.json({ success: false, error: batch.error }, batch.status ?? 400);
+    const items = batch.items!;
+
+    return await runBatch(
+      c,
+      { source, host, collection: '(multi)', model: '(multi)', items, action: 'DELETE', label: '刪除' },
+      async (item, i) => {
+        const id = typeof item === 'string'
+          ? item
+          : (item && typeof item === 'object' && !Array.isArray(item)
+            ? (item as Record<string, unknown>).id
+            : undefined);
+        if (typeof id !== 'string' || !isValidCompositeId(id)) {
+          return { id: id === undefined ? `(第 ${i + 1} 筆)` : String(id), error: `無效的 composite ID` };
+        }
+        try {
+          const ok = await access.delete(id);
+          if (ok) return { id };
+          return { id, error: '記錄不存在' };
+        } catch (err) {
+          return { id, error: `刪除失敗: ${errMsg(err)}` };
+        }
+      },
+    );
+  } catch (err) {
+    return c.json({ success: false, error: `刪除失敗: ${errMsg(err)}` }, 500);
   }
 }
 
