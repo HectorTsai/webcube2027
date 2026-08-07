@@ -21,7 +21,9 @@ export async function POST(c: Context) {
       return c.json(result, 400);
     }
 
-    return c.json({ success: true, data: result.data });
+    // 密碼雜湊僅供 pool 快取使用，不對外暴露
+    const { 密碼雜湊: _, ...safeData } = result.data;
+    return c.json({ success: true, data: safeData });
   } catch (err) {
     return c.json(
       { success: false, error: `驗證失敗: ${err instanceof Error ? err.message : String(err)}` },

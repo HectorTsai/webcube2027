@@ -85,8 +85,8 @@ const Page = (c: any) => {
             }
           />
 
-          {/* ── 網站資訊快取狀態卡 ── */}
-          <StatusCard title="網站資訊快取狀態" subtitle="SitePool · 延遲寫入每 5 秒 flush">
+          {/* ── 網站資訊池狀態卡 ── */}
+          <StatusCard title="網站資訊池狀態" subtitle="SitePool · 延遲寫入每 5 秒 flush">
             <div id="site-pool-status">
               <div class="flex items-center gap-2 text-xs text-base-content/50">
                 <span class="loading loading-spinner loading-xs"></span>

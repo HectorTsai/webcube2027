@@ -3,7 +3,7 @@
 > 此文件定義 WebCube2027 中所有 Gateway 必須遵守的共用規範。
 > **新增 Gateway 時，請依此文件逐步實作**，確保所有 Gateway 的架構與使用者體驗一致。
 >
-> 最後更新：2026-08-06
+> 最後更新：2026-08-07
 
 ---
 
@@ -21,7 +21,8 @@
 - [10. 版本號規則](#10-版本號規則)
 - [11. dui-util 工具一覽](#11-dui-util-工具一覽)
 - [12. 權限系統](#12-權限系統)
-- [13. 新增 Gateway 快速步驟](#13-新增-gateway-快速步驟)
+- [13. DataPool — 通用資料代理層](#13-datapool--通用資料代理層)
+- [14. 新增 Gateway 快速步驟](#14-新增-gateway-快速步驟)
 
 ---
 
@@ -241,8 +242,10 @@ export async function renderPage(title, content, lang) {
    ├── Gateway 名稱 + 標語
    └── 三操作按鈕：
        ├── 左：文件（/doc）
-       ├── 中：data-gateway → 匝道列表下拉（從 /api/health 動態載入）
-       │    其他 Gateway → 隱藏（只有文件 + 版本紀錄兩按鈕）
+       ├── 中：data-gateway → 匝道列表下拉
+       │   ├── 從 /api/health 取得已註冊閘道
+       │   └── 自動掃描本機埠號 8001-8010 的 /api/health 補上未註冊閘道
+       │   其他 Gateway → 隱藏（只有文件 + 版本紀錄兩按鈕）
        └── 右：版本紀錄（/history）
 3. 服務狀態卡（StatusCard）
 4.（選用）連線池狀態卡（data-gateway）
@@ -312,8 +315,43 @@ export const GET = createVersionHandler(ROOT);
 ### `/api/health` — 健康檢查
 
 - **位置**：`routes/api/health/get.ts`（公開端點，無需 API Key）
-- 標準欄位：`{ status, service, version, uptime, ...extend }`
-- 實作：使用 `createHealthHandler`，以 `extend` callback 加入專屬欄位
+- **標準欄位**：`{ status, service, version, uptime, ...extend }`
+- **實作**：使用 `createHealthHandler`，以 `extend` callback 加入專屬欄位
+
+#### 通用欄位
+
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| `status` | `"ok" \| "degraded" \| "error"` | **`ok`**：一切正常；**`degraded`**：部分相依不可用（如 data-gateway 未設定或無法連線）；**`error`**：發生錯誤 |
+| `service` | `string` | Gateway 名稱（如 `"data-gateway"`） |
+| `version` | `string` | 從 `deno.json` 讀取的語意化版本號 |
+| `uptime` | `number` | 自啟動以來的毫秒數 |
+
+#### `data_gateway` 子物件
+
+當 Gateway 相依於 data-gateway（如 auth-gateway、site-gateway）時，回應**必須**包含 `data_gateway` 與 `data_gateway_url` 欄位：
+
+| 欄位 | 型別 | 說明 |
+|------|------|------|
+| `data_gateway_url` | `string \| null` | 設定的 data-gateway URL，未設定則為 `null` |
+| `data_gateway` | `object` | 包含 `configured`（boolean）、`reachable`（boolean），連線成功時另加 `status` / `service` / `version` |
+
+```json
+// data-gateway 已設定且可連線
+{ "configured": true, "reachable": true, "status": "ok", "service": "data-gateway", "version": "0.x.y" }
+// data-gateway 未設定
+{ "configured": false, "reachable": false }
+// data-gateway 已設定但無法連線
+{ "configured": true, "reachable": false }
+```
+
+#### status 判定規則
+
+- **data-gateway 自身**：L1 與 L2 都就緒 → `ok`，否則 → `degraded`
+- **auth-gateway / site-gateway**：data-gateway 已設定且可連線 → `ok`，否則 → `degraded`
+- 任何未預期的例外 → `error`（HTTP 500）
+
+#### 使用範例
 
 ```ts
 import { createHealthHandler } from '@dui/framework';
@@ -627,19 +665,19 @@ getFormatFromMime('image/png'); // → { ext: '.png', ... }
 
 ## 12. 權限系統
 
-`@dui/framework` 提供角色權限的共用型別與工具函式。
+`@dui/framework` 提供角色權限的共用型別與工具函式。所有 Gateway 的 API 端點**必須**透過 JWT payload 中的 `權限` 欄位（PermissionMap）判斷操作是否允許，**不得**硬編碼角色名稱。
 
 ### 權限資料結構
 
 ```ts
 interface PermissionMap {
-  l2?: LevelPermission;  // L2 權限
-  l3?: LevelPermission;  // L3 權限
+  l2?: LevelPermission;  // L2（系統層）權限
+  l3?: LevelPermission;  // L3（租戶層）權限
 }
 
 interface LevelPermission {
-  default?: CollectionPermission;          // 預設權限
-  [collection: string]: CollectionPermission; // 指定 collection 權限
+  default?: CollectionPermission;           // 預設權限（該層級未指定的 collection 使用此值）
+  [collection: string]: CollectionPermission; // 指定 collection 的權限
 }
 
 interface CollectionPermission {
@@ -648,16 +686,382 @@ interface CollectionPermission {
 }
 ```
 
+權限值說明：
+
+| 值 | 意義 |
+|----|------|
+| `true` | 允許所有操作（無限制） |
+| `false` | 禁止操作 |
+| `"self"` | 僅允許操作自己的資料（比對 `payload.sub` 與目標資料的作者/ID） |
+
+### 權限記錄位置
+
+權限定義在角色的 JSON 中（L2 seed 或 L3 執行期建立皆同此格式）：
+
+```json
+{
+  "id": "使用者:角色:管理員",
+  "名稱": { "zh-tw": "管理員" },
+  "權限": {
+    "l1": {
+      "default": { "讀": false, "寫": false }
+    },
+    "l2": {
+      "default": { "讀": false, "寫": false },
+      "使用者": { "讀": true, "寫": true },
+      "網站資訊": { "讀": true, "寫": "self" }
+    },
+    "l3": {
+      "default": { "讀": true, "寫": true }
+    }
+  }
+}
+```
+
 ### 權限判斷流程
 
-1. auth-gateway 在 verify-user 流程中以 `mergePermissions()` 合併使用者的多角色權限
-2. 合併後的 `PermissionMap` 寫入 JWT payload 的 `權限` 欄位
-3. 各業務 Gateway 讀取 JWT 中的 `權限`，以 `checkAccess()` 判斷操作是否允許
-4. data-gateway 不做權限判斷（純資料層），僅以 API Key 管控 Gateway 存取
+1. **auth-gateway** 在 `verify-user` 流程中以 `mergePermissions()` 合併使用者多角色的權限
+2. 合併後的 `PermissionMap` 寫入 JWT payload 的 `權限` 欄位（每次登入/refresh 時重新計算）
+3. 各業務 Gateway 從 JWT payload 讀取 `權限`，以 `checkAccess()` 或 `checkPermission()` 判斷操作
+4. **data-gateway** 不做角色權限判斷（純資料層），僅以 API Key 管控 Gateway 層級的存取
+
+### 核心函式
+
+| 函式 | 用途 | 範例 |
+|------|------|------|
+| `checkAccess(payload, level, collection, action, authorId?)` | **完整存取檢查**（含 `self` 比對） | `checkAccess(payload, 'l2', '使用者', '寫', targetId)` |
+| `checkPermission(permissions, level, collection, action)` | **查詢權限值**（回傳 `boolean \| 'self'`） | `checkPermission(payload.權限, 'l2', '使用者', '讀')` |
+| `mergePermissions(roles)` | 合併多角色權限（取最寬鬆） | `mergePermissions(userRoles)` |
+| `extractCollection(id)` | 從 composite ID 取 collection | `extractCollection('使用者:角色:管理員') → '使用者'` |
+
+### `checkAccess()` 判斷邏輯
+
+```
+                 ┌──────────────┐
+                 │ payload 存在? │
+                 └──────┬───────┘
+                    No  │  Yes
+                    ┌───▼───┐
+                    │ false │
+                    └───────┘
+                        │
+           ┌────────────▼────────────┐
+           │ checkPermission()       │
+           │ (讀取 payload.權限)      │
+           └────────────┬────────────┘
+              ┌────┬────┴────┬────┐
+              │    │         │    │
+           true  false     'self'
+              │    │         │
+           ┌──▼┐ ┌▼──┐  ┌───▼────┐
+           │true│ │false│ │authorId│
+           └───┘ └────┘ │===     │
+                        │sub?    │
+                        ├──┬──┬──┤
+                        │Y │  │N │
+                        │  │  │  │
+                      ┌─▼┐│┌─▼─┐│
+                      │T │││ F ││
+                      └──┘│└───┘│
+                          │     │
+                       ┌──▼┐ ┌─▼─┐
+                       │ T │ │ F │
+                       └───┘ └───┘
+```
+
+### API 端點實作模式
+
+#### 原則
+
+所有 API 端點的權限檢查**必須**透過 `checkAccess()` 讀取 JWT 中的 `權限` 欄位，**禁止**直接比對 `payload.角色` 陣列中的角色名稱字串。
+
+#### ✅ 正確作法（檢查權限地圖）
+
+```ts
+// 寫操作（PUT / PATCH / DELETE）
+const payload = c.get('jwt_payload') as Record<string, unknown> | undefined;
+if (!payload || !checkAccess(payload, 'l2', '使用者', '寫', userId)) {
+  return c.json({ success: false, error: '無權限' }, 403);
+}
+
+// 讀操作 — 決定回傳完整或公開資料
+const canViewFull = payload ? checkAccess(payload, 'l2', '使用者', '讀', targetId) || payload.sub === targetId : false;
+```
+
+#### ❌ 錯誤作法（硬編碼角色名稱）
+
+```ts
+// ✗ 不要這樣做！
+const roles = payload?.角色 as string[] || [];
+const isAdmin = roles.includes('使用者:角色:超級管理員') || roles.includes('使用者:角色:管理員');
+```
+
+#### GET 列表端點
+
+列表端點使用 **blanket check**（不帶 `authorId`）決定所有項目的回傳格式：
+
+```ts
+const payload = c.get('jwt_payload') as Record<string, unknown> | undefined;
+const canViewFull = payload ? checkAccess(payload, 'l2', '使用者', '讀') : false;
+
+// 逐筆過濾資料
+for (const item of items) {
+  if (canViewFull) {
+    // 回傳完整資料（含敏感欄位）
+  } else {
+    // 回傳僅公開欄位
+  }
+}
+```
+
+#### 單筆 GET 端點
+
+單筆查詢使用 `canViewFullUserData()` helper（定義於 model 層，內部使用 `checkAccess`）：
+
+```ts
+import { canViewFullUserData } from '../../database/models/使用者.ts';
+
+const payload = c.get('jwt_payload') as Record<string, unknown> | undefined;
+if (canViewFullUserData(payload, userId)) {
+  // 回傳完整資料
+} else {
+  // 回傳公開使用者資料
+}
+```
+
+`canViewFullUserData()` 的判斷邏輯：
+1. `checkAccess(payload, 'l2', '使用者', '讀', targetUserId)` → 有讀權限則可看完整資料
+2. `payload.sub === targetUserId` → 自己看自己也可看完整資料
+
+#### PUT / PATCH / DELETE 端點
+
+修改操作直接使用 `checkAccess()` 檢查**寫權限**：
+
+```ts
+const payload = c.get('jwt_payload') as Record<string, unknown> | undefined;
+if (!payload || !checkAccess(payload, 'l2', '使用者', '寫', userId)) {
+  return c.json({ success: false, error: '無權限' }, 403);
+}
+```
+
+權限判定對應：
+
+| 角色 | L2 `使用者` 寫權限 | PUT/PATCH/DELETE 結果 |
+|------|-------------------|----------------------|
+| 超級管理員 | `default: true`（繼承） | ✅ 可操作任何使用者 |
+| 管理員 | `使用者: { 寫: true }` | ✅ 可操作任何使用者 |
+| 會員 | `default: false`，無明確 `使用者` 設定 | ❌ 403（會員僅存在於 L3） |
+
+> 會員角色僅存在於 L3（租戶層），因此對 L2 的寫操作應直接回傳 403。會員的自我管理透過 L3 端點處理。
+
+### `requireCollectionRead` Middleware 模式
+
+對於需要「已登入 + 特定 collection 讀權限」的 API 目錄，使用 `require-auth.ts` 提供的 middleware factory：
+
+```ts
+/**
+ * require-auth.ts — 提供 requireCollectionRead middleware
+ */
+import { getAuthenticatedPayload } from './utils/require-auth.ts';
+import { checkAccess } from '@dui/framework';
+
+export function requireCollectionRead(collection: string, level: 'l2' | 'l3' = 'l2') {
+  return async function middleware(c: Context, next: Next) {
+    const payload = await getAuthenticatedPayload(c);
+    if (!payload) return c.json({ success: false, error: '請先登入' }, 401);
+    if (!checkAccess(payload, level, collection, '讀')) {
+      return c.json({ success: false, error: '無權限存取此資源' }, 403);
+    }
+    c.set('jwt_payload', payload);
+    await next();
+  };
+}
+```
+
+使用方式：
+
+```ts
+// routes/api/user/_middleware.ts
+import { requireCollectionRead } from '../../../utils/require-auth.ts';
+export const middleware = requireCollectionRead('使用者', 'l2');
+
+// routes/api/role/_middleware.ts
+import { requireCollectionRead } from '../../../utils/require-auth.ts';
+export const middleware = requireCollectionRead('使用者', 'l2');
+```
+
+### 權限擴充原則
+
+- **新增角色**時，只需在 seed JSON 中設定該角色的 `權限` 欄位，**不需修改任何程式碼**
+- JWT 中的 `權限` 是登入時合併當下角色權限的**快照**，角色權限變更後需重新登入才能生效
+- `"self"` 比對的是 JWT payload 的 `sub` 欄位（composite ID），而非 `帳號`
 
 ---
 
-## 13. 新增 Gateway 快速步驟
+## 13. DataPool — 通用資料代理層
+
+所有需要跟 data-gateway 通訊的 Gateway（auth-gateway、site-gateway、page-gateway、billing-gateway、ai-gateway 等）應透過 **`@dui/pool` 的 `DataPool`** 作為統一的後端資料存取層，不直接對 data-gateway 發起 HTTP 請求。
+
+> **例外**：不需 data-gateway 的直連型 Gateway（如 data-gateway 本身、cdn-gateway）可跳過此層。
+
+### 13.1 Pool 層級體系
+
+`@dui/pool` 提供四個層級的 Pool，繼承關係如下：
+
+```
+PoolBase（抽象基底 — timer、lifecycle hooks、status、destroy）
+ └── BasePool（抽象 — LRU Map、get/set/has/delete、dirty flush、idle eviction）
+      └── CachePool（read-through 快取 — TTL、getOrFetch、prefix invalidate）
+           └── DataPool（DG 通訊代理 + 泛用 CRUD）
+```
+
+| 層級 | 適用場景 | 關鍵功能 |
+|------|---------|---------|
+| `PoolBase` | 需要定時任務+狀態管理的自訂池 | cleanup/heartbeat timer、`getStatus()`、`destroy()`、`reconfigure()` |
+| `BasePool` | LRU 快取池（純記憶體存取） | `get`/`set`/`has`/`delete`、`flushToStorage`、`getItemsOverview` |
+| `CachePool` | Read-through 快取（DG 上游） | `getOrFetch(key, fetcher, ttlMs?)`、TTL 自動失效、`invalidateByPrefix` |
+| `DataPool` | DG CRUD 代理（快取+寫透） | `getById`/`list`/`create`/`update`/`remove`、`request()` 通用代理 |
+
+另外有獨立於此繼承鏈的 **`TaskPool`**（繼承 `PoolBase`），提供多優先級任務佇列與並發控制，適合 ai-gateway 的 LLM 調用排隊、schedule-gateway 的排程任務等場景。
+
+### 13.2 建立 DataPool 實例
+
+每個 Gateway 建立自己的 DataPool 實例時，在建構子傳入兩個 async resolver：
+
+```ts
+import { DataPool } from '@dui/pool';
+
+class MyGatewayPool extends DataPool<MyCacheValue> {
+  constructor() {
+    const getDgUrl = async () => {
+      // 從 ConfigStore 或環境變數讀取 data-gateway URL
+      const url = await getConfig().get('data_gateway_url');
+      return url ?? Deno.env.get('DATA_GATEWAY_URL') ?? null;
+    };
+    const getApiKey = async () => {
+      return await getConfig().get('data_gateway_api_key') ?? null;
+    };
+    super(getDgUrl, getApiKey, { maxSize: 5000 });
+  }
+}
+```
+
+- `getDgUrl`：回傳 data-gateway 的 base URL（如 `http://localhost:8002`）
+- `getApiKey`：回傳 data-gateway 的 API Key（安裝時註冊取得）
+- 兩個 resolver 均為 `async`，可在內部實作快取避免重複 IO
+
+### 13.3 快取 Key 設計
+
+**一律使用 record ID（`userId`、`pageId` 等）作為 pool 的主 key**，格式為：
+
+```
+{level}:{collection}:{id}
+```
+
+- `level`：`l2`（SYSTEM）或 `l3`（tenant）
+- `collection`：資料集合名稱（如 `使用者`、`頁面`）
+- `id`：該記錄的唯一識別碼
+
+範例：
+
+```
+l2:使用者:00f61f6b      ← L2 系統使用者
+l3:example:頁面:首頁     ← L3 租戶頁面
+```
+
+> **為何不用帳號或 slug 當 key？**  
+> 帳號、slug 等欄位可能變更（更名、轉移）。以不變的 ID 為 key 才能保證快取一致性。  
+> 需要以可變欄位查詢時，直接在記憶體內掃描所有 items 比對（微秒級），不需輔助索引。
+
+### 13.4 快取策略
+
+DataPool 的泛用 CRUD 方法內建以下快取規則：
+
+| 操作 | 快取策略 | 原因 |
+|------|----------|------|
+| 單筆讀取（`getById`） | ✅ 先檢查快取 → hit 回傳 → miss 打 DG → 寫入快取 | 降低重複查詢延遲 |
+| 列表查詢（`list`） | ❌ pass-through，不進快取 | 列表有分頁/篩選/即時性需求 |
+| 建立（`create`） | ⚡ DG 成功後寫入快取 | 新資料應立即可供後續讀取 |
+| 完整更新（`PUT`） | 📝 DG 成功後更新快取 | PUT 回傳完整資料，可直接更新 |
+| 部分更新（`PATCH`） | 🗑️ DG 成功後失效快取（含 TTL） | PATCH 回傳資料不全，失效讓下次讀取重抓 |
+| 刪除（`remove`） | 🗑️ 先清除快取，再刪除 DG | 避免髒資料殘留 |
+| 通用代理（`request`） | ❌ pass-through，不進快取 | 通用請求無特定快取邏輯 |
+
+> 自訂 Gateway Pool 可在繼承 DataPool 後 override `onFlush()` / `onEvict()` 實作專屬 flush 邏輯（如 auth-gateway 的 AccountPool flush pending login/logout events）。
+
+### 13.5 通用代理 `request()`
+
+對於非常規 CRUD 的查詢（角色權限、系統設定、跨 collection 聚合等），使用 `request()` 直接發送 HTTP 請求：
+
+```ts
+const res = await myPool.request('GET', '/api/l2/角色權限/admin');
+const data = await res.json();
+```
+
+- 自動攜帶 `X-API-Key`、`X-Tenant`（若有）等 header
+- 不解析、不快取回應內容
+- 確保所有對 data-gateway 的 HTTP 請求統一經過 pool
+
+### 13.6 可觀測性
+
+DataPool（繼承鏈全部）提供以下狀態檢視方法：
+
+| 方法 | 回傳內容 |
+|------|---------|
+| `getStatus()` | 容量、當前大小、命中率、錯誤數、平均閒置時間、利用率等 |
+| `getItemsOverview()` | 每筆 entry 的存取次數、最後存取時間、是否髒資料、剩餘閒置時間 |
+| `getCurrentSize()` | 當前 entry 數量 |
+| `destroy()` | 停止所有 timer、flush 髒資料、清除所有 entry |
+
+所有 Pool 實例也繼承 `reconfigure(options)`，可在執行期動態調整部分選項（如 `maxSize`、`cleanupIntervalMs`）。
+
+### 13.7 AccountPool（auth-gateway 專屬擴充）
+
+auth-gateway 的 `AccountPool` 是 DataPool 的實際應用範例，在 DataPool 之上增加：
+
+- **`getUserByAccount`**：掃描 items 比對帳號欄位（同步，微秒級）
+- **`verifyPassword`**：整合快取 + bcrypt 驗證 + data-gateway 查詢
+- **`recordSuccess`/`recordFailure`/`isLocked`**：登入鎖定機制（5 次失敗鎖 10 分鐘）
+- **`recordLogout`**：登出事件暫存
+- **`onFlush` override**：將 pending 登入/登出事件 batch 寫回 data-gateway
+
+其他 Gateway 若需 auth-gateway 的使用者資料，應直接呼叫 auth-gateway 的 API，不自行建 AccountPool。
+
+### 13.8 TaskPool（非同步任務佇列）
+
+對於有併發控制需求的 Gateway（ai-gateway LLM 調用排隊、schedule-gateway 排程任務），使用 **`TaskPool`**（繼承 `PoolBase`）：
+
+```ts
+import { TaskPool } from '@dui/pool';
+
+const taskPool = new TaskPool({
+  maxConcurrency: 4,
+  autoScale: true,
+  queues: {
+    critical: { priority: 0, concurrency: 1 },
+    high:     { priority: 1, concurrency: 2 },
+    default:  { priority: 2, concurrency: 4 },
+    batch:    { priority: 3, concurrency: 1 },
+  },
+});
+
+// 提交任務
+const result = await taskPool.exec('critical', async (ctx) => {
+  const data = await ctx.data.getById(...);
+  return await llmCall(data);
+});
+```
+
+- 支援多優先級佇列（critical / high / default / batch）
+- Auto-scaling：根據 queue pressure 自動調整最大並發數
+- Backpressure：佇列超過 `maxQueueSize` 時拒絕新任務
+- `dataSource` 選項：可傳入 DataPool/CachePool 實例，任務透過 `ctx.data` 存取
+
+> 注意：DataPool 與 TaskPool 是「組合（composition）」而非繼承關係。DataPool 提供資料快取與 CRUD，TaskPool 提供任務排隊與併發控制，兩者可獨立使用或透過 `dataSource` 組合使用。
+
+---
+
+## 14. 新增 Gateway 快速步驟
 
 建立新 Gateway 時，依以下檢查清單逐步實作：
 

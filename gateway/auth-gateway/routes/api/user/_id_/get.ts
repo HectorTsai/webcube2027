@@ -1,17 +1,14 @@
 /**
  * GET /api/user/:id — 使用者資訊 API
  *
- * 回傳指定使用者的資料。依請求者權限過濾欄位：
- *   - 超級管理員／管理員／自己 → 完整資料（含帳號、最後登入）
- *   - 一般使用者 → 僅公開欄位（名稱、圖示、角色）
+ * 回傳指定使用者的資料。依請求者權限過濾欄位。
  * 名稱依當前語言回傳單一語言文字。
  */
 
 import type { Context } from 'hono';
-import { gwFetch } from '@dui/util';
 import { MultilingualString, type SupportedLanguage } from '@dui/smartmultilingual';
 import { toTitleCase } from '@std/text/unstable-to-title-case';
-import { getDataGatewayUrl, getDataGatewayApiKey } from '../../../../utils/config.ts';
+import { accountPool } from '../../../../services/account-pool.ts';
 import { canViewFullUserData, 公開使用者 } from '../../../../database/models/使用者.ts';
 
 export const GET = async (c: Context) => {
@@ -20,29 +17,19 @@ export const GET = async (c: Context) => {
     return c.json({ success: false, error: '缺少使用者 ID' }, 400);
   }
 
-  const dataGatewayUrl = await getDataGatewayUrl();
-  if (!dataGatewayUrl) {
-    return c.json({ success: false, error: 'data-gateway 尚未就緒' }, 502);
-  }
-  const apiKey = await getDataGatewayApiKey();
-
   // 判斷請求者權限
   const payload = c.get('jwt_payload') as Record<string, unknown> | undefined;
-  const requesterRoles = (payload?.角色 as string[]) || [];
-  const requesterSub = (payload?.sub as string) || '';
-  const isPrivileged = canViewFullUserData(requesterRoles, requesterSub, userId);
+  const isPrivileged = canViewFullUserData(payload, userId);
+
+  // 依 tenant 決定查詢層級
+  const tenant = payload?.tenant as string | undefined;
 
   try {
-    const res = await gwFetch(c, dataGatewayUrl, `/api/l2/${userId}`, {
-      headers: apiKey ? { 'X-API-Key': apiKey } : undefined,
-    });
-    const json = await res.json();
-
-    if (!json.success || !json.data) {
+    const user = await accountPool.getUserById(userId, tenant);
+    if (!user) {
       return c.json({ success: false, error: '使用者不存在' }, 404);
     }
 
-    const user = json.data as Record<string, unknown>;
     const lang = (c.get('lang') || 'zh-tw') as SupportedLanguage;
 
     // 名稱：以 MultilingualString 解析目標語言，轉為 Title Case

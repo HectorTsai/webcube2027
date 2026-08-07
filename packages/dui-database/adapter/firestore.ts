@@ -8,7 +8,7 @@
 
 import { initializeApp, getApps, cert, type App } from 'firebase-admin/app';
 import { getFirestore, type Firestore, type Timestamp } from 'firebase-admin/firestore';
-import { sanitizePayload, type DatabaseAdapter, type QueryOptions, type FieldFilter } from './adapter-interface.ts';
+import { sanitizePayload, isSafeIdentifier, type DatabaseAdapter, type QueryOptions, type FieldFilter } from './adapter-interface.ts';
 import { info, error as logError } from '@dui/util';
 
 export interface FirestoreConnectOptions {
@@ -100,21 +100,29 @@ export class FirestoreAdapter implements DatabaseAdapter {
   async list(collection: string, modelType?: string, options?: QueryOptions): Promise<Record<string, unknown>[]> {
     const limitNum = options?.limit ?? 50;
     const offsetNum = options?.offset ?? 0;
+    const filter = options?.filter;
     try {
       const db = this.拿到DB();
       let query: any = db.collection(collection);
 
+      // modelType 以 composite ID 前綴範圍篩選
       if (modelType) {
-        // 以 data.id（composite id）前綴範圍篩選 model type
-        // ⚠️ 排序限制：Firestore 複合索引要求 range 查詢欄位與 orderBy 欄位必須一致，
-        //    故此分支固定以 data.id 排序，options.sort / options.order 在此模式下會被忽略。
-        //    如需支援 updatedAt DESC 排序，請在 Firebase Console 建立複合索引
-        //    (data.id ASC, data.updatedAt DESC)。
         query = query
           .where('data.id', '>=', `${collection}:${modelType}:`)
           .where('data.id', '<=', `${collection}:${modelType}:\uf8ff`)
           .orderBy('data.id');
-      } else {
+      }
+
+      // 欄位篩選 — 使用 Firestore 的 where equality
+      if (filter) {
+        for (const [field, value] of Object.entries(filter)) {
+          if (!isSafeIdentifier(field)) continue;
+          query = query.where(`data.${field}`, '==', value);
+        }
+      }
+
+      // 排序：有 modelType 已固定 data.id 排序；無則依 updatedAt DESC
+      if (!modelType) {
         query = query.orderBy('data.updatedAt', 'desc');
       }
 
@@ -134,14 +142,51 @@ export class FirestoreAdapter implements DatabaseAdapter {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       if (msg.toLowerCase().includes('index')) {
-        await logError('FirestoreAdapter',
-          `list 失敗 — 缺少 Composite Index。\n` +
-          `請在 Firebase Console 為 collection "${collection}" 建立以下 Index：\n` +
-          `  欄位：data.id (ASCENDING) | data.id (ASCENDING)，範圍：集合\n` +
-          `或使用 Firebase CLI: firebase firestore:indexes`);
-      } else {
-        await logError('FirestoreAdapter', `list 失敗 (${collection}): ${msg}`);
+        // 無複合索引時，改用無排序查詢 + 記憶體過濾
+        try {
+          const db = this.拿到DB();
+          let retryQuery: any = db.collection(collection);
+
+          // 僅用 filter equality（不需複合索引）
+          if (filter) {
+            for (const [field, value] of Object.entries(filter)) {
+              if (!isSafeIdentifier(field)) continue;
+              retryQuery = retryQuery.where(`data.${field}`, '==', value);
+            }
+          }
+
+          // modelType 改用記憶體過濾（避免 range + equality 仍需複合索引）
+          retryQuery = retryQuery.limit(limitNum);
+          if (offsetNum > 0) retryQuery = retryQuery.offset(offsetNum);
+
+          const retrySnapshot = await retryQuery.get();
+          let results: Record<string, unknown>[] = [];
+          retrySnapshot.forEach((doc: any) => {
+            const obj = this.快照取資料(doc);
+            if (obj) results.push(obj);
+          });
+
+          // 記憶體中過濾 modelType
+          if (modelType) {
+            const prefix = `${collection}:${modelType}:`;
+            results = results.filter((r) => {
+              const id = r.id as string;
+              return id >= prefix && id <= `${prefix}\uf8ff`;
+            });
+          }
+
+          return results;
+        } catch {
+          await logError('FirestoreAdapter',
+            `list 失敗 — 缺少 Composite Index。\n` +
+            `請在 Firebase Console 為 collection "${collection}" 建立以下 Index：\n` +
+            (filter ? `  欄位：${Object.keys(filter).map(f => `data.${f}`).join(', ')}\n` : '') +
+            `  範圍：集合\n` +
+            `或使用 Firebase CLI: firebase firestore:indexes`);
+          return [];
+        }
       }
+      await logError('FirestoreAdapter', `list 失敗 (${collection}): ${msg}`);
       return [];
     }
   }

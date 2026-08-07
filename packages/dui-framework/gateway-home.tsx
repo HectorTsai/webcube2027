@@ -78,9 +78,9 @@ export function GatewayHero(props: GatewayHeroProps) {
 
           {/* 中：匝道下拉 / 自訂按鈕 / 不顯示 */}
           {showGatewayList ? raw(`
-            <div x-data="{ gateways: [], open: false }" class="dropdown dropdown-end">
+            <div x-data="{ gateways: [], open: false, loaded: false }" class="relative inline-block">
               <button
-                x-on:click="open = !open; if(gateways.length===0) fetch('/api/health').then(r=>r.json()).then(d=>{gateways=Object.entries(d.gateways||{})})"
+                x-on:click="if(!loaded){loaded=true;fetch('/api/scan-gateways').then(r=>r.json()).then(d=>{gateways=d.gateways;open=true}).catch(()=>{open=true})}else{open=!open}"
                 class="btn btn-soft"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -90,10 +90,11 @@ export function GatewayHero(props: GatewayHeroProps) {
               <div
                 x-show="open"
                 x-on:click.outside="open = false"
-                class="absolute mt-2 w-48 rounded-lg border border-base-200 bg-base-100 shadow-md z-20"
+                x-cloak
+                class="absolute mt-2 w-56 rounded-lg border border-base-200 bg-base-100 shadow-md z-20"
               >
-                <template x-for="[name, url] in gateways" x-bind:key="name">
-                  <a x-bind:href="url" class="block px-4 py-2 text-sm hover:bg-base-200 first:rounded-t-lg last:rounded-b-lg" x-text="name.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('-')"></a>
+                <template x-for="g in gateways" x-bind:key="g.name">
+                  <a x-bind:href="g.url" class="block px-4 py-2 text-sm hover:bg-base-200 first:rounded-t-lg last:rounded-b-lg" x-text="g.name.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('-')"></a>
                 </template>
                 <p x-show="gateways.length === 0" class="px-4 py-2 text-xs text-base-content/50">載入中…</p>
               </div>

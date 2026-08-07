@@ -48,7 +48,14 @@ export async function POST(c: Context) {
     try {
       // 測試資料庫可連線（SQLite 會嘗試建立/開啟檔案）
       await adapter.initialize('使用者');
-      return c.json({ success: true, message: '連線成功' });
+      // 檢查 使用者 collection 是否已有資料
+      let existingUserCount = 0;
+      try {
+        existingUserCount = await adapter.count('使用者');
+      } catch {
+        // count() 非所有 adapter 必需，無法取得時視為 0
+      }
+      return c.json({ success: true, message: '連線成功', existingUserCount });
     } finally {
       // 測試完成後關閉連線
       const anyAdapter = adapter as unknown as { close?: () => Promise<void> | void; 關閉?: () => Promise<void> | void };

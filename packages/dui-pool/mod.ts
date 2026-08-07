@@ -1,15 +1,48 @@
 /**
- * @dui/pool — Generic resource pool base class
+ * @dui/pool — Universal pool types for WebCube2027
  *
- * Provides a reusable BasePool<K, V> with LRU/LFU tracking,
- * dirty-flag write-back, idle eviction, and heartbeat recovery.
+ * Provides a hierarchy of pool classes for different use cases:
  *
- * Usage:
- * ```ts
- * import { BasePool } from '@dui/pool';
- * import type { PoolItem, PoolOptions } from '@dui/pool';
  * ```
+ * PoolBase (abstract — timers, lifecycle hooks, destroy, reconfigure)
+ * ├── BasePool (abstract — LRU Map, get/set/has/delete, dirty flush)
+ * │   ├── CachePool (read-through, TTL, prefix invalidation)
+ * │   │   └── DataPool (data-gateway proxy + cached CRUD)
+ * └── TaskPool (priority queues, concurrency, auto-scaling)
+ * ```
+ *
+ * @module
  */
 
+// ─── PoolBase ────────────────────────────────────────────
+
+export { PoolBase } from './pool-base.ts';
+
+// ─── BasePool ────────────────────────────────────────────
+
 export { BasePool, PoolFullError } from './base-pool.ts';
-export type { PoolItem, PoolOptions, PoolItemOverview, PoolStatus } from './types.ts';
+
+// ─── CachePool ───────────────────────────────────────────
+
+export { CachePool } from './cache-pool.ts';
+
+// ─── DataPool ────────────────────────────────────────────
+
+export { DataPool } from './data-pool.ts';
+
+// ─── TaskPool ────────────────────────────────────────────
+
+export { TaskPool } from './task-pool.ts';
+
+// ─── Type exports ────────────────────────────────────────
+
+export type {
+  PoolBaseOptions,
+  PoolOptions,
+  PoolItem,
+  PoolStatus,
+  PoolItemOverview,
+  TaskPoolOptions,
+  TaskQueueConfig,
+  TaskPoolStatus,
+} from './types.ts';

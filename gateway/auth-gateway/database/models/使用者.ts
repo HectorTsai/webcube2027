@@ -5,11 +5,15 @@
  * - 使用者（User）：繼承公開使用者，加入敏感欄位（帳號、密碼雜湊、其他資訊、最後登入）
  *
  * 使用方式：
- *   非特權請求（非 超級管理員／管理員／自己）→ 用 公開使用者.toJSON() 自動過濾
+ *   非特權請求（無法完整讀取該使用者）→ 用 公開使用者.toJSON() 自動過濾
  *   特權請求 → 用 使用者.toJSON() 回傳完整資料
+ *
+ * 權限判定委託 @dui/framework 的 checkAccess()，依角色權限表（PermissionMap）決定，
+ * 而非硬編碼角色名稱。
  */
 import { BaseModel, BaseModelInterface } from "@dui/database";
 import { MultilingualString } from "@dui/smartmultilingual";
+import { checkAccess } from '@dui/framework';
 
 // ─── 公開使用者（PublicUser）────────────────────────────
 
@@ -77,31 +81,24 @@ export class 使用者 extends 公開使用者 implements 使用者介面 {
 
 // ─── 權限輔助函式 ────────────────────────────────────────
 
-/** 超級管理員 composite ID */
-const ROLE_SUPER_ADMIN = '使用者:角色:超級管理員';
-/** 管理員 composite ID */
-const ROLE_ADMIN = '使用者:角色:管理員';
-
 /**
- * 判斷請求者是否可以檢視使用者的完整資料（含帳號、最後登入等）。
+ * 判斷請求者是否可以檢視指定使用者的完整資料（含帳號、最後登入等）。
  *
- * 以下情況視為特權：
- *   1. 請求者擁有 超級管理員 角色
- *   2. 請求者擁有 管理員 角色
- *   3. 請求者為目標使用者本人（sub === targetUserId）
+ * 判定方式（依序）：
+ *   1. 利用 @dui/framework 的 checkAccess() 檢查 JWT payload 中的權限地圖
+ *      — 對 l2/使用者 有「讀」權限（含 true 或 self）→ 可檢視完整資料
+ *   2. 請求者為目標使用者本人（sub === targetUserId）→ 可檢視完整資料
  *
- * @param requesterRoles  請求者的角色清單（JWT payload 的 `角色` 欄位）
- * @param requesterSub    請求者的 sub（JWT payload 的 `sub`，如 `使用者:使用者:admin`）
- * @param targetUserId    目標使用者的完整 ID（如 `使用者:使用者:member`）
+ * @param payload          JWT payload（含 `權限`、`sub` 欄位）
+ * @param targetUserId     目標使用者的完整 ID（如 `使用者:使用者:member`）
  * @returns true 表示可檢視完整資料
  */
 export function canViewFullUserData(
-  requesterRoles: string[],
-  requesterSub: string,
+  payload: Record<string, unknown> | undefined,
   targetUserId: string,
 ): boolean {
-  if (requesterRoles?.includes(ROLE_SUPER_ADMIN)) return true;
-  if (requesterRoles?.includes(ROLE_ADMIN)) return true;
-  if (requesterSub === targetUserId) return true;
+  if (!payload) return false;
+  if (checkAccess(payload, 'l2', '使用者', '讀', targetUserId)) return true;
+  if (payload.sub === targetUserId) return true;
   return false;
 }

@@ -25,6 +25,25 @@ export interface PoolItem<V> {
 }
 
 /**
+ * Options shared by all pool types (PoolBase).
+ *
+ * Each subclass interprets these according to its own semantics:
+ * - BasePool / CachePool / DataPool: `maxSize` = max cache entries,
+ *   `minSize` = warmup target.
+ * - TaskPool: `maxSize` = max concurrency, `minSize` = min workers.
+ */
+export interface PoolBaseOptions {
+  /** Cleanup interval (ms). Schedules periodic cleanup() calls. */
+  cleanupIntervalMs?: number;
+  /** Heartbeat interval (ms). Schedules periodic onHeartbeat() calls. */
+  heartbeatIntervalMs?: number;
+  /** Hard capacity / concurrency limit. */
+  maxSize?: number;
+  /** Minimum size / concurrency floor. */
+  minSize?: number;
+}
+
+/**
  * Options for configuring a BasePool instance.
  *
  * All intervals are optional. Only the timers you set will be started.
@@ -32,24 +51,13 @@ export interface PoolItem<V> {
  * @since 0.2.0 — added `maxSize`, `highWatermarkRatio`, `minSize` for
  *   watermark protection and capacity management.
  */
-export interface PoolOptions {
+export interface PoolOptions extends PoolBaseOptions {
   /** Flush interval (ms). Schedules periodic flushToStorage() for dirty items. */
   flushIntervalMs?: number;
-  /** Cleanup interval (ms). Schedules periodic eviction of idle entries. */
-  cleanupIntervalMs?: number;
   /** Max idle time (ms). Entries not accessed within this window are evicted. */
   maxIdleMs?: number;
-  /** Heartbeat interval (ms). Schedules periodic onHeartbeat() calls. */
-  heartbeatIntervalMs?: number;
 
   // ── Capacity management (v0.2.0) ──────────────────────────
-
-  /**
-   * Hard capacity limit. When the pool reaches this size, new insertions
-   * trigger synchronous LRU eviction. Throws `PoolFullError` if no
-   * evictable (non-persistent) entries remain.
-   */
-  maxSize?: number;
 
   /**
    * Soft watermark ratio (0.0–1.0, default 0.8 = 80%).
@@ -57,12 +65,81 @@ export interface PoolOptions {
    * LRU eviction is scheduled via `queueMicrotask` — non-blocking.
    */
   highWatermarkRatio?: number;
+}
 
-  /**
-   * Minimum pool size. During heartbeat, if the pool falls below this
-   * threshold, `onWarmup(deficit)` is called to pre-create resources.
-   */
-  minSize?: number;
+// ── TaskPool types (v0.4.0) ─────────────────────────────
+
+/**
+ * Configuration for a single TaskPool priority queue.
+ */
+export interface TaskQueueConfig {
+  /** Priority level (lower = higher priority). 0 = highest. */
+  priority: number;
+  /** Optional per-queue concurrency cap. */
+  concurrency?: number;
+}
+
+/**
+ * Options for TaskPool.
+ */
+export interface TaskPoolOptions extends PoolBaseOptions {
+  /** Maximum concurrent workers (required). */
+  maxConcurrency: number;
+  /** Minimum idle workers. */
+  minConcurrency?: number;
+  /** Enable auto-scaling based on queue depth vs idle ratio. */
+  autoScale?: boolean;
+  /** Queue depth ratio to trigger scale-up (0.0–1.0, default 0.8). */
+  scaleUpThreshold?: number;
+  /** Idle worker ratio to trigger scale-down (0.0–1.0, default 0.3). */
+  scaleDownThreshold?: number;
+  /** Workers to add/remove per scale cycle (default 2). */
+  scaleStep?: number;
+  /** Minimum ms between scale events (default 30_000). */
+  cooldownMs?: number;
+  /** Max pending tasks before backpressure rejection (default 1000). */
+  maxQueueSize?: number;
+  /** Default queue name (default "default"). */
+  defaultQueue?: string;
+  /** Queue definitions. Key = queue name. */
+  queues?: Record<string, TaskQueueConfig>;
+  /** Optional data source (CachePool / DataPool) for tasks to use. */
+  dataSource?: { getOrFetch?(key: string, fetcher: () => Promise<unknown>): Promise<unknown | null>; get?(key: string): unknown | null };
+}
+
+/**
+ * Status snapshot for TaskPool.
+ */
+export interface TaskPoolStatus {
+  // ── Workers ──
+  /** Currently active (busy) workers */
+  activeWorkers: number;
+  /** Target max concurrency */
+  maxConcurrency: number;
+  /** Target min concurrency */
+  minConcurrency: number;
+  /** Whether auto-scaling is enabled */
+  autoScale: boolean;
+
+  // ── Queue ──
+  /** Total pending tasks across all queues */
+  pendingTasks: number;
+  /** Per-queue breakdown */
+  queueDetails: Array<{ name: string; priority: number; pending: number; active: number; concurrency?: number }>;
+  /** Queue depth ratio (pending / maxQueueSize), or null if unlimited */
+  queuePressure: number | null;
+  /** Total completed tasks */
+  completedTasks: number;
+  /** Total rejected tasks (backpressure) */
+  rejectedTasks: number;
+
+  // ── Runtime ──
+  /** Whether cleanup/auto-scale cycle is running */
+  isCleaning: boolean;
+  /** Last cleanup timestamp */
+  lastCleanupAt: number | null;
+  /** Last error */
+  lastError: { time: number; message: string } | null;
 }
 
 // ── Observability (v0.3.0) ───────────────────────────────

@@ -1,10 +1,17 @@
 /**
- * GET /api/user* — 需已認證且對「使用者」collection 有讀權限
+ * /api/user/* — Middleware
  *
- * 角色 model 亦屬「使用者」collection（composite ID `使用者:角色:*`），
- * 因此 /api/role* 共用相同檢查（見 role/_middleware.ts）。
+ * 確認使用者已認證並將 JWT payload 附加至 context。
  */
 
-import { requireCollectionRead } from '../../../utils/require-auth.ts';
+import type { Context } from 'hono';
+import { getAuthenticatedPayload } from '../../../utils/require-auth.ts';
 
-export const middleware = requireCollectionRead('使用者');
+export const middleware = async (c: Context, next: () => Promise<void>) => {
+  const payload = await getAuthenticatedPayload(c);
+  if (!payload) {
+    return c.json({ success: false, error: '未授權，請重新登入' }, 401);
+  }
+  c.set('jwt_payload', payload);
+  await next();
+};

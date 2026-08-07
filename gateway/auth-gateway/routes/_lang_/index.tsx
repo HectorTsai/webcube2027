@@ -84,8 +84,8 @@ const Page = (c: any) => {
             }
           />
 
-          {/* ── 帳號快取狀態卡 ── */}
-          <StatusCard title="帳號快取狀態" subtitle="AccountPool · 5 次失敗自動凍結 10 分鐘">
+          {/* ── 帳號池狀態卡 ── */}
+          <StatusCard title="帳號池狀態" subtitle="AccountPool · 5 次失敗自動凍結 10 分鐘">
             <div id="account-pool-status">
               <div class="flex items-center gap-2 text-xs text-base-content/50">
                 <span class="loading loading-spinner loading-xs"></span>

@@ -4,7 +4,7 @@
 
 | 版本 | 日期 | 說明 |
 |------|------|------|
-| 0.21.0 | 2026-08-05 | **Seed 版本化同步**：seed 寫入改用 `@dui/framework` 的 `seed-sync`（`syncAllSeeds`），以內容 hash（SHA-256）比對版本（存於本機 `data/config.json` 的 `seed_hash_L1` / `seed_hash_L2`），版本不同時**依 collection:model 分組以批次 PUT（upsert）** 覆寫至 data-gateway L1/L2（data-gateway 批次 CRUD，同組記錄一次 HTTP request）。安裝時（`/api/setup`）首次寫入並記錄版本；每次啟動（`main.ts`，非阻斷）偵測 seed 檔案變更自動覆寫，**不需刪除資料庫重來**。刪除本端 `database/seed-loader.ts`（`writeSeeds` / `loadSeedsRecursive` 由 framework 取代）。 |
+| 0.22.0 | 2026-08-07 | **AccountPool 成為統一資料代理層**：所有 API 路由（使用者 CRUD、角色查詢、登入認證）不再直接呼叫 data-gateway，全部透過 AccountPool 代理。Pool key 從 `L2:{帳號}` 改為 `userId`（composite ID），登入時掃描 items 的 `帳號` 欄位比對。新增 CRUD 方法 `getUserById`/`listUsers`/`createUser`/`updateUser`/`deleteUser`，新增通用代理 `request()`。快取失效管理：PATCH 成功後失效快取、DELETE 先清除快取再刪除 DG。Lockout 改用 `_lockout:` 前綴與主快取分離。`verifyUser` 簡化為 thin wrapper。規格書新增第 13 章 AccountPool 設計原則。 |
 | 0.20.0 | 2026-08-05 | 消除 HTTP loopback：`verifyUser` 邏輯抽出為共用服務函式（`services/verify-user.ts`），`localProvider.login` 與 `/api/verify-user` 端點直接呼叫，不再向自身發 HTTP 請求。`getDataGatewayUrl()` 改回傳 `string \| null`、所有 9 個呼叫端優雅降級（匿名 token 返回空權限、gwFetch 端點回傳 502）。`hexToBytes()` 加入 hex 格式與長度防禦性驗證。`@dui/framework` 補匯出 `PermissionMap` 與 `mergePermissions`。seed-loader 註解修正。 |
 | 0.19.0 | 2026-08-04 | `/api/register` 重構為租戶公開註冊：一律寫入 L3（L3 不存在直接回 400）、不接受指定角色（第一位註冊→管理員、其後→會員）、tenant 依序從 body/cookie 訪客 JWT/Host 推斷。data-gateway 徹底移除 L3→L2 降級：db-manager 新增 `ensureL3`（租戶無 L3 連線時拋錯），`list/getById/create/update/patch/deleteRecord` 與 crud `handleCollection` 不再靜默降級。site-gateway `/api/site/apply` 呼叫 register 補傳 tenant。 |
 | 0.18.0 | 2026-08-04 | 新增 `/api/user`、`/api/user/:id`、`/api/role`、`/api/role/:id` 查詢 API。啟用 Deno tsgo（Go 原生 TypeScript 檢查器）。 |

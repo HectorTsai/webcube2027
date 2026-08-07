@@ -6,13 +6,15 @@
  * min-size warmup, optional heartbeat recovery, and built-in
  * observability (metrics + status snapshot + item overview).
  *
+ * Extends PoolBase for shared timer/lifecycle infrastructure.
+ *
  * Subclasses implement the lifecycle hooks:
  *   - onFlush(dirtyItems)   — batch-write dirty data back to storage
  *   - onEvict(evictedItems)  — release resources when entries are evicted
- *   - onHeartbeat()          — periodic health check / capacity recovery
  *   - onWarmup(count)        — optional: pre-create resources when below minSize
  */
 
+import { PoolBase } from './pool-base.ts';
 import type { PoolItem, PoolOptions, PoolItemOverview, PoolStatus } from './types.ts';
 import { error as logError } from '@dui/util';
 
@@ -27,20 +29,14 @@ export class PoolFullError extends Error {
 
 // ─── BasePool ─────────────────────────────────────────────────
 
-export abstract class BasePool<K, V> {
+export abstract class BasePool<K, V> extends PoolBase {
   /** Internal item map — insertion order = access order (LRU at front) */
   protected items = new Map<K, PoolItem<V>>();
 
   private flushTimer?: ReturnType<typeof setInterval>;
-  private cleanupTimer?: ReturnType<typeof setInterval>;
-  private heartbeatTimer?: ReturnType<typeof setInterval>;
 
   /** Guards against overlapping flush cycles */
   private _isFlushing = false;
-  /** Guards against overlapping cleanup cycles */
-  private _isCleaning = false;
-  /** Guards against overlapping heartbeat cycles */
-  private _isHeartbeating = false;
   /** Debounce flag for soft watermark background trimming */
   private _isTrimming = false;
 
@@ -48,16 +44,14 @@ export abstract class BasePool<K, V> {
 
   private _hits = 0;
   private _misses = 0;
-  private _evictions = 0;
   private _flushes = 0;
   private _flushErrors = 0;
   private _lastFlushAt: number | null = null;
-  private _lastCleanupAt: number | null = null;
-  private _lastHeartbeatAt: number | null = null;
-  private _lastError: { time: number; message: string } | null = null;
 
-  constructor(protected options: PoolOptions = {}) {
-    // 1. Flush timer — periodic write-back of dirty items
+  constructor(protected override options: PoolOptions = {}) {
+    super(options); // PoolBase handles cleanup + heartbeat timers
+
+    // Flush timer — periodic write-back of dirty items
     if (this.options.flushIntervalMs && this.options.flushIntervalMs > 0) {
       this.flushTimer = setInterval(async () => {
         if (this._isFlushing) return;
@@ -73,49 +67,83 @@ export abstract class BasePool<K, V> {
         }
       }, this.options.flushIntervalMs);
     }
+  }
 
-    // 2. Cleanup timer — evict idle entries
-    if (
-      this.options.cleanupIntervalMs && this.options.cleanupIntervalMs > 0 &&
-      this.options.maxIdleMs && this.options.maxIdleMs > 0
-    ) {
-      this.cleanupTimer = setInterval(async () => {
-        if (this._isCleaning) return;
-        this._isCleaning = true;
-        try {
-          await this.cleanupExpired(this.options.maxIdleMs!);
-          this._lastCleanupAt = Date.now();
-        } catch (err) {
-          this._lastError = { time: Date.now(), message: String(err) };
-          logError('BasePool', `Auto cleanup error: ${err}`);
-        } finally {
-          this._isCleaning = false;
+  // ═══════════════════════════════════════════════════════════
+  //  PoolBase overrides
+  // ═══════════════════════════════════════════════════════════
+
+  getCurrentSize(): number {
+    return this.items.size;
+  }
+
+  /**
+   * Periodic cleanup: evict entries that have exceeded maxIdleMs.
+   * Flushes dirty expired entries first to prevent data loss.
+   */
+  protected async cleanup(): Promise<void> {
+    const maxIdleMs = this.options.maxIdleMs;
+    if (!maxIdleMs || maxIdleMs <= 0) return;
+
+    const now = Date.now();
+    const expiredDirty: Array<[K, PoolItem<V>]> = [];
+    const expiredClean: Array<[K, PoolItem<V>]> = [];
+
+    for (const [key, item] of this.items.entries()) {
+      if (!item.persistent && now - item.lastAccessed > maxIdleMs) {
+        if (item.isDirty) {
+          expiredDirty.push([key, item]);
+        } else {
+          expiredClean.push([key, item]);
         }
-      }, this.options.cleanupIntervalMs);
+      }
     }
 
-    // 3. Heartbeat timer — periodic health check + min-size warmup
-    if (this.options.heartbeatIntervalMs && this.options.heartbeatIntervalMs > 0) {
-      this.heartbeatTimer = setInterval(async () => {
-        if (this._isHeartbeating) return;
-        this._isHeartbeating = true;
-        try {
-          await this.onHeartbeat();
-          await this._warmupIfNeeded();
-          this._lastHeartbeatAt = Date.now();
-        } catch (err) {
-          this._lastError = { time: Date.now(), message: String(err) };
-          logError('BasePool', `Auto heartbeat error: ${err}`);
-        } finally {
-          this._isHeartbeating = false;
+    // Flush dirty expired items first to prevent data loss
+    if (expiredDirty.length > 0) {
+      const flushMap = new Map<K, V>();
+      for (const [key, item] of expiredDirty) {
+        flushMap.set(key, item.value);
+      }
+      try {
+        await this.onFlush(flushMap);
+        this._flushes++;
+        for (const [_, item] of expiredDirty) {
+          item.isDirty = false;
         }
-      }, this.options.heartbeatIntervalMs);
+      } catch (err) {
+        this._flushErrors++;
+        this._lastError = { time: Date.now(), message: String(err) };
+        logError(
+          'BasePool',
+          `Flush on cleanup failed for ${expiredDirty.length} item(s): ${err}`,
+        );
+        // Keep isDirty = true, don't evict — retry on next cycle
+        return;
+      }
+    }
+
+    // Evict all expired items (now clean)
+    const allExpired = [...expiredDirty, ...expiredClean];
+    if (allExpired.length > 0) {
+      this._evictions += allExpired.length;
+      const evictMap = new Map<K, V>();
+      for (const [key, item] of allExpired) {
+        evictMap.set(key, item.value);
+        this.items.delete(key);
+      }
+      await this.onEvict(evictMap);
     }
   }
 
-  // ═══════════════════════════════════════════
+  /** Heartbeat: warmup if below minSize */
+  protected override async onHeartbeat(): Promise<void> {
+    await this._warmupIfNeeded();
+  }
+
+  // ═══════════════════════════════════════════════════════════
   //  Public API
-  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════
 
   /**
    * Get a value by key.
@@ -148,7 +176,7 @@ export abstract class BasePool<K, V> {
    * @param markDirty — Whether to mark the entry as dirty (needs flush).
    *   Pass `false` for resources that don't need write-back (e.g. DB connections).
    * @param persistent — Whether the entry should NEVER be evicted by idle cleanup.
-   *   Persistent entries are also pinged by `onHeartbeat()`.
+   *   Persistent entries are also pinged by onHeartbeat().
    *
    * @throws {PoolFullError} When hard capacity limit is reached and no item is evictable.
    */
@@ -287,25 +315,26 @@ export abstract class BasePool<K, V> {
    * Destroy the pool. Stops all timers, flushes remaining dirty items,
    * releases all resources via onEvict, then clears internal state.
    */
-  async destroy(): Promise<void> {
-    // 1. Stop all timers first (no new cycles)
+  override async destroy(): Promise<void> {
+    // 1. Stop flush timer first
     if (this.flushTimer) clearInterval(this.flushTimer);
-    if (this.cleanupTimer) clearInterval(this.cleanupTimer);
-    if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
 
-    // 2. Wait for running background tasks to finish (avoid race condition)
-    while (this._isFlushing || this._isCleaning || this._isHeartbeating) {
+    // 2. Stop PoolBase timers (cleanup + heartbeat)
+    await super.destroy();
+
+    // 3. Wait for running flush to finish
+    while (this._isFlushing) {
       await new Promise((resolve) => setTimeout(resolve, 10));
     }
 
-    // 3. Flush remaining dirty items (reuse flushToStorage to avoid duplication)
+    // 4. Flush remaining dirty items
     try {
       await this.flushToStorage();
     } catch (err) {
       logError('BasePool', `Final flush on destroy failed: ${err}`);
     }
 
-    // 4. Evict all remaining items (release connections, etc.)
+    // 5. Evict all remaining items (release connections, etc.)
     if (this.items.size > 0) {
       const evictMap = new Map<K, V>();
       for (const [key, item] of this.items) {
@@ -322,9 +351,9 @@ export abstract class BasePool<K, V> {
     this.items.clear();
   }
 
-  // ═══════════════════════════════════════════
-  //  Observability (v0.3.0)
-  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════
+  //  Observability
+  // ═══════════════════════════════════════════════════════════
 
   /**
    * Return a full status snapshot of the pool.
@@ -389,7 +418,7 @@ export abstract class BasePool<K, V> {
   }
 
   /**
-   * Get an overview of all items with metadata (no value exposure).
+   * Get an overview of items with metadata (no value exposure).
    * Returns items in Map order (= LRU order, oldest first).
    *
    * Subclasses can override to add typed fields (e.g. dbName).
@@ -408,7 +437,6 @@ export abstract class BasePool<K, V> {
         persistent: item.persistent,
         isPersistent: item.persistent,
         maxIdleMs,
-        // 剩餘毫秒由 pool 直接算好（快照時點）；常駐或未設定閾值 → null（∞）
         remainMs: maxIdleMs === null || item.persistent ? null : Math.max(0, maxIdleMs - idleMs),
         idleMs,
       });
@@ -416,9 +444,9 @@ export abstract class BasePool<K, V> {
     return result;
   }
 
-  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════
   //  Internal
-  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════
 
   /**
    * Evict the least recently used (non-persistent) entries from the front of the Map.
@@ -497,7 +525,7 @@ export abstract class BasePool<K, V> {
 
   /**
    * If minSize is configured and pool is below it, call onWarmup() to
-   * pre-create resources.
+   * pre-create resources. Called during heartbeat.
    */
   private async _warmupIfNeeded(): Promise<void> {
     const minSize = this.options.minSize;
@@ -513,62 +541,9 @@ export abstract class BasePool<K, V> {
     }
   }
 
-  /** Evict entries that have exceeded maxIdleMs since last access. */
-  private async cleanupExpired(maxIdleMs: number): Promise<void> {
-    const now = Date.now();
-    const expiredDirty: Array<[K, PoolItem<V>]> = [];
-    const expiredClean: Array<[K, PoolItem<V>]> = [];
-
-    for (const [key, item] of this.items.entries()) {
-      if (!item.persistent && now - item.lastAccessed > maxIdleMs) {
-        if (item.isDirty) {
-          expiredDirty.push([key, item]);
-        } else {
-          expiredClean.push([key, item]);
-        }
-      }
-    }
-
-    // Flush dirty expired items first to prevent data loss
-    if (expiredDirty.length > 0) {
-      const flushMap = new Map<K, V>();
-      for (const [key, item] of expiredDirty) {
-        flushMap.set(key, item.value);
-      }
-      try {
-        await this.onFlush(flushMap);
-        this._flushes++;
-        for (const [_, item] of expiredDirty) {
-          item.isDirty = false;
-        }
-      } catch (err) {
-        this._flushErrors++;
-        this._lastError = { time: Date.now(), message: String(err) };
-        logError(
-          'BasePool',
-          `Flush on cleanup failed for ${expiredDirty.length} item(s): ${err}`,
-        );
-        // Keep isDirty = true, don't evict — retry on next cycle
-        return;
-      }
-    }
-
-    // Evict all expired items (now clean)
-    const allExpired = [...expiredDirty, ...expiredClean];
-    if (allExpired.length > 0) {
-      this._evictions += allExpired.length;
-      const evictMap = new Map<K, V>();
-      for (const [key, item] of allExpired) {
-        evictMap.set(key, item.value);
-        this.items.delete(key);
-      }
-      await this.onEvict(evictMap);
-    }
-  }
-
-  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════
   //  Lifecycle Hooks (override in subclass)
-  // ═══════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════
 
   /**
    * Called when dirty entries need to be written back to storage.
@@ -583,15 +558,6 @@ export abstract class BasePool<K, V> {
   protected abstract onEvict(evictedItems: Map<K, V>): Promise<void>;
 
   /**
-   * Called periodically if heartbeatIntervalMs is configured.
-   * Implement health checks, capacity recovery, etc.
-   * v0.3.0: heartbeat completion auto-records `_lastHeartbeatAt`.
-   */
-  protected async onHeartbeat(): Promise<void> {
-    // optional — subclass may override
-  }
-
-  /**
    * Called during heartbeat when pool size is below minSize.
    * Implement resource pre-creation (open connections, allocate buffers) here.
    *
@@ -599,25 +565,5 @@ export abstract class BasePool<K, V> {
    */
   protected async onWarmup(deficit: number): Promise<void> {
     // optional — subclass may override
-  }
-
-  /**
-   * Format a pool key into a human-readable string for observability output.
-   *
-   * Default implementation uses JSON.stringify for objects/arrays,
-   * falling back to String() for primitives or on serialization error.
-   *
-   * Subclasses with typed keys (e.g. `K = string`) can override for
-   * cleaner output.
-   */
-  protected formatKey(key: K): string {
-    if (typeof key === 'object' && key !== null) {
-      try {
-        return JSON.stringify(key);
-      } catch {
-        return String(key);
-      }
-    }
-    return String(key);
   }
 }

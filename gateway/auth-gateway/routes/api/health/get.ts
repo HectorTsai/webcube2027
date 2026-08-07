@@ -37,22 +37,42 @@ export const GET = createHealthHandler(ROOT, 'auth-gateway', async () => {
 
   const dataGwUrl = await getDataGatewayUrl();
 
+  // data_gateway 子物件（與 site-gateway 格式一致）
+  let dataGateway: Record<string, unknown>;
+
   if (!dataGwUrl) {
+    dataGateway = { configured: false, reachable: false };
     return {
       status: 'degraded',
       message: 'data-gateway URL 尚未設定。請完成安裝或設定 DATA_GATEWAY_URL 環境變數。',
+      data_gateway_url: null,
+      data_gateway: dataGateway,
       account_pool: accountPoolStatus,
     };
   }
 
   try {
     const r = await fetch(`${dataGwUrl}/api/health`);
-    const data = await r.json();
-    return { ...data, data_gateway_url: dataGwUrl, account_pool: accountPoolStatus };
+    const data: Record<string, unknown> = await r.json();
+    dataGateway = {
+      configured: true,
+      reachable: true,
+      status: data.status,
+      service: data.service,
+      version: data.version,
+    };
+    return {
+      ...data,
+      data_gateway_url: dataGwUrl,
+      data_gateway: dataGateway,
+      account_pool: accountPoolStatus,
+    };
   } catch {
+    dataGateway = { configured: true, reachable: false };
     return {
       status: 'error',
       data_gateway_url: dataGwUrl,
+      data_gateway: dataGateway,
       l1: 'disconnected',
       l2: 'disconnected',
       account_pool: accountPoolStatus,

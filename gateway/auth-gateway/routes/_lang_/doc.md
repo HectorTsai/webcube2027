@@ -1,6 +1,8 @@
 # Auth Gateway API 文件
 
-> 最後更新：2026-08-06（版本號已重新編號為語意化版本）
+> 最後更新：2026-08-07（版本號已重新編號為語意化版本）
+
+**架構**：所有 API 路由統一透過 **AccountPool** 代理 data-gateway 操作，不直接呼叫 data-gateway。AccountPool 使用 `userId`（composite ID）作為快取 key，登入時掃描記憶體比對 `帳號` 欄位。詳見 [Gateway 規格書 — 第 13 章 AccountPool](/gateway規格書.md#13-accountpool--統一資料代理層)。
 
 ---
 
@@ -21,6 +23,9 @@
   - [GET /api/user](#get-api-user)
   - [GET /api/user/:id](#get-api-userid)
   - [GET /api/user/all](#get-api-userall)
+  - [DELETE /api/user/:id](#delete-api-userid)
+  - [PUT /api/user/:id](#put-api-userid)
+  - [PATCH /api/user/:id](#patch-api-userid)
   - [GET /api/role](#get-api-role)
   - [GET /api/role/:id](#get-api-roleid)
   - [GET /api/role/all](#get-api-roleall)
@@ -54,7 +59,7 @@
 
 ```json
 {
-  "version": "0.21.0"
+  "version": "0.22.0"
 }
 ```
 
@@ -62,7 +67,7 @@
 
 ### GET /api/health
 
-健康檢查 — 代理至 data-gateway 的 `/api/health` 取得整體狀態，同時回傳本機 AccountPool 快取狀態與凍結數。所有 Gateway 共用 `@dui/framework` 的 `createHealthHandler`。
+健康檢查 — 代理至 data-gateway 的 `/api/health` 取得整體狀態，同時回傳本機 AccountPool 池狀態與凍結數。所有 Gateway 共用 `@dui/framework` 的 `createHealthHandler`。
 
 **Response `200 OK`**（data-gateway 正常時）：
 
@@ -70,7 +75,7 @@
 {
   "status": "ok",
   "service": "data-gateway",
-  "version": "0.21.0",
+  "version": "0.22.0",
   "uptime": 12345,
   "l1": "connected",
   "l2": "connected",
@@ -98,7 +103,7 @@
 {
   "status": "error",
   "service": "auth-gateway",
-  "version": "0.21.0",
+  "version": "0.22.0",
   "uptime": 12345,
   "data_gateway_url": "http://localhost:8002",
   "l1": "disconnected",
@@ -253,9 +258,11 @@
 
 **處理流程**：
 
-1. 取得 tenant（可選，依序）：body 的 `tenant` → cookie 訪客 JWT → Host header 推斷（不含埠號）
-2. 呼叫本端 `/api/verify-user` 驗證帳號密碼（bcrypt + 權限合併）
-3. 簽發已認證 JWT（`type: "authenticated"`），`Set-Cookie: jwt=...; HttpOnly; SameSite=Lax; Max-Age=86400`
+1. 檢查帳號是否被凍結（5 次失敗 → 凍結 10 分鐘）
+2. 取得 tenant（可選，依序）：body 的 `tenant` → cookie 訪客 JWT → Host header 推斷（不含埠號）
+3. 掃描 AccountPool 快取比對帳號 — 快取 hit 則直接 bcrypt 驗證（不需打 data-gateway）
+4. 快取 miss → 透過 AccountPool 從 data-gateway CRUD API 查詢使用者後 bcrypt 驗證 + mergePermissions 合併權限
+5. 簽發已認證 JWT（`type: "authenticated"`），`Set-Cookie: jwt=...; HttpOnly; SameSite=Lax; Max-Age=86400`
 
 **Response `200 OK`**：
 
@@ -296,7 +303,7 @@
 
 > **欄位過濾**：超級管理員／管理員／自己 → 完整資料（含 `帳號`、`最後登入`）；一般使用者 → 僅公開欄位（`id`、`名稱`、`圖示`、`角色`）。
 
-回傳使用者清單。透過 data-gateway CRUD API 查詢，名稱依當前語言回傳單一語言文字。
+回傳使用者清單。透過 AccountPool 代理 data-gateway 查詢，名稱依當前語言回傳單一語言文字。
 
 支援 data-gateway 的查詢參數（所有參數皆為選填）：
 
@@ -350,7 +357,7 @@
 
 > **欄位過濾**：超級管理員／管理員／自己 → 完整資料（含 `帳號`、`最後登入`）；一般使用者 → 僅公開欄位（`id`、`名稱`、`圖示`、`角色`）。
 
-回傳指定使用者的資料。透過 data-gateway 查詢，名稱依當前語言回傳單一語言文字。
+回傳指定使用者的資料。透過 AccountPool 代理 data-gateway 查詢，名稱依當前語言回傳單一語言文字。
 
 **Response `200 OK`**：
 
@@ -433,11 +440,101 @@
 
 ---
 
+### DELETE /api/user/:id
+
+> **權限**：需已登入 JWT。超級管理員／管理員可刪除任何使用者；一般使用者只能刪除自己的帳號。
+
+刪除（注銷）指定使用者的帳號。透過 AccountPool 代理 data-gateway 刪除 L2 記錄。刪除後已簽發的 JWT 仍有效至到期，不另撤銷。
+
+| 參數 | 型態 | 說明 |
+|------|------|------|
+| `id` (path) | string | 使用者 composite ID（如 `使用者:使用者:admin`） |
+
+**Response `200 OK`**：
+
+```json
+{
+  "success": true,
+  "message": "帳號已刪除"
+}
+```
+
+| HTTP 狀態碼 | 說明 |
+|------------|------|
+| 200 | 刪除成功 |
+| 403 | 無權限刪除此使用者 |
+| 404 | 使用者不存在 |
+| 502 | data-gateway 連線失敗 |
+
+---
+
+### PUT /api/user/:id
+
+> **權限**：需已登入 JWT。超級管理員／管理員可更新任何使用者；一般使用者只能更新自己的資料。
+
+完整取代指定使用者的整筆記錄。透過 AccountPool 代理 data-gateway 的 `PUT /api/l2/:id` 回寫 L2 + 排入 L3。
+
+**Request Body**：傳送完整的使用者資料物件（須包含 `id`、`帳號`、`名稱`、`角色` 等所有必要欄位）。
+
+| 參數 | 型態 | 說明 |
+|------|------|------|
+| `id` (path) | string | 使用者 composite ID（如 `使用者:使用者:admin`） |
+
+**Response `200 OK`**：
+
+```json
+{
+  "success": true,
+  "data": { /* 更新後的使用者資料 */ }
+}
+```
+
+| HTTP 狀態碼 | 說明 |
+|------------|------|
+| 200 | 更新成功 |
+| 400 | 請求資料格式錯誤 |
+| 403 | 無權限更新此使用者 |
+| 404 | 使用者不存在 |
+| 502 | data-gateway 連線失敗 |
+
+---
+
+### PATCH /api/user/:id
+
+> **權限**：需已登入 JWT。超級管理員／管理員可更新任何使用者；一般使用者只能更新自己的資料。
+
+部分更新指定使用者的欄位。僅需傳送要更新的欄位，其他欄位保持不變。透過 AccountPool 代理 data-gateway 的 `PATCH /api/l2/:id` 更新 L2 + L3。
+
+**Request Body**：傳送要更新的欄位子集（如 `{ "名稱": { "zh-tw": "新名稱" } }`）。
+
+| 參數 | 型態 | 說明 |
+|------|------|------|
+| `id` (path) | string | 使用者 composite ID（如 `使用者:使用者:admin`） |
+
+**Response `200 OK`**：
+
+```json
+{
+  "success": true,
+  "data": { /* 更新後的使用者資料 */ }
+}
+```
+
+| HTTP 狀態碼 | 說明 |
+|------------|------|
+| 200 | 更新成功 |
+| 400 | 請求資料格式錯誤 |
+| 403 | 無權限更新此使用者 |
+| 404 | 使用者不存在 |
+| 502 | data-gateway 連線失敗 |
+
+---
+
 ### GET /api/role
 
 > **權限**：需已登入且對「使用者」collection 有讀權限（角色 model 屬「使用者」collection）。
 
-回傳所有角色清單。透過 data-gateway CRUD API 查詢，名稱依當前語言回傳單一語言文字。
+回傳所有角色清單。透過 AccountPool 代理 data-gateway 查詢，名稱依當前語言回傳單一語言文字。
 
 支援 data-gateway 的查詢參數（所有參數皆為選填）：
 
@@ -486,7 +583,7 @@
 
 > **權限**：需已登入且對「使用者」collection 有讀權限。
 
-回傳指定角色的基本資料。透過 data-gateway 查詢，名稱依當前語言回傳單一語言文字。
+回傳指定角色的基本資料。透過 AccountPool 代理 data-gateway 查詢，名稱依當前語言回傳單一語言文字。
 
 **Response `200 OK`**：
 
@@ -586,9 +683,11 @@ GET /api/logout?redirect=http%3A%2F%2Flocalhost%3A8002%2Fzh-tw%2F
 
 **處理流程**：
 
-1. 透過 data-gateway CRUD API 查詢使用者（先 L2，再依 `tenant` 查 L3）
-2. 本端以 bcryptjs 比對密碼
-3. 查詢使用者所屬各角色權限，以 `mergePermissions()` 合併
+1. 先掃描 AccountPool 快取比對帳號 — 快取 hit 則直接 bcrypt 驗證（不需打 data-gateway）
+2. 快取 miss → 透過 data-gateway CRUD API 查詢使用者（先 L2，再依 `tenant` 查 L3）
+3. 本端以 bcryptjs 比對密碼
+4. 查詢使用者所屬各角色權限，以 `mergePermissions()` 合併
+5. 驗證成功後寫入 AccountPool 快取（供後續登入直接使用）
 
 **Response `200 OK`**：
 

@@ -26,7 +26,7 @@
 
 ### GET /api/health
 
-健康檢查端點，回傳 data-gateway 連線狀態與 SitePool 快取狀態。
+健康檢查端點，回傳 data-gateway 連線狀態與 SitePool 池狀態。
 
 **Response `200 OK`**：
 
@@ -154,7 +154,7 @@ L3 資料庫不需在此初始化 — data-gateway 收到帶 `X-Tenant` header �
 
 ### GET /:lang/
 
-首頁。顯示網站管理特色、SitePool 快取狀態卡（快取數、命中率、待 flush 項目）。
+首頁。顯示網站管理特色、SitePool 池狀態卡（快取數、命中率、待 flush 項目）。
 
 ### GET /:lang/setup
 

@@ -74,6 +74,35 @@ export async function POST(c: Context) {
       | { 帳號?: string; 密碼?: string; 名稱?: string }
       | undefined;
 
+    // ── 3.5 若請求清除現有使用者資料 ──
+    // 在建立網站記錄前直接操作 L3 資料庫，避免建立管理員時與舊資料衝突
+    if (body.clearUsers === true) {
+      try {
+        const { createAdapter } = await import('@dui/database');
+        const adapter = await createAdapter(
+          (l3.type as string) || 'sqlite',
+          l3Connection as never,
+        );
+        if (adapter) {
+          await adapter.initialize('使用者');
+          const users = await adapter.list('使用者', '使用者');
+          for (const u of users) {
+            if (u.id) await adapter.delete(u.id as string);
+          }
+          const anyAdapter = adapter as unknown as { close?: () => Promise<void> | void; 關閉?: () => Promise<void> | void };
+          try {
+            if (typeof anyAdapter.close === 'function') await anyAdapter.close();
+            else if (typeof anyAdapter.關閉 === 'function') await anyAdapter.關閉();
+          } catch { /* ignore */ }
+        }
+      } catch (err) {
+        return c.json({
+          success: false,
+          error: `清除使用者資料失敗：${err instanceof Error ? err.message : String(err)}`,
+        }, 500);
+      }
+    }
+
     const record: Record<string, unknown> = {
       id: sitePool.buildId(domain),
       domain,

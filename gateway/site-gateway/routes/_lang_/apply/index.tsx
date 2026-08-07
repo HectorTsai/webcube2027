@@ -154,6 +154,18 @@ export default function ApplyPage({ lang }: { lang?: string }) {
             </button>
             <p id="test-result" class="text-xs mt-1 hidden"></p>
 
+            {/* ── 現有使用者資料警告（連線測試成功後動態顯示） ── */}
+            <div id="existing-users-warning" class="hidden">
+              <div class="alert alert-warning text-xs py-2 px-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+                <span id="existing-users-msg"></span>
+              </div>
+              <label class="label cursor-pointer justify-start gap-2 mt-1">
+                <input id="clear-users" type="checkbox" class="checkbox checkbox-xs" />
+                <span class="label-text text-xs">清除所有現有使用者資料</span>
+              </label>
+            </div>
+
             <div class="divider my-1">管理員帳號</div>
 
             <label class="form-control w-full">
@@ -251,11 +263,13 @@ export default function ApplyPage({ lang }: { lang?: string }) {
             document.getElementById('test-connection')?.addEventListener('click', async () => {
               const data = Object.fromEntries(new FormData(document.getElementById('apply-form')));
               const resultEl = document.getElementById('test-result');
+              const warningEl = document.getElementById('existing-users-warning');
               resultEl.classList.remove('hidden', 'text-success', 'text-error');
               resultEl.textContent = '測試中…';
+              if (warningEl) warningEl.classList.add('hidden');
               try {
                 const l3 = await buildL3(data);
-                const r = await fetch('\${prefix}/../api/site/test-connection', {
+                const r = await fetch('/api/site/test-connection', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ l3 }),
@@ -264,6 +278,15 @@ export default function ApplyPage({ lang }: { lang?: string }) {
                 if (res.success) {
                   resultEl.textContent = '✓ 連線成功';
                   resultEl.classList.add('text-success');
+
+                  // 檢查是否已有使用者資料
+                  if (res.existingUserCount > 0) {
+                    const msgEl = document.getElementById('existing-users-msg');
+                    if (msgEl) {
+                      msgEl.textContent = '此資料庫已有 ' + res.existingUserCount + ' 筆使用者資料。若 _crypto_key 已變更，舊資料將無法解密。不清除則相同帳號名稱將無法建立。';
+                    }
+                    if (warningEl) warningEl.classList.remove('hidden');
+                  }
                 } else {
                   resultEl.textContent = '✗ ' + (res.error || '連線失敗');
                   resultEl.classList.add('text-error');
@@ -299,18 +322,20 @@ export default function ApplyPage({ lang }: { lang?: string }) {
                 const l3 = await buildL3(data);
 
                 // admin 欄位以巢狀物件送出；domain 自動帶入；l3 為資料庫連線設定
+                const clearCheckbox = document.getElementById('clear-users');
                 const payload = {
                   domain,
                   名稱: data['名稱'],
                   描述: data['描述'] || undefined,
                   商標: data['商標'] || undefined,
                   l3,
+                  clearUsers: clearCheckbox ? clearCheckbox.checked : false,
                   admin: {
                     帳號: data['admin_帳號'],
                     密碼: data['admin_密碼'],
                   },
                 };
-                const r = await fetch('\${prefix}/../api/site/apply', {
+                const r = await fetch('/api/site/apply', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify(payload),

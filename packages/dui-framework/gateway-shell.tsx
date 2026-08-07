@@ -96,7 +96,7 @@ export async function GatewayLayout(props: GatewayLayoutProps) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{displayTitle}</title>
         <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z'/%3E%3C/svg%3E" />
-        <style>{raw(css)}</style>
+        <style>{raw('[x-cloak]{display:none!important}')}{raw(css)}</style>
       </head>
       <body class="min-h-screen bg-base-200 flex flex-col">
         {/* 共用 Pool 顯示 helper（同步載入，先於頁面 inline script 執行） */}

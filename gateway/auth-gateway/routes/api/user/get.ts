@@ -1,19 +1,17 @@
 /**
  * GET /api/user — 使用者列表 API
  *
- * 回傳使用者清單。依請求者權限過濾欄位：
- *   - 超級管理員／管理員 → 完整資料（含帳號、最後登入）
- *   - 一般使用者 → 僅公開欄位（名稱、圖示、角色）
+ * 回傳使用者清單。依請求者權限過濾欄位。
  * 名稱依當前語言回傳單一語言文字。
  * 支援 data-gateway CRUD 查詢參數（page、pageSize、sort、order、欄位篩選等）。
  */
 
 import type { Context } from 'hono';
-import { gwFetch } from '@dui/util';
 import { MultilingualString, type SupportedLanguage } from '@dui/smartmultilingual';
 import { toTitleCase } from '@std/text/unstable-to-title-case';
-import { getDataGatewayUrl, getDataGatewayApiKey } from '../../../utils/config.ts';
-import { canViewFullUserData, 公開使用者 } from '../../../database/models/使用者.ts';
+import { accountPool } from '../../../services/account-pool.ts';
+import { 公開使用者 } from '../../../database/models/使用者.ts';
+import { checkAccess } from '@dui/framework';
 
 /** 將 MultilingualString 解析為單一語言文字，並轉為 Title Case */
 async function resolveName(
@@ -57,33 +55,28 @@ function filterUser(
 }
 
 export const GET = async (c: Context) => {
-  const dataGatewayUrl = await getDataGatewayUrl();
-  if (!dataGatewayUrl) {
-    return c.json({ success: false, error: 'data-gateway 尚未就緒' }, 502);
-  }
-  const apiKey = await getDataGatewayApiKey();
   const lang = (c.get('lang') || 'zh-tw') as SupportedLanguage;
 
-  // 判斷請求者是否為管理員
+  // 判斷請求者是否有 l2/使用者 的讀權限
   const payload = c.get('jwt_payload') as Record<string, unknown> | undefined;
-  const requesterRoles = (payload?.角色 as string[]) || [];
-  const isAdmin = requesterRoles.includes('使用者:角色:超級管理員') ||
-                  requesterRoles.includes('使用者:角色:管理員');
+  const isAdmin = payload ? checkAccess(payload, 'l2', '使用者', '讀') : false;
+
+  // 依 tenant 決定查詢層級
+  const tenant = payload?.tenant as string | undefined;
+  const layer = tenant ? 'l3' : 'l2';
 
   try {
-    const qs = new URLSearchParams(c.req.query()).toString();
-    const url = `/api/l2/使用者/使用者${qs ? `?${qs}` : ''}`;
+    const qParams: Record<string, string> = {};
+    for (const [k, v] of Object.entries(c.req.query())) {
+      qParams[k] = v;
+    }
 
-    const res = await gwFetch(c, dataGatewayUrl, url, {
-      headers: apiKey ? { 'X-API-Key': apiKey } : undefined,
-    });
-    const json = await res.json();
-
-    if (!json.success) {
+    const result = await accountPool.listUsers(layer, tenant, qParams);
+    if (!result.success) {
       return c.json({ success: false, error: '查詢使用者失敗' }, 502);
     }
 
-    const items = (json.data as Record<string, unknown>[]) || [];
+    const items = result.data || [];
     const data = await Promise.all(
       items.map((user) => filterUser(user, lang, isAdmin)),
     );
@@ -91,7 +84,7 @@ export const GET = async (c: Context) => {
     return c.json({
       success: true,
       data,
-      pagination: json.pagination,
+      pagination: result.pagination,
     });
   } catch (err) {
     return c.json({

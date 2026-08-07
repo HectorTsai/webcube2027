@@ -7,7 +7,7 @@
     },
     "l2": {
       "default": { "讀": false, "寫": false },
-      "使用者": { "讀": true, "寫": false },
+      "使用者": { "讀": true, "寫": true },
       "網站資訊": { "讀": true, "寫": "self" }
     },
     "l3": {

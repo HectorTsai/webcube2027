@@ -41,7 +41,11 @@ export const GET = createHealthHandler(ROOT, 'site-gateway', async () => {
     // pool 尚未初始化
   }
 
+  // 整體狀態：data-gateway 可連線才算 ok
+  const dgOk = dgUrl && dataGateway.reachable;
+
   return {
+    status: dgOk ? 'ok' : 'degraded',
     data_gateway_url: dgUrl,
     data_gateway: dataGateway,
     site_pool: sitePoolStatus,

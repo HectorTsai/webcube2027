@@ -36,14 +36,18 @@ async function authHealthCheck() {
 
 async function authCheck() {
   const loginBtn = document.getElementById('btn-login');
+  const registerBtn = document.getElementById('btn-register');
   const logoutBtn = document.getElementById('btn-logout');
+  const editBtn = document.getElementById('btn-edit');
   const username = document.getElementById('auth-username');
   if (!loginBtn || !logoutBtn) return;
   try {
     const r = await fetch('/api/me').then(r => r.json());
     if (r.authenticated) {
       loginBtn.classList.add('hidden');
+      if (registerBtn) registerBtn.classList.add('hidden');
       logoutBtn.classList.remove('hidden');
+      if (editBtn) editBtn.classList.remove('hidden');
       if (username) {
         const name = r.名稱 || r.帳號;
         username.textContent = name;
@@ -73,6 +77,8 @@ export const Layout = async ({ title, children, lang }: { title: string; childre
         <span class="text-xs text-base-content/50 hidden sm:inline">Data Gateway</span>
         <span id="status-badge" class="badge badge-soft badge-warning">檢查中…</span>
         <span id="auth-username" class="text-xs text-base-content/70 font-medium hidden"></span>
+        <a id="btn-edit" href={`${prefix}/edit`} class="btn btn-soft btn-xs hidden">編輯</a>
+        <a id="btn-register" href={`${prefix}/register`} class="btn btn-soft btn-xs">註冊</a>
         <a id="btn-login" href={`${prefix}/login`} class="btn btn-soft btn-xs">登入</a>
         <a id="btn-logout" href={`/api/logout?redirect=${encodeURIComponent(`${prefix}/`)}`} class="btn btn-soft btn-outline btn-xs hidden">登出</a>
       </>
