@@ -60,9 +60,19 @@ export const GET = createHealthHandler(ROOT, 'auth-gateway', async () => {
       status: data.status,
       service: data.service,
       version: data.version,
+      l1: data.l1,
+      l2: data.l2,
+      l3: data.l3,
+      gateways: data.gateways,
     };
     return {
-      ...data,
+      // 注意：不可展開 data（...data），否則會覆蓋本 gateway 的 service/version/uptime。
+      // 也不回傳 data-gateway 的 adapterPool 狀態（pool）— auth 只需負責自己的 account_pool。
+      status: data.status === 'ok' ? 'ok' : 'degraded',
+      l1: data.l1,
+      l2: data.l2,
+      l3: data.l3,
+      gateways: data.gateways,
       data_gateway_url: dataGwUrl,
       data_gateway: dataGateway,
       account_pool: accountPoolStatus,

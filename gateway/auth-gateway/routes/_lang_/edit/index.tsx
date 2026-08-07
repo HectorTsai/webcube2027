@@ -53,7 +53,7 @@ const EditContent = ({ lang, prefix }: { lang: string; prefix: string }) => {
             <form id="password-form" class="flex flex-col gap-3">
               <label class="form-control w-full">
                 <span class="label-text text-sm mb-1">目前密碼</span>
-                <input name="目前密碼" type="password" class="input input-bordered w-full" placeholder="請輸入目前密碼" required />
+                <input name="舊密碼" type="password" class="input input-bordered w-full" placeholder="請輸入目前密碼" required />
               </label>
               <label class="form-control w-full">
                 <span class="label-text text-sm mb-1">新密碼</span>
@@ -119,7 +119,7 @@ const EditContent = ({ lang, prefix }: { lang: string; prefix: string }) => {
           }
 
           // ── 3. 填入表單 ──
-          const 名稱 = (userData.名稱 && typeof userData.名稱 === 'object')
+          let 名稱 = (userData.名稱 && typeof userData.名稱 === 'object')
             ? (userData.名稱['zh-tw'] || userData.名稱['en'] || '')
             : (userData.名稱 || '');
           form.querySelector('[name="帳號"]').value = userData.帳號 || '';
@@ -170,7 +170,7 @@ const EditContent = ({ lang, prefix }: { lang: string; prefix: string }) => {
                 successEl.textContent = '資料已更新';
                 successEl.classList.remove('hidden');
                 // 更新本地 名稱 變數供後續比對
-                if (patchBody['名稱']) Object.assign(名稱, patchBody['名稱']['zh-tw']);
+                if (patchBody['名稱']) 名稱 = patchBody['名稱']['zh-tw'];
               } else {
                 errorEl.textContent = res.error || '更新失敗';
                 errorEl.classList.remove('hidden');

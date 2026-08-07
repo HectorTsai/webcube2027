@@ -75,8 +75,7 @@ export async function logoutHandler(c: Context) {
       const payload = await verify(decodeURIComponent(jwtToken), publicKey, 'EdDSA') as Record<string, unknown>;
       const 帳號 = payload.帳號 as string;
       const tenant = payload.tenant as string | undefined;
-      const layer = tenant ? 'L3' : 'L2';
-      if (帳號) accountPool.recordLogout(帳號, tenant, layer);
+      if (帳號) accountPool.recordLogout(帳號, tenant);
     } catch { /* JWT 解析失敗則不記錄登出 */ }
   }
 

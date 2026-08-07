@@ -36,7 +36,10 @@ export const localProvider: AuthProvider = {
       // ── 2. 嘗試 pool 快取 hit（掃描比對 帳號）──
       const cached = accountPool.getUserByAccount(帳號, tenant);
       if (cached) {
-        const match = await bcrypt.default.compare(密碼, cached.密碼雜湊);
+        const pwdHash = (cached as any).密碼雜湊 ?? (cached as any).密碼 ?? '';
+        const match = pwdHash.startsWith('$2')
+          ? await bcrypt.default.compare(密碼, pwdHash)
+          : 密碼 === pwdHash;
         if (match) {
           accountPool.recordSuccess(帳號, tenant, cached, ip);
           return {
@@ -46,9 +49,9 @@ export const localProvider: AuthProvider = {
               帳號: cached.帳號,
               名稱: cached.名稱,
               角色: cached.角色,
-              權限: cached.權限,
+              權限: cached.權限 as Record<string, unknown>,
               provider: 'local',
-              layer: cached._layer as 'L2' | 'L3',
+              layer: cached._layer === 'l3' ? 'L3' : 'L2',
               tenant,
             },
           };
@@ -72,10 +75,10 @@ export const localProvider: AuthProvider = {
         名稱: result.data.名稱,
         角色: result.data.角色 as string[],
         _layer: result.data._layer,
-        權限: result.data.權限 as Record<string, unknown>,
-        密碼雜湊: result.data.密碼雜湊 as string,
+        權限: result.data.權限,
+        密碼雜湊: (result.data as any).密碼雜湊 ?? (result.data as any).密碼 ?? '',
       };
-      accountPool.recordSuccess(帳號, tenant, cachedUser, ip);
+      accountPool.recordSuccess(帳號, tenant, cachedUser as any, ip);
 
       return {
         success: true,
@@ -84,9 +87,9 @@ export const localProvider: AuthProvider = {
           帳號: result.data.帳號,
           名稱: result.data.名稱,
           角色: result.data.角色,
-          權限: result.data.權限,
+          權限: result.data.權限 as Record<string, unknown>,
           provider: 'local',
-          layer: result.data._layer as 'L2' | 'L3',
+          layer: result.data._layer === 'l3' ? 'L3' : 'L2',
           tenant,
         },
       };

@@ -17,12 +17,16 @@ export const GET = async (c: Context) => {
   }
 
   try {
-    const result = await accountPool.request('GET', `/api/l2/${roleId}`);
-    if (!result.success || !result.data) {
+    const res = await accountPool.request('GET', `/api/l2/${roleId}`);
+    if (!res.ok) {
+      return c.json({ success: false, error: '角色不存在' }, 404);
+    }
+    const body = await res.json() as { success?: boolean; data?: unknown };
+    if (!body?.success || !body.data) {
       return c.json({ success: false, error: '角色不存在' }, 404);
     }
 
-    const role = result.data as Record<string, unknown>;
+    const role = body.data as Record<string, unknown>;
     const lang = (c.get('lang') || 'zh-tw') as SupportedLanguage;
 
     let displayName = '';

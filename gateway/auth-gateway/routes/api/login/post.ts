@@ -3,7 +3,7 @@
  * 使用者登入 — 驗證帳號密碼，簽發已認證 JWT
  *
  * tenant 取得順序：body 的 `tenant` 欄位（自訂登入畫面直接帶入）→
- * cookie 訪客 JWT 提取（訪客先行流程）→ Host header 推斷（系統管理介面直接登入）。
+ * cookie 訪客 JWT 提取（訪客先行流程）→ Host header 推斷（直接造訪 auth-gateway）。
  * tenant 為可選：L2 使用者（超級管理員）屬系統層、不隸屬租戶，登入不需 tenant；
  * 僅 L3 站台管理員需要 tenant。
  * 驗證成功後簽發含使用者身份的已認證 JWT（L3 登入時含 tenant）。
@@ -40,7 +40,7 @@ async function extractTenantFromJWT(c: Context): Promise<string | null> {
 
 export async function POST(c: Context) {
   // 1. 取得 tenant（依序）：body 的 `tenant` 欄位（自訂登入畫面直接帶入）→
-  //    cookie 訪客 JWT 提取（訪客先行流程）→ Host header 推斷（系統管理介面直接登入）
+  //    cookie 訪客 JWT 提取（訪客先行流程）
   let body: Record<string, unknown> = {};
   try {
     body = await c.req.json();
@@ -53,8 +53,10 @@ export async function POST(c: Context) {
     tenant = await extractTenantFromJWT(c);
   }
   if (!tenant) {
-    // 無 body tenant 且無訪客 JWT cookie（例如直接訪問 auth-gateway 登入頁）時，
-    // 從 Host header 推斷租戶（Domain = Tenant ID，不含埠號）
+    // 無 body tenant 且無訪客 JWT cookie（例如直接訪問 auth-gateway 註冊/登入頁）時，
+    // 從 Host header 推斷租戶（Domain = Tenant ID，不含埠號）。
+    // 不會誤導 L2 使用者：下方 finalTenant 僅在實際登入層級為 L3 時才寫入 JWT，
+    // 且 verifyPassword 在 L3 查無使用者時會 fallback 至 L2。
     tenant = (c.req.header('Host') || '').replace(/:\d+$/, '').toLowerCase() || null;
   }
   // tenant 可為 null：L2 使用者（超級管理員）屬系統層、不隸屬租戶，登入不需 tenant；
@@ -78,7 +80,11 @@ export async function POST(c: Context) {
     iat: now,
     exp: now + 86400, // 24 小時
   };
-  if (tenant) payload.tenant = tenant;
+  // tenant 僅在實際登入層級為 L3 時帶入；L2 fallback 登入（如 testuser 在 L2）
+  // 即使訪客 JWT / body 帶了 tenant，也不得寫入，否則後續操作會被導向 L3。
+  const layer = (result.payload as any).layer as 'L2' | 'L3' | undefined;
+  const finalTenant = tenant && layer === 'L3' ? tenant : null;
+  if (finalTenant) payload.tenant = finalTenant;
 
   // 若 verify-user 有回傳權限則帶入 JWT payload
   if ((result.payload as any).權限) {
@@ -99,7 +105,7 @@ export async function POST(c: Context) {
       token,
       帳號: result.payload.帳號,
       角色: result.payload.角色,
-      tenant,
+      tenant: finalTenant,
     },
   });
 }

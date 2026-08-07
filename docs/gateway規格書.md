@@ -1,5 +1,7 @@
 # Gateway 規格書
 
+> **核心規則：所有操作傳送的 id 都必須是完整的 composite id（`collection:model:id`），DataPool 不得再自行包裝一層前綴。**
+
 > 此文件定義 WebCube2027 中所有 Gateway 必須遵守的共用規範。
 > **新增 Gateway 時，請依此文件逐步實作**，確保所有 Gateway 的架構與使用者體驗一致。
 >
@@ -22,6 +24,7 @@
 - [11. dui-util 工具一覽](#11-dui-util-工具一覽)
 - [12. 權限系統](#12-權限系統)
 - [13. DataPool — 通用資料代理層](#13-datapool--通用資料代理層)
+  - [13.4.1 快取形狀一致性（重要）](#1341-快取形狀一致性重要)
 - [14. 新增 Gateway 快速步驟](#14-新增-gateway-快速步驟)
 
 ---
@@ -979,15 +982,38 @@ DataPool 的泛用 CRUD 方法內建以下快取規則：
 
 | 操作 | 快取策略 | 原因 |
 |------|----------|------|
-| 單筆讀取（`getById`） | ✅ 先檢查快取 → hit 回傳 → miss 打 DG → 寫入快取 | 降低重複查詢延遲 |
+| 單筆讀取（`getById`） | ✅ 先檢查快取 → hit 回傳 → miss 打 DG → 寫入快取 | 降低重複查詢延遲；**回傳型別受 `T extends V` 約束**（見 13.4.1） |
 | 列表查詢（`list`） | ❌ pass-through，不進快取 | 列表有分頁/篩選/即時性需求 |
-| 建立（`create`） | ⚡ DG 成功後寫入快取 | 新資料應立即可供後續讀取 |
-| 完整更新（`PUT`） | 📝 DG 成功後更新快取 | PUT 回傳完整資料，可直接更新 |
+| 建立（`create`） | ⚙️ **不寫入快取**，回傳 created 由呼叫端（Typed Wrapper）決定 | 快取形狀由各 Pool 的介面界定，泛型方法不裸寫（見 13.4.1） |
+| 完整更新（`PUT`） | ⚙️ **不寫入快取**，回傳 updated 由呼叫端（Typed Wrapper）決定 | 同上 |
 | 部分更新（`PATCH`） | 🗑️ DG 成功後失效快取（含 TTL） | PATCH 回傳資料不全，失效讓下次讀取重抓 |
 | 刪除（`remove`） | 🗑️ 先清除快取，再刪除 DG | 避免髒資料殘留 |
 | 通用代理（`request`） | ❌ pass-through，不進快取 | 通用請求無特定快取邏輯 |
 
 > 自訂 Gateway Pool 可在繼承 DataPool 後 override `onFlush()` / `onEvict()` 實作專屬 flush 邏輯（如 auth-gateway 的 AccountPool flush pending login/logout events）。
+
+### 13.4.1 快取形狀一致性（重要！避免「快取形狀不一致」錯誤）
+
+**教訓**（2026-08-07，auth-gateway 變更密碼後「使用者不存在」）：
+
+快取形狀不一致的根源是**泛型方法直接把 DG 回傳的裸 json 寫入快取**，而讀取端卻期待另一種形狀（例如 `{ user }` 包裝）——同一 cacheKey 兩種形狀，解包失敗。原因正是快取沒有被 model/interface 界定。
+
+**規範**：
+
+1. **以 model/interface 界定快取形狀**。Pool 的快取值型別 `V` 必須是明確的介面（如 `AccountCacheValue = { user: CachedUser; pendingEvents? }`），並在建構 `extends DataPool<V>` 時指定。
+2. **快取值 ≠ DG 記錄時，不得用 `as unknown as V` 裸寫**。`getById` 要求回傳型別 `T extends V`（編譯期拒絕形狀不符）；`create`/`update` 不再自動寫快取，由呼叫端以 Typed Wrapper 決定。
+3. **同一 cacheKey 的讀寫必須走同一組 helper**。在 Pool 內封裝 `readCachedXxx` / `writeCachedXxx` / `deleteCachedXxx`（如 AccountPool 的 `readCachedUser`/`writeCachedUser`/`deleteCachedUser`），不允許散落直接操作 `this.items`。
+4. **快取層級以使用者實際 `_layer` 為準**。L3→L2 fallback 登入時，login 帶入的 tenant 可能指向 L3，但使用者實際在 L2；若用 tenant 寫層級，L2 使用者會被寫進 `l3:` 快取（改密碼時清不到）。
+
+```ts
+// ✅ 正確：Typed Wrapper 以介面組裝後寫入
+private writeCachedUser(level: string, user: CachedUser, markDirty = false): void {
+  this.set(this.userCacheKey(level, user.id), { user }, markDirty);
+}
+
+// ❌ 錯誤：泛型方法裸寫 DG json（解包時形狀不符）
+this.set(cacheKey, created as unknown as V, false);
+```
 
 ### 13.5 通用代理 `request()`
 
@@ -1024,6 +1050,8 @@ auth-gateway 的 `AccountPool` 是 DataPool 的實際應用範例，在 DataPool
 - **`recordSuccess`/`recordFailure`/`isLocked`**：登入鎖定機制（5 次失敗鎖 10 分鐘）
 - **`recordLogout`**：登出事件暫存
 - **`onFlush` override**：將 pending 登入/登出事件 batch 寫回 data-gateway
+
+AccountPool 的快取形狀由介面界定：`AccountCacheValue = { user: CachedUser; pendingEvents? }`。所有使用者快取讀寫一律走 `readCachedUser` / `writeCachedUser` / `deleteCachedUser` helper（見 13.4.1），並以使用者實際 `_layer` 決定快取層級，**不**以 login 傳入的 tenant 判斷。
 
 其他 Gateway 若需 auth-gateway 的使用者資料，應直接呼叫 auth-gateway 的 API，不自行建 AccountPool。
 

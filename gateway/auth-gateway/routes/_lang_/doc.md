@@ -1,6 +1,6 @@
 # Auth Gateway API 文件
 
-> 最後更新：2026-08-07（版本號已重新編號為語意化版本）
+> 最後更新：2026-08-08（版本號已重新編號為語意化版本）
 
 **架構**：所有 API 路由統一透過 **AccountPool** 代理 data-gateway 操作，不直接呼叫 data-gateway。AccountPool 使用 `userId`（composite ID）作為快取 key，登入時掃描記憶體比對 `帳號` 欄位。詳見 [Gateway 規格書 — 第 13 章 AccountPool](/gateway規格書.md#13-accountpool--統一資料代理層)。
 
@@ -37,6 +37,7 @@
   - [GET /（語言自動偵測）](#get-語言自動偵測)
   - [GET /:lang/](#get-lang)
   - [GET /:lang/login](#get-langlogin)
+  - [GET /:lang/register](#get-langregister)
   - [GET /:lang/setup](#get-langsetup)
   - [GET /:lang/doc](#get-langdoc)
   - [GET /:lang/history](#get-langhistory)
@@ -770,6 +771,10 @@ GET /api/logout?redirect=http%3A%2F%2Flocalhost%3A8002%2Fzh-tw%2F
 ### GET /:lang/login
 
 登入頁面，簽發 HttpOnly JWT Cookie。
+
+### GET /:lang/register
+
+註冊頁面。租戶 L3 未就緒（剛 setup、L3 尚未啟用）時，頁面顯示「註冊尚未開放」且不渲染註冊表單；後端 `POST /api/register` 亦會回 400（不降級 L2）。
 
 ### GET /:lang/setup
 

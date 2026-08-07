@@ -26,6 +26,7 @@
 import { DataPool } from '@dui/pool';
 import type { PoolOptions, PoolItem } from '@dui/pool';
 import { mergePermissions } from '@dui/framework';
+import type { PermissionMap } from '@dui/framework';
 import bcrypt from 'bcryptjs';
 import {
   getDataGatewayUrl,
@@ -34,16 +35,31 @@ import {
 
 // ─── Types ──────────────────────────────────────────────
 
-/** 資料庫中的使用者模型（class，這裡只用型別形狀） */
-type 使用者 = import('../database/models/使用者.ts').使用者;
+/**
+ * DG 回傳的使用者原始資料形狀（plain JSON，非 class instance）。
+ * 與 `使用者介面` 同構但不要求 class methods。
+ */
+export type RawUser = {
+  id: string;
+  帳號: string;
+  密碼雜湊: string;
+  /** 相容舊欄位名（若 DG 仍存 `密碼`） */
+  密碼?: string;
+  名稱: unknown;
+  圖示?: string;
+  角色: string[];
+  其他資訊?: Record<string, string>;
+  最後登入?: string;
+  tags?: string[];
+};
 
 /**
- * 快取中的使用者型別 = 使用者 + auth 專屬中繼資料。
- * 比 local.ts 需要的字段（密碼雜湊、權限、_layer）都齊全。
+ * 快取中的使用者型別（DG 資料 + auth 中繼資料）。
+ * 比 local.ts 需要的字段（密碼雑湊、權限、_layer）都齊全。
  */
-export type CachedUser = 使用者 & {
+export type CachedUser = RawUser & {
   _layer: 'l2' | 'l3';
-  權限: Record<string, unknown>;
+  權限: PermissionMap;
 };
 
 /** AccountPool 中儲存的值型態 */
@@ -92,9 +108,6 @@ export class AccountPool extends DataPool<AccountCacheValue> {
   //  Cache Key Helpers
   // ═══════════════════════════════════════════════════════
 
-  /**
-   * 根據帳號與 tenant 計算 composite key（用於 lockout）。
-   */
   private _buildKey(帳號: string, tenant?: string): BuildKeyOutput {
     if (!tenant) {
       return { id: `L2:${帳號}`, tenant: null, scope: 'l2' };
@@ -102,12 +115,39 @@ export class AccountPool extends DataPool<AccountCacheValue> {
     return { id: `L3:${tenant}:${帳號}`, tenant, scope: 'l3' };
   }
 
-  /**
-   * 取得 lockout key。
-   */
   private lockoutKey(帳號: string, tenant?: string): string {
     const { id } = this._buildKey(帳號, tenant);
     return `_lockout:${id}`;
+  }
+
+  /**
+   * 使用者快取的 key 建構（統一格式：`{level}:使用者:{compositeId}`）。
+   * 所有使用者快取讀寫都必須透過本 class 的 helper，
+   * 避免「同一 key 被不同形狀的值寫入」造成解包失敗。
+   */
+  private userCacheKey(level: string, id: string): string {
+    return `${level}:使用者:${id}`;
+  }
+
+  /**
+   * 讀取使用者快取（統一 AccountCacheValue 形狀）。
+   * 不允許直接操作底層 key 或接受其他形狀（如 getById 的裸記錄）。
+   */
+  private readCachedUser(level: string, id: string): CachedUser | null {
+    const item = this.items.get(this.userCacheKey(level, id));
+    if (!item) return null;
+    const value = item.value as AccountCacheValue | null;
+    return value?.user ?? null;
+  }
+
+  /** 寫入使用者快取（統一 { user } 包裝，符合 AccountCacheValue 型別） */
+  private writeCachedUser(level: string, user: CachedUser, markDirty = false): void {
+    this.set(this.userCacheKey(level, user.id), { user }, markDirty);
+  }
+
+  /** 刪除使用者快取 */
+  private deleteCachedUser(level: string, id: string): void {
+    this.delete(this.userCacheKey(level, id));
   }
 
   // ═══════════════════════════════════════════════════════
@@ -116,56 +156,134 @@ export class AccountPool extends DataPool<AccountCacheValue> {
 
   async getUserById(id: string, tenant?: string): Promise<CachedUser | null> {
     const level = tenant ? 'l3' : 'l2';
-    // getById 回傳的是快取中的 AccountCacheValue，需要取出 .user
-    const cached = await this.getById<AccountCacheValue>(level, '使用者', id, tenant);
-    return cached?.user ?? null;
+
+    // 命中快取（統一 AccountCacheValue 形狀）
+    const cached = this.readCachedUser(level, id);
+    if (cached) return cached;
+
+    // miss → 打 data-gateway（id 已是完整 composite ID → 單段路由）
+    // 注意：不能套用 DataPool.getById——它的 fetcher 以 `as unknown as V` 把 DG 裸記錄
+    // 直接當成快取值，與 AccountCacheValue（{ user } 包裝）形狀不一致。
+    const headers: Record<string, string> = {};
+    if (tenant) headers['X-Tenant'] = tenant;
+    try {
+      const res = await this.request(
+        'GET',
+        `/api/${level}/${encodeURI(id)}`,
+        headers,
+      );
+      if (!res.ok) return null;
+      const body = await res.json() as { success?: boolean; data?: unknown };
+      if (!body?.success || !body.data) return null;
+
+      const user = body.data as CachedUser;
+      this.writeCachedUser(level, user);
+      return user;
+    } catch {
+      return null;
+    }
   }
 
-  async listUsers(tenant?: string): Promise<CachedUser[]> {
-    const level = tenant ? 'l3' : 'l2';
-    const items = await this.list<使用者>(level, '使用者', tenant);
-    // 從 data-gateway 回傳的是原始使用者資料，不包含 ._layer / .權限
-    // 這裡只做型別轉換，呼叫端如需要完整 CachedUser 應透過快取
-    return items.map(u => ({
+  async listUsers(
+    layer: string,
+    tenant?: string,
+    qParams?: Record<string, string>,
+  ): Promise<{ success: boolean; data?: CachedUser[]; pagination?: unknown; error?: string }> {
+    // 手動建構請求（因為 DataPool.list 不支援 query params）
+    let path = `/api/${layer}/%E4%BD%BF%E7%94%A8%E8%80%85/%E4%BD%BF%E7%94%A8%E8%80%85`;
+    if (qParams && Object.keys(qParams).length > 0) {
+      path += `?${new URLSearchParams(qParams).toString()}`;
+    }
+
+    const headers: Record<string, string> = {};
+    if (tenant) headers['X-Tenant'] = tenant;
+
+    const res = await this.request('GET', path, headers);
+    if (!res.ok) return { success: false };
+
+    const body = await res.json() as Record<string, unknown>;
+    if (!body?.success) return { success: false };
+
+    const rawItems = (body.data ?? []) as RawUser[];
+    const data: CachedUser[] = rawItems.map(u => ({
       ...u,
-      _layer: level as 'l2' | 'l3',
+      _layer: layer as 'l2' | 'l3',
       權限: {},
     } as unknown as CachedUser));
+
+    return {
+      success: true,
+      data,
+      pagination: body.pagination,
+    };
   }
 
-  async createUser(data: 使用者, tenant?: string): Promise<CachedUser | null> {
-    // Hash the password before storing
-    if (data.密碼雜湊) {
-      data.密碼雜湊 = await bcrypt.hash(data.密碼雜湊, 10);
+  async createUser(
+    layer: string,
+    tenant: string | undefined,
+    data: Record<string, unknown>,
+  ): Promise<{ success: boolean; data?: CachedUser; error?: string }> {
+    const level = layer === 'l3' ? 'l3' : 'l2';
+    const body: RawUser = data as unknown as RawUser;
+    if (body.密碼雜湊 && !body.密碼雜湊.startsWith('$2')) {
+      body.密碼雜湊 = await bcrypt.hash(body.密碼雜湊, 10);
     }
-    const level = tenant ? 'l3' : 'l2';
-    const created = await this.create<使用者>(level, '使用者', data, tenant);
-    if (!created) return null;
+    try {
+      const created = await this.create<RawUser>(level, '使用者', body, tenant);
+      if (!created) return { success: false, error: '建立使用者失敗' };
 
-    // Wrap into CachedUser and cache it
-    const cachedUser: CachedUser = {
-      ...created,
-      _layer: level as 'l2' | 'l3',
-      權限: {},
-    };
-    const cacheKey = `${level}:使用者:${created.id}`;
-    this.set(cacheKey, { user: cachedUser }, false);
-    return cachedUser;
+      const cachedUser: CachedUser = {
+        ...created,
+        _layer: level,
+        權限: {},
+      };
+      this.writeCachedUser(level, cachedUser);
+      return { success: true, data: cachedUser };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+      };
+    }
   }
 
   async updateUser(
-    method: 'PUT' | 'PATCH',
     id: string,
-    data: Partial<使用者>,
-    tenant?: string,
-  ): Promise<使用者 | null> {
+    method: 'PUT' | 'PATCH',
+    tenant: string | undefined,
+    data: Partial<RawUser>,
+  ): Promise<{ success: boolean; data?: RawUser; error?: string }> {
     const level = tenant ? 'l3' : 'l2';
-    return await this.update<使用者>(level, '使用者', id, data, tenant, method);
+    try {
+      const updated = await this.update<RawUser>(
+        level, '使用者', id, data, tenant, method,
+      );
+      if (!updated) return { success: false, error: '更新使用者失敗' };
+      return { success: true, data: updated };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+      };
+    }
   }
 
-  async deleteUser(id: string, tenant?: string): Promise<boolean> {
+  async deleteUser(
+    id: string,
+    tenant?: string,
+  ): Promise<{ success: boolean; error?: string }> {
     const level = tenant ? 'l3' : 'l2';
-    return await this.remove(level, '使用者', id, tenant);
+    try {
+      // 先清快取（統一走 typed helper，不依賴 remove 的內部清理）
+      this.deleteCachedUser(level, id);
+      const ok = await this.remove(level, '使用者', id, tenant);
+      return ok ? { success: true } : { success: false, error: '刪除使用者失敗' };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : String(err),
+      };
+    }
   }
 
   // ═══════════════════════════════════════════════════════
@@ -175,23 +293,19 @@ export class AccountPool extends DataPool<AccountCacheValue> {
   /**
    * 掃描所有 pool items 比對帳號欄位。
    * 記憶體內掃描（微秒級），不需輔助索引。
-   *
-   * 回傳 CachedUser（含 密碼雜湊 供 bcrypt 比對、含 權限 供 payload）。
    */
   getUserByAccount(帳號: string, tenant?: string): CachedUser | null {
     for (const item of this.items.values()) {
       const u = item.value.user;
       if (u?.帳號 === 帳號) {
-        // 如果有指定 tenant，確認快取 key 包含該 tenant
         if (tenant) {
           const key = this._buildKey(帳號, tenant);
-          // 掃描 keys 看是否有對應的 tenant key
           for (const k of this.items.keys()) {
             if (String(k).includes(key.id) && !String(k).startsWith('_lockout')) {
               return u;
             }
           }
-          continue; // 沒找到該 tenant 的項目，繼續掃描
+          continue;
         }
         return u;
       }
@@ -216,7 +330,10 @@ export class AccountPool extends DataPool<AccountCacheValue> {
     // 1. Check pool cache first (sync, no I/O)
     const cachedUser = this.getUserByAccount(帳號, tenant);
     if (cachedUser) {
-      const match = await bcrypt.compare(密碼, cachedUser.密碼雜湊 ?? '');
+      const pwdHash = cachedUser.密碼雜湊 ?? cachedUser.密碼 ?? '';
+      const match = pwdHash.startsWith('$2')
+        ? await bcrypt.compare(密碼, pwdHash)
+        : 密碼 === pwdHash;
       if (!match) {
         return { success: false, error: '帳號或密碼錯誤' };
       }
@@ -224,67 +341,79 @@ export class AccountPool extends DataPool<AccountCacheValue> {
     }
 
     // 2. Cache miss — fetch via data-gateway
-    const level = tenant ? 'l3' : 'l2';
     const collection = '使用者';
     const dgUrl = await this.getDgUrl();
     if (!dgUrl) {
       return { success: false, error: 'data-gateway 無法連線' };
     }
 
-    const res = await this.request(
-      'GET',
-      `/api/${level}/${collection}?帳號=${encodeURIComponent(帳號)}`,
-    );
-    if (!res.ok) {
-      return { success: false, error: '查詢使用者失敗' };
+    // 嘗試的層級順序：有 tenant 時先 L3 再 L2（L3 找不到時 fallback），無 tenant 時只 L2。
+    // 若在 L3 找到使用者但密碼錯誤，不嘗試 L2（避免跨層密碼碰撞）。
+    const levels = tenant ? ['l3', 'l2'] : ['l2'];
+    for (const level of levels) {
+      const actualTenant = level === 'l3' ? tenant : undefined;
+      const headers: Record<string, string> = {};
+      if (actualTenant) headers['X-Tenant'] = actualTenant;
+
+      const res = await this.request(
+        'GET',
+        `/api/${level}/${collection}/${collection}?帳號=${encodeURIComponent(帳號)}`,
+        headers,
+      );
+      if (!res.ok) continue;
+
+      const body = await res.json() as Record<string, unknown>;
+      if (!body?.success) continue;
+
+      const usersList = (body.data ?? []) as Array<Record<string, unknown>>;
+      const user = usersList?.[0];
+      if (!user) continue;  // 此層找不到 → 嘗試下一層
+
+      // 3. Verify password (with plain-text fallback)
+      const pwdHash = user['密碼雜湊'] as string ?? user['密碼'] as string ?? '';
+      const match = pwdHash.startsWith('$2')
+        ? await bcrypt.compare(密碼, pwdHash)
+        : 密碼 === pwdHash;
+      if (!match) {
+        // 在此層找到使用者但密碼錯誤 → 不嘗試下一層
+        return { success: false, error: '帳號或密碼錯誤' };
+      }
+
+      // 4. Fetch & merge role permissions
+      const roles = (user['角色'] ?? []) as string[];
+      const permissions = await this._getRolePermissions(roles);
+
+      // 5. Build CachedUser and write to cache
+      const cachedUserFull: CachedUser = {
+        ...(user as unknown as RawUser),
+        _layer: level as 'l2' | 'l3',
+        權限: permissions,
+      };
+      this.writeCachedUser(level, cachedUserFull);
+
+      return { success: true, data: cachedUserFull };
     }
 
-    const usersList = await res.json() as 使用者[];
-    const user = usersList?.[0];
-    if (!user) {
-      return { success: false, error: '使用者不存在' };
-    }
-
-    // 3. Verify password
-    const match = await bcrypt.compare(密碼, user.密碼雜湊 ?? '');
-    if (!match) {
-      return { success: false, error: '帳號或密碼錯誤' };
-    }
-
-    // 4. Fetch & merge role permissions
-    const permissions = await this._getRolePermissions(user.角色 ?? []);
-
-    // 5. Build CachedUser and write to cache
-    const cachedUserFull: CachedUser = {
-      ...user,
-      _layer: level as 'l2' | 'l3',
-      權限: permissions,
-    };
-    const cacheKey = `${level}:${collection}:${user.id}`;
-    this.set(cacheKey, { user: cachedUserFull }, false);
-
-    return { success: true, data: cachedUserFull };
+    return { success: false, error: '使用者不存在' };
   }
 
   // ═══════════════════════════════════════════════════════
   //  Login/Logout Events + Lockout
   // ═══════════════════════════════════════════════════════
 
-  /**
-   * 記錄登入成功：更新 pool 快取中的 pendingEvents，
-   * 以及最後登入時間與 IP。
-   *
-   * 同步操作（僅操作 Map）。
-   */
   recordSuccess(
-    帳號: string,
-    tenant: string | undefined,
+    _帳號: string,
+    _tenant: string | undefined,
     user: CachedUser,
     ip?: string,
   ): void {
     if (!user?.id) return;
 
-    const cacheKey = `${tenant ? 'l3' : 'l2'}:使用者:${user.id}`;
+    // 層級以使用者實際 _layer 為準：L3→L2 fallback 登入時，
+    // login 傳入的 tenant 可能指向 L3，但使用者實際在 L2，
+    // 若用 tenant 會把 L2 使用者寫進 l3 快取（改密碼時清不到）。
+    const layer = user._layer === 'l3' ? 'l3' : 'l2';
+    const cacheKey = this.userCacheKey(layer, user.id);
     const existing = this.items.get(cacheKey);
 
     const events = existing?.value.pendingEvents ?? [];
@@ -305,11 +434,6 @@ export class AccountPool extends DataPool<AccountCacheValue> {
     this.set(cacheKey, { user: updatedUser, pendingEvents: events }, true);
   }
 
-  /**
-   * 記錄登入失敗。累計失敗次數超過 5 次則鎖定帳號 10 分鐘。
-   *
-   * 同步操作（僅操作 Map）。
-   */
   recordFailure(帳號: string, tenant?: string): void {
     const lockKey = this.lockoutKey(帳號, tenant);
     const existing = this.items.get(lockKey);
@@ -319,7 +443,6 @@ export class AccountPool extends DataPool<AccountCacheValue> {
       : 1;
     const lockedUntil = attempts >= 5 ? now + 10 * 60 * 1000 : null;
 
-    // Store lockout data directly in items map
     this.items.set(lockKey, {
       value: {
         attempts,
@@ -333,11 +456,6 @@ export class AccountPool extends DataPool<AccountCacheValue> {
     } as PoolItem<AccountCacheValue>);
   }
 
-  /**
-   * 檢查帳號是否被鎖定。
-   *
-   * 同步操作（僅操作 Map）。
-   */
   isLocked(帳號: string, tenant?: string): boolean {
     const lockKey = this.lockoutKey(帳號, tenant);
     const item = this.items.get(lockKey);
@@ -349,23 +467,33 @@ export class AccountPool extends DataPool<AccountCacheValue> {
     };
     if (!data.lockedUntil) return false;
     if (Date.now() > data.lockedUntil) {
-      // Lockout expired — clean up
       this.items.delete(lockKey);
       return false;
     }
     return true;
   }
 
-  /**
-   * 記錄登出事件（寫入 pool，由 flush batch 回 data-gateway）。
-   *
-   * 同步操作（僅操作 Map）。
-   */
+  /** 目前仍被鎖定的帳號數（lockout 項目中 lockedUntil 尚未過期） */
+  getFrozenCount(): number {
+    let count = 0;
+    for (const [key, item] of this.items.entries()) {
+      if (!key.startsWith('_lockout:')) continue;
+      const data = item.value as unknown as {
+        attempts: number;
+        lockedUntil: number | null;
+      };
+      if (data.lockedUntil && Date.now() < data.lockedUntil) count++;
+    }
+    return count;
+  }
+
   recordLogout(帳號: string, tenant?: string): void {
     const user = this.getUserByAccount(帳號, tenant);
     if (!user?.id) return;
 
-    const cacheKey = `${tenant ? 'l3' : 'l2'}:使用者:${user.id}`;
+    // 同 recordSuccess：層級以實際 _layer 為準
+    const layer = user._layer === 'l3' ? 'l3' : 'l2';
+    const cacheKey = this.userCacheKey(layer, user.id);
     const existing = this.items.get(cacheKey);
     if (!existing) return;
 
@@ -385,12 +513,6 @@ export class AccountPool extends DataPool<AccountCacheValue> {
   //  BasePool Lifecycle Hooks
   // ═══════════════════════════════════════════════════════
 
-  /**
-   * Flush pending login/logout events to data-gateway.
-   *
-   * DataPool 的 onFlush 是 no-op（read-through 快取不需 flush），
-   * 但 AccountPool 需要將 pendingEvents batch 寫回 DG。
-   */
   protected override async onFlush(
     dirtyItems: Map<string, AccountCacheValue>,
   ): Promise<void> {
@@ -402,7 +524,6 @@ export class AccountPool extends DataPool<AccountCacheValue> {
       if (!value.pendingEvents?.length) continue;
 
       const isL3 = key.startsWith('l3:');
-      const tenant = isL3 ? key.split(':')[1] : undefined;
       const level = isL3 ? 'l3' : 'l2';
 
       for (const event of value.pendingEvents) {
@@ -418,7 +539,6 @@ export class AccountPool extends DataPool<AccountCacheValue> {
         }
       }
 
-      // Clear flushed events
       value.pendingEvents = [];
     }
   }
@@ -427,34 +547,28 @@ export class AccountPool extends DataPool<AccountCacheValue> {
   //  Internal
   // ═══════════════════════════════════════════════════════
 
-  /**
-   * 查詢角色權限並以 mergePermissions 合併。
-   * 內部方法 — 使用 DataPool 的 request() 與 getDgUrl()。
-   */
   private async _getRolePermissions(
     角色IDs: string[],
-  ): Promise<Record<string, unknown>> {
+  ): Promise<PermissionMap> {
     if (!角色IDs || 角色IDs.length === 0) return { l2: {}, l3: {} };
 
-    // 從 L2 SYSTEM collection 讀取角色權限
-    // 角色權限統一存在 L2，collection 名稱為「角色權限」
     const allPermissions: Array<Record<string, unknown>> = [];
 
     for (const 角色id of 角色IDs) {
       const res = await this.request(
         'GET',
-        `/api/l2/角色權限/${encodeURIComponent(角色id)}`,
+        `/api/l2/${encodeURIComponent(角色id)}`,
       );
       if (res.ok) {
-        const data = await res.json();
-        if (data?.permissions) {
-          allPermissions.push(data.permissions);
+        const body = await res.json() as { success?: boolean; data?: Record<string, unknown> };
+        if (body?.success && body.data) {
+          allPermissions.push(body.data);
         }
       }
     }
 
     if (allPermissions.length === 0) return { l2: {}, l3: {} };
-    return mergePermissions(allPermissions);
+    return mergePermissions(allPermissions) as PermissionMap;
   }
 }
 

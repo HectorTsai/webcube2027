@@ -24,17 +24,24 @@ async function resolveName(
 
 export const GET = async (c: Context) => {
   const lang = (c.get('lang') || 'zh-tw') as SupportedLanguage;
+  const payload = c.get('jwt_payload') as Record<string, unknown> | undefined;
+  const tenant = payload?.tenant as string | undefined;
+  const layer = tenant ? 'l3' : 'l2';
 
   try {
     const qs = new URLSearchParams(c.req.query()).toString();
-    const url = `/api/l2/使用者/角色${qs ? `?${qs}` : ''}`;
+    const path = `/api/${layer}/%E4%BD%BF%E7%94%A8%E8%80%85/%E8%A7%92%E8%89%B2${qs ? `?${qs}` : ''}`;
 
-    const result = await accountPool.request('GET', url);
-    if (!result.success) {
-      return c.json({ success: false, error: '查詢角色失敗' }, 502);
-    }
+    const headers: Record<string, string> = {};
+    if (tenant) headers['X-Tenant'] = tenant;
 
-    const items = (result.data as Record<string, unknown>[]) || [];
+    const res = await accountPool.request('GET', path, headers);
+    if (!res.ok) return c.json({ success: false, error: '查詢角色失敗' }, 502);
+
+    const body = await res.json() as Record<string, unknown>;
+    if (!body?.success) return c.json({ success: false, error: '查詢角色失敗' }, 502);
+
+    const items = (body.data as Record<string, unknown>[]) || [];
     const data = await Promise.all(
       items.map(async (role) => ({
         id: role.id,
@@ -46,7 +53,7 @@ export const GET = async (c: Context) => {
     return c.json({
       success: true,
       data,
-      pagination: result.pagination,
+      pagination: body.pagination,
     });
   } catch (err) {
     return c.json({

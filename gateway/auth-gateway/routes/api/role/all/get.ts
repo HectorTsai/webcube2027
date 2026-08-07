@@ -32,15 +32,25 @@ async function fetchLayer(
   layer: string,
   limit: number,
   offset: number,
+  tenant?: string,
 ): Promise<{ items: Record<string, unknown>[]; totalCount: number }> {
   try {
-    const result = await accountPool.request(
+    const headers: Record<string, string> = {};
+    if (tenant && layer === '3') headers['X-Tenant'] = tenant;
+
+    const res = await accountPool.request(
       'GET',
-      `/api/l${layer.toLowerCase()}/使用者/角色?limit=${limit}&offset=${offset}`,
+      `/api/l${layer.toLowerCase()}/%E4%BD%BF%E7%94%A8%E8%80%85/%E8%A7%92%E8%89%B2?limit=${limit}&offset=${offset}`,
+      headers,
     );
+    if (!res.ok) return { items: [], totalCount: 0 };
+
+    const body = await res.json() as Record<string, unknown>;
+    if (!body?.success) return { items: [], totalCount: 0 };
+
     return {
-      items: (result.data as Record<string, unknown>[]) || [],
-      totalCount: (result.pagination as { totalCount?: number })?.totalCount ?? 0,
+      items: (body.data as Record<string, unknown>[]) || [],
+      totalCount: (body.pagination as { totalCount?: number })?.totalCount ?? 0,
     };
   } catch {
     return { items: [], totalCount: 0 };
@@ -49,6 +59,8 @@ async function fetchLayer(
 
 export const GET = async (c: Context) => {
   const lang = (c.get('lang') || 'zh-tw') as SupportedLanguage;
+  const payload = c.get('jwt_payload') as Record<string, unknown> | undefined;
+  const tenant = payload?.tenant as string | undefined;
 
   const qPage = Number(c.req.query('page'));
   const qPageSize = Number(c.req.query('pageSize'));
@@ -64,7 +76,7 @@ export const GET = async (c: Context) => {
 
     const want = pageSize - data.length;
     const { items, totalCount: layerTotal } = await fetchLayer(
-      layer, want, skip,
+      layer, want, skip, tenant,
     );
     totalCount += layerTotal;
 

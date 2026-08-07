@@ -6,9 +6,10 @@
  */
 
 import { accountPool } from './account-pool.ts';
-import type { VerifyUserResult } from './account-pool.ts';
+import type { VerifyPasswordResult } from './account-pool.ts';
 
-export type { VerifyUserResult };
+/** 對外相容名稱（帳號驗證結果） */
+export type VerifyUserResult = VerifyPasswordResult;
 
 export async function verifyUser(
   帳號: string,

@@ -101,8 +101,19 @@ export const GET = async (c: any) => {
       // cookie 無效 → 視為無 cookie，重新簽發訪客 token
     }
   }
-  // tenant 優先取 query 參數，其次從 Host header 推斷（Domain = Tenant ID，不含埠號）
-  const tenant = c.req.query('tenant') || (c.req.header('Host') || '').replace(/:\d+$/, '').toLowerCase();
+  // tenant 從 Host header 推斷（domain-based 多租戶）。
+  // 不能從 ?tenant= 查詢參數取得，因為 URL 參數可被任意竄改。
+  // 注意：登入 POST 會先試 L3（此 tenant），找不到再 fallback L2。
+  const tenant = (c.req.header('Host') || '').split(':')[0] || '';
+
+  // 清除可能殘留的舊訪客 JWT cookie，確保以當前 Host 重新簽發
+  if (!hasValidJwt) {
+    c.header(
+      'Set-Cookie',
+      'jwt=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',
+      { append: true },
+    );
+  }
 
   if (!hasValidJwt && tenant) {
     try {
@@ -137,6 +148,7 @@ export const GET = async (c: any) => {
       c.header(
         'Set-Cookie',
         `jwt=${visitorToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${VISITOR_TTL}`,
+        { append: true },
       );
     } catch {
       // 簽發失敗不阻擋頁面渲染

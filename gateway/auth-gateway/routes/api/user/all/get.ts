@@ -36,14 +36,19 @@ async function fetchLayer(
     const headers: Record<string, string> = {};
     if (tenant && layer === '3') headers['X-Tenant'] = tenant;
 
-    const result = await accountPool.request(
+    const res = await accountPool.request(
       'GET',
       `/api/l${layer.toLowerCase()}/使用者/使用者?limit=${limit}&offset=${offset}`,
       headers,
     );
+    if (!res.ok) return { items: [], totalCount: 0 };
+
+    const body = await res.json() as Record<string, unknown>;
+    if (!body?.success) return { items: [], totalCount: 0 };
+
     return {
-      items: (result.data as Record<string, unknown>[]) || [],
-      totalCount: (result.pagination as { totalCount?: number })?.totalCount ?? 0,
+      items: (body.data as Record<string, unknown>[]) || [],
+      totalCount: (body.pagination as { totalCount?: number })?.totalCount ?? 0,
     };
   } catch {
     return { items: [], totalCount: 0 };
