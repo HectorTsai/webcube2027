@@ -4,8 +4,15 @@
 
 import { renderToString } from 'hono/jsx/dom/server';
 import { raw } from 'hono/html';
+import { sign, verify } from 'hono/jwt';
+import { getKeys } from '../../../utils/keys.ts';
+import { getDataGatewayUrl, getDataGatewayApiKey } from '../../../utils/config.ts';
 import { resolveTenant } from '../../../utils/tenant.ts';
 import { accountPool } from '../../../services/account-pool.ts';
+import { checkAccess } from '@dui/framework';
+
+/** 訪客 JWT 有效期 — 1 小時 */
+const VISITOR_TTL = 3600;
 
 const RegisterContent = ({ lang, l3Ready, notice }: { lang: string; l3Ready: boolean; notice?: string }) => {
   const prefix = `/${lang}`;
@@ -86,6 +93,9 @@ const RegisterContent = ({ lang, l3Ready, notice }: { lang: string; l3Ready: boo
               // 移除 confirm 欄位，不送出
               delete data['confirm密碼'];
 
+              // 網頁註冊一律走 L3（租戶層級）
+              data['layer'] = 'l3';
+
               try {
                 const r = await fetch('/api/register', {
                   method: 'POST',
@@ -118,17 +128,78 @@ const RegisterContent = ({ lang, l3Ready, notice }: { lang: string; l3Ready: boo
 export const GET = async (c: any) => {
   const lang = c.get('lang') || 'zh-tw';
 
-  // 租戶 L3 未就緒時不開放註冊（剛 setup、L3 尚未啟用的網站）
+  // ── 1. 確保有有效 JWT cookie：無則簽發訪客 JWT（含 L1 訪客角色權限）──
+  // 訪客 JWT 同時作為「是否有權限註冊」的判斷依據與 POST /api/register 的呼叫端身份。
+  const cookieHeader = c.req.header('Cookie') || '';
+  const jwtMatch = cookieHeader.match(/jwt=([^;]+)/);
+  let payload: Record<string, unknown> | null = null;
+  if (jwtMatch) {
+    try {
+      const { publicKey } = getKeys();
+      payload = await verify(decodeURIComponent(jwtMatch[1]), publicKey, 'EdDSA') as Record<string, unknown>;
+    } catch {
+      payload = null; // cookie 無效 → 重新簽發訪客 token
+    }
+  }
+  if (!payload?.type) {
+    const tenant = await resolveTenant(c, undefined);
+    if (tenant) {
+      try {
+        const { privateKey } = getKeys();
+        const now = Math.floor(Date.now() / 1000);
+        // 從 L1 取得訪客角色權限（訪客角色 seed 位於 L1）
+        let 權限: Record<string, unknown> = {};
+        try {
+          const dataGatewayUrl = await getDataGatewayUrl();
+          if (!dataGatewayUrl) throw new Error('data-gateway 未設定');
+          const apiKey = await getDataGatewayApiKey();
+          const r = await fetch(`${dataGatewayUrl}/api/l1/使用者:角色:訪客`, {
+            headers: { 'X-API-Key': apiKey || '' },
+          });
+          const res = await r.json();
+          if (res.success) 權限 = res.data?.權限 || {};
+        } catch {
+          // data-gateway 尚未就緒，訪客預設無權限
+        }
+
+        const visitorPayload = {
+          tenant,
+          sub: '使用者:使用者:訪客',
+          帳號: '訪客',
+          角色: ['使用者:角色:訪客'],
+          type: 'visitor',
+          權限,
+          iat: now,
+          exp: now + VISITOR_TTL,
+        };
+        const visitorToken = await sign(visitorPayload, privateKey, 'EdDSA');
+        c.header(
+          'Set-Cookie',
+          `jwt=${visitorToken}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${VISITOR_TTL}`,
+          { append: true },
+        );
+        payload = visitorPayload;
+      } catch {
+        // 簽發失敗不阻擋頁面渲染
+      }
+    }
+  }
+
+  // ── 2. 依呼叫端權限決定是否開放註冊 ──
   let l3Ready = false;
   let notice = '';
-  const tenant = await resolveTenant(c, undefined);
-  if (!tenant) {
-    notice = '無法判定租戶（tenant），暫時無法註冊。';
+  if (!payload || !checkAccess(payload, 'l3', '使用者', '新增')) {
+    notice = '訪客角色沒有註冊權限，暫時無法建立新帳號。';
   } else {
-    const check = await accountPool.listUsers('l3', tenant, { limit: '1' });
-    l3Ready = check.success;
-    if (!l3Ready) {
-      notice = `租戶 ${tenant} 的資料庫尚未啟用，暫時無法註冊新帳號。`;
+    const tenant = await resolveTenant(c, undefined);
+    if (!tenant) {
+      notice = '無法判定租戶（tenant），暫時無法註冊。';
+    } else {
+      const check = await accountPool.listUsers('l3', tenant, { limit: '1' });
+      l3Ready = check.success;
+      if (!l3Ready) {
+        notice = `租戶 ${tenant} 的資料庫尚未啟用，暫時無法註冊新帳號。`;
+      }
     }
   }
 

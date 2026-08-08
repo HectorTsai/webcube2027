@@ -172,7 +172,7 @@
 
 **處理流程**：
 
-1. 向 data-gateway 查詢訪客角色（`使用者:角色:訪客`）權限
+1. 向 data-gateway 的 **L1** 查詢訪客角色（`使用者:角色:訪客`）權限（訪客角色 seed 位於 L1）
 2. 以 EdDSA (Ed25519) 簽發訪客 JWT（`type: "visitor"`，payload 含角色權限）
 
 > data-gateway 尚未就緒時回退為空權限，仍可簽發訪客 JWT。
@@ -190,15 +190,25 @@
 
 ### POST /api/register
 
-租戶公開註冊，**一律寫入 L3（租戶資料庫）**。本端以 bcryptjs 雜湊密碼後，透過 L3 CRUD 寫入使用者紀錄。
+建立使用者帳號，本端以 bcryptjs 雜湊密碼後，透過 CRUD 寫入指定層級。`layer` 預設 `l3`。
 
-**規則**：
+**規則**（`layer: 'l3'`，預設）：
+- 需呼叫端 JWT（訪客或已認證）且對 L3「使用者」collection 有**新增**權限（`checkAccess(..., 'l3', '使用者', '新增')`）；無 JWT 或權限不足 → 回傳 `403`
+- 一律寫入租戶 L3（租戶資料庫）
 - 不接受指定角色（`角色` 欄位一律忽略）
 - L3 第一位註冊 → 角色 `使用者:角色:管理員`（該租戶站台管理者）
 - 其後註冊 → 角色 `使用者:角色:會員`
 - L3 不存在（網站未啟用租戶資料庫）→ 回傳 `400`
 - tenant 取得順序：`body.tenant` → cookie 訪客 JWT → Host header
-- 系統安裝（setup）不經由此端點，直接操作 L2 資料庫
+
+> 權限動詞：角色權限的「寫」欄位支援 `true`（新增/修改/刪除）、`false`（皆不允許）、`'self'`（作者是自己時）、`'new'`（僅允許新增）。訪客角色 seed（L1）對 L3「使用者」設為 `"寫": "new"`，故訪客可註冊（新增）帳號但不能修改/刪除既有資料。
+
+**規則**（`layer: 'l2'`）：
+- 需已認證 JWT 且對 L2「使用者」collection 有寫權限；未登入／權限不足 → 回傳 `403`
+- 角色由呼叫端指定（`body.角色` 陣列，預設 `使用者:角色:會員`）
+- 不需要 `tenant`
+
+> 系統安裝（setup）不經由此端點，直接以 X-API-Key 操作 L2 資料庫建立超管理者（安裝階段尚無帳號可認證）。
 
 **Request Body**：
 
@@ -206,6 +216,7 @@
 {
   "帳號": "member",
   "密碼": "password",
+  "layer": "l3",
   "tenant": "www.dui.com.tw"
 }
 ```
@@ -214,10 +225,12 @@
 |------|------|------|------|
 | `帳號` | string | 是 | 使用者帳號 |
 | `密碼` | string | 是 | 使用者密碼 |
-| `tenant` | string | 否 | 租戶 hostname（不帶時依序從 cookie 訪客 JWT / Host header 推斷） |
+| `layer` | `l2` / `l3` | 否 | 寫入層級（預設 `l3`） |
+| `tenant` | string | 否 | 租戶 hostname（僅 `l3` 需要；不帶時依序從 cookie 訪客 JWT / Host header 推斷） |
+| `角色` | string[] | 否 | 角色 ID 陣列（僅 `l2` 使用，預設會員） |
 | `名稱` | object | 否 | MultilingualString 名稱 |
 
-> 主要用於 site-gateway 的 `/api/site/apply` 建立網站管理員帳號（第一位註冊自動為管理員）。
+> 主要用於 site-gateway 的 `/api/site/apply` 建立網站管理員帳號（第一位註冊自動為管理員）與租戶註冊頁（`/:lang/register`，頁面一律送出 `layer: 'l3'`）。
 
 **Response `200 OK`**：
 
@@ -238,6 +251,15 @@
 {
   "success": false,
   "error": "租戶 www.dui.com.tw 的 L3 資料庫不存在或未啟用"
+}
+```
+
+**Response `403`**（`layer: 'l2'` 權限不足）：
+
+```json
+{
+  "success": false,
+  "error": "沒有權限建立使用者"
 }
 ```
 
@@ -774,7 +796,7 @@ GET /api/logout?redirect=http%3A%2F%2Flocalhost%3A8002%2Fzh-tw%2F
 
 ### GET /:lang/register
 
-註冊頁面。租戶 L3 未就緒（剛 setup、L3 尚未啟用）時，頁面顯示「註冊尚未開放」且不渲染註冊表單；後端 `POST /api/register` 亦會回 400（不降級 L2）。
+註冊頁面。GET 時會確保簽發訪客 JWT cookie（含 L1 訪客角色權限），並依呼叫端對 L3「使用者」的**新增**權限決定是否開放註冊：權限不足（無 JWT／訪客角色未設 `new`）或租戶 L3 未就緒（剛 setup、L3 尚未啟用）時，頁面顯示「註冊尚未開放」且不渲染註冊表單；後端 `POST /api/register` 亦會回 403／400（不降級 L2）。
 
 ### GET /:lang/setup
 

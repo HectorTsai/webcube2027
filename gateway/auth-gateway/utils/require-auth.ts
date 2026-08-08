@@ -15,11 +15,11 @@ import { checkAccess } from '@dui/framework';
 import { getKeys } from './keys.ts';
 
 /**
- * 從請求讀取並驗證 JWT（Authorization Bearer 或 jwt cookie）
+ * 從請求讀取並驗證 JWT（Authorization Bearer 或 jwt cookie），不限定型別。
  *
- * @returns 已認證的 payload（type === 'authenticated'）；未登入／token 無效回 null
+ * @returns 有效的 payload（含 type: 'authenticated' / 'visitor'）；無 token 或無效回 null
  */
-export async function getAuthenticatedPayload(
+export async function getCallerPayload(
   c: Context,
 ): Promise<Record<string, unknown> | null> {
   const token = extractToken(c);
@@ -27,12 +27,23 @@ export async function getAuthenticatedPayload(
 
   try {
     const { publicKey } = getKeys();
-    const payload = await verify(token, publicKey, 'EdDSA') as Record<string, unknown>;
-    // 訪客 JWT（type: 'visitor'）不視為已認證使用者，交由權限檢查決定
-    return payload?.type === 'authenticated' ? payload : null;
+    return await verify(token, publicKey, 'EdDSA') as Record<string, unknown>;
   } catch {
     return null;
   }
+}
+
+/**
+ * 從請求讀取並驗證 JWT（Authorization Bearer 或 jwt cookie）
+ *
+ * @returns 已認證的 payload（type === 'authenticated'）；未登入／token 無效回 null
+ */
+export async function getAuthenticatedPayload(
+  c: Context,
+): Promise<Record<string, unknown> | null> {
+  const payload = await getCallerPayload(c);
+  // 訪客 JWT（type: 'visitor'）不視為已認證使用者，交由權限檢查決定
+  return payload?.type === 'authenticated' ? payload : null;
 }
 
 /**

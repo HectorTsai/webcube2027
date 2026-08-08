@@ -125,7 +125,7 @@ export const GET = async (c: any) => {
         const dataGatewayUrl = await getDataGatewayUrl();
         if (!dataGatewayUrl) throw new Error('data-gateway 未設定');
         const apiKey = await getDataGatewayApiKey();
-        const r = await fetch(`${dataGatewayUrl}/api/l2/使用者:角色:訪客`, {
+        const r = await fetch(`${dataGatewayUrl}/api/l1/使用者:角色:訪客`, {
           headers: { 'X-API-Key': apiKey || '' },
         });
         const res = await r.json();

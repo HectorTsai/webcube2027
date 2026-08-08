@@ -148,9 +148,26 @@ export async function POST(c: Context) {
         return c.json({ success: false, error: 'auth-gateway 尚未設定，無法建立管理員帳號' }, 500);
       }
       try {
+        // 先向 auth-gateway 取得訪客 JWT（register 需要呼叫端身份 + L3「使用者」新增權限）
+        let bearer = '';
+        try {
+          const tokenRes = await fetch(`${authUrl}/api/anonymous-token`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ domain }),
+          });
+          const tokenJson = await tokenRes.json();
+          if (tokenJson.success) bearer = tokenJson.data?.token || '';
+        } catch {
+          // 取不到訪客 JWT → register 會回 403，交由下方 adminResult 處理
+        }
+
         const res = await fetch(`${authUrl}/api/register`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(bearer ? { Authorization: `Bearer ${bearer}` } : {}),
+          },
           body: JSON.stringify({
             帳號: admin.帳號,
             密碼: admin.密碼,

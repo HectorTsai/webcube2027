@@ -25,6 +25,7 @@
     "npm:@unocss/core@^66.6.7": "66.7.5",
     "npm:@unocss/preset-typography@^66.6.7": "66.7.5",
     "npm:@unocss/preset-wind4@^66.6.7": "66.7.5",
+    "npm:bcryptjs@*": "2.4.3",
     "npm:bcryptjs@^2.4.3": "2.4.3",
     "npm:daisyui@^5.6.18": "5.7.4",
     "npm:firebase-admin@12": "12.7.0",

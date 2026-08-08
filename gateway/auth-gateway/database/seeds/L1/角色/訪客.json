@@ -6,7 +6,8 @@
       "default": { "讀": false, "寫": false }
     },
     "l3": {
-      "default": { "讀": true, "寫": false }
+      "default": { "讀": true, "寫": false },
+      "使用者": { "讀": true, "寫": "new" }
     }
   }
 }

@@ -21,7 +21,7 @@ const VISITOR_TTL = 3600;
 /** 從 data-gateway 取得訪客角色的權限設定（透過 pool 代理） */
 async function getVisitorPermissions(): Promise<Record<string, unknown>> {
   try {
-    const res = await accountPool.request('GET', '/api/l2/使用者:角色:訪客');
+    const res = await accountPool.request('GET', '/api/l1/使用者:角色:訪客');
     if (!res.ok) return {};
     const body = await res.json() as { success?: boolean; data?: unknown };
     return (body?.success ? (body.data as Record<string, unknown>)?.權限 as Record<string, unknown> || {} : {});
