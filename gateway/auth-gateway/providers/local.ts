@@ -68,12 +68,11 @@ export const localProvider: AuthProvider = {
         return { success: false, error: result.error || '帳號或密碼錯誤' };
       }
 
-      // 寫入 pool 快取（含密碼雜湊供後續比對）
+      // 寫入 pool 快取（含密碼雜湊供後續比對）。
+      // 以展開保留 DG 回傳的全部欄位（圖示、其他資訊等），
+      // 避免手動挑欄位時漏掉導致後續 getUserById 快取命中缺欄位（圖示空白）。
       const cachedUser = {
-        id: result.data.id as string,
-        帳號: result.data.帳號 as string,
-        名稱: result.data.名稱,
-        角色: result.data.角色 as string[],
+        ...(result.data as unknown as Record<string, unknown>),
         _layer: result.data._layer,
         權限: result.data.權限,
         密碼雜湊: (result.data as any).密碼雜湊 ?? (result.data as any).密碼 ?? '',
